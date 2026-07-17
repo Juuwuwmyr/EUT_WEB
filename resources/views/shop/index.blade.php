@@ -30,7 +30,7 @@
             position: sticky; top: 0; z-index: 100;
             background: rgba(8,8,16,0.96);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         .topnav-inner {
             max-width: 1200px; margin: 0 auto;
@@ -86,7 +86,7 @@
         }
         .hero-card {
             background: linear-gradient(135deg, #1a0506 0%, #1a0d00 50%, #0e0f1a 100%);
-            border: 1px solid rgba(250,204,21,0.12);
+            border: 1px solid rgba(255,255,255,0.12);
             border-radius: 24px; overflow: hidden;
             position: relative; min-height: 220px;
             padding: 28px 28px 28px;
@@ -310,19 +310,10 @@
 </head>
 <body>
 
-<!-- ── PROMO BANNER ── -->
-<div class="promo-banner">
-    🎉 Free Delivery on Orders Over ₱500! &nbsp;·&nbsp; Use Code: <strong>EUTFREE</strong>
-</div>
-
 <!-- ── NAVBAR ── -->
 <nav class="topnav">
     <div class="topnav-inner">
-        <a href="{{ route('shop.home') }}" class="nav-logo">
-            <span class="nav-logo-icon">🍔</span>
-            <span class="nav-logo-text">EUT Food</span>
-        </a>
-        <div class="search-wrap">
+        <div class="search-wrap" style="max-width:100%;">
             <input type="text" id="searchInput" class="search-input" placeholder="Search burgers, fries, drinks…">
             <button class="search-btn">
                 <svg width="14" height="14" fill="none" stroke="#000" viewBox="0 0 24 24">

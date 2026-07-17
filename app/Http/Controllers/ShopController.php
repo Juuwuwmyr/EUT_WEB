@@ -19,8 +19,12 @@ class ShopController extends Controller
     {
         $item = \App\Models\MenuItem::with([
             'category',
-            'modifierGroups' => fn($q) => $q->active()->orderBy('sort_order'),
-            'modifierGroups.activeOptions',
+            'modifierGroups' => function($q) {
+                $q->where('is_active', true)->orderBy('sort_order');
+            },
+            'modifierGroups.activeOptions' => function($q) {
+                $q->where('is_active', true)->orderBy('sort_order');
+            },
         ])->active()->find((int) $id);
 
         if (!$item) {

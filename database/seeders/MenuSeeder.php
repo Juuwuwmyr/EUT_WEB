@@ -98,85 +98,75 @@ class MenuSeeder extends Seeder
 
     private function seedModifiers(): void
     {
-        // Add flavor + size modifiers to burgers
+        // Only add modifier groups to items that have NONE yet
         $burgers = \App\Models\MenuItem::whereHas('category', fn($q) => $q->where('slug','burgers'))->get();
 
         foreach ($burgers as $burger) {
-            // Flavor group
-            $flavorGroup = \App\Models\ModifierGroup::updateOrCreate(
-                ['menu_item_id' => $burger->id, 'type' => 'flavor', 'name' => 'Sauce / Flavor'],
-                ['required' => false, 'is_active' => true, 'sort_order' => 1]
-            );
+            // Skip if already has a flavor group
+            if ($burger->modifierGroups()->where('type','flavor')->exists()) continue;
+
+            $flavorGroup = \App\Models\ModifierGroup::create([
+                'menu_item_id' => $burger->id, 'type' => 'flavor', 'name' => 'Sauce / Flavor',
+                'required' => false, 'is_active' => true, 'sort_order' => 1
+            ]);
             $flavors = [
-                ['name' => 'Classic',         'price_type' => 'none', 'price_adjustment' => 0,  'is_default' => true,  'sort_order' => 1],
-                ['name' => 'Spicy',           'price_type' => 'none', 'price_adjustment' => 0,  'is_default' => false, 'sort_order' => 2],
-                ['name' => 'BBQ Smoke',       'price_type' => 'none', 'price_adjustment' => 0,  'is_default' => false, 'sort_order' => 3],
-                ['name' => 'Garlic Aioli',    'price_type' => 'none', 'price_adjustment' => 0,  'is_default' => false, 'sort_order' => 4],
-                ['name' => 'Honey Sriracha',  'price_type' => 'none', 'price_adjustment' => 0,  'is_default' => false, 'sort_order' => 5],
+                ['name'=>'Classic','price_type'=>'none','price_adjustment'=>0,'is_default'=>true, 'sort_order'=>1],
+                ['name'=>'Spicy',  'price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>2],
+                ['name'=>'BBQ Smoke','price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>3],
+                ['name'=>'Garlic Aioli','price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>4],
+                ['name'=>'Honey Sriracha','price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>5],
             ];
             foreach ($flavors as $f) {
-                \App\Models\ModifierOption::updateOrCreate(
-                    ['modifier_group_id' => $flavorGroup->id, 'name' => $f['name']],
-                    array_merge($f, ['modifier_group_id' => $flavorGroup->id, 'is_active' => true])
-                );
+                \App\Models\ModifierOption::create(array_merge($f, ['modifier_group_id'=>$flavorGroup->id,'is_active'=>true]));
             }
 
-            // Size / modifier group
-            $sizeGroup = \App\Models\ModifierGroup::updateOrCreate(
-                ['menu_item_id' => $burger->id, 'type' => 'modifier', 'name' => 'Size'],
-                ['required' => false, 'is_active' => true, 'sort_order' => 2]
-            );
-            $sizes = [
-                ['name' => 'Regular', 'price_type' => 'none', 'price_adjustment' => 0,   'is_default' => true,  'sort_order' => 1],
-                ['name' => 'Large',   'price_type' => 'add',  'price_adjustment' => 50,  'is_default' => false, 'sort_order' => 2],
-                ['name' => 'X-Large', 'price_type' => 'add',  'price_adjustment' => 100, 'is_default' => false, 'sort_order' => 3],
-            ];
-            foreach ($sizes as $s) {
-                \App\Models\ModifierOption::updateOrCreate(
-                    ['modifier_group_id' => $sizeGroup->id, 'name' => $s['name']],
-                    array_merge($s, ['modifier_group_id' => $sizeGroup->id, 'is_active' => true])
-                );
+            // Skip if already has a modifier group
+            if ($burger->modifierGroups()->where('type','modifier')->exists()) continue;
+
+            $sizeGroup = \App\Models\ModifierGroup::create([
+                'menu_item_id' => $burger->id, 'type' => 'modifier', 'name' => 'Size',
+                'required' => false, 'is_active' => true, 'sort_order' => 2
+            ]);
+            foreach ([
+                ['name'=>'Regular','price_type'=>'none','price_adjustment'=>0,  'is_default'=>true, 'sort_order'=>1],
+                ['name'=>'Large',  'price_type'=>'add', 'price_adjustment'=>50, 'is_default'=>false,'sort_order'=>2],
+                ['name'=>'X-Large','price_type'=>'add', 'price_adjustment'=>100,'is_default'=>false,'sort_order'=>3],
+            ] as $s) {
+                \App\Models\ModifierOption::create(array_merge($s, ['modifier_group_id'=>$sizeGroup->id,'is_active'=>true]));
             }
         }
 
-        // Add size modifier to sides
         $sides = \App\Models\MenuItem::whereHas('category', fn($q) => $q->where('slug','sides'))->get();
         foreach ($sides as $side) {
-            $sizeGroup = \App\Models\ModifierGroup::updateOrCreate(
-                ['menu_item_id' => $side->id, 'type' => 'modifier', 'name' => 'Size'],
-                ['required' => false, 'is_active' => true, 'sort_order' => 1]
-            );
-            $sizes = [
-                ['name' => 'Regular', 'price_type' => 'none', 'price_adjustment' => 0,  'is_default' => true,  'sort_order' => 1],
-                ['name' => 'Large',   'price_type' => 'add',  'price_adjustment' => 30, 'is_default' => false, 'sort_order' => 2],
-            ];
-            foreach ($sizes as $s) {
-                \App\Models\ModifierOption::updateOrCreate(
-                    ['modifier_group_id' => $sizeGroup->id, 'name' => $s['name']],
-                    array_merge($s, ['modifier_group_id' => $sizeGroup->id, 'is_active' => true])
-                );
+            if ($side->modifierGroups()->where('type','modifier')->exists()) continue;
+            $sg = \App\Models\ModifierGroup::create([
+                'menu_item_id'=>$side->id,'type'=>'modifier','name'=>'Size',
+                'required'=>false,'is_active'=>true,'sort_order'=>1
+            ]);
+            foreach ([
+                ['name'=>'Regular','price_type'=>'none','price_adjustment'=>0, 'is_default'=>true, 'sort_order'=>1],
+                ['name'=>'Large',  'price_type'=>'add', 'price_adjustment'=>30,'is_default'=>false,'sort_order'=>2],
+            ] as $s) {
+                \App\Models\ModifierOption::create(array_merge($s, ['modifier_group_id'=>$sg->id,'is_active'=>true]));
             }
         }
 
-        // Add drink size to beverages
         $beverages = \App\Models\MenuItem::whereHas('category', fn($q) => $q->where('slug','beverages'))->get();
         foreach ($beverages as $bev) {
-            $sizeGroup = \App\Models\ModifierGroup::updateOrCreate(
-                ['menu_item_id' => $bev->id, 'type' => 'modifier', 'name' => 'Size'],
-                ['required' => false, 'is_active' => true, 'sort_order' => 1]
-            );
-            $sizes = [
-                ['name' => 'Medium', 'price_type' => 'none', 'price_adjustment' => 0,  'is_default' => true,  'sort_order' => 1],
-                ['name' => 'Large',  'price_type' => 'add',  'price_adjustment' => 20, 'is_default' => false, 'sort_order' => 2],
-            ];
-            foreach ($sizes as $s) {
-                \App\Models\ModifierOption::updateOrCreate(
-                    ['modifier_group_id' => $sizeGroup->id, 'name' => $s['name']],
-                    array_merge($s, ['modifier_group_id' => $sizeGroup->id, 'is_active' => true])
-                );
+            if ($bev->modifierGroups()->where('type','modifier')->exists()) continue;
+            $sg = \App\Models\ModifierGroup::create([
+                'menu_item_id'=>$bev->id,'type'=>'modifier','name'=>'Size',
+                'required'=>false,'is_active'=>true,'sort_order'=>1
+            ]);
+            foreach ([
+                ['name'=>'Medium','price_type'=>'none','price_adjustment'=>0, 'is_default'=>true, 'sort_order'=>1],
+                ['name'=>'Large', 'price_type'=>'add', 'price_adjustment'=>20,'is_default'=>false,'sort_order'=>2],
+            ] as $s) {
+                \App\Models\ModifierOption::create(array_merge($s, ['modifier_group_id'=>$sg->id,'is_active'=>true]));
             }
         }
 
-        $this->command->info('Modifiers seeded: ' . \App\Models\ModifierGroup::count() . ' groups, ' . \App\Models\ModifierOption::count() . ' options.');
+        $this->command->info('Modifiers seeded: '.\App\Models\ModifierGroup::count().' groups, '.\App\Models\ModifierOption::count().' options.');
+    }
     }
 }

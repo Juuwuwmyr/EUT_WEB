@@ -198,13 +198,9 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
               style="padding:.7rem 1rem;font-size:.8rem;font-weight:600;border:none;background:none;cursor:pointer;color:var(--accent);border-bottom:2px solid var(--accent);transition:all .2s;">
         <i data-lucide="info" style="width:.8rem;height:.8rem;stroke-width:2;vertical-align:middle;"></i> Basic Info
       </button>
-      <button type="button" onclick="switchTab('tabFlavors')" id="btnTabFlavors"
+      <button type="button" onclick="switchTab('tabCustomize')" id="btnTabCustomize"
               style="padding:.7rem 1rem;font-size:.8rem;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;">
-        <i data-lucide="droplets" style="width:.8rem;height:.8rem;stroke-width:2;vertical-align:middle;"></i> Flavors
-      </button>
-      <button type="button" onclick="switchTab('tabModifiers')" id="btnTabModifiers"
-              style="padding:.7rem 1rem;font-size:.8rem;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;">
-        <i data-lucide="sliders-horizontal" style="width:.8rem;height:.8rem;stroke-width:2;vertical-align:middle;"></i> Modifiers
+        <i data-lucide="sliders-horizontal" style="width:.8rem;height:.8rem;stroke-width:2;vertical-align:middle;"></i> Customization
       </button>
       <button type="button" onclick="switchTab('tabAddons')" id="btnTabAddons"
               style="padding:.7rem 1rem;font-size:.8rem;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;">
@@ -263,38 +259,50 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
         </div>
       </div>
 
-      {{-- ── TAB 2: FLAVORS ── --}}
-      <div id="tabFlavors" class="modal-body tab-pane" style="display:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
-          <div>
-            <p style="font-weight:600;color:var(--text-strong);margin:0 0 .2rem;font-size:.875rem;">Flavor Groups</p>
-            <p style="color:var(--text-muted);font-size:.75rem;margin:0;">e.g. Spice Level → Mild, Regular, Spicy. Optionally affects price.</p>
-          </div>
-          <button type="button" onclick="addGroup('flavor')" class="btn-primary" style="font-size:.75rem;padding:.4rem .85rem;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;">
-            <i data-lucide="plus" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i> Add Flavor Group
-          </button>
-        </div>
-        <div id="flavorGroups" style="display:flex;flex-direction:column;gap:1rem;"></div>
-        <p id="noFlavors" style="text-align:center;color:var(--text-muted);font-size:.8rem;padding:1.5rem 0;">
-          No flavor groups yet. Click "Add Flavor Group" to start.
-        </p>
-      </div>
+      {{-- ── TAB 2: CUSTOMIZATION (Flavors + Modifiers combined) ── --}}
+      <div id="tabCustomize" class="modal-body tab-pane" style="display:none;gap:0;padding:0;">
 
-      {{-- ── TAB 3: MODIFIERS ── --}}
-      <div id="tabModifiers" class="modal-body tab-pane" style="display:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
-          <div>
-            <p style="font-weight:600;color:var(--text-strong);margin:0 0 .2rem;font-size:.875rem;">Modifier Groups</p>
-            <p style="color:var(--text-muted);font-size:.75rem;margin:0;">e.g. Size → Small, Regular, Large. Optionally affects price.</p>
+        {{-- FLAVORS section --}}
+        <div style="padding:1.25rem 1.4rem 1rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+            <div>
+              <p style="font-weight:700;color:var(--text-strong);margin:0 0 .2rem;font-size:.875rem;display:flex;align-items:center;gap:.4rem;">
+                <i data-lucide="droplets" style="width:.85rem;height:.85rem;color:#3b82f6;stroke-width:2;"></i> Flavors
+              </p>
+              <p style="color:var(--text-muted);font-size:.72rem;margin:0;">e.g. Spice Level → Mild, Regular, Spicy. Optionally affects price.</p>
+            </div>
+            <button type="button" onclick="addGroup('flavor')" class="btn-primary" style="font-size:.75rem;padding:.4rem .85rem;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;">
+              <i data-lucide="plus" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i> Add Flavor Group
+            </button>
           </div>
-          <button type="button" onclick="addGroup('modifier')" class="btn-primary" style="font-size:.75rem;padding:.4rem .85rem;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;">
-            <i data-lucide="plus" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i> Add Modifier Group
-          </button>
+          <div id="flavorGroups" style="display:flex;flex-direction:column;gap:1rem;"></div>
+          <p id="noFlavors" style="text-align:center;color:var(--text-muted);font-size:.8rem;padding:1rem 0 .5rem;">
+            No flavor groups yet. Click "Add Flavor Group" to start.
+          </p>
         </div>
-        <div id="modifierGroups" style="display:flex;flex-direction:column;gap:1rem;"></div>
-        <p id="noModifiers" style="text-align:center;color:var(--text-muted);font-size:.8rem;padding:1.5rem 0;">
-          No modifier groups yet. Click "Add Modifier Group" to start.
-        </p>
+
+        {{-- Divider --}}
+        <div style="height:1px;background:var(--border-divider);margin:0 1.4rem;"></div>
+
+        {{-- MODIFIERS section --}}
+        <div style="padding:1.25rem 1.4rem 1rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+            <div>
+              <p style="font-weight:700;color:var(--text-strong);margin:0 0 .2rem;font-size:.875rem;display:flex;align-items:center;gap:.4rem;">
+                <i data-lucide="sliders-horizontal" style="width:.85rem;height:.85rem;color:#8b5cf6;stroke-width:2;"></i> Modifiers
+              </p>
+              <p style="color:var(--text-muted);font-size:.72rem;margin:0;">e.g. Size → Small, Regular, Large. Optionally affects price.</p>
+            </div>
+            <button type="button" onclick="addGroup('modifier')" class="btn-primary" style="font-size:.75rem;padding:.4rem .85rem;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;">
+              <i data-lucide="plus" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i> Add Modifier Group
+            </button>
+          </div>
+          <div id="modifierGroups" style="display:flex;flex-direction:column;gap:1rem;"></div>
+          <p id="noModifiers" style="text-align:center;color:var(--text-muted);font-size:.8rem;padding:1rem 0 .5rem;">
+            No modifier groups yet. Click "Add Modifier Group" to start.
+          </p>
+        </div>
+
       </div>
 
       {{-- ── TAB 4: ADD-ONS ── --}}
@@ -372,23 +380,24 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
 .opt-price-toggle.add     { background:rgba(16,185,129,.1); color:#16a34a;border-color:#16a34a; }
 .opt-price-toggle.replace { background:rgba(99,102,241,.1);color:#6366f1;border-color:#6366f1; }
 .opt-price-input { width:90px;font-size:.8rem;transition:all .2s; }
-.opt-price-input:disabled { opacity:.3;pointer-events:none; }
+input[type=number].admin-input:disabled { opacity:.35; cursor:not-allowed; }
 .pill-toggle { display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:9999px;font-size:.7rem;font-weight:600;cursor:pointer;border:1px solid var(--border-input);background:transparent;color:var(--text-muted);transition:all .2s; }
 .pill-toggle.on  { background:rgba(16,185,129,.12);color:#10b981;border-color:#10b981; }
 .pill-toggle.off { background:rgba(239,68,68,.08);color:#ef4444;border-color:#ef4444; }
-@media(max-width:540px){ .opt-price-toggle,.opt-price-input { display:none; } }
+@media(max-width:540px){ .opt-price-toggle { font-size:.65rem; padding:.22rem .5rem; } }
 </style>
 
 <script>
 // ─────────────────────────────────────────────────────────
 // Tab switching
 // ─────────────────────────────────────────────────────────
-var TABS = ['tabBasic','tabFlavors','tabModifiers','tabAddons'];
+var TABS = ['tabBasic','tabCustomize','tabAddons'];
 function switchTab(id) {
     TABS.forEach(function(t){
         var pane = document.getElementById(t);
-        var btn  = document.getElementById('btn'+t.charAt(0).toUpperCase()+t.slice(1));
-        if(pane){ pane.style.display = t===id ? 'flex':'none'; pane.style.flexDirection='column'; }
+        var key  = 'btn' + t.charAt(0).toUpperCase() + t.slice(1);
+        var btn  = document.getElementById(key);
+        if(pane){ pane.style.display = t===id ? 'flex':'none'; if(t===id) pane.style.flexDirection='column'; }
         if(btn) { btn.style.color = t===id ? 'var(--accent)':'var(--text-muted)'; btn.style.borderBottom = t===id ? '2px solid var(--accent)':'2px solid transparent'; }
     });
     document.getElementById('btnPrevTab').style.display = id==='tabBasic' ? 'none':'inline-flex';
@@ -494,7 +503,7 @@ function clearAllGroups() {
 
 function addGroup(type) {
     loadGroup({ type: type, name: '', required: false, is_active: true, options: [] });
-    switchTab(type === 'flavor' ? 'tabFlavors' : 'tabModifiers');
+    switchTab('tabCustomize');
 }
 
 function loadGroup(g) {
@@ -696,13 +705,14 @@ function addOption(gid, opt) {
             '<span id="optoggle_label_'+oid+'">'+ptLabels[priceType]+'</span>' +
         '</button>' +
 
-        // Price amount (hidden when type=none)
-        '<div style="position:relative;">' +
-            '<span style="position:absolute;left:.55rem;top:50%;transform:translateY(-50%);font-size:.75rem;color:var(--text-muted);pointer-events:none;">₱</span>' +
-            '<input type="number" class="admin-input opt-price-input" id="oadj_'+oid+'"' +
+        // Price amount
+        '<div style="position:relative;min-width:110px;">' +
+            '<span style="position:absolute;left:.55rem;top:50%;transform:translateY(-50%);font-size:.75rem;color:var(--text-muted);pointer-events:none;z-index:1;">₱</span>' +
+            '<input type="number" class="admin-input" id="oadj_'+oid+'"' +
                 ' min="0" step="0.01" value="'+(opt.price_adjustment||0)+'"' +
                 ' placeholder="0.00"' +
-                ' style="padding-left:1.4rem;'+(priceType==='none'?'display:none;':'')+'">' +
+                (priceType==='none' ? ' disabled' : '') +
+                ' style="padding-left:1.4rem;width:110px;">' +
         '</div>' +
 
         // Default checkbox
@@ -735,23 +745,28 @@ function cyclePriceType(oid) {
     var btn   = document.getElementById('optoggle_' + oid);
     var label = document.getElementById('optoggle_label_' + oid);
     var adj   = document.getElementById('oadj_' + oid);
-    var icon  = btn.querySelector('i');
+    if(!btn || !adj) return;
 
-    var cur   = btn.dataset.ptype || (btn.classList.contains('add') ? 'add' : btn.classList.contains('replace') ? 'replace' : 'none');
-    var next  = cur === 'none' ? 'add' : (cur === 'add' ? 'replace' : 'none');
+    var cur  = btn.dataset.ptype || 'none';
+    var next = cur === 'none' ? 'add' : (cur === 'add' ? 'replace' : 'none');
 
     var map = {
-        none:    { cls:'free',    lbl:'Free (no price change)', ico:'tag',        show:false },
-        add:     { cls:'add',     lbl:'+Add to price',          ico:'plus-circle', show:true  },
-        replace: { cls:'replace', lbl:'=Replace price',         ico:'repeat',      show:true  },
+        none:    { cls:'free',    lbl:'Free (no price change)', ico:'tag',         show:false },
+        add:     { cls:'add',     lbl:'+Add to price',          ico:'plus-circle',  show:true  },
+        replace: { cls:'replace', lbl:'=Replace price',         ico:'repeat',       show:true  },
     };
 
     btn.classList.remove('free','add','replace');
     btn.classList.add(map[next].cls);
-    btn.dataset.ptype  = next;
-    label.textContent  = map[next].lbl;
-    icon.setAttribute('data-lucide', map[next].ico);
-    adj.style.display  = map[next].show ? '' : 'none';
+    btn.dataset.ptype = next;
+    if(label) label.textContent = map[next].lbl;
+
+    // Rebuild button inner HTML (Lucide already replaced <i> with <svg>)
+    btn.innerHTML =
+        '<i data-lucide="'+map[next].ico+'" style="width:.7rem;height:.7rem;stroke-width:2.5;"></i>' +
+        '<span id="optoggle_label_'+oid+'">'+map[next].lbl+'</span>';
+
+    adj.disabled      = !map[next].show;
     if(!map[next].show) adj.value = 0;
     lucide.createIcons();
 }
@@ -790,6 +805,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if(!form) return;
 
     form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
     // Handle status field -> is_archived hidden input
     var statusVal = document.getElementById('iStatus').value;
     var existing  = this.querySelector('input[name="is_archived_flag"]');
@@ -868,6 +885,9 @@ document.addEventListener('DOMContentLoaded', function() {
         addAddonHidden('addons['+ai+'][type]',              'addon');
         addAddonHidden('addons['+ai+'][is_active]',         '1');
     });
+
+    // Now actually submit the form programmatically
+    this.submit();
 }); // end submit
 }); // end DOMContentLoaded
 </script>
