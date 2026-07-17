@@ -46,6 +46,11 @@ class MenuItem extends Model
         return $this->hasMany(ModifierGroup::class)->where('type', 'modifier')->orderBy('sort_order');
     }
 
+    public function addons()
+    {
+        return $this->hasMany(ModifierGroup::class)->where('type', 'addon')->orderBy('sort_order');
+    }
+
     // ── Scopes ───────────────────────────────────────────────
     public function scopeActive(Builder $query): Builder
     {

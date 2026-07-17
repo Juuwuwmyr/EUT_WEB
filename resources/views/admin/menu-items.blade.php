@@ -1,4 +1,5 @@
 @extends('admin.layout')
+@extends('admin.layout')
 @section('title', 'Menu Items')
 
 @section('content')
@@ -80,7 +81,7 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
     </div>
     <table class="admin-table">
         <thead>
-            <tr><th>Item</th><th>Category</th><th>Base Price</th><th>Flavors</th><th>Modifiers</th><th>Featured</th><th>Status</th><th style="text-align:center;">Actions</th></tr>
+            <tr><th>Item</th><th>Category</th><th>Base Price</th><th>Flavors</th><th>Modifiers</th><th>Add-ons</th><th>Featured</th><th>Status</th><th style="text-align:center;">Actions</th></tr>
         </thead>
         <tbody>
             @forelse($items as $item)
@@ -116,6 +117,16 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
                     @if($mods->count())
                         <span class="badge badge-out" style="display:inline-flex;align-items:center;gap:.25rem;">
                             <i data-lucide="sliders-horizontal" style="width:.65rem;height:.65rem;stroke-width:2;"></i> {{ $mods->count() }} group{{ $mods->count()>1?'s':'' }}
+                        </span>
+                    @else
+                        <span style="color:var(--text-muted);font-size:.75rem;">—</span>
+                    @endif
+                </td>
+                <td>
+                    @php $addons = $item->modifierGroups->where('type','addon'); @endphp
+                    @if($addons->count())
+                        <span class="badge" style="background:rgba(245,158,11,.1);color:#d97706;display:inline-flex;align-items:center;gap:.25rem;">
+                            <i data-lucide="package-plus" style="width:.65rem;height:.65rem;stroke-width:2;"></i> {{ $addons->count() }} add-on{{ $addons->count()>1?'s':'' }}
                         </span>
                     @else
                         <span style="color:var(--text-muted);font-size:.75rem;">—</span>
@@ -194,6 +205,10 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
       <button type="button" onclick="switchTab('tabModifiers')" id="btnTabModifiers"
               style="padding:.7rem 1rem;font-size:.8rem;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;">
         <i data-lucide="sliders-horizontal" style="width:.8rem;height:.8rem;stroke-width:2;vertical-align:middle;"></i> Modifiers
+      </button>
+      <button type="button" onclick="switchTab('tabAddons')" id="btnTabAddons"
+              style="padding:.7rem 1rem;font-size:.8rem;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;transition:all .2s;">
+        <i data-lucide="package-plus" style="width:.8rem;height:.8rem;stroke-width:2;vertical-align:middle;"></i> Add-ons
       </button>
     </div>
 
@@ -282,6 +297,49 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
         </p>
       </div>
 
+      {{-- ── TAB 4: ADD-ONS ── --}}
+      <div id="tabAddons" class="modal-body tab-pane" style="display:none;">
+        {{-- Header row --}}
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.875rem;gap:1rem;">
+          <div>
+            <p style="font-weight:600;color:var(--text-strong);margin:0 0 .2rem;font-size:.875rem;">Add-on Combos</p>
+            <p style="color:var(--text-muted);font-size:.75rem;margin:0;">
+              Pair this item with extras. e.g. "Wings with Milk" +₱30, "Wings with Rice" +₱50.<br>
+              Each add-on can optionally add to the base price.
+            </p>
+          </div>
+          <button type="button" onclick="addAddon()" class="btn-primary"
+                  style="font-size:.75rem;padding:.4rem .85rem;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap;flex-shrink:0;">
+            <i data-lucide="plus" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i> Add Add-on
+          </button>
+        </div>
+
+        {{-- Column headers --}}
+        <div style="display:grid;grid-template-columns:1fr 1fr 110px 80px auto;gap:.5rem;padding:.3rem .5rem;margin-bottom:.25rem;">
+          <span style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Add-on Name</span>
+          <span style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Description (optional)</span>
+          <span style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Extra Price</span>
+          <span style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Affects?</span>
+          <span></span>
+        </div>
+
+        {{-- Addon rows container --}}
+        <div id="addonRows" style="display:flex;flex-direction:column;gap:.4rem;"></div>
+
+        <p id="noAddons" style="text-align:center;color:var(--text-muted);font-size:.8rem;padding:1.5rem 0;">
+          No add-ons yet. Click "Add Add-on" to create combos like "Wings with Milk".
+        </p>
+
+        {{-- Price note --}}
+        <div style="margin-top:.75rem;padding:.75rem;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:.5rem;display:flex;align-items:flex-start;gap:.5rem;">
+          <i data-lucide="info" style="width:.875rem;height:.875rem;color:#6366f1;stroke-width:2;flex-shrink:0;margin-top:.1rem;"></i>
+          <p style="font-size:.72rem;color:var(--text-muted);margin:0;line-height:1.5;">
+            <strong style="color:var(--text-body);">Affects Price = Yes</strong> — customer pays base price + extra amount.<br>
+            <strong style="color:var(--text-body);">Affects Price = No</strong> — add-on is included free (no extra charge).
+          </p>
+        </div>
+      </div>
+
       {{-- Footer --}}
       <div class="modal-footer">
         <button type="button" onclick="closeModal('itemModal')" class="btn-ghost">Cancel</button>
@@ -305,23 +363,27 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
 .group-header { display:flex;align-items:center;gap:.625rem;margin-bottom:.875rem; }
 .group-title { flex:1;font-size:.8rem;font-weight:700;color:var(--text-strong);background:transparent;border:none;border-bottom:1px dashed var(--border-input);padding:.2rem .1rem;width:100%;outline:none;color:var(--text-input); }
 .group-title:focus { border-bottom-color:var(--accent); }
-.option-row { display:grid;grid-template-columns:1fr 110px 100px 80px auto auto;gap:.5rem;align-items:center;margin-bottom:.5rem; }
-.option-row input, .option-row select { font-size:.78rem; }
+/* ── Option row: card-style ── */
+.option-row { display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;background:var(--bg-body);border:1px solid var(--border-card);border-radius:.625rem;margin-bottom:.425rem;flex-wrap:wrap; }
+.option-row:hover { border-color:var(--border-input); }
+.opt-name  { flex:1;min-width:120px;font-size:.8rem; }
+.opt-price-toggle { display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .7rem;border-radius:9999px;font-size:.7rem;font-weight:700;cursor:pointer;border:1px solid;transition:all .2s;white-space:nowrap;user-select:none; }
+.opt-price-toggle.free    { background:rgba(100,100,100,.08);color:var(--text-muted);border-color:var(--border-input); }
+.opt-price-toggle.add     { background:rgba(16,185,129,.1); color:#16a34a;border-color:#16a34a; }
+.opt-price-toggle.replace { background:rgba(99,102,241,.1);color:#6366f1;border-color:#6366f1; }
+.opt-price-input { width:90px;font-size:.8rem;transition:all .2s; }
+.opt-price-input:disabled { opacity:.3;pointer-events:none; }
 .pill-toggle { display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:9999px;font-size:.7rem;font-weight:600;cursor:pointer;border:1px solid var(--border-input);background:transparent;color:var(--text-muted);transition:all .2s; }
 .pill-toggle.on  { background:rgba(16,185,129,.12);color:#10b981;border-color:#10b981; }
 .pill-toggle.off { background:rgba(239,68,68,.08);color:#ef4444;border-color:#ef4444; }
-.price-type-badge { font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:9999px;cursor:pointer;border:none; }
-.badge-none    { background:rgba(100,100,100,.12);color:var(--text-muted); }
-.badge-add     { background:rgba(16,185,129,.12);color:#10b981; }
-.badge-replace { background:rgba(99,102,241,.12);color:#6366f1; }
-@media(max-width:600px){ .option-row { grid-template-columns:1fr 90px auto auto; } .option-row .price-adj,.option-row .price-type { display:none; } }
+@media(max-width:540px){ .opt-price-toggle,.opt-price-input { display:none; } }
 </style>
 
 <script>
 // ─────────────────────────────────────────────────────────
 // Tab switching
 // ─────────────────────────────────────────────────────────
-var TABS = ['tabBasic','tabFlavors','tabModifiers'];
+var TABS = ['tabBasic','tabFlavors','tabModifiers','tabAddons'];
 function switchTab(id) {
     TABS.forEach(function(t){
         var pane = document.getElementById(t);
@@ -331,6 +393,7 @@ function switchTab(id) {
     });
     document.getElementById('btnPrevTab').style.display = id==='tabBasic' ? 'none':'inline-flex';
     syncGroupVisibility();
+    syncAddonVisibility();
     lucide.createIcons();
 }
 
@@ -381,7 +444,20 @@ function openEditItemModal(item, categories) {
     });
     // Load existing groups
     clearAllGroups();
-    (item.modifier_groups || []).forEach(function(g){ loadGroup(g); });
+    (item.modifier_groups || []).forEach(function(g){
+        if(g.type === 'addon') {
+            // Load as addon row — treat options[0] as the addon itself
+            addAddon({
+                id:               g.id,
+                name:             g.name,
+                description:      g.description || '',
+                price_type:       (g.options && g.options[0]) ? g.options[0].price_type       : 'none',
+                price_adjustment: (g.options && g.options[0]) ? g.options[0].price_adjustment : 0,
+            });
+        } else {
+            loadGroup(g);
+        }
+    });
     switchTab('tabBasic');
     openModal('itemModal');
 }
@@ -393,11 +469,27 @@ function openEditItemModal(item, categories) {
 // ─────────────────────────────────────────────────────────
 var groupCounter = 0;
 
+function syncAddonVisibility() {
+    var el = document.getElementById('addonRows');
+    var noEl = document.getElementById('noAddons');
+    if(el && noEl) noEl.style.display = el.children.length === 0 ? 'block' : 'none';
+}
+
+function syncGroupVisibility() {
+    var fEl = document.getElementById('flavorGroups');
+    var mEl = document.getElementById('modifierGroups');
+    if(fEl) document.getElementById('noFlavors').style.display   = fEl.children.length === 0 ? 'block':'none';
+    if(mEl) document.getElementById('noModifiers').style.display = mEl.children.length === 0 ? 'block':'none';
+}
+
 function clearAllGroups() {
     document.getElementById('flavorGroups').innerHTML   = '';
     document.getElementById('modifierGroups').innerHTML = '';
+    document.getElementById('addonRows').innerHTML      = '';
+    addonCounter = 0;
     groupCounter = 0;
     syncGroupVisibility();
+    syncAddonVisibility();
 }
 
 function addGroup(type) {
@@ -472,14 +564,101 @@ function toggleGroupActive(gid) {
     lucide.createIcons();
 }
 
-function syncGroupVisibility() {
-    var fEl = document.getElementById('flavorGroups');
-    var mEl = document.getElementById('modifierGroups');
-    document.getElementById('noFlavors').style.display   = fEl.children.length === 0 ? 'block':'none';
-    document.getElementById('noModifiers').style.display = mEl.children.length === 0 ? 'block':'none';
-}
 </script>
 
+<script>
+// ─────────────────────────────────────────────────────────
+// ADD-ONS builder
+// ─────────────────────────────────────────────────────────
+var addonCounter = 0;
+
+function addAddon(addon) {
+    addon = addon || {};
+    var aid       = 'ad_' + (++addonCounter);
+    var container = document.getElementById('addonRows');
+    var affects   = (addon.price_type === 'add');
+    var adjVal    = addon.price_adjustment || 0;
+
+    var row = document.createElement('div');
+    row.id  = 'addonrow_' + aid;
+    row.dataset.existingId = addon.id || '';
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 110px 80px auto;gap:.5rem;align-items:center;' +
+                        'padding:.55rem .75rem;background:var(--bg-body);border:1px solid var(--border-card);' +
+                        'border-radius:.625rem;';
+
+    row.innerHTML =
+        // Name
+        '<input type="text" class="admin-input" id="adname_'+aid+'" ' +
+               'placeholder="e.g. Wings with Milk" ' +
+               'value="'+escHtml(addon.name||'')+'" ' +
+               'style="font-size:.8rem;">' +
+
+        // Description
+        '<input type="text" class="admin-input" id="addesc_'+aid+'" ' +
+               'placeholder="e.g. 6pcs wings + 1 milk" ' +
+               'value="'+escHtml(addon.description||'')+'" ' +
+               'style="font-size:.8rem;">' +
+
+        // Extra price
+        '<div style="position:relative;">' +
+            '<span style="position:absolute;left:.5rem;top:50%;transform:translateY(-50%);font-size:.75rem;color:var(--text-muted);pointer-events:none;">₱</span>' +
+            '<input type="number" class="admin-input" id="adadj_'+aid+'" ' +
+                   'min="0" step="0.01" value="'+adjVal+'" ' +
+                   'placeholder="0.00" ' +
+                   'style="padding-left:1.4rem;font-size:.8rem;'+(affects ? '' : 'opacity:.35;pointer-events:none;')+'">' +
+        '</div>' +
+
+        // Affects price toggle
+        '<button type="button" id="adaffects_'+aid+'" ' +
+                'onclick="toggleAddonAffects(\''+aid+'\')" ' +
+                'style="font-size:.7rem;font-weight:700;padding:.28rem .6rem;border-radius:9999px;cursor:pointer;' +
+                       'border:1px solid;transition:all .2s;white-space:nowrap;' +
+                       (affects
+                           ? 'background:rgba(22,163,74,.1);color:#16a34a;border-color:#16a34a;'
+                           : 'background:rgba(100,100,100,.08);color:var(--text-muted);border-color:var(--border-input);') +
+                '" data-affects="'+(affects?'1':'0')+'">' +
+            (affects
+                ? '<i data-lucide="check-circle" style="width:.7rem;height:.7rem;stroke-width:2;vertical-align:middle;"></i> Yes'
+                : '<i data-lucide="minus-circle" style="width:.7rem;height:.7rem;stroke-width:2;vertical-align:middle;"></i> No') +
+        '</button>' +
+
+        // Remove
+        '<button type="button" onclick="removeAddon(\''+aid+'\')" ' +
+                'style="background:none;border:none;cursor:pointer;color:#ef4444;padding:.2rem;display:flex;align-items:center;" title="Remove">' +
+            '<i data-lucide="x-circle" style="width:.9rem;height:.9rem;stroke-width:2;"></i>' +
+        '</button>';
+
+    container.appendChild(row);
+    syncAddonVisibility();
+    lucide.createIcons();
+}
+
+function toggleAddonAffects(aid) {
+    var btn    = document.getElementById('adaffects_' + aid);
+    var adj    = document.getElementById('adadj_'     + aid);
+    var isYes  = btn.dataset.affects === '1';
+    var nowYes = !isYes;
+
+    btn.dataset.affects = nowYes ? '1' : '0';
+    btn.innerHTML = nowYes
+        ? '<i data-lucide="check-circle" style="width:.7rem;height:.7rem;stroke-width:2;vertical-align:middle;"></i> Yes'
+        : '<i data-lucide="minus-circle" style="width:.7rem;height:.7rem;stroke-width:2;vertical-align:middle;"></i> No';
+    btn.style.background   = nowYes ? 'rgba(22,163,74,.1)'         : 'rgba(100,100,100,.08)';
+    btn.style.color        = nowYes ? '#16a34a'                     : 'var(--text-muted)';
+    btn.style.borderColor  = nowYes ? '#16a34a'                     : 'var(--border-input)';
+    adj.style.opacity      = nowYes ? '1'   : '.35';
+    adj.style.pointerEvents= nowYes ? 'auto': 'none';
+    if(!nowYes) adj.value  = 0;
+    lucide.createIcons();
+}
+
+function removeAddon(aid) {
+    var row = document.getElementById('addonrow_' + aid);
+    if(row) row.remove();
+    syncAddonVisibility();
+}
+
+</script>
 <script>
 // ─────────────────────────────────────────────────────────
 // Option rows
@@ -488,51 +667,101 @@ var optCounter = 0;
 
 function addOption(gid, opt) {
     opt = opt || {};
-    var oid      = 'o_' + (++optCounter);
+    var oid       = 'o_' + (++optCounter);
     var container = document.getElementById('opts_' + gid);
     var priceType = opt.price_type || 'none';
-    var badgeClass= priceType === 'add' ? 'badge-add' : (priceType === 'replace' ? 'badge-replace' : 'badge-none');
-    var badgeLabel= priceType === 'add' ? '+Add' : (priceType === 'replace' ? 'Replace' : 'Free');
+
+    // Label + style for the price-toggle button
+    var ptLabels = { none:'Free (no price change)', add:'+Add to price', replace:'=Replace price' };
+    var ptClass  = priceType === 'none' ? 'free' : (priceType === 'add' ? 'add' : 'replace');
+    var ptIcon   = priceType === 'none' ? 'tag' : (priceType === 'add' ? 'plus-circle' : 'repeat');
 
     var row = document.createElement('div');
     row.className = 'option-row';
     row.id = 'optrow_' + oid;
-    row.innerHTML =
-        '<input type="text" class="admin-input" id="oname_'+oid+'" placeholder="Option name" value="'+escHtml(opt.name||'')+'" style="font-size:.78rem;">' +
-        '<select class="admin-input price-type" id="otype_'+oid+'" onchange="onPriceTypeChange(\''+oid+'\')" style="font-size:.78rem;">' +
-            '<option value="none"'    +(priceType==='none'   ?' selected':'')+'>No price change</option>' +
-            '<option value="add"'     +(priceType==='add'    ?' selected':'')+'>+ Add to price</option>' +
-            '<option value="replace"' +(priceType==='replace'?' selected':'')+'>= Replace price</option>' +
-        '</select>' +
-        '<input type="number" class="admin-input price-adj" id="oadj_'+oid+'" min="0" step="0.01" ' +
-               'value="'+(opt.price_adjustment||0)+'" ' +
-               'style="font-size:.78rem;'+(priceType==='none'?'opacity:.35;pointer-events:none;':'')+'" ' +
-               'placeholder="₱ amount">' +
-        '<div style="display:flex;align-items:center;gap:.25rem;">' +
-            '<label style="display:flex;align-items:center;gap:.25rem;font-size:.72rem;color:var(--text-muted);cursor:pointer;white-space:nowrap;">' +
-                '<input type="checkbox" id="odef_'+oid+'" '+(opt.is_default?'checked':'')+' style="accent-color:var(--accent);width:.85rem;height:.85rem;"> Default' +
-            '</label>' +
-        '</div>' +
-        '<button type="button" onclick="toggleOptionActive(\''+oid+'\')" id="oact_'+oid+'" class="pill-toggle '+(opt.is_active!==false?'on':'off')+'">' +
-            '<span>'+(opt.is_active!==false?'On':'Off')+'</span>' +
-        '</button>' +
-        '<button type="button" onclick="removeOption(\''+oid+'\')" style="background:none;border:none;cursor:pointer;color:#ef4444;padding:.2rem;" title="Remove">' +
-            '<i data-lucide="x-circle" style="width:.85rem;height:.85rem;stroke-width:2;"></i>' +
-        '</button>';
-
     if(opt.id) row.dataset.existingId = opt.id;
     row.dataset.gid = gid;
+
+    row.innerHTML =
+        // Name
+        '<input type="text" class="admin-input opt-name" id="oname_'+oid+'"' +
+            ' placeholder="Option name (e.g. Large, Spicy, Extra Cheese)"' +
+            ' value="'+escHtml(opt.name||'')+'">' +
+
+        // "Affects price?" toggle pill — cycles: none → add → replace → none
+        '<button type="button" class="opt-price-toggle '+ptClass+'" id="optoggle_'+oid+'"' +
+                ' data-ptype="'+priceType+'"' +
+                ' onclick="cyclePriceType(\''+oid+'\')" title="Click to change how this option affects the price">' +
+            '<i data-lucide="'+ptIcon+'" style="width:.7rem;height:.7rem;stroke-width:2.5;"></i>' +
+            '<span id="optoggle_label_'+oid+'">'+ptLabels[priceType]+'</span>' +
+        '</button>' +
+
+        // Price amount (hidden when type=none)
+        '<div style="position:relative;">' +
+            '<span style="position:absolute;left:.55rem;top:50%;transform:translateY(-50%);font-size:.75rem;color:var(--text-muted);pointer-events:none;">₱</span>' +
+            '<input type="number" class="admin-input opt-price-input" id="oadj_'+oid+'"' +
+                ' min="0" step="0.01" value="'+(opt.price_adjustment||0)+'"' +
+                ' placeholder="0.00"' +
+                ' style="padding-left:1.4rem;'+(priceType==='none'?'display:none;':'')+'">' +
+        '</div>' +
+
+        // Default checkbox
+        '<label style="display:flex;align-items:center;gap:.3rem;font-size:.72rem;color:var(--text-muted);cursor:pointer;white-space:nowrap;">' +
+            '<input type="checkbox" id="odef_'+oid+'" '+(opt.is_default?'checked':'')+
+                ' style="accent-color:var(--accent);width:.85rem;height:.85rem;">Default' +
+        '</label>' +
+
+        // Active toggle
+        '<button type="button" onclick="toggleOptionActive(\''+oid+'\')" id="oact_'+oid+'"' +
+                ' class="pill-toggle '+(opt.is_active!==false?'on':'off')+'">' +
+            '<span>'+(opt.is_active!==false?'On':'Off')+'</span>' +
+        '</button>' +
+
+        // Remove button
+        '<button type="button" onclick="removeOption(\''+oid+'\')"' +
+                ' style="background:none;border:none;cursor:pointer;color:#ef4444;padding:.15rem;flex-shrink:0;" title="Remove">' +
+            '<i data-lucide="x-circle" style="width:.9rem;height:.9rem;stroke-width:2;"></i>' +
+        '</button>';
+
     container.appendChild(row);
     lucide.createIcons();
 }
 
+/**
+ * Cycle price type: none → add → replace → none
+ * Updates the toggle button appearance and shows/hides the price input.
+ */
+function cyclePriceType(oid) {
+    var btn   = document.getElementById('optoggle_' + oid);
+    var label = document.getElementById('optoggle_label_' + oid);
+    var adj   = document.getElementById('oadj_' + oid);
+    var icon  = btn.querySelector('i');
+
+    var cur   = btn.dataset.ptype || (btn.classList.contains('add') ? 'add' : btn.classList.contains('replace') ? 'replace' : 'none');
+    var next  = cur === 'none' ? 'add' : (cur === 'add' ? 'replace' : 'none');
+
+    var map = {
+        none:    { cls:'free',    lbl:'Free (no price change)', ico:'tag',        show:false },
+        add:     { cls:'add',     lbl:'+Add to price',          ico:'plus-circle', show:true  },
+        replace: { cls:'replace', lbl:'=Replace price',         ico:'repeat',      show:true  },
+    };
+
+    btn.classList.remove('free','add','replace');
+    btn.classList.add(map[next].cls);
+    btn.dataset.ptype  = next;
+    label.textContent  = map[next].lbl;
+    icon.setAttribute('data-lucide', map[next].ico);
+    adj.style.display  = map[next].show ? '' : 'none';
+    if(!map[next].show) adj.value = 0;
+    lucide.createIcons();
+}
+
 function onPriceTypeChange(oid) {
-    var sel = document.getElementById('otype_' + oid);
-    var adj = document.getElementById('oadj_'  + oid);
-    var isNone = sel.value === 'none';
-    adj.style.opacity       = isNone ? '.35' : '1';
-    adj.style.pointerEvents = isNone ? 'none' : 'auto';
-    if(isNone) adj.value = 0;
+    // kept for compatibility — new UI uses cyclePriceType
+    var adj = document.getElementById('oadj_' + oid);
+    var btn = document.getElementById('optoggle_' + oid);
+    var isNone = (btn ? btn.dataset.ptype : 'none') === 'none';
+    adj.style.display = isNone ? 'none' : '';
 }
 
 function toggleOptionActive(oid) {
@@ -556,7 +785,11 @@ function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-document.getElementById('itemModalForm').addEventListener('submit', function(e) {
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('itemModalForm');
+    if(!form) return;
+
+    form.addEventListener('submit', function(e) {
     // Handle status field -> is_archived hidden input
     var statusVal = document.getElementById('iStatus').value;
     var existing  = this.querySelector('input[name="is_archived_flag"]');
@@ -594,7 +827,7 @@ document.getElementById('itemModalForm').addEventListener('submit', function(e) 
             var oid      = row.id.replace('optrow_','');
             var oExistId = row.dataset.existingId || '';
             var oName    = (document.getElementById('oname_'+oid)||{}).value || '';
-            var oPType   = (document.getElementById('otype_'+oid)||{}).value || 'none';
+            var oPType   = (function(){ var b = document.getElementById('optoggle_'+oid); return b ? (b.dataset.ptype||'none') : 'none'; })();
             var oAdj     = (document.getElementById('oadj_'+oid)||{}).value  || '0';
             var oDef     = (document.getElementById('odef_'+oid)||{}).checked ? '1':'0';
             var oAct     = (document.getElementById('oact_'+oid)||{}).classList.contains('on') ? '1':'0';
@@ -607,7 +840,36 @@ document.getElementById('itemModalForm').addEventListener('submit', function(e) 
             addHidden('groups['+gi+'][options]['+oi+'][is_active]',         oAct);
         });
     });
-});
+
+    // ── Serialize Add-ons ─────────────────────────────────
+    form.querySelectorAll('.dyn-addon-input').forEach(function(el){ el.remove(); });
+
+    document.querySelectorAll('#addonRows > div').forEach(function(row, ai) {
+        var aid      = row.id.replace('addonrow_','');
+        var existId  = row.dataset.existingId || '';
+        var aName    = (document.getElementById('adname_' +aid)||{}).value || '';
+        var aDesc    = (document.getElementById('addesc_' +aid)||{}).value || '';
+        var aAdj     = (document.getElementById('adadj_'  +aid)||{}).value || '0';
+        var aAffects = (document.getElementById('adaffects_'+aid)||{}).dataset.affects === '1';
+        var aPType   = aAffects ? 'add' : 'none';
+
+        function addAddonHidden(n, v) {
+            var inp = document.createElement('input');
+            inp.type='hidden'; inp.name=n; inp.value=v; inp.className='dyn-addon-input';
+            form.appendChild(inp);
+        }
+
+        if(existId) addAddonHidden('addons['+ai+'][id]',               existId);
+        addAddonHidden('addons['+ai+'][name]',              aName);
+        addAddonHidden('addons['+ai+'][description]',       aDesc);
+        addAddonHidden('addons['+ai+'][price_type]',        aPType);
+        addAddonHidden('addons['+ai+'][price_adjustment]',  aAdj);
+        // Addons are stored as modifier_groups with type='addon'
+        addAddonHidden('addons['+ai+'][type]',              'addon');
+        addAddonHidden('addons['+ai+'][is_active]',         '1');
+    });
+}); // end submit
+}); // end DOMContentLoaded
 </script>
 
 @endsection

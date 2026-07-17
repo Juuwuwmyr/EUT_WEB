@@ -270,6 +270,7 @@ class AdminController extends Controller
         ]);
 
         $this->syncModifierGroups($item, $request->input('groups', []));
+        $this->syncAddons($item, $request->input('addons', []));
 
         return back()->with('success', "Menu item \"{$item->name}\" created.");
     }
@@ -307,6 +308,7 @@ class AdminController extends Controller
         ]);
 
         $this->syncModifierGroups($menuItem, $request->input('groups', []));
+        $this->syncAddons($menuItem, $request->input('addons', []));
 
         return back()->with('success', "Menu item \"{$menuItem->name}\" updated.");
     }
@@ -371,6 +373,67 @@ class AdminController extends Controller
 
         // Remove groups that were deleted in the UI
         $item->modifierGroups()->whereNotIn('id', $keptGroupIds)->delete();
+    }
+
+    /**
+     * Sync add-ons (stored as modifier_groups with type='addon').
+     * Each addon is one group + one option (the price pairing).
+     */
+    private function syncAddons(MenuItem $item, array $addons): void
+    {
+        $keptIds = [];
+
+        foreach ($addons as $i => $addonData) {
+            $name      = $addonData['name']             ?? '';
+            $desc      = $addonData['description']      ?? '';
+            $pType     = $addonData['price_type']       ?? 'none';
+            $pAdj      = $addonData['price_adjustment'] ?? 0;
+
+            $groupPayload = [
+                'menu_item_id' => $item->id,
+                'type'         => 'addon',
+                'name'         => $name,
+                'required'     => false,
+                'is_active'    => true,
+                'sort_order'   => $i,
+            ];
+
+            if (!empty($addonData['id'])) {
+                $group = ModifierGroup::where('id', $addonData['id'])
+                                      ->where('menu_item_id', $item->id)
+                                      ->first();
+                if ($group) {
+                    $group->update(array_merge($groupPayload, ['description' => $desc]));
+                }
+            } else {
+                $group = ModifierGroup::create($groupPayload);
+            }
+
+            if ($group) {
+                $keptIds[] = $group->id;
+
+                // Each addon has exactly one option — the price entry
+                $optPayload = [
+                    'modifier_group_id' => $group->id,
+                    'name'              => $name,
+                    'price_type'        => $pType,
+                    'price_adjustment'  => $pAdj,
+                    'is_default'        => true,
+                    'is_active'         => true,
+                    'sort_order'        => 0,
+                ];
+
+                $existing = $group->options()->first();
+                if ($existing) {
+                    $existing->update($optPayload);
+                } else {
+                    ModifierOption::create($optPayload);
+                }
+            }
+        }
+
+        // Delete addons removed in the UI
+        $item->modifierGroups()->where('type', 'addon')->whereNotIn('id', $keptIds)->delete();
     }
 
     // ── Standalone modifier group CRUD (for future API use) ──

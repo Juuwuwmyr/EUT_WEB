@@ -11,6 +11,7 @@ class ModifierGroup extends Model
         'menu_item_id',
         'type',
         'name',
+        'description',
         'required',
         'is_active',
         'sort_order',
@@ -49,6 +50,11 @@ class ModifierGroup extends Model
         return $query->where('type', 'modifier');
     }
 
+    public function scopeAddons(Builder $query): Builder
+    {
+        return $query->where('type', 'addon');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
@@ -57,4 +63,5 @@ class ModifierGroup extends Model
     // ── Helpers ──────────────────────────────────────────────
     public function isFlavor(): bool   { return $this->type === 'flavor'; }
     public function isModifier(): bool { return $this->type === 'modifier'; }
+    public function isAddon(): bool    { return $this->type === 'addon'; }
 }

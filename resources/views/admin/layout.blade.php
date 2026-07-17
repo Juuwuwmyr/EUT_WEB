@@ -259,6 +259,10 @@
             h.classList.remove('dark','light');
             h.classList.add(t === 'light' ? 'light' : 'dark');
         })();
+        /* Modal helpers — defined early so views can call them */
+        function openModal(id){ var el=document.getElementById(id); if(el){el.classList.add('open');document.body.style.overflow='hidden';} }
+        function closeModal(id){ var el=document.getElementById(id); if(el){el.classList.remove('open');document.body.style.overflow='';} }
+        function closeModalBackdrop(e,id){ if(e.target===document.getElementById(id)) closeModal(id); }
     </script>
 </head>
 <body class="admin-body">
@@ -380,10 +384,53 @@
 </script>
 <script>lucide.createIcons();</script>
 <script>
-function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function openModal(id){ var el=document.getElementById(id); if(el){el.classList.add('open');document.body.style.overflow='hidden';} }
+function closeModal(id){ var el=document.getElementById(id); if(el){el.classList.remove('open');document.body.style.overflow='';} }
 function closeModalBackdrop(e,id){ if(e.target===document.getElementById(id)) closeModal(id); }
 document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ document.querySelectorAll('.modal-backdrop.open').forEach(m=>m.classList.remove('open')); document.body.style.overflow=''; }});
+</script>
+
+{{-- ══════════ JS ERROR HELPER PANEL ══════════ --}}
+<div id="errPanel" style="display:none;position:fixed;bottom:1.25rem;right:1.25rem;z-index:9999;width:420px;max-width:calc(100vw - 2.5rem);background:#1e1e1e;border:1px solid #ef4444;border-radius:.875rem;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:monospace;overflow:hidden;">
+    <div style="background:#ef444420;padding:.6rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ef444430;">
+        <span style="color:#f87171;font-size:.75rem;font-weight:700;display:flex;align-items:center;gap:.4rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            JS Error Detected
+        </span>
+        <div style="display:flex;gap:.5rem;align-items:center;">
+            <button onclick="copyErr()" style="background:#ef4444;color:#fff;border:none;border-radius:.35rem;padding:.2rem .6rem;font-size:.7rem;cursor:pointer;font-family:monospace;">Copy</button>
+            <button onclick="document.getElementById('errPanel').style.display='none'" style="background:none;border:none;color:#a3a3a3;cursor:pointer;font-size:1rem;line-height:1;padding:.1rem .3rem;">✕</button>
+        </div>
+    </div>
+    <div id="errBody" style="padding:.75rem 1rem;max-height:200px;overflow-y:auto;font-size:.72rem;color:#fca5a5;line-height:1.6;white-space:pre-wrap;word-break:break-all;"></div>
+</div>
+<script>
+(function(){
+    var errors = [];
+    function showErr(msg, src, line, col) {
+        errors.push((src||'')+(line?':'+line:'')+(col?':'+col:'')+'\n'+msg);
+        var body = document.getElementById('errBody');
+        var panel = document.getElementById('errPanel');
+        if(body && panel){
+            body.textContent = errors.join('\n\n---\n\n');
+            panel.style.display = 'block';
+        }
+    }
+    window.onerror = function(msg, src, line, col, err){
+        showErr(err ? err.stack || msg : msg, src, line, col);
+        return false;
+    };
+    window.addEventListener('unhandledrejection', function(e){
+        showErr('Unhandled Promise: ' + (e.reason && e.reason.stack ? e.reason.stack : e.reason), '', '', '');
+    });
+    window.copyErr = function(){
+        var t = document.getElementById('errBody').textContent;
+        navigator.clipboard.writeText(t).then(function(){
+            var btn = document.querySelector('#errPanel button');
+            if(btn){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){ btn.textContent=old; },1500); }
+        });
+    };
+})();
 </script>
 </body>
 </html>
