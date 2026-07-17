@@ -113,12 +113,12 @@
                 </p>
                 
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <button class="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition duration-300 transform hover:scale-105">
+                    <a href="{{ route('shop.home') }}" class="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition duration-300 transform hover:scale-105 text-center">
                         Order Now
-                    </button>
-                    <button class="border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black px-8 py-4 rounded-full font-semibold text-lg transition duration-300">
+                    </a>
+                    <a href="{{ route('shop.home') }}" class="border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black px-8 py-4 rounded-full font-semibold text-lg transition duration-300 text-center">
                         View Menu
-                    </button>
+                    </a>
                 </div>
                 
                 <!-- Dots indicator -->

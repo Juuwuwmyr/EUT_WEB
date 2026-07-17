@@ -2,6 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ShopController;
+
+// -------------------------------------------------------
+// Shop pages
+// -------------------------------------------------------
+Route::get('/shop', [ShopController::class, 'index'])->name('shop.home');
+Route::get('/shop/product/{id}', [ShopController::class, 'product'])->name('shop.product');
+Route::get('/shop/cart', [ShopController::class, 'cart'])->name('shop.cart');
+Route::get('/shop/checkout', [ShopController::class, 'checkout'])->name('shop.checkout');
+Route::get('/shop/tracking', [ShopController::class, 'tracking'])->name('shop.tracking');
 
 // -------------------------------------------------------
 // Public pages
