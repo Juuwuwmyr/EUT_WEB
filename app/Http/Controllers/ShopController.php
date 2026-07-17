@@ -37,4 +37,9 @@ class ShopController extends Controller
     {
         return view('shop.tracking');
     }
+
+    public function profile()
+    {
+        return view('shop.profile');
+    }
 }

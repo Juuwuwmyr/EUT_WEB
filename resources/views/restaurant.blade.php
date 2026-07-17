@@ -6,6 +6,69 @@
     <title>EUT Restaurant - Eat Unwind Tea Restaurant</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Pacifico&family=Satisfy&family=Sacramento&display=swap" rel="stylesheet">
+    <style>
+        .theme-toggle {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        /* Light mode overrides */
+        .light-mode body {
+            background-color: #f5f5f5;
+            color: #111;
+        }
+        .light-mode nav {
+            background-color: rgba(255,255,255,0.95) !important;
+            border-color: rgba(0,0,0,0.1) !important;
+        }
+        .light-mode .text-white {
+            color: #111 !important;
+        }
+        .light-mode .text-gray-300 {
+            color: #666 !important;
+        }
+        .light-mode .text-gray-400 {
+            color: #888 !important;
+        }
+        .light-mode .border-white/10 {
+            border-color: rgba(0,0,0,0.1) !important;
+        }
+        .light-mode .bg-black/95 {
+            background-color: rgba(255,255,255,0.95) !important;
+        }
+        .light-mode .theme-toggle {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(0,0,0,0.1);
+        }
+        .light-mode .theme-toggle:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        .light-mode section#home {
+            background-color: #fffaf5;
+        }
+        .light-mode section#home img[alt=""] {
+            opacity: 0.35;
+        }
+        .light-mode section#home .absolute.inset-0.bg-gradient-to-br {
+            background: linear-gradient(to bottom right, rgba(255,255,255,0.8) 0%, rgba(254,226,226,0.6) 50%, rgba(255,255,255,0.8) 100%) !important;
+        }
+        .light-mode section#home .absolute.bottom-0 {
+            background: linear-gradient(to top, #fffaf5 0%, transparent 100%) !important;
+        }
+        .light-mode section#home .absolute.inset-0[style*="radial-gradient"] {
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(255,255,255,0.25) 65%, rgba(255,255,255,0.55) 85%, rgba(255,255,255,0.75) 100%) !important;
+        }
+    </style>
 </head>
 <body class="bg-black text-white font-sans">
     
@@ -27,6 +90,16 @@
 
                 <!-- Right Side Icons & Button -->
                 <div class="flex items-center space-x-4">
+                    <button id="landingThemeToggle" class="theme-toggle text-white">
+                        <!-- Sun icon (shown in dark mode, hidden in light mode) -->
+                        <svg id="landingSunIcon" class="w-5 h-5 text-yellow-400 hidden" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        <!-- Moon icon (shown in light mode, hidden in dark mode) -->
+                        <svg id="landingMoonIcon" class="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                        </svg>
+                    </button>
                     <button class="text-white hover:text-yellow-400 transition duration-300">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
@@ -447,6 +520,35 @@
             </div>
         </div>
     </footer>
+
+    <!-- Theme switching script -->
+    <script>
+        function applyLandingTheme(theme) {
+            const html = document.documentElement;
+            
+            if (theme === 'light') {
+                html.classList.add('light-mode');
+                document.getElementById('landingSunIcon').classList.add('hidden');
+                document.getElementById('landingMoonIcon').classList.remove('hidden');
+            } else {
+                html.classList.remove('light-mode');
+                document.getElementById('landingSunIcon').classList.remove('hidden');
+                document.getElementById('landingMoonIcon').classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('eutTheme') || 'dark';
+            applyLandingTheme(savedTheme);
+            
+            document.getElementById('landingThemeToggle').addEventListener('click', function() {
+                const currentTheme = localStorage.getItem('eutTheme') || 'dark';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('eutTheme', newTheme);
+                applyLandingTheme(newTheme);
+            });
+        });
+    </script>
 
     <!-- Smooth scrolling script -->
     <script>

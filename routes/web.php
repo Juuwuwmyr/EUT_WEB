@@ -13,6 +13,7 @@ Route::get('/shop/product/{id}', [ShopController::class, 'product'])->name('shop
 Route::get('/shop/cart', [ShopController::class, 'cart'])->name('shop.cart');
 Route::get('/shop/checkout', [ShopController::class, 'checkout'])->name('shop.checkout');
 Route::get('/shop/tracking', [ShopController::class, 'tracking'])->name('shop.tracking');
+Route::get('/shop/profile', [ShopController::class, 'profile'])->name('shop.profile');
 
 // -------------------------------------------------------
 // Public pages
