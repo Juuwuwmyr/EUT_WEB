@@ -491,28 +491,9 @@
 
     <div class="sheet-divider"></div>
 
-    <!-- ── FLAVOR / SAUCE ── -->
-    <div class="sheet-section">
-        <p class="sheet-section-title">
-            Flavor / Sauce
-            <span id="selectedFlavorLabel">Select one</span>
-        </p>
-        <div class="flavor-grid" id="flavorGrid">
-            <!-- JS populated -->
-        </div>
-    </div>
-
-    <div class="sheet-divider"></div>
-
-    <!-- ── SIZE ── -->
-    <div class="sheet-section">
-        <p class="sheet-section-title">
-            Size
-            <span id="selectedSizeLabel">Select one</span>
-        </p>
-        <div class="size-grid" id="sizeGrid">
-            <!-- JS populated -->
-        </div>
+    <!-- ── MODIFIER GROUPS (DB-driven, fully dynamic) ── -->
+    <div id="modifierGroupsContainer">
+        <!-- JS populated -->
     </div>
 
     <div class="sheet-divider"></div>
@@ -578,8 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(t);
     });
     updateCartBadge();
-    buildFlavors();
-    buildSizes();
+    buildModifierGroups();
     bindQty();
     bindActions();
 });
@@ -599,69 +579,140 @@ const ITEM_NAME  = @json($item['name']);
 const ITEM_IMAGE = @json($item['image']);
 const ITEM_CAT   = @json($item['category']['slug'] ?? 'food');
 
-let sheetMode     = 'cart'; // 'cart' or 'buy'
-let selectedFlavor = null;
-let selectedSize   = { label: 'Regular', multiplier: 1.0 };
-let currentQty     = 1;
+// ── Modifier groups from DB ──────────────────────────────
+const MODIFIER_GROUPS = @json($item['modifier_groups'] ?? []);
 
-/* ── FLAVORS — food-themed: sauce / spice level ── */
-const FLAVORS = [
-    { name: 'Classic',    color: 'linear-gradient(135deg,#b45309,#92400e)', emoji: '🍯', hot: false },
-    { name: 'Spicy 🌶',   color: 'linear-gradient(135deg,#dc2626,#b91c1c)', emoji: '🔥', hot: true  },
-    { name: 'BBQ Smoke',  color: 'linear-gradient(135deg,#292524,#57534e)', emoji: '🫙', hot: false },
-    { name: 'Garlic Aioli', color: 'linear-gradient(135deg,#854d0e,#ca8a04)', emoji: '🧄', hot: false },
-    { name: 'Honey Sriracha', color: 'linear-gradient(135deg,#f59e0b,#ef4444)', emoji: '🍯', hot: true },
-    { name: 'Truffle',    color: 'linear-gradient(135deg,#3f3f46,#1c1917)', emoji: '🍄', hot: false },
+let sheetMode      = 'cart';
+let selectedOptions = {}; // group_id → option object
+let currentQty      = 1;
+
+/* ── COLORS for flavor swatches (cycle if no color in DB) ── */
+const SWATCH_COLORS = [
+    'linear-gradient(135deg,#b45309,#92400e)',
+    'linear-gradient(135deg,#dc2626,#b91c1c)',
+    'linear-gradient(135deg,#292524,#57534e)',
+    'linear-gradient(135deg,#854d0e,#ca8a04)',
+    'linear-gradient(135deg,#f59e0b,#ef4444)',
+    'linear-gradient(135deg,#3f3f46,#1c1917)',
+    'linear-gradient(135deg,#1d4ed8,#1e3a8a)',
+    'linear-gradient(135deg,#15803d,#14532d)',
 ];
 
-function buildFlavors() {
-    const grid = document.getElementById('flavorGrid');
-    grid.innerHTML = FLAVORS.map((f, i) => `
-        <div class="flavor-swatch${i===0?' selected':''}" data-flavor="${i}" onclick="selectFlavor(${i})">
-            <div class="flavor-swatch-inner" style="background:${f.color};">
-                <span class="flavor-name">${f.name}</span>
-                ${f.hot ? '<span class="flavor-hot-dot">🔥</span>' : ''}
-                <span class="flavor-check">
-                    <svg width="9" height="9" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                </span>
-            </div>
-        </div>`).join('');
-    // init first
-    selectedFlavor = FLAVORS[0];
-    document.getElementById('selectedFlavorLabel').textContent = FLAVORS[0].name;
+function buildModifierGroups() {
+    const container = document.getElementById('modifierGroupsContainer');
+    // Filter out addon groups — they're not customer-selectable options
+    const visibleGroups = MODIFIER_GROUPS.filter(g => g.type !== 'addon');
+
+    if (!visibleGroups.length) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = visibleGroups.map((group, gi) => {
+        const isFlavor = group.type === 'flavor';
+        const divider  = gi < visibleGroups.length - 1
+            ? '<div style="height:1px;background:rgba(255,255,255,0.06);margin:0 18px;"></div>' : '';
+
+        const optionsHtml = isFlavor
+            ? buildFlavorOptions(group)
+            : buildPillOptions(group);
+
+        return `
+        <div class="sheet-section" id="group_${group.id}">
+            <p class="sheet-section-title">
+                ${group.name}
+                <span id="label_${group.id}">${group.required ? 'Required' : 'Select one'}</span>
+            </p>
+            ${optionsHtml}
+        </div>
+        ${divider}`;
+    }).join('');
+
+    // Pre-select only explicitly marked defaults — no fallback to first
+    MODIFIER_GROUPS.forEach(group => {
+        if (group.type === 'addon') return; // skip addons
+        const def = group.active_options.find(o => o.is_default);
+        if (def) {
+            selectedOptions[group.id] = def;
+            const label = document.getElementById('label_' + group.id);
+            if (label) label.textContent = def.name;
+        } else {
+            // No default — leave unselected, show 'Select one'
+            selectedOptions[group.id] = null;
+        }
+    });
+
+    updateTotal();
 }
 
-function selectFlavor(idx) {
-    document.querySelectorAll('.flavor-swatch').forEach(s => s.classList.remove('selected'));
-    document.querySelector(`.flavor-swatch[data-flavor="${idx}"]`).classList.add('selected');
-    selectedFlavor = FLAVORS[idx];
-    document.getElementById('selectedFlavorLabel').textContent = FLAVORS[idx].name;
+function buildFlavorOptions(group) {
+    return `<div class="flavor-grid">` +
+        group.active_options.map((opt) => {
+            const i = group.active_options.indexOf(opt);
+            const color = SWATCH_COLORS[i % SWATCH_COLORS.length];
+            const isSelected = !!opt.is_default;
+            return `<div class="flavor-swatch${isSelected ? ' selected' : ''}" id="opt_${group.id}_${opt.id}"
+                        onclick="selectOption(${group.id}, ${opt.id}, true)">
+                <div class="flavor-swatch-inner" style="background:${color};">
+                    <span class="flavor-name">${opt.name}</span>
+                    <span class="flavor-check">
+                        <svg width="9" height="9" fill="none" stroke="#000" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>`;
+        }).join('') +
+    `</div>`;
 }
 
-/* ── SIZES ── */
-const SIZES = [
-    { label: 'Solo',    desc: 'Single serving',   mult: 1.0  },
-    { label: 'Regular', desc: 'Standard size',    mult: 1.0  },
-    { label: 'Large',   desc: '+₱' + Math.round(BASE_PRICE * 0.2), mult: 1.2  },
-    { label: 'X-Large', desc: '+₱' + Math.round(BASE_PRICE * 0.4), mult: 1.4  },
-];
-
-function buildSizes() {
-    const grid = document.getElementById('sizeGrid');
-    grid.innerHTML = SIZES.map((s, i) => `
-        <div class="size-pill${i===1?' selected':''}" data-size="${i}" onclick="selectSize(${i})">
-            <span class="size-pill-label">${s.label}</span>
-            <span class="size-pill-desc">${s.desc}</span>
-        </div>`).join('');
-    selectedSize = SIZES[1];
-    document.getElementById('selectedSizeLabel').textContent = SIZES[1].label;
+function buildPillOptions(group) {
+    return `<div class="size-grid">` +
+        group.active_options.map((opt) => {
+            const isSelected = !!opt.is_default;
+            const adj = parseFloat(opt.price_adjustment || 0);
+            const priceLabel = opt.price_type === 'add' && adj > 0
+                ? '+₱' + adj.toLocaleString()
+                : opt.price_type === 'replace'
+                    ? '₱' + adj.toLocaleString()
+                    : 'Free';
+            return `<div class="size-pill${isSelected ? ' selected' : ''}" id="opt_${group.id}_${opt.id}"
+                        onclick="selectOption(${group.id}, ${opt.id}, false)">
+                <span class="size-pill-label">${opt.name}</span>
+                <span class="size-pill-desc">${priceLabel}</span>
+            </div>`;
+        }).join('') +
+    `</div>`;
 }
 
-function selectSize(idx) {
-    document.querySelectorAll('.size-pill').forEach(p => p.classList.remove('selected'));
-    document.querySelector(`.size-pill[data-size="${idx}"]`).classList.add('selected');
-    selectedSize = SIZES[idx];
-    document.getElementById('selectedSizeLabel').textContent = SIZES[idx].label;
+function selectOption(groupId, optId, isFlavor) {
+    const group = MODIFIER_GROUPS.find(g => g.id === parseInt(groupId));
+    if (!group) return;
+    const current = selectedOptions[group.id];
+    const isSame  = current && parseInt(current.id) === parseInt(optId);
+
+    // Always deselect all options in this group first
+    group.active_options.forEach(o => {
+        const el = document.getElementById('opt_' + group.id + '_' + o.id);
+        if (el) el.classList.remove('selected');
+    });
+
+    if (isSame) {
+        // Tap same option again → unselect
+        selectedOptions[group.id] = null;
+        const label = document.getElementById('label_' + group.id);
+        if (label) label.textContent = group.required ? 'Required' : 'Select one';
+    } else {
+        // Select the new option
+        const opt = group.active_options.find(o => parseInt(o.id) === parseInt(optId));
+        if (!opt) return;
+        const chosen = document.getElementById('opt_' + group.id + '_' + opt.id);
+        if (chosen) chosen.classList.add('selected');
+        selectedOptions[group.id] = opt;
+        const label = document.getElementById('label_' + group.id);
+        if (label) label.textContent = opt.name;
+    }
+
     updateTotal();
 }
 
@@ -683,10 +734,26 @@ function bindQty() {
 }
 
 function updateTotal() {
-    const unit  = Math.round(BASE_PRICE * selectedSize.mult);
+    let price = parseFloat(BASE_PRICE);
+
+    Object.entries(selectedOptions).forEach(([groupId, opt]) => {
+        if (!opt) return; // unselected group
+        // Skip addon groups — they don't affect price
+        const group = MODIFIER_GROUPS.find(g => g.id === parseInt(groupId));
+        if (!group || group.type === 'addon') return;
+
+        const adj = parseFloat(opt.price_adjustment || 0);
+        if (opt.price_type === 'add') {
+            price += adj;
+        } else if (opt.price_type === 'replace') {
+            price = adj;
+        }
+    });
+
+    const unit  = Math.round(price);
     const total = unit * currentQty;
-    document.getElementById('sheetPrice').textContent  = '₱' + unit.toLocaleString();
-    document.getElementById('sheetTotal').textContent  = '₱' + total.toLocaleString();
+    document.getElementById('sheetPrice').textContent    = '₱' + unit.toLocaleString();
+    document.getElementById('sheetTotal').textContent    = '₱' + total.toLocaleString();
     document.getElementById('sheetQtyLabel').textContent = currentQty;
 }
 
@@ -713,20 +780,32 @@ function bindActions() {
 }
 
 function doAdd(goToCart) {
-    const unit = Math.round(BASE_PRICE * selectedSize.mult);
-    const key  = ITEM_ID + '_' + selectedSize.label;
-    const name = ITEM_NAME + ' (' + selectedSize.label + ', ' + (selectedFlavor?.name || 'Classic') + ')';
+    let price = BASE_PRICE;
+    Object.values(selectedOptions).forEach(opt => {
+        if (!opt) return;
+        if (opt.price_type === 'add')     price += parseFloat(opt.price_adjustment || 0);
+        else if (opt.price_type === 'replace') price = parseFloat(opt.price_adjustment);
+    });
+    const unit = Math.round(price);
+
+    // Build a label from selected options for display
+    const optLabels = Object.values(selectedOptions).filter(Boolean).map(o => o.name);
+    const suffix    = optLabels.length ? ' (' + optLabels.join(', ') + ')' : '';
+    const name      = ITEM_NAME + suffix;
+
+    // Unique cart key per item+option combo
+    const optKey = Object.values(selectedOptions).filter(Boolean).map(o => o.id).sort().join('-');
+    const key    = ITEM_ID + (optKey ? '_' + optKey : '');
+
     const existing = cart.find(i => i.id === key);
     if (existing) existing.quantity += currentQty;
     else cart.push({ id: key, name, price: unit, image: ITEM_IMAGE, category: ITEM_CAT, quantity: currentQty });
+
     localStorage.setItem('eutCart', JSON.stringify(cart));
     updateCartBadge();
     closeSheet();
     if (goToCart) window.location.href = '{{ route("shop.cart") }}';
-    else {
-        // brief toast
-        showToast('Added to cart! 🛒');
-    }
+    else showToast('Added to cart! 🛒');
 }
 
 function showToast(msg) {
