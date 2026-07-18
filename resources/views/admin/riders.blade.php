@@ -1,4 +1,4 @@
-@extends('admin.layout')
+﻿@extends('admin.layout')
 @section('title', 'Riders')
 
 @section('content')
@@ -46,13 +46,39 @@ $riderStats = [
     @endforeach
 </div>
 
+{{-- ── LIVE RIDERS MAP ── --}}
+<div class="section-card" style="margin-bottom:1.5rem;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border-section);">
+        <div style="display:flex;align-items:center;gap:.5rem;">
+            <i data-lucide="map-pin" style="width:1rem;height:1rem;color:#f59e0b;stroke-width:2;"></i>
+            <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Live Rider Map</h2>
+        </div>
+        <span style="display:inline-flex;align-items:center;gap:.35rem;font-size:.7rem;font-weight:700;color:#10b981;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);padding:.25rem .6rem;border-radius:99px;">
+            <span style="width:6px;height:6px;background:#10b981;border-radius:50%;animation:blink 1.2s infinite;"></span>
+            3 riders active
+        </span>
+    </div>
+    <div id="adminRidersMap" style="width:100%;height:320px;position:relative;z-index:0;"></div>
+    <div style="padding:.75rem 1.25rem;display:flex;gap:1.25rem;flex-wrap:wrap;">
+        <span style="font-size:.72rem;color:var(--text-muted);display:flex;align-items:center;gap:.4rem;">
+            <span style="width:10px;height:10px;background:#8b5cf6;border-radius:50%;display:inline-block;"></span> On Delivery
+        </span>
+        <span style="font-size:.72rem;color:var(--text-muted);display:flex;align-items:center;gap:.4rem;">
+            <span style="width:10px;height:10px;background:#10b981;border-radius:50%;display:inline-block;"></span> Online / Available
+        </span>
+        <span style="font-size:.72rem;color:var(--text-muted);display:flex;align-items:center;gap:.4rem;">
+            <span style="width:10px;height:10px;background:#facc15;border-radius:50%;display:inline-block;"></span> EUT Restaurant
+        </span>
+    </div>
+</div>
+
 {{-- ── FILTER BAR ── --}}
 <div class="section-card">
     <div class="filter-bar" style="justify-content:space-between;">
         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
             <div style="display:flex;align-items:center;gap:.5rem;">
                 <i data-lucide="search" style="width:.875rem;height:.875rem;color:var(--text-muted);stroke-width:2;"></i>
-                <input type="text" class="admin-input" placeholder="Search riders..." style="max-width:220px;" oninput="filterRiders(this.value)">
+                <input type="search" class="admin-input" placeholder="Search riders..." style="max-width:220px;" oninput="filterRiders(this.value)" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
             </div>
             <select class="admin-input" style="max-width:160px;" onchange="filterByStatus(this.value)">
                 <option value="">All Statuses</option>
@@ -405,5 +431,96 @@ function confirmRemoveRider(name) {
     }
 }
 </script>
+
+<script>
+// ── LEAFLET + OSRM ADMIN RIDERS MAP ──
+</script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const RESTAURANT_ADMIN = [13.3211, 121.4583];
+const ADMIN_RIDERS = [
+    { name:'Juan dela Cruz',  pos:[13.3240,121.4615], dest:[13.3295,121.4670], status:'on_delivery', order:'#EUT-00512', color:'#8b5cf6' },
+    { name:'Pedro Reyes',     pos:[13.3178,121.4552], dest:[13.3310,121.4640], status:'on_delivery', order:'#EUT-00509', color:'#8b5cf6' },
+    { name:'Rosa Dela Torre', pos:[13.3265,121.4700], dest:[13.3180,121.4520], status:'on_delivery', order:'#EUT-00514', color:'#8b5cf6' },
+    { name:'Maria Santos',    pos:[13.3195,121.4630], dest:null,               status:'online',      order:null,         color:'#10b981' },
+    { name:'Ana Gomez',       pos:[13.3222,121.4598], dest:null,               status:'online',      order:null,         color:'#10b981' },
+];
+
+async function fetchOSRMAdmin(from, to) {
+    const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.code === 'Ok' && data.routes.length)
+            return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+    } catch(e) {}
+    return null;
+}
+
+async function initAdminMap() {
+    const el = document.getElementById('adminRidersMap');
+    if (!el) return;
+
+    const adminMap = L.map('adminRidersMap', { zoomControl: true });
+
+    // Google Satellite — full PH coverage
+    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        attribution: '&copy; Google Maps',
+        maxZoom: 20,
+    }).addTo(adminMap);
+
+    // Google Hybrid labels overlay (roads + street names on satellite)
+    L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
+        attribution: '',
+        maxZoom: 20,
+        opacity: 0.85,
+    }).addTo(adminMap);
+
+    // Restaurant marker
+    L.marker(RESTAURANT_ADMIN, { icon: L.divIcon({
+        html: `<div style="background:#facc15;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:18px;line-height:1;">&#x1F354;</span></div>`,
+        className:'', iconSize:[42,42], iconAnchor:[21,42],
+    })}).addTo(adminMap).bindPopup('<b>EUT Restaurant</b><br>Metro Naujan, Oriental Mindoro');
+
+    const allPoints = [RESTAURANT_ADMIN];
+
+    for (const r of ADMIN_RIDERS) {
+        allPoints.push(r.pos);
+        // Rider marker
+        const m = L.marker(r.pos, { icon: L.divIcon({
+            html: `<div style="background:${r.color};width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 10px ${r.color}88;">&#x1F6F5;</div>`,
+            className:'', iconSize:[42,42], iconAnchor:[21,21],
+        })}).addTo(adminMap);
+        m.bindPopup(`<b>${r.name}</b><br>${r.order ? '&#x1F7E3; ' + r.order : '&#x1F7E2; Available'}`);
+
+        // Draw OSRM route for on-delivery riders
+        if (r.status === 'on_delivery' && r.dest) {
+            const route = await fetchOSRMAdmin(r.pos, r.dest);
+            if (route) {
+                L.polyline(route, { color: r.color, weight: 5, opacity: 1 }).addTo(adminMap);
+                // Customer destination pin
+                L.circleMarker(r.dest, { radius: 7, color: '#ef4444', fillColor:'#ef4444', fillOpacity:0.8, weight:2 })
+                 .addTo(adminMap).bindPopup('Customer destination');
+            } else {
+                L.polyline([r.pos, r.dest], { color: r.color, weight: 2, opacity: 0.5, dashArray:'6 4' }).addTo(adminMap);
+            }
+        }
+    }
+
+    adminMap.fitBounds(allPoints, { padding:[40,40] });
+}
+
+document.addEventListener('DOMContentLoaded', initAdminMap);
+</script>
+
+<style>
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+#adminRidersMap { z-index: 0 !important; }
+#adminRidersMap .leaflet-pane,
+#adminRidersMap .leaflet-top,
+#adminRidersMap .leaflet-bottom { z-index: 0 !important; }
+#adminRidersMap .leaflet-control { z-index: 1 !important; }
+</style>
 
 @endsection
