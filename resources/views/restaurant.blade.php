@@ -3,986 +3,1719 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EUT Restaurant - Eat Unwind Tea Restaurant</title>
+    <title>EUT Restaurant — Eat • Unwind • Tea</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Pacifico&family=Satisfy&family=Sacramento&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     <style>
-        .theme-toggle {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .theme-toggle:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        /* Light mode overrides */
-        .light-mode body {
-            background-color: #f5f5f5;
-            color: #111;
-        }
-        .light-mode nav {
-            background-color: rgba(255,255,255,0.95) !important;
-            border-color: rgba(0,0,0,0.1) !important;
-        }
-        .light-mode .text-white {
-            color: #111 !important;
-        }
-        .light-mode .text-gray-300 {
-            color: #666 !important;
-        }
-        .light-mode .text-gray-400 {
-            color: #888 !important;
-        }
-        .light-mode .border-white/10 {
-            border-color: rgba(0,0,0,0.1) !important;
-        }
-        .light-mode .bg-black/95 {
-            background-color: rgba(255,255,255,0.95) !important;
-        }
-        .light-mode .theme-toggle {
-            background: rgba(0,0,0,0.05);
-            border-color: rgba(0,0,0,0.1);
-        }
-        .light-mode .theme-toggle:hover {
-            background: rgba(0,0,0,0.1);
-        }
-        .light-mode section#home {
-            background-color: #fffaf5;
-        }
-        .light-mode section#home img[alt=""] {
-            opacity: 0.35;
-        }
-        .light-mode section#home .absolute.inset-0.bg-gradient-to-br {
-            background: linear-gradient(to bottom right, rgba(255,255,255,0.8) 0%, rgba(254,226,226,0.6) 50%, rgba(255,255,255,0.8) 100%) !important;
-        }
-        .light-mode section#home .absolute.bottom-0 {
-            background: linear-gradient(to top, #fffaf5 0%, transparent 100%) !important;
-        }
-        .light-mode section#home .absolute.inset-0[style*="radial-gradient"] {
-            background: radial-gradient(ellipse at center, transparent 40%, rgba(255,255,255,0.25) 65%, rgba(255,255,255,0.55) 85%, rgba(255,255,255,0.75) 100%) !important;
-        }
+/* ══════════════════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; background: #04040a; }
+body {
+    font-family: 'Inter', sans-serif;
+    background: #080810;
+    color: #f9fafb;
+    overflow-x: hidden;
+    zoom: 0.75;
+    max-width: 1400px;
+    margin: 0 auto;
+    box-shadow: 0 0 80px rgba(0,0,0,0.6);
+}
+a { text-decoration: none; }
+img { display: block; }
+
+/* ══════════════════════════════════════════════════════
+   NOISE FILTER
+══════════════════════════════════════════════════════ */
+.noise-layer {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ══════════════════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════════════════ */
+.btn-primary {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    color: #fff; padding: 13px 28px; border-radius: 10px;
+    font-weight: 700; font-size: 14px; border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: all 0.22s; box-shadow: 0 4px 18px rgba(220,38,38,0.38);
+    letter-spacing: 0.01em; white-space: nowrap;
+}
+.btn-primary:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+    box-shadow: 0 8px 28px rgba(220,38,38,0.55);
+    transform: translateY(-2px);
+}
+.btn-secondary {
+    background: transparent; color: #facc15; padding: 13px 28px;
+    border-radius: 10px; font-weight: 700; font-size: 14px;
+    border: 1.5px solid rgba(250,204,21,0.6); cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: all 0.22s; letter-spacing: 0.01em; white-space: nowrap;
+}
+.btn-secondary:hover {
+    background: rgba(250,204,21,0.1);
+    border-color: #facc15;
+    transform: translateY(-2px);
+}
+.btn-outline-white {
+    background: rgba(255,255,255,0.05); color: #e5e7eb;
+    border: 1px solid rgba(255,255,255,0.14); padding: 9px 20px;
+    border-radius: 9px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.18s; white-space: nowrap;
+}
+.btn-outline-white:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(250,204,21,0.35);
+    color: #facc15;
+}
+
+/* ══════════════════════════════════════════════════════
+   NAV
+══════════════════════════════════════════════════════ */
+.nav {
+    position: sticky; top: 0; z-index: 200;
+    height: 60px;
+    background: rgba(8,8,16,0.96);
+    border-bottom: 1px solid rgba(220,38,38,0.3);
+    box-shadow: 0 1px 0 rgba(220,38,38,0.15), 0 4px 24px rgba(0,0,0,0.6);
+    backdrop-filter: blur(18px) saturate(1.4);
+    padding: 0 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: background 0.3s;
+}
+.nav.scrolled {
+    background: rgba(8,8,16,0.82);
+    box-shadow: 0 0 0 1px rgba(220,38,38,0.2), 0 8px 40px rgba(0,0,0,0.7);
+}
+.nav-brand {
+    display: flex; align-items: center; gap: 8px;
+    color: #facc15; font-family: 'Playfair Display', serif;
+    font-weight: 700; font-style: italic; font-size: 17px;
+    letter-spacing: -0.01em; text-decoration: none; flex-shrink: 0;
+}
+.nav-links {
+    display: flex; align-items: center; gap: 32px; list-style: none;
+}
+.nav-links a {
+    font-size: 13px; font-weight: 500; color: #9ca3af;
+    transition: color 0.18s; letter-spacing: 0.01em; text-decoration: none;
+}
+.nav-links a:hover { color: #f9fafb; }
+.nav-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.nav-hamburger {
+    display: none; background: none; border: none; cursor: pointer;
+    color: #9ca3af; padding: 6px;
+}
+.mobile-menu {
+    display: none; position: fixed; top: 60px; left: 0; right: 0;
+    background: #0c0c18; border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding: 20px 24px; z-index: 199;
+    flex-direction: column; gap: 16px;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+    font-size: 15px; font-weight: 600; color: #d1d5db;
+    text-decoration: none; padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: color 0.18s;
+}
+.mobile-menu a:hover { color: #facc15; }
+
+/* ══════════════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════════════ */
+.hero {
+    position: relative; overflow: hidden;
+    min-height: 92vh;
+    background: #080810;
+    display: flex; align-items: center;
+    padding: 80px 48px;
+}
+.hero-glow-red {
+    position: absolute; top: -120px; left: -120px;
+    width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(220,38,38,0.14) 0%, transparent 70%);
+    pointer-events: none;
+}
+.hero-glow-amber {
+    position: absolute; bottom: -100px; right: 80px;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+.hero-grid-pattern {
+    position: absolute; inset: 0; pointer-events: none; opacity: 0.03;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px);
+    background-size: 60px 60px;
+    transform: skewY(-4deg);
+}
+.hero-inner {
+    max-width: 1160px; margin: 0 auto; width: 100%;
+    display: flex; align-items: center; gap: 72px;
+    position: relative; z-index: 1;
+}
+.hero-left { flex: 1; min-width: 0; }
+.hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+    color: #22c55e; font-size: 12px; font-weight: 700;
+    padding: 6px 16px; border-radius: 999px; margin-bottom: 28px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    animation: badge-pulse 3s ease-in-out infinite;
+}
+.hero-badge-dot {
+    width: 8px; height: 8px; background: #22c55e; border-radius: 50%;
+    box-shadow: 0 0 8px rgba(34,197,94,0.8);
+    animation: dot-blink 1.5s ease-in-out infinite;
+}
+@keyframes dot-blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.7)} }
+@keyframes badge-pulse { 0%,100%{box-shadow:0 0 0 rgba(34,197,94,0)} 50%{box-shadow:0 0 16px rgba(34,197,94,0.2)} }
+.hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 62px; font-weight: 700; line-height: 1.1;
+    color: #f9fafb; margin-bottom: 18px; letter-spacing: -0.02em;
+}
+.hero-title-gold {
+    color: #facc15; font-style: italic;
+    text-shadow: 0 0 40px rgba(250,204,21,0.25);
+}
+.hero-desc {
+    font-size: 16px; color: #9ca3af; line-height: 1.8;
+    margin-bottom: 36px; max-width: 460px;
+    font-weight: 400;
+}
+.hero-btns { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 44px; }
+.hero-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+.hero-stat-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 999px; padding: 8px 18px;
+    font-size: 13px; font-weight: 600; color: #d1d5db;
+    backdrop-filter: blur(8px);
+    transition: border-color 0.2s;
+}
+.hero-stat-chip svg { flex-shrink: 0; }
+.hero-stat-chip:hover { border-color: rgba(250,204,21,0.25); color: #facc15; }
+.hero-right {
+    flex-shrink: 0; position: relative;
+    display: flex; align-items: center; justify-content: center;
+}
+.hero-panda-wrap { position: relative; }
+.hero-panda {
+    width: 320px; height: auto; object-fit: contain;
+    filter: drop-shadow(0 0 60px rgba(220,38,38,0.3)) drop-shadow(0 20px 40px rgba(220,38,38,0.2));
+    animation: panda-float 5s ease-in-out infinite;
+}
+@keyframes panda-float {
+    0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)}
+}
+.hero-sales-card {
+    position: absolute; bottom: -10px; left: -90px;
+    background: rgba(12,12,24,0.92); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 18px; padding: 18px 22px; min-width: 220px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    animation: card-float 5s ease-in-out infinite 1s;
+}
+@keyframes card-float {
+    0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)}
+}
+.hero-sales-label {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11px; font-weight: 600; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+}
+.hero-sales-dot {
+    width: 7px; height: 7px; background: #22c55e; border-radius: 50%;
+    box-shadow: 0 0 6px rgba(34,197,94,0.7);
+    animation: dot-blink 1.5s ease-in-out infinite;
+}
+.hero-sales-amount {
+    font-size: 28px; font-weight: 900; color: #facc15;
+    font-family: 'Playfair Display', serif; margin-bottom: 6px;
+    letter-spacing: -0.02em;
+}
+.hero-sales-growth {
+    font-size: 12px; font-weight: 700; color: #22c55e;
+    display: flex; align-items: center; gap: 4px;
+}
+
+/* ══════════════════════════════════════════════════════
+   STATS BAR
+══════════════════════════════════════════════════════ */
+.stats-bar {
+    background: #0c0c18;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 52px 48px;
+}
+.stats-inner {
+    max-width: 1160px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(4,1fr);
+}
+.stat-item {
+    text-align: center; padding: 10px 24px;
+    position: relative;
+}
+.stat-item:not(:last-child)::after {
+    content: ''; position: absolute; right: 0; top: 10%;
+    height: 80%; width: 1px; background: rgba(255,255,255,0.08);
+}
+.stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 44px; font-weight: 700; color: #facc15;
+    line-height: 1; margin-bottom: 8px; letter-spacing: -0.02em;
+}
+.stat-label {
+    font-size: 13px; color: #4b5563; font-weight: 500; letter-spacing: 0.02em;
+}
+
+/* ══════════════════════════════════════════════════════
+   SECTION HEADERS
+══════════════════════════════════════════════════════ */
+.eyebrow {
+    font-size: 11px; font-weight: 800; color: #ef4444;
+    letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 14px;
+    display: block;
+}
+.section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px; font-weight: 700; color: #f9fafb;
+    line-height: 1.15; margin-bottom: 16px; letter-spacing: -0.02em;
+}
+.section-title .gold { color: #facc15; font-style: italic; }
+.section-subtitle {
+    font-size: 15px; color: #6b7280; max-width: 480px; margin: 0 auto;
+    line-height: 1.75; font-weight: 400;
+}
+
+/* ══════════════════════════════════════════════════════
+   MENU SECTION
+══════════════════════════════════════════════════════ */
+.menu-section {
+    background: #080810;
+    padding: 90px 48px;
+}
+.menu-cats {
+    display: flex; gap: 9px; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 48px;
+}
+.menu-cat {
+    padding: 10px 22px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03);
+    color: #9ca3af; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    letter-spacing: 0.01em;
+}
+.menu-cat:hover {
+    border-color: rgba(250,204,21,0.3); color: #facc15;
+    background: rgba(250,204,21,0.04);
+}
+.menu-cat.active {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    border-color: transparent; color: #fff;
+    box-shadow: 0 4px 16px rgba(220,38,38,0.42);
+}
+.menu-grid {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 20px;
+    max-width: 1160px; margin: 0 auto;
+}
+.menu-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; overflow: hidden;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    cursor: pointer;
+}
+.menu-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(250,204,21,0.35);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(250,204,21,0.15), 0 0 30px rgba(250,204,21,0.08);
+}
+.menu-card-img-wrap { position: relative; overflow: hidden; }
+.menu-card-img {
+    width: 100%; aspect-ratio: 4/3; object-fit: cover;
+    transition: transform 0.38s;
+}
+.menu-card:hover .menu-card-img { transform: scale(1.07); }
+.menu-badge {
+    position: absolute; top: 11px; left: 11px;
+    font-size: 10px; font-weight: 800; padding: 4px 11px;
+    border-radius: 999px; letter-spacing: 0.03em;
+    display: inline-flex; align-items: center; gap: 4px;
+    line-height: 1;
+}
+.badge-green  { background: #22c55e; color: #fff; }
+.badge-pink   { background: #ec4899; color: #fff; }
+.badge-red    { background: linear-gradient(135deg,#dc2626,#ef4444); color: #fff; }
+.badge-yellow { background: linear-gradient(135deg,#f59e0b,#facc15); color: #000; }
+.badge-teal   { background: #14b8a6; color: #fff; }
+.badge-purple { background: #8b5cf6; color: #fff; }
+.badge-amber  { background: #f59e0b; color: #000; }
+.menu-card-body { padding: 14px 16px 18px; }
+.menu-card-cat {
+    font-size: 10px; font-weight: 800; color: #ef4444;
+    letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px;
+}
+.menu-card-name {
+    font-size: 14px; font-weight: 700; color: #f3f4f6; margin-bottom: 12px;
+    line-height: 1.35;
+}
+.menu-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.menu-card-price { font-size: 18px; font-weight: 900; color: #facc15; letter-spacing: -0.01em; }
+.menu-card-stars { font-size: 12px; color: #9ca3af; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+
+/* ══════════════════════════════════════════════════════
+   GALLERY
+══════════════════════════════════════════════════════ */
+.gallery-section {
+    background: #0c0c18;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding: 90px 48px;
+}
+.gallery-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
+    max-width: 1160px; margin: 0 auto;
+}
+.gallery-card {
+    position: relative; border-radius: 20px; overflow: hidden;
+    cursor: pointer; border: 1px solid rgba(255,255,255,0.07);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.gallery-card:hover {
+    border-color: rgba(220,38,38,0.4);
+    box-shadow: 0 0 30px rgba(220,38,38,0.12);
+}
+.gallery-img {
+    width: 100%; aspect-ratio: 4/3; object-fit: cover;
+    display: block; transition: transform 0.45s;
+}
+.gallery-card:hover .gallery-img { transform: scale(1.06); }
+.gallery-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.1) 55%, transparent 100%);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 24px;
+}
+.gallery-title-text {
+    font-size: 16px; font-weight: 700; color: #fff;
+    margin-bottom: 5px;
+    transform: translateY(8px); opacity: 0.9;
+    transition: transform 0.3s, opacity 0.3s;
+}
+.gallery-sub-text {
+    font-size: 12px; color: rgba(255,255,255,0.6);
+    transform: translateY(12px); opacity: 0;
+    transition: transform 0.3s 0.05s, opacity 0.3s 0.05s;
+}
+.gallery-card:hover .gallery-title-text { transform: translateY(0); opacity: 1; }
+.gallery-card:hover .gallery-sub-text { transform: translateY(0); opacity: 1; }
+
+/* ══════════════════════════════════════════════════════
+   FEATURES
+══════════════════════════════════════════════════════ */
+.features-section {
+    background: #080810;
+    padding: 90px 48px;
+}
+.features-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
+    max-width: 1160px; margin: 0 auto;
+}
+.feat-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 28px;
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+    opacity: 0; transform: translateY(24px);
+    animation-fill-mode: forwards;
+}
+.feat-card.visible {
+    animation: card-rise 0.55s ease forwards;
+}
+@keyframes card-rise {
+    to { opacity: 1; transform: translateY(0); }
+}
+.feat-card:hover {
+    border-color: rgba(250,204,21,0.2);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.35);
+    transform: translateY(-4px);
+}
+.feat-icon-box {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px; flex-shrink: 0;
+}
+.feat-icon-box svg { display: block; }
+.feat-title { font-size: 16px; font-weight: 700; color: #f3f4f6; margin-bottom: 10px; }
+.feat-desc { font-size: 13px; color: #6b7280; line-height: 1.7; margin-bottom: 16px; }
+.feat-list { list-style: none; font-size: 13px; color: #9ca3af; line-height: 2; }
+.feat-list li::before { content: '✓ '; color: #22c55e; font-weight: 700; }
+
+/* ══════════════════════════════════════════════════════
+   HOW IT WORKS
+══════════════════════════════════════════════════════ */
+.how-section {
+    background: #0c0c18;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding: 90px 48px;
+}
+.steps-row {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 0;
+    max-width: 1000px; margin: 0 auto; position: relative;
+}
+.steps-row::before {
+    content: ''; position: absolute; top: 40px; left: 12.5%;
+    width: 75%; height: 1px;
+    border-top: 2px dashed rgba(220,38,38,0.25);
+    z-index: 0;
+}
+.step-item { text-align: center; padding: 0 12px; position: relative; z-index: 1; }
+.step-circle {
+    width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: #f9fafb;
+    background: rgba(8,8,16,1);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+}
+.step-circle::before {
+    content: ''; position: absolute; inset: -2px; border-radius: 50%;
+    background: linear-gradient(135deg, #dc2626, #f59e0b);
+    z-index: -1;
+}
+.step-num-label {
+    font-size: 10px; font-weight: 800; color: #4b5563;
+    letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px;
+}
+.step-title { font-size: 14px; font-weight: 700; color: #f3f4f6; margin-bottom: 8px; }
+.step-desc { font-size: 13px; color: #6b7280; line-height: 1.65; }
+
+/* ══════════════════════════════════════════════════════
+   TESTIMONIALS
+══════════════════════════════════════════════════════ */
+.testi-section { background: #080810; padding: 90px 48px; }
+.testi-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
+    max-width: 1160px; margin: 0 auto;
+}
+.testi-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px; padding: 28px;
+    transition: border-color 0.25s;
+    position: relative; overflow: hidden;
+}
+.testi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent 0%, rgba(220,38,38,0.6) 50%, transparent 100%);
+}
+.testi-card:hover { border-color: rgba(250,204,21,0.2); }
+.testi-stars { color: #facc15; font-size: 15px; letter-spacing: 3px; margin-bottom: 16px; }
+.testi-quote {
+    font-size: 14px; color: #d1d5db; line-height: 1.8;
+    font-style: italic; margin-bottom: 24px;
+}
+.testi-author { display: flex; align-items: center; gap: 12px; }
+.testi-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+}
+.testi-name { font-size: 14px; font-weight: 700; color: #f9fafb; margin-bottom: 2px; }
+.testi-role { font-size: 12px; color: #6b7280; }
+
+/* ══════════════════════════════════════════════════════
+   FAQ
+══════════════════════════════════════════════════════ */
+.faq-section {
+    background: #0c0c18;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding: 90px 48px;
+}
+.faq-wrap { max-width: 720px; margin: 0 auto; }
+.faq-item {
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding: 22px 0; cursor: pointer; user-select: none;
+    border-left: 2px solid transparent;
+    padding-left: 0; transition: border-color 0.2s, padding-left 0.2s;
+}
+.faq-item.open {
+    border-left-color: #dc2626; padding-left: 16px;
+}
+.faq-header {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+}
+.faq-question {
+    font-size: 15px; font-weight: 600; color: #f3f4f6;
+    transition: color 0.2s; line-height: 1.5;
+}
+.faq-item.open .faq-question { color: #facc15; }
+.faq-chevron {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px; transition: transform 0.28s, background 0.2s;
+    color: #6b7280; font-size: 14px; font-weight: 700;
+}
+.faq-item.open .faq-chevron { transform: rotate(90deg); background: rgba(250,204,21,0.1); color: #facc15; }
+.faq-answer {
+    font-size: 14px; color: #9ca3af; line-height: 1.8;
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.32s ease, margin-top 0.2s;
+}
+.faq-item.open .faq-answer { max-height: 240px; margin-top: 14px; }
+
+/* ══════════════════════════════════════════════════════
+   CTA BANNER
+══════════════════════════════════════════════════════ */
+.cta-section {
+    background: radial-gradient(ellipse at 30% 50%, rgba(127,29,29,0.7) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 60%, rgba(180,83,9,0.5) 0%, transparent 55%),
+                #0d0206;
+    padding: 90px 48px;
+    position: relative; overflow: hidden;
+}
+.cta-deco-panda {
+    position: absolute; right: -60px; bottom: 0;
+    width: 380px; height: auto; opacity: 0.1;
+    pointer-events: none;
+    filter: grayscale(1);
+}
+.cta-inner {
+    max-width: 1160px; margin: 0 auto;
+    display: flex; align-items: center; gap: 80px;
+    position: relative; z-index: 1;
+}
+.cta-left { flex: 1; }
+.cta-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px; font-weight: 700; color: #fff;
+    margin-bottom: 14px; letter-spacing: -0.02em; line-height: 1.2;
+}
+.cta-sub { font-size: 15px; color: rgba(255,255,255,0.65); margin-bottom: 36px; line-height: 1.7; }
+.cta-points {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px 40px; margin-bottom: 40px;
+}
+.cta-point {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9);
+}
+.cta-check {
+    flex-shrink: 0; width: 20px; height: 20px;
+}
+.btn-cta {
+    background: #fff; color: #dc2626; padding: 14px 40px;
+    border-radius: 10px; font-weight: 800; font-size: 15px;
+    border: none; cursor: pointer; transition: all 0.22s;
+    display: inline-flex; align-items: center; gap: 8px;
+    letter-spacing: 0.01em; text-decoration: none;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.4);
+}
+.btn-cta:hover { background: #fff0f0; transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,0.5); }
+
+/* ══════════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════════ */
+.footer {
+    background: #05050c;
+    border-top: 1px solid rgba(220,38,38,0.2);
+    box-shadow: 0 -1px 0 rgba(220,38,38,0.08), 0 -4px 30px rgba(220,38,38,0.05);
+    padding: 32px 48px;
+}
+.footer-top {
+    max-width: 1160px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; flex-wrap: wrap;
+}
+.footer-brand {
+    display: flex; align-items: center; gap: 9px;
+    color: #facc15; font-family: 'Playfair Display', serif;
+    font-weight: 700; font-style: italic; font-size: 18px;
+    text-decoration: none;
+}
+.footer-nav { display: flex; gap: 28px; flex-wrap: wrap; }
+.footer-nav a { font-size: 13px; color: #6b7280; text-decoration: none; transition: color 0.18s; }
+.footer-nav a:hover { color: #9ca3af; }
+.footer-socials { display: flex; gap: 14px; }
+.social-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    color: #6b7280; transition: all 0.2s; cursor: pointer;
+    text-decoration: none;
+}
+.social-icon:hover { background: rgba(220,38,38,0.12); border-color: rgba(220,38,38,0.3); color: #ef4444; }
+.footer-bottom {
+    max-width: 1160px; margin: 20px auto 0;
+    padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+}
+.footer-copy { font-size: 12px; color: #4b5563; }
+.footer-badge { font-size: 12px; color: #4b5563; display: flex; align-items: center; gap: 6px; }
+
+/* ══════════════════════════════════════════════════════
+   AUTH MODAL
+══════════════════════════════════════════════════════ */
+.auth-modal-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+}
+.auth-modal-backdrop.open { display: flex; }
+.auth-modal {
+    position: relative; width: 100%; max-width: 440px;
+    margin: 16px; border-radius: 22px; overflow: hidden;
+    background: #0a0a15; border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
+}
+.auth-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.auth-tab {
+    flex: 1; padding: 17px; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    background: none; cursor: pointer; border: none; border-bottom: 2px solid transparent;
+    color: #4b5563; transition: all 0.2s;
+}
+.auth-tab.active { color: #facc15; border-bottom-color: #facc15; }
+.auth-body { padding: 30px; }
+.auth-alert {
+    display: none; margin-bottom: 18px; padding: 12px 16px;
+    border-radius: 10px; font-size: 13px; font-weight: 600;
+}
+.auth-alert.error { background: rgba(220,38,38,0.12); color: #f87171; border: 1px solid rgba(220,38,38,0.25); }
+.auth-alert.success { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+.auth-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px; font-weight: 700; color: #facc15;
+    margin-bottom: 4px;
+}
+.auth-sub { font-size: 13px; color: #6b7280; margin-bottom: 22px; }
+.auth-google {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 13px; color: #e5e7eb;
+    font-size: 14px; font-weight: 600; text-decoration: none;
+    transition: all 0.18s; margin-bottom: 20px;
+}
+.auth-google:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+.auth-divider {
+    display: flex; align-items: center; gap: 12px;
+    color: #4b5563; font-size: 12px; margin-bottom: 20px;
+}
+.auth-divider::before, .auth-divider::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07);
+}
+.auth-field { margin-bottom: 16px; }
+.auth-label { display: block; font-size: 12px; font-weight: 600; color: #9ca3af; margin-bottom: 7px; letter-spacing: 0.05em; text-transform: uppercase; }
+.auth-input {
+    width: 100%; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09); border-radius: 10px;
+    padding: 12px 14px; font-size: 14px; color: #f9fafb;
+    font-family: 'Inter', sans-serif; transition: border-color 0.18s, box-shadow 0.18s;
+    outline: none;
+}
+.auth-input:focus { border-color: rgba(250,204,21,0.4); box-shadow: 0 0 0 3px rgba(250,204,21,0.07); }
+.auth-input::placeholder { color: #4b5563; }
+.btn-login {
+    width: 100%; padding: 14px; border-radius: 11px;
+    background: linear-gradient(135deg,#dc2626,#ef4444); color: #fff;
+    font-size: 14px; font-weight: 700; border: none; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 4px 16px rgba(220,38,38,0.35);
+    margin-top: 4px;
+}
+.btn-login:hover { background: linear-gradient(135deg,#b91c1c,#dc2626); box-shadow: 0 8px 24px rgba(220,38,38,0.5); }
+.btn-signup {
+    width: 100%; padding: 14px; border-radius: 11px;
+    background: linear-gradient(135deg,#f59e0b,#facc15); color: #000;
+    font-size: 14px; font-weight: 800; border: none; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 4px 16px rgba(245,158,11,0.3);
+    margin-top: 4px;
+}
+.btn-signup:hover { background: linear-gradient(135deg,#d97706,#f59e0b); box-shadow: 0 8px 24px rgba(245,158,11,0.45); }
+.auth-panel { display: none; }
+.auth-panel.active { display: block; }
+.auth-close {
+    position: absolute; top: 15px; right: 15px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px; color: #6b7280; cursor: pointer;
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s; z-index: 1;
+}
+.auth-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+    .menu-grid { grid-template-columns: repeat(3,1fr); }
+}
+@media (max-width: 900px) {
+    .nav { padding: 0 24px; }
+    .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
+    .hero { padding: 60px 24px; min-height: auto; }
+    .hero-inner { flex-direction: column; gap: 48px; text-align: center; }
+    .hero-title { font-size: 42px; }
+    .hero-panda { width: 240px; }
+    .hero-sales-card { position: relative; left: 0; bottom: 0; margin-top: 16px; }
+    .hero-btns, .hero-stats { justify-content: center; }
+    .stats-inner { grid-template-columns: repeat(2,1fr); gap: 0; }
+    .stat-item:nth-child(2)::after, .stat-item:nth-child(4)::after { display: none; }
+    .stat-item:nth-child(1), .stat-item:nth-child(2) { border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 28px; }
+    .stat-item:nth-child(3), .stat-item:nth-child(4) { padding-top: 28px; }
+    .menu-section, .gallery-section, .features-section, .how-section, .testi-section, .faq-section, .cta-section { padding: 64px 24px; }
+    .menu-grid { grid-template-columns: repeat(2,1fr); }
+    .gallery-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: repeat(2,1fr); }
+    .steps-row { grid-template-columns: repeat(2,1fr); gap: 32px; }
+    .steps-row::before { display: none; }
+    .testi-grid { grid-template-columns: 1fr; }
+    .cta-inner { flex-direction: column; gap: 40px; }
+    .cta-points { grid-template-columns: 1fr; }
+    .footer-top { justify-content: flex-start; flex-direction: column; gap: 20px; }
+    .footer-bottom { flex-direction: column; text-align: center; }
+}
+@media (max-width: 600px) {
+    .hero-title { font-size: 34px; }
+    .section-title { font-size: 30px; }
+    .menu-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .steps-row { grid-template-columns: 1fr; }
+    .stats-bar, .footer { padding-left: 20px; padding-right: 20px; }
+}
     </style>
 </head>
-<body class="bg-black text-white font-sans">
-    
-    <!-- Navigation -->
-    <nav class="fixed w-full top-0 z-50 bg-black/95 backdrop-blur-md border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-yellow-400 font-serif" style="font-family: 'Playfair Display', serif;">EUT</h1>
-                </div>
-                
-                <!-- Menu Items -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#home" class="text-yellow-400 hover:text-red-400 transition duration-300 font-medium">HOME</a>
-                    <a href="#menu" class="text-white hover:text-yellow-400 transition duration-300 font-medium">MENU</a>
-                    <a href="#about" class="text-white hover:text-yellow-400 transition duration-300 font-medium">ABOUT</a>
-                </div>
+<body>
+<div class="noise-layer"></div>
 
-                <!-- Right Side Icons & Button -->
-                <div class="flex items-center space-x-4">
-                    <button id="landingThemeToggle" class="theme-toggle text-white">
-                        <!-- Sun icon (shown in dark mode, hidden in light mode) -->
-                        <svg id="landingSunIcon" class="w-5 h-5 text-yellow-400 hidden" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                        </svg>
-                        <!-- Moon icon (shown in light mode, hidden in dark mode) -->
-                        <svg id="landingMoonIcon" class="w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-                        </svg>
-                    </button>
-                    <button class="text-white hover:text-yellow-400 transition duration-300">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
-                        </svg>
-                    </button>
-                    <button class="text-white hover:text-yellow-400 transition duration-300">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-                        </svg>
-                    </button>
+<!-- ══════════════════════════════════════════════════
+     NAV
+══════════════════════════════════════════════════ -->
+<nav class="nav" id="mainNav">
+    <a href="{{ route('restaurant') }}" class="nav-brand">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+        EUT Restaurant
+    </a>
+    <ul class="nav-links">
+        <li><a href="#hero">Home</a></li>
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#why">Why EUT</a></li>
+    </ul>
+    <div class="nav-actions">
+        @auth
+            <a href="{{ route('shop.home') }}" class="btn-primary" style="padding:8px 20px;font-size:13px;">Dashboard →</a>
+        @else
+            <button onclick="openModal('login')" class="btn-outline-white">Login</button>
+            <button onclick="openModal('login')" class="btn-primary" style="padding:8px 20px;font-size:13px;">Order Now →</button>
+        @endauth
+        <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+    </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+    <a href="#hero">Home</a>
+    <a href="#menu">Menu</a>
+    <a href="#about">About</a>
+    <a href="#why">Why EUT</a>
+    @auth
+        <a href="{{ route('shop.home') }}">Dashboard →</a>
+    @else
+        <a href="#" onclick="openModal('login'); closeMobileMenu();">Login</a>
+        <a href="#" onclick="openModal('signup'); closeMobileMenu();">Sign Up</a>
+    @endauth
+</div>
 
-                    @auth
-                        <!-- Logged in: show avatar + name + logout -->
-                        <div class="flex items-center gap-3">
-                            @if(auth()->user()->avatar)
-                                <img src="{{ auth()->user()->avatar }}" 
-                                     alt="{{ auth()->user()->name }}"
-                                     class="w-8 h-8 rounded-full border-2 border-yellow-400 object-cover">
-                            @else
-                                <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-black font-bold text-sm">
-                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                                </div>
-                            @endif
-                            <span class="text-gray-300 text-sm font-medium hidden md:block">{{ auth()->user()->name }}</span>
-                        </div>
-                        <form method="POST" action="{{ route('auth.logout') }}" class="inline">
-                            @csrf
-                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-full font-semibold text-sm transition duration-300">
-                                Logout
-                            </button>
-                        </form>
-                    @else
-                        <!-- Guest: show Login + Reserve -->
-                        <button onclick="openModal('login')" class="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-2 rounded-full font-semibold transition duration-300 transform hover:scale-105">
-                            Login
-                        </button>
-                        <button onclick="openModal('signup')" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-semibold transition duration-300">
-                            Sign Up
-                        </button>
-                    @endauth
-                </div>
-
-                <!-- Mobile Menu Button -->
-                <button class="md:hidden text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
+<!-- ══════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════ -->
+<section class="hero" id="hero">
+    <div class="hero-glow-red"></div>
+    <div class="hero-glow-amber"></div>
+    <div class="hero-grid-pattern"></div>
+    <div class="hero-inner">
+        <div class="hero-left">
+            <div class="hero-badge">
+                <span class="hero-badge-dot"></span> Open Now · Accepting Orders
             </div>
-        </div>
-    </nav>
-    <!-- Hero Section -->
-    <section id="home" class="min-h-screen flex items-center relative overflow-hidden pt-20">
-        <!-- Background photo -->
-        <div class="absolute inset-0">
-            <img src="{{ asset('images/hero-bg.jpg') }}" 
-                 alt="" 
-                 class="w-full h-full object-cover object-center"
-                 style="opacity: 0.25;">
-        </div>
-        <!-- Dark overlay gradient on top of photo -->
-        <div class="absolute inset-0 bg-gradient-to-br from-black/90 via-red-950/60 to-black/90"></div>
-        <!-- Extra bottom fade to black -->
-        <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black to-transparent"></div>
-        <!-- Circular vignette effect — subtle/smooth -->
-        <div class="absolute inset-0" style="background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.25) 65%, rgba(0,0,0,0.55) 85%, rgba(0,0,0,0.75) 100%);"></div>
-        
-        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10">
-            <!-- Left Content -->
-            <div class="space-y-8">
-                <div>
-                    <h1 class="mb-4">
-                        <span class="text-7xl lg:text-9xl font-bold text-yellow-400 block" style="font-family: 'Sacramento', cursive; letter-spacing: 0.02em; text-shadow: 3px 3px 6px rgba(0,0,0,0.6);">EUT</span>
-                        <span class="text-3xl lg:text-4xl font-light text-red-500 block -mt-4" style="font-family: 'Inter', sans-serif; letter-spacing: 0.15em; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Restaurant</span>
-                    </h1>
-                    <h2 class="text-2xl lg:text-3xl text-gray-300 mb-6 font-light" style="font-family: 'Inter', sans-serif;">
-                        Eat • Unwind • Tea
-                    </h2>
-                </div>
-                
-                <p class="text-lg text-gray-300 leading-relaxed max-w-md">
-                    Experience culinary excellence where traditional flavors meet modern innovation. 
-                    Savor exquisite dishes, unwind in our cozy atmosphere, and discover our premium tea collection.
-                </p>
-                
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <a href="{{ route('shop.home') }}" class="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition duration-300 transform hover:scale-105 text-center">
-                        Order Now
-                    </a>
-                    <a href="{{ route('shop.home') }}" class="border-2 border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black px-8 py-4 rounded-full font-semibold text-lg transition duration-300 text-center">
-                        View Menu
-                    </a>
-                </div>
-                
-                <!-- Dots indicator -->
-                <div class="flex space-x-2 pt-8">
-                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                    <div class="w-3 h-3 bg-gray-500 rounded-full"></div>
-                </div>
+            <h1 class="hero-title">
+                Good food, delivered<br>
+                <span class="hero-title-gold">straight to you</span>
+            </h1>
+            <p class="hero-desc">
+                Browse our handcrafted menu, place your order in seconds, and get
+                fresh, delicious food delivered fast — right to your door.
+            </p>
+            <div class="hero-btns">
+                @auth
+                    <a href="{{ route('shop.home') }}" class="btn-primary">Order Now →</a>
+                @else
+                    <button onclick="openModal('login')" class="btn-primary">Start Ordering →</button>
+                @endauth
+                <a href="#menu" class="btn-secondary">Browse Menu</a>
             </div>
-            
-            <!-- Right Content - Premium Food Photography Style -->
-            <div class="relative h-[500px] flex items-center justify-center">
-                <!-- Dramatic gradient spotlight background -->
-                <div class="absolute inset-0 pointer-events-none overflow-hidden">
-                    <!-- Red-to-black radial gradient for dramatic lighting -->
-                    <div class="absolute top-0 left-1/4 w-96 h-96 bg-gradient-radial from-red-900/40 via-red-950/20 to-transparent blur-3xl"></div>
-                    <div class="absolute bottom-0 right-1/4 w-80 h-80 bg-gradient-radial from-yellow-600/30 via-yellow-900/10 to-transparent blur-3xl"></div>
-                    <!-- Vignette effect -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/60"></div>
+            <div class="hero-stats">
+                <div class="hero-stat-chip">
+                    <svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    4.9 Rating
                 </div>
-                
-                <!-- Main composition container -->
-                <div class="relative flex items-center justify-center gap-8">
-                    <!-- Burger - large hero piece on the left -->
-                    <div class="relative z-30 transform -rotate-2 hover:scale-105 hover:rotate-0 transition-all duration-700"
-                         style="filter: drop-shadow(0 30px 60px rgba(139,0,0,0.7)) drop-shadow(0 10px 30px rgba(0,0,0,0.8)) drop-shadow(0 5px 15px rgba(220,38,38,0.6));">
-                        <img src="{{ asset('images/burger-cutout.png') }}" 
-                             alt="Premium EUT Double Cheeseburger" 
-                             class="w-[26rem] lg:w-[34rem] object-contain select-none">
-                    </div>
-                    
-                    <!-- Fries - on the right side, partially behind burger, clearly visible -->
-                    <div class="relative z-20 transform rotate-8 hover:scale-105 hover:rotate-6 transition-all duration-700"
-                         style="filter: drop-shadow(0 25px 50px rgba(180,83,9,0.7)) drop-shadow(0 10px 30px rgba(0,0,0,0.8)) drop-shadow(0 5px 12px rgba(234,179,8,0.5)); margin-left: -120px;">
-                        <img src="{{ asset('images/fries-cutout.png') }}" 
-                             alt="Crispy Golden Fries" 
-                             class="w-64 lg:w-80 object-contain select-none"
-                             style="transform: translateY(30px);">
-                    </div>
+                <div class="hero-stat-chip">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    30–45 min
                 </div>
-                
-                <!-- Floating seasoning particles effect -->
-                <div class="absolute inset-0 pointer-events-none overflow-hidden">
-                    <div class="absolute top-1/4 left-1/3 w-1 h-1 bg-yellow-300 rounded-full opacity-60 animate-float-slow"></div>
-                    <div class="absolute top-1/3 right-1/3 w-1.5 h-1.5 bg-red-400 rounded-full opacity-50 animate-float-slower"></div>
-                    <div class="absolute bottom-1/3 left-2/5 w-1 h-1 bg-yellow-200 rounded-full opacity-70 animate-float-fast"></div>
-                    <div class="absolute top-2/5 right-2/5 w-0.5 h-0.5 bg-white rounded-full opacity-80 animate-float-slow"></div>
-                </div>
-                
-                <!-- Subtle rim light effect -->
-                <div class="absolute top-0 right-0 w-64 h-64 bg-yellow-500/20 rounded-full blur-3xl pointer-events-none"></div>
-            </div>
-        </div>
-        
-        <!-- Scroll indicator -->
-        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-            <div class="animate-bounce">
-                <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-                </svg>
-            </div>
-        </div>
-    </section>
-
-    <!-- Divider -->
-    <div class="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-
-    <!-- Features Section -->
-    <section class="py-20 bg-gray-900 relative overflow-hidden">
-        <!-- Decorative cutout left -->
-        <div class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 opacity-20 pointer-events-none select-none rotate-12">
-            <img src="{{ asset('images/deco-burger2.png') }}" class="w-96" alt="">
-        </div>
-        <!-- Decorative cutout right -->
-        <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 opacity-20 pointer-events-none select-none -rotate-12">
-            <img src="{{ asset('images/deco-fries2.png') }}" class="w-80" alt="">
-        </div>
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-4 text-yellow-400" style="font-family: 'Playfair Display', serif;">Why Choose EUT?</h2>
-                <p class="text-gray-300 text-lg">Discover what makes our restaurant special</p>
-            </div>
-            
-            <div class="grid md:grid-cols-3 gap-8">
-                <!-- Feature 1 -->
-                <div class="text-center group">
-                    <div class="bg-red-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition duration-300">
-                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-4 text-yellow-400">Fresh Ingredients</h3>
-                    <p class="text-gray-300">We use only the freshest, locally-sourced ingredients to create our delicious meals.</p>
-                </div>
-                
-                <!-- Feature 2 -->
-                <div class="text-center group">
-                    <div class="bg-yellow-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition duration-300">
-                        <svg class="w-8 h-8 text-black" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-4 text-yellow-400">Expert Chefs</h3>
-                    <p class="text-gray-300">Our experienced chefs craft each dish with passion and culinary expertise.</p>
-                </div>
-                
-                <!-- Feature 3 -->
-                <div class="text-center group">
-                    <div class="bg-gray-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition duration-300">
-                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-semibold mb-4 text-yellow-400">Cozy Atmosphere</h3>
-                    <p class="text-gray-300">Relax and unwind in our warm, inviting atmosphere perfect for any occasion.</p>
+                <div class="hero-stat-chip">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Metro Manila
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- Divider -->
-    <div class="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-
-    <!-- Menu Preview Section -->
-    <section id="menu" class="py-20 bg-black relative overflow-hidden">
-        <!-- Decorative cutout left -->
-        <div class="absolute left-0 bottom-10 -translate-x-10 opacity-20 pointer-events-none select-none -rotate-6">
-            <img src="{{ asset('images/deco-fries2.png') }}" class="w-80" alt="">
-        </div>
-        <!-- Decorative cutout right -->
-        <div class="absolute right-0 top-10 translate-x-10 opacity-20 pointer-events-none select-none rotate-6">
-            <img src="{{ asset('images/deco-burger2.png') }}" class="w-96" alt="">
-        </div>
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-4 text-yellow-400" style="font-family: 'Playfair Display', serif;">Featured Menu</h2>
-                <p class="text-gray-300 text-lg">Taste our signature dishes</p>
-            </div>
-            
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- EUT Classic Burger -->
-                <div class="bg-gray-900 border border-red-600/30 rounded-xl overflow-hidden hover:transform hover:scale-105 transition duration-300 shadow-lg hover:border-red-500">
-                    <div class="h-48 overflow-hidden">
-                        <img src="{{ asset('images/hero-burger.jpg') }}" 
-                             alt="EUT Classic Burger" 
-                             class="w-full h-full object-cover hover:scale-110 transition duration-500">
+        <div class="hero-right">
+            <div class="hero-panda-wrap">
+                <img src="{{ asset('images/DeliveryPanda.png') }}" alt="EUT Delivery Mascot" class="hero-panda">
+                <div class="hero-sales-card">
+                    <div class="hero-sales-label">
+                        <span class="hero-sales-dot"></span> Orders Today
                     </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2 text-yellow-400">EUT Classic Burger</h3>
-                        <p class="text-gray-300 mb-4">Juicy beef patty, lettuce, tomato, pickles, special sauce on brioche bun</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-red-400 text-xl font-bold">₱350</span>
-                            <button class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full text-sm font-semibold transition duration-300">
-                                Order Now
-                            </button>
-                        </div>
-                    </div>
+                    <div class="hero-sales-amount">1,248</div>
+                    <div class="hero-sales-growth">↑ +18% from yesterday</div>
                 </div>
-                
-                <!-- Gourmet Cheeseburger -->
-                <div class="bg-gray-900 border border-yellow-400/30 rounded-xl overflow-hidden hover:transform hover:scale-105 transition duration-300 shadow-lg hover:border-yellow-400">
-                    <div class="h-48 overflow-hidden">
-                        <img src="{{ asset('images/gourmet-burger.jpg') }}" 
-                             alt="Gourmet Cheeseburger" 
-                             class="w-full h-full object-cover hover:scale-110 transition duration-500">
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2 text-red-400">Gourmet Cheeseburger</h3>
-                        <p class="text-gray-300 mb-4">Premium beef with aged cheddar, caramelized onions, bacon</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-yellow-400 text-xl font-bold">₱420</span>
-                            <button class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-full text-sm font-semibold transition duration-300">
-                                Order Now
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Classic French Fries -->
-                <div class="bg-gray-900 border border-yellow-500/30 rounded-xl overflow-hidden hover:transform hover:scale-105 transition duration-300 shadow-lg hover:border-yellow-400">
-                    <div class="h-48 overflow-hidden">
-                        <img src="{{ asset('images/french-fries.jpg') }}" 
-                             alt="Classic French Fries" 
-                             class="w-full h-full object-cover hover:scale-110 transition duration-500">
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold mb-2 text-yellow-400">Classic French Fries</h3>
-                        <p class="text-gray-300 mb-4">Golden crispy fries with sea salt - perfect side for any meal</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-yellow-400 text-xl font-bold">₱120</span>
-                            <button class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-full text-sm font-semibold transition duration-300">
-                                Order Now
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Divider -->
-    <div class="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-
-    <!-- About Section -->
-    <section id="about" class="py-20 bg-gray-900 relative overflow-hidden">
-        <!-- Decorative cutout left -->
-        <div class="absolute left-0 top-10 -translate-x-10 opacity-20 pointer-events-none select-none rotate-6">
-            <img src="{{ asset('images/deco-pepper.png') }}" class="w-72" alt="">
-        </div>
-        <!-- Decorative cutout right -->
-        <div class="absolute right-0 bottom-10 translate-x-10 opacity-20 pointer-events-none select-none -rotate-6">
-            <img src="{{ asset('images/fries-cutout.png') }}" class="w-80" alt="">
-        </div>
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <!-- Left Content -->
-                <div>
-                    <h2 class="text-4xl font-bold mb-6 text-yellow-400" style="font-family: 'Playfair Display', serif;">About EUT Restaurant</h2>
-                    <p class="text-gray-300 text-lg mb-6 leading-relaxed">
-                        Founded with a passion for culinary excellence, EUT Restaurant brings together the finest ingredients, 
-                        expert culinary techniques, and a warm, welcoming atmosphere where guests can truly eat, unwind, and enjoy tea.
-                    </p>
-                    <p class="text-gray-300 text-lg mb-8 leading-relaxed">
-                        Our menu celebrates both traditional flavors and innovative cuisine, crafted by our team of experienced chefs 
-                        who are dedicated to creating memorable dining experiences for every guest.
-                    </p>
-                    
-                    <div class="grid grid-cols-3 gap-6">
-                        <div class="text-center">
-                            <div class="text-3xl font-bold text-red-400 mb-2">10+</div>
-                            <div class="text-gray-300">Years Experience</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl font-bold text-yellow-400 mb-2">50+</div>
-                            <div class="text-gray-300">Menu Items</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl font-bold text-gray-300 mb-2">1000+</div>
-                            <div class="text-gray-300">Happy Customers</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Right Image -->
-                <div class="relative">
-                    <div class="bg-gradient-to-br from-red-600 to-yellow-500 rounded-2xl p-3 shadow-xl">
-                        <img src="{{ asset('images/restaurant-interior.jpg') }}" 
-                             alt="EUT Restaurant Interior" 
-                             class="w-full h-80 object-cover rounded-xl shadow-lg">
-                    </div>
-                    <!-- Overlay text -->
-                    <div class="absolute bottom-6 left-6 right-6 bg-black/80 rounded-lg p-4">
-                        <h3 class="text-xl font-semibold text-yellow-400 mb-2">Visit Our Restaurant</h3>
-                        <p class="text-gray-300 text-sm">Experience the perfect dining atmosphere</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- Divider -->
-    <div class="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-
-    <!-- Footer -->
-    <footer class="bg-gray-950 py-12 border-t border-red-600/30">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="grid md:grid-cols-4 gap-8">
-                <!-- Company Info -->
-                <div class="col-span-2">
-                    <h3 class="text-2xl font-bold text-yellow-400 mb-4" style="font-family: 'Playfair Display', serif;">EUT Restaurant</h3>
-                    <p class="text-gray-300 mb-6 max-w-md">
-                        Where culinary passion meets exceptional dining. Experience the perfect blend of taste, 
-                        ambiance, and service that makes every meal memorable.
-                    </p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="bg-red-600 hover:bg-yellow-500 text-white hover:text-black w-10 h-10 rounded-full flex items-center justify-center transition duration-300">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="bg-yellow-500 hover:bg-red-600 text-black hover:text-white w-10 h-10 rounded-full flex items-center justify-center transition duration-300">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="bg-gray-700 hover:bg-yellow-500 text-white hover:text-black w-10 h-10 rounded-full flex items-center justify-center transition duration-300">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.404-5.940 1.404-5.940s-.358-.72-.358-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.098.119.112.223.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.751-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001.012.001z.017 0z"/>
-                            </svg>
-                        </a>
-                        <a href="#" class="bg-red-600 hover:bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center transition duration-300">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12.007 0C5.373 0 0 5.373 0 12.007s5.373 12.007 12.007 12.007 12.007-5.373 12.007-12.007S18.641.001 12.007.001zM8.84 18.32v-6.367H6.005V9.291h2.835V7.431c0-2.82 1.724-4.358 4.246-4.358 1.204 0 2.238.09 2.542.129v2.94l-1.745.001c-1.368 0-1.634.651-1.634 1.604v2.099h3.269l-.427 2.662h-2.842V18.32H8.84z"/>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-                
-                <!-- Quick Links -->
-                <div>
-                    <h4 class="text-lg font-semibold mb-4 text-red-400">Quick Links</h4>
-                    <ul class="space-y-2">
-                        <li><a href="#home" class="text-gray-300 hover:text-yellow-400 transition duration-300">Home</a></li>
-                        <li><a href="#menu" class="text-gray-300 hover:text-yellow-400 transition duration-300">Menu</a></li>
-                        <li><a href="#about" class="text-gray-300 hover:text-yellow-400 transition duration-300">About</a></li>
-                        <li><a href="#contact" class="text-gray-300 hover:text-yellow-400 transition duration-300">Contact</a></li>
-                        <li><a href="#" class="text-gray-300 hover:text-yellow-400 transition duration-300">Reservations</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Contact Info -->
-                <div>
-                    <h4 class="text-lg font-semibold mb-4 text-gray-300">Contact Info</h4>
-                    <div class="space-y-2 text-gray-300">
-                        <p>123 Food Street</p>
-                        <p>Culinary District, City</p>
-                        <p class="text-yellow-400">+63 912 345 6789</p>
-                        <p class="text-red-400">info@eutrestaurant.com</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="border-t border-red-600/30 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; 2026 EUT Restaurant. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Theme switching script -->
-    <script>
-        function applyLandingTheme(theme) {
-            const html = document.documentElement;
-            
-            if (theme === 'light') {
-                html.classList.add('light-mode');
-                document.getElementById('landingSunIcon').classList.add('hidden');
-                document.getElementById('landingMoonIcon').classList.remove('hidden');
-            } else {
-                html.classList.remove('light-mode');
-                document.getElementById('landingSunIcon').classList.remove('hidden');
-                document.getElementById('landingMoonIcon').classList.add('hidden');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedTheme = localStorage.getItem('eutTheme') || 'dark';
-            applyLandingTheme(savedTheme);
-            
-            document.getElementById('landingThemeToggle').addEventListener('click', function() {
-                const currentTheme = localStorage.getItem('eutTheme') || 'dark';
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                localStorage.setItem('eutTheme', newTheme);
-                applyLandingTheme(newTheme);
-            });
-        });
-    </script>
-
-    <!-- Smooth scrolling script -->
-    <script>
-        // Smooth scrolling
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-
-        // Menu filtering functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const categoryButtons = document.querySelectorAll('.menu-category-btn');
-            const menuItems = document.querySelectorAll('.menu-item');
-            const menuSections = document.querySelectorAll('.menu-section');
-
-            categoryButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const category = this.getAttribute('data-category');
-                    
-                    // Update active button
-                    categoryButtons.forEach(btn => {
-                        btn.classList.remove('active', 'bg-red-600', 'text-white', 'bg-yellow-400', 'text-black', 'bg-red-400', 'bg-blue-400');
-                        const category = btn.getAttribute('data-category');
-                        if (category === 'all' || category === 'sides') {
-                            btn.classList.add('text-red-400', 'border', 'border-red-400');
-                        } else if (category === 'burgers' || category === 'combos') {
-                            btn.classList.add('text-yellow-400', 'border', 'border-yellow-400');
-                        } else if (category === 'beverages') {
-                            btn.classList.add('text-blue-400', 'border', 'border-blue-400');
-                        }
-                    });
-                    
-                    // Set active button style
-                    if (category === 'all' || category === 'sides') {
-                        this.classList.add('active', 'bg-red-600', 'text-white');
-                        this.classList.remove('text-red-400', 'border', 'border-red-400');
-                    } else if (category === 'burgers' || category === 'combos') {
-                        this.classList.add('active', 'bg-yellow-400', 'text-black');
-                        this.classList.remove('text-yellow-400', 'border', 'border-yellow-400');
-                    } else if (category === 'beverages') {
-                        this.classList.add('active', 'bg-blue-400', 'text-white');
-                        this.classList.remove('text-blue-400', 'border', 'border-blue-400');
-                    }
-                    
-                    // Show/hide items based on category
-                    if (category === 'all') {
-                        // Show all sections
-                        menuSections.forEach(section => {
-                            section.style.display = 'block';
-                        });
-                        menuItems.forEach(item => {
-                            item.style.display = 'block';
-                        });
-                    } else {
-                        // Hide all sections first
-                        menuSections.forEach(section => {
-                            section.style.display = 'none';
-                        });
-                        
-                        // Show only the selected category section
-                        const targetSection = document.getElementById(category + '-section');
-                        if (targetSection) {
-                            targetSection.style.display = 'block';
-                        }
-                        
-                        // Filter items
-                        menuItems.forEach(item => {
-                            const itemCategory = item.getAttribute('data-category');
-                            if (itemCategory === category) {
-                                item.style.display = 'block';
-                            } else {
-                                item.style.display = 'none';
-                            }
-                        });
-                    }
-                });
-            });
-        });
-
-        // Add to cart functionality (you can extend this)
-        document.addEventListener('click', function(e) {
-            if (e.target.textContent === 'Add to Cart' || e.target.textContent === 'Order Now' || e.target.textContent === 'Order Combo') {
-                e.preventDefault();
-                
-                // Simple notification (you can replace with a proper cart system)
-                const button = e.target;
-                const originalText = button.textContent;
-                
-                button.textContent = 'Added!';
-                button.style.backgroundColor = '#22c55e';
-                
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.style.backgroundColor = '';
-                }, 1000);
-            }
-        });
-    </script>
-
-    <!-- ===================== AUTH MODAL ===================== -->
-    <div id="authModal" class="fixed inset-0 z-[9999] flex items-center justify-center hidden">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closeModal()"></div>
-
-        <!-- Modal Box -->
-        <div class="relative w-full max-w-md mx-4 rounded-2xl overflow-hidden shadow-2xl" style="background: #0a0a0a;">
-
-            <!-- Close button -->
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white transition z-10">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-
-            <!-- Tab Switcher -->
-            <div class="flex border-b border-white/10">
-                <button id="loginTab" onclick="switchTab('login')"
-                    class="flex-1 py-4 text-sm font-semibold tracking-widest uppercase transition duration-300 text-yellow-400 border-b-2 border-yellow-400">
-                    Login
-                </button>
-                <button id="signupTab" onclick="switchTab('signup')"
-                    class="flex-1 py-4 text-sm font-semibold tracking-widest uppercase transition duration-300 text-gray-500 border-b-2 border-transparent hover:text-gray-300">
-                    Sign Up
-                </button>
-            </div>
-
-            <!-- Error/Success alert -->
-            <div id="authAlert" class="hidden mx-8 mt-6 px-4 py-3 rounded-xl text-sm font-medium"></div>
-
-            <div class="p-8 pt-4">
-
-                <!-- ---- LOGIN PANEL ---- -->
-                <div id="loginPanel">
-                    <h2 class="text-2xl font-bold text-yellow-400 mb-1" style="font-family:'Playfair Display',serif;">Welcome Back</h2>
-                    <p class="text-gray-400 text-sm mb-6">Sign in to your EUT account</p>
-
-                    <!-- Google Login -->
-                    <a href="{{ route('auth.google') }}"
-                       class="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-semibold py-3 rounded-xl mb-4 transition duration-300">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                        Continue with Google
-                    </a>
-
-                    <!-- Divider -->
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="flex-1 h-px bg-white/10"></div>
-                        <span class="text-gray-600 text-xs">or continue with email</span>
-                        <div class="flex-1 h-px bg-white/10"></div>
-                    </div>
-
-                    <!-- Login Form -->
-                    <form id="loginForm" class="space-y-4">
-                        @csrf
-                        <div>
-                            <label class="block text-gray-400 text-xs mb-1 uppercase tracking-wider">Email</label>
-                            <input id="loginEmail" type="email" name="email" placeholder="you@example.com"
-                                class="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-400 transition"/>
-                        </div>
-                        <div>
-                            <label class="block text-gray-400 text-xs mb-1 uppercase tracking-wider">Password</label>
-                            <input id="loginPassword" type="password" name="password" placeholder="••••••••"
-                                class="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-400 transition"/>
-                        </div>
-                        <div class="flex justify-between items-center text-xs text-gray-500">
-                            <label class="flex items-center gap-2 cursor-pointer hover:text-gray-300 transition">
-                                <input id="loginRemember" type="checkbox" class="accent-yellow-400"> Remember me
-                            </label>
-                            <a href="#" class="hover:text-yellow-400 transition">Forgot password?</a>
-                        </div>
-                        <button type="submit" id="loginBtn"
-                            class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition duration-300 transform hover:scale-105">
-                            Login
-                        </button>
-                    </form>
-                    <p class="text-center text-gray-500 text-sm mt-6">
-                        Don't have an account?
-                        <button onclick="switchTab('signup')" class="text-yellow-400 hover:text-yellow-300 font-semibold transition">Sign up</button>
-                    </p>
-                </div>
-
-                <!-- ---- SIGN UP PANEL ---- -->
-                <div id="signupPanel" class="hidden">
-                    <h2 class="text-2xl font-bold text-yellow-400 mb-1" style="font-family:'Playfair Display',serif;">Create Account</h2>
-                    <p class="text-gray-400 text-sm mb-6">Join EUT Restaurant today</p>
-
-                    <!-- Google Signup -->
-                    <a href="{{ route('auth.google') }}"
-                       class="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-semibold py-3 rounded-xl mb-4 transition duration-300">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                        </svg>
-                        Sign up with Google
-                    </a>
-
-                    <!-- Divider -->
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="flex-1 h-px bg-white/10"></div>
-                        <span class="text-gray-600 text-xs">or sign up with email</span>
-                        <div class="flex-1 h-px bg-white/10"></div>
-                    </div>
-
-                    <!-- Signup Form -->
-                    <form id="signupForm" class="space-y-4">
-                        @csrf
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-gray-400 text-xs mb-1 uppercase tracking-wider">First Name</label>
-                                <input id="signupFirstName" type="text" name="first_name" placeholder="Juan"
-                                    class="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-400 transition"/>
-                            </div>
-                            <div>
-                                <label class="block text-gray-400 text-xs mb-1 uppercase tracking-wider">Last Name</label>
-                                <input id="signupLastName" type="text" name="last_name" placeholder="Dela Cruz"
-                                    class="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-400 transition"/>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-gray-400 text-xs mb-1 uppercase tracking-wider">Email</label>
-                            <input id="signupEmail" type="email" name="email" placeholder="you@example.com"
-                                class="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-400 transition"/>
-                        </div>
-                        <div>
-                            <label class="block text-gray-400 text-xs mb-1 uppercase tracking-wider">Password</label>
-                            <input id="signupPassword" type="password" name="password" placeholder="••••••••"
-                                class="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-400 transition"/>
-                        </div>
-                        <div>
-                            <label class="block text-gray-400 text-xs mb-1 uppercase tracking-wider">Confirm Password</label>
-                            <input id="signupPasswordConfirm" type="password" name="password_confirmation" placeholder="••••••••"
-                                class="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-400 transition"/>
-                        </div>
-                        <button type="submit" id="signupBtn"
-                            class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 rounded-xl transition duration-300 transform hover:scale-105">
-                            Create Account
-                        </button>
-                    </form>
-                    <p class="text-center text-gray-500 text-sm mt-6">
-                        Already have an account?
-                        <button onclick="switchTab('login')" class="text-yellow-400 hover:text-yellow-300 font-semibold transition">Login</button>
-                    </p>
-                </div>
-
             </div>
         </div>
     </div>
-    <!-- ===================== END MODAL ===================== -->
+</section>
 
-    @if(session('success'))
-    <div id="flashSuccess" class="fixed top-6 right-6 z-[99999] bg-green-600 text-white px-6 py-4 rounded-xl shadow-lg font-semibold text-sm">
-        {{ session('success') }}
+<!-- ══════════════════════════════════════════════════
+     STATS BAR
+══════════════════════════════════════════════════ -->
+<div class="stats-bar" id="statsBar">
+    <div class="stats-inner">
+        <div class="stat-item">
+            <div class="stat-num" data-target="50" data-suffix="+">0+</div>
+            <div class="stat-label">Menu Items to Choose From</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num" data-target="2000000" data-suffix="+" data-format="abbr">0+</div>
+            <div class="stat-label">Happy Orders Delivered</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num" data-target="98" data-suffix="%">0%</div>
+            <div class="stat-label">Customer Satisfaction Rate</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num" data-target="30" data-suffix=" min">0 min</div>
+            <div class="stat-label">Average Delivery Time</div>
+        </div>
     </div>
-    @endif
+</div>
 
-    @if(session('error'))
-    <div id="flashError" class="fixed top-6 right-6 z-[99999] bg-red-600 text-white px-6 py-4 rounded-xl shadow-lg font-semibold text-sm">
-        {{ session('error') }}
+<!-- ══════════════════════════════════════════════════
+     MENU
+══════════════════════════════════════════════════ -->
+<section class="menu-section" id="menu">
+    <div style="max-width:1160px;margin:0 auto;">
+        <div style="text-align:center;margin-bottom:48px;">
+            <span class="eyebrow">Our Menu</span>
+            <h2 class="section-title">What We <span class="gold">Serve</span></h2>
+            <p class="section-subtitle">Handcrafted by EUT and delivered fresh — every dish is made with intention and care.</p>
+        </div>
+        <div class="menu-cats" id="menuCats">
+            <button class="menu-cat active" data-cat="all">All</button>
+            <button class="menu-cat" data-cat="main">Main Course</button>
+            <button class="menu-cat" data-cat="desserts">Desserts</button>
+            <button class="menu-cat" data-cat="healthy">Healthy</button>
+            <button class="menu-cat" data-cat="fastfood">Fast Food</button>
+            <button class="menu-cat" data-cat="drinks">Drinks</button>
+        </div>
+        <div class="menu-grid" id="menuGrid">
+
+            <!-- Greek Salad -->
+            <div class="menu-card" data-cat="healthy">
+                <div class="menu-card-img-wrap">
+                    <img src="{{ asset('images/combo-meal.jpg') }}" alt="Greek Salad" class="menu-card-img">
+                    <span class="menu-badge badge-green"><svg width="9" height="9" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Best Seller</span>
+                </div>
+                <div class="menu-card-body">
+                    <div class="menu-card-cat">Healthy</div>
+                    <div class="menu-card-name">Greek Salad</div>
+                    <div class="menu-card-footer">
+                        <span class="menu-card-price">₱149</span>
+                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Freshly Baked Cake -->
+            <div class="menu-card" data-cat="desserts">
+                <div class="menu-card-img-wrap">
+                    <img src="{{ asset('images/delicious-burger-fries.jpg') }}" alt="Freshly Baked Cake" class="menu-card-img">
+                    <span class="menu-badge badge-pink"><svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M12 2a5 5 0 015 5v1h1a3 3 0 013 3v8a3 3 0 01-3 3H6a3 3 0 01-3-3v-8a3 3 0 013-3h1V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v1h6V7a3 3 0 00-3-3z"/></svg> Fan Fave</span>
+                </div>
+                <div class="menu-card-body">
+                    <div class="menu-card-cat">Desserts</div>
+                    <div class="menu-card-name">Freshly Baked Cake</div>
+                    <div class="menu-card-footer">
+                        <span class="menu-card-price">₱199</span>
+                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.9</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crispy Burger Combo -->
+            <div class="menu-card" data-cat="fastfood">
+                <div class="menu-card-img-wrap">
+                    <img src="{{ asset('images/gourmet-burger.jpg') }}" alt="Crispy Burger Combo" class="menu-card-img">
+                    <span class="menu-badge badge-red"><svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Hot</span>
+                </div>
+                <div class="menu-card-body">
+                    <div class="menu-card-cat">Fast Food</div>
+                    <div class="menu-card-name">Crispy Burger Combo</div>
+                    <div class="menu-card-footer">
+                        <span class="menu-card-price">₱179</span>
+                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.7</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pasta Carbonara -->
+            <div class="menu-card" data-cat="main">
+                <div class="menu-card-img-wrap">
+                    <img src="{{ asset('images/hero-burger.jpg') }}" alt="Pasta Carbonara" class="menu-card-img">
+                    <span class="menu-badge badge-yellow"><svg width="9" height="9" fill="#000" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> New</span>
+                </div>
+                <div class="menu-card-body">
+                    <div class="menu-card-cat">Main Course</div>
+                    <div class="menu-card-name">Pasta Carbonara</div>
+                    <div class="menu-card-footer">
+                        <span class="menu-card-price">₱220</span>
+                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grilled Chicken Rice -->
+            <div class="menu-card" data-cat="main">
+                <div class="menu-card-img-wrap">
+                    <img src="{{ asset('images/combo-meal.jpg') }}" alt="Grilled Chicken Rice" class="menu-card-img">
+                    <span class="menu-badge badge-green"><svg width="9" height="9" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Best Seller</span>
+                </div>
+                <div class="menu-card-body">
+                    <div class="menu-card-cat">Main Course</div>
+                    <div class="menu-card-name">Grilled Chicken Rice</div>
+                    <div class="menu-card-footer">
+                        <span class="menu-card-price">₱195</span>
+                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.6</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mango Shake -->
+            <div class="menu-card" data-cat="drinks">
+                <div class="menu-card-img-wrap">
+                    <img src="{{ asset('images/french-fries.jpg') }}" alt="Mango Shake" class="menu-card-img">
+                    <span class="menu-badge badge-teal"><svg width="9" height="9" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Refreshing</span>
+                </div>
+                <div class="menu-card-body">
+                    <div class="menu-card-cat">Drinks</div>
+                    <div class="menu-card-name">Mango Shake</div>
+                    <div class="menu-card-footer">
+                        <span class="menu-card-price">₱89</span>
+                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Beef Sinigang -->
+            <div class="menu-card" data-cat="main">
+                <div class="menu-card-img-wrap">
+                    <img src="{{ asset('images/restaurant-interior.jpg') }}" alt="Beef Sinigang" class="menu-card-img">
+                    <span class="menu-badge badge-purple"><svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Signature</span>
+                </div>
+                <div class="menu-card-body">
+                    <div class="menu-card-cat">Main Course</div>
+                    <div class="menu-card-name">Beef Sinigang</div>
+                    <div class="menu-card-footer">
+                        <span class="menu-card-price">₱235</span>
+                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.9</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chocolate Lava Cake -->
+            <div class="menu-card" data-cat="desserts">
+                <div class="menu-card-img-wrap">
+                    <img src="{{ asset('images/hero-bg.jpg') }}" alt="Chocolate Lava Cake" class="menu-card-img">
+                    <span class="menu-badge badge-amber"><svg width="9" height="9" fill="#000" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Top Rated</span>
+                </div>
+                <div class="menu-card-body">
+                    <div class="menu-card-cat">Desserts</div>
+                    <div class="menu-card-name">Chocolate Lava Cake</div>
+                    <div class="menu-card-footer">
+                        <span class="menu-card-price">₱169</span>
+                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 5.0</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div style="text-align:center;margin-top:44px;">
+            <a href="{{ route('shop.home') }}" class="btn-primary" style="font-size:15px;padding:14px 36px;">View Full Menu →</a>
+        </div>
     </div>
-    @endif
+</section>
 
-    <script>
-        const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+<!-- ══════════════════════════════════════════════════
+     GALLERY
+══════════════════════════════════════════════════ -->
+<section class="gallery-section" id="about">
+    <div style="max-width:1160px;margin:0 auto;">
+        <div style="text-align:center;margin-bottom:48px;">
+            <span class="eyebrow">Our Space</span>
+            <h2 class="section-title">Inside <span class="gold">EUT Restaurant</span></h2>
+            <p class="section-subtitle">A glimpse of where the magic happens — our restaurant, our kitchen, our passion.</p>
+        </div>
+        <div class="gallery-grid">
+            <div class="gallery-card">
+                <img src="{{ asset('images/restaurant-interior.jpg') }}" alt="Dining Area" class="gallery-img">
+                <div class="gallery-overlay">
+                    <div class="gallery-title-text">Our Cozy Dining Area</div>
+                    <div class="gallery-sub-text">Where every meal becomes a memory.</div>
+                </div>
+            </div>
+            <div class="gallery-card">
+                <img src="{{ asset('images/delicious-burger-fries.jpg') }}" alt="Fresh Ingredients" class="gallery-img">
+                <div class="gallery-overlay">
+                    <div class="gallery-title-text">Fresh Ingredients, Every Day</div>
+                    <div class="gallery-sub-text">Sourced locally. Cooked with passion.</div>
+                </div>
+            </div>
+            <div class="gallery-card">
+                <img src="{{ asset('images/combo-meal.jpg') }}" alt="EUT Kitchen" class="gallery-img">
+                <div class="gallery-overlay">
+                    <div class="gallery-title-text">EUT Kitchen — Made with Love</div>
+                    <div class="gallery-sub-text">Behind every dish is a dedicated team.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-        // ── Modal open/close ──────────────────────────────────────────
-        function openModal(tab) {
-            document.getElementById('authModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            hideAlert();
-            switchTab(tab || 'login');
+<!-- ══════════════════════════════════════════════════
+     FEATURES
+══════════════════════════════════════════════════ -->
+<section class="features-section" id="vendors">
+    <div style="max-width:1160px;margin:0 auto;">
+        <div style="text-align:center;margin-bottom:56px;">
+            <span class="eyebrow">Why EUT</span>
+            <h2 class="section-title">Everything You Love<br>in <span class="gold">One Place</span></h2>
+            <p class="section-subtitle">From browsing the menu to tracking your delivery, EUT makes ordering fast, easy, and enjoyable every time.</p>
+        </div>
+        <div class="features-grid" id="featGrid">
+            <div class="feat-card">
+                <div class="feat-icon-box" style="background:rgba(250,204,21,0.1);">
+                    <svg width="24" height="24" fill="none" stroke="#facc15" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                </div>
+                <div class="feat-title">Live Order Tracking</div>
+                <p class="feat-desc">Know exactly where your food is at every step — from the kitchen to your front door in real time.</p>
+                <ul class="feat-list">
+                    <li>Real-time delivery updates</li>
+                    <li>Estimated arrival time</li>
+                    <li>Order status notifications</li>
+                </ul>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon-box" style="background:rgba(220,38,38,0.1);">
+                    <svg width="24" height="24" fill="none" stroke="#ef4444" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                </div>
+                <div class="feat-title">Easy Ordering</div>
+                <p class="feat-desc">Browse the full menu, customize your meal, and place your order in just a few taps — no hassle.</p>
+                <ul class="feat-list">
+                    <li>Simple, intuitive menu</li>
+                    <li>Meal customization options</li>
+                    <li>Quick reorder feature</li>
+                </ul>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon-box" style="background:rgba(34,197,94,0.1);">
+                    <svg width="24" height="24" fill="none" stroke="#22c55e" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                </div>
+                <div class="feat-title">Fast Delivery</div>
+                <p class="feat-desc">Get your food delivered fresh and hot, with an average arrival time of under 30 minutes.</p>
+                <ul class="feat-list">
+                    <li>30-minute average delivery</li>
+                    <li>Contactless delivery option</li>
+                    <li>Scheduled delivery slots</li>
+                </ul>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon-box" style="background:rgba(168,85,247,0.1);">
+                    <svg width="24" height="24" fill="none" stroke="#a855f7" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div class="feat-title">Exclusive Deals</div>
+                <p class="feat-desc">Enjoy member-only promos, discounts, and loyalty rewards just for ordering through EUT.</p>
+                <ul class="feat-list">
+                    <li>Member discounts</li>
+                    <li>Loyalty reward points</li>
+                    <li>Seasonal promotions</li>
+                </ul>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon-box" style="background:rgba(236,72,153,0.1);">
+                    <svg width="24" height="24" fill="none" stroke="#ec4899" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                </div>
+                <div class="feat-title">Fresh, Quality Food</div>
+                <p class="feat-desc">Every dish is handcrafted by EUT's kitchen with fresh ingredients — cooked to order, never reheated.</p>
+                <ul class="feat-list">
+                    <li>Made-to-order meals</li>
+                    <li>Quality-checked ingredients</li>
+                    <li>Consistent taste every time</li>
+                </ul>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon-box" style="background:rgba(249,115,22,0.1);">
+                    <svg width="24" height="24" fill="none" stroke="#f97316" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                </div>
+                <div class="feat-title">Secure & Easy Payment</div>
+                <p class="feat-desc">Pay with confidence using multiple secure payment options — quick checkout, no hidden fees.</p>
+                <ul class="feat-list">
+                    <li>Multiple payment methods</li>
+                    <li>Secure transactions</li>
+                    <li>No hidden charges</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════════════════ -->
+<section class="how-section">
+    <div style="max-width:1160px;margin:0 auto;text-align:center;">
+        <span class="eyebrow">Simple Process</span>
+        <h2 class="section-title" style="margin-bottom:14px;">How to <span class="gold">Order</span></h2>
+        <p class="section-subtitle" style="margin-bottom:64px;">
+            Ordering from EUT is quick and easy. Just follow these simple steps and enjoy your meal.
+        </p>
+        <div class="steps-row">
+            <div class="step-item">
+                <div class="step-circle">
+                    <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+                <div class="step-num-label">Step 01</div>
+                <div class="step-title">Create an Account</div>
+                <p class="step-desc">Sign up for free in seconds and set up your delivery address.</p>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                </div>
+                <div class="step-num-label">Step 02</div>
+                <div class="step-title">Browse the Menu</div>
+                <p class="step-desc">Explore our handcrafted dishes, pick your favorites, and customize your meal.</p>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <div class="step-num-label">Step 03</div>
+                <div class="step-title">Place Your Order</div>
+                <p class="step-desc">Add items to your cart, choose a payment method, and confirm your order.</p>
+            </div>
+            <div class="step-item">
+                <div class="step-circle">
+                    <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                </div>
+                <div class="step-num-label">Step 04</div>
+                <div class="step-title">Enjoy Your Meal</div>
+                <p class="step-desc">Track your delivery in real time and enjoy fresh, hot food at your door.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     TESTIMONIALS
+══════════════════════════════════════════════════ -->
+<section class="testi-section">
+    <div style="max-width:1160px;margin:0 auto;">
+        <div style="text-align:center;margin-bottom:48px;">
+            <span class="eyebrow">Happy Customers</span>
+            <h2 class="section-title">What Our <span class="gold">Customers Say</span></h2>
+            <p class="section-subtitle">Real reviews from real customers who love ordering from EUT.</p>
+        </div>
+        <div class="testi-grid">
+            <div class="testi-card">
+                <div class="testi-stars">★★★★★</div>
+                <p class="testi-quote">"The food arrived hot and fresh, exactly as described. Ordering was super easy and the delivery was faster than expected — I'm hooked!"</p>
+                <div class="testi-author">
+                    <div class="testi-avatar">
+                        <svg width="22" height="22" fill="none" stroke="rgba(220,38,38,0.8)" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                    <div>
+                        <div class="testi-name">Camille Santos</div>
+                        <div class="testi-role">Regular Customer</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testi-card">
+                <div class="testi-stars">★★★★★</div>
+                <p class="testi-quote">"I love how easy it is to customize my order. The burgers are incredible and I can track exactly when they'll arrive. Best food app I've used!"</p>
+                <div class="testi-author">
+                    <div class="testi-avatar">
+                        <svg width="22" height="22" fill="none" stroke="rgba(220,38,38,0.8)" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                    <div>
+                        <div class="testi-name">Marco Reyes</div>
+                        <div class="testi-role">Loyal Customer</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testi-card">
+                <div class="testi-stars">★★★★★</div>
+                <p class="testi-quote">"Ordered for our whole office and everyone was impressed. Delivery was on time, portions were generous, and the taste was amazing. Will order again!"</p>
+                <div class="testi-author">
+                    <div class="testi-avatar">
+                        <svg width="22" height="22" fill="none" stroke="rgba(220,38,38,0.8)" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                    <div>
+                        <div class="testi-name">Andrea Lim</div>
+                        <div class="testi-role">Happy Customer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     FAQ
+══════════════════════════════════════════════════ -->
+<section class="faq-section">
+    <div style="max-width:1160px;margin:0 auto;">
+        <div style="text-align:center;margin-bottom:52px;">
+            <span class="eyebrow">Got Questions?</span>
+            <h2 class="section-title">Frequently Asked <span class="gold">Questions</span></h2>
+            <p class="section-subtitle">Everything you need to know before placing your first order.</p>
+        </div>
+        <div class="faq-wrap" id="faqList">
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">
+                    <div class="faq-question">How do I place an order?</div>
+                    <div class="faq-chevron">›</div>
+                </div>
+                <div class="faq-answer">Simply create a free account, browse our menu, add your favorite items to the cart, and check out. It only takes a few minutes!</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">
+                    <div class="faq-question">How long does delivery take?</div>
+                    <div class="faq-chevron">›</div>
+                </div>
+                <div class="faq-answer">Our average delivery time is under 30 minutes within Metro Manila. You can track your order in real time from the moment it leaves our kitchen.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">
+                    <div class="faq-question">What areas do you deliver to?</div>
+                    <div class="faq-chevron">›</div>
+                </div>
+                <div class="faq-answer">We currently deliver across Metro Manila and surrounding areas. Enter your address at checkout and we'll confirm if you're within our delivery zone.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">
+                    <div class="faq-question">Can I customize my order?</div>
+                    <div class="faq-chevron">›</div>
+                </div>
+                <div class="faq-answer">Yes! Many of our menu items let you choose add-ons, remove ingredients, or adjust portion sizes. Just select your preferences when adding items to your cart.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header">
+                    <div class="faq-question">What payment methods do you accept?</div>
+                    <div class="faq-chevron">›</div>
+                </div>
+                <div class="faq-answer">We accept cash on delivery, GCash, credit/debit cards, and other major e-wallets. All online payments are secured and encrypted.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     CTA BANNER
+══════════════════════════════════════════════════ -->
+<section class="cta-section">
+    <img src="{{ asset('images/DeliveryPanda.png') }}" alt="" class="cta-deco-panda">
+    <div class="cta-inner">
+        <div class="cta-left">
+            <h2 class="cta-title">Why Choose EUT?</h2>
+            <p class="cta-sub">Order now and get fast, reliable delivery straight to your door — anytime, anywhere across Metro Manila.</p>
+            <div class="cta-points">
+                <div class="cta-point">
+                    <svg class="cta-check" fill="none" stroke="#22c55e" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Fast and reliable delivery
+                </div>
+                <div class="cta-point">
+                    <svg class="cta-check" fill="none" stroke="#22c55e" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Real-time order tracking
+                </div>
+                <div class="cta-point">
+                    <svg class="cta-check" fill="none" stroke="#22c55e" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Wide variety of stores
+                </div>
+                <div class="cta-point">
+                    <svg class="cta-check" fill="none" stroke="#22c55e" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    No hidden fees
+                </div>
+            </div>
+            @auth
+                <a href="{{ route('shop.home') }}" class="btn-cta">Join Now →</a>
+            @else
+                <button onclick="openModal('signup')" class="btn-cta">Join Now →</button>
+            @endauth
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════ -->
+<footer class="footer">
+    <div class="footer-top">
+        <a href="{{ route('restaurant') }}" class="footer-brand">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+            EUT Restaurant
+        </a>
+        <nav class="footer-nav">
+            <a href="#hero">Home</a>
+            <a href="#menu">Menu</a>
+            <a href="#about">About</a>
+            <a href="#vendors">Why EUT</a>
+            <a href="{{ route('shop.home') }}">Order Now</a>
+        </nav>
+        <div class="footer-socials">
+            <a href="#" class="social-icon" aria-label="Facebook">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="Instagram">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor"/></svg>
+            </a>
+            <a href="#" class="social-icon" aria-label="Twitter">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+            </a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <div class="footer-copy">© 2026 EUT-Delivery (Eat • Unwind • Tea). All rights reserved.</div>
+        <div class="footer-badge">
+            <span style="color:#dc2626;">●</span> EUT Restaurant — Metro Manila
+        </div>
+    </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════════
+     AUTH MODAL
+══════════════════════════════════════════════════ -->
+<div class="auth-modal-backdrop" id="authModal">
+    <div class="auth-modal">
+        <button class="auth-close" onclick="closeModal()" aria-label="Close">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Login</button>
+            <button class="auth-tab" id="signupTab" onclick="switchTab('signup')">Sign Up</button>
+        </div>
+        <div class="auth-body">
+            <div class="auth-alert" id="authAlert"></div>
+
+            <!-- LOGIN PANEL -->
+            <div class="auth-panel active" id="loginPanel">
+                <h2 class="auth-heading">Welcome Back</h2>
+                <p class="auth-sub">Sign in to your EUT account</p>
+                <a href="{{ route('auth.google') }}" class="auth-google">
+                    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Continue with Google
+                </a>
+                <div class="auth-divider">or continue with email</div>
+                <div class="auth-field">
+                    <label class="auth-label">Email Address</label>
+                    <input type="email" class="auth-input" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div class="auth-field">
+                    <label class="auth-label">Password</label>
+                    <input type="password" class="auth-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <button class="btn-login" onclick="doLogin()">Sign In →</button>
+            </div>
+
+            <!-- SIGNUP PANEL -->
+            <div class="auth-panel" id="signupPanel">
+                <h2 class="auth-heading" style="color:#f59e0b;">Create Account</h2>
+                <p class="auth-sub">Join EUT and start ordering today</p>
+                <a href="{{ route('auth.google') }}" class="auth-google">
+                    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Sign up with Google
+                </a>
+                <div class="auth-divider">or sign up with email</div>
+                <div class="auth-field">
+                    <label class="auth-label">Full Name</label>
+                    <input type="text" class="auth-input" id="signupName" placeholder="Juan dela Cruz" autocomplete="name">
+                </div>
+                <div class="auth-field">
+                    <label class="auth-label">Email Address</label>
+                    <input type="email" class="auth-input" id="signupEmail" placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div class="auth-field">
+                    <label class="auth-label">Password</label>
+                    <input type="password" class="auth-input" id="signupPassword" placeholder="Min. 8 characters" autocomplete="new-password">
+                </div>
+                <button class="btn-signup" onclick="doSignup()">Create Account →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   NAV SCROLL EFFECT
+══════════════════════════════════════════════════════ */
+window.addEventListener('scroll', function() {
+    const nav = document.getElementById('mainNav');
+    if (window.scrollY > 40) {
+        nav.classList.add('scrolled');
+    } else {
+        nav.classList.remove('scrolled');
+    }
+}, { passive: true });
+
+/* ══════════════════════════════════════════════════════
+   MOBILE MENU
+══════════════════════════════════════════════════════ */
+function toggleMobileMenu() {
+    document.getElementById('mobileMenu').classList.toggle('open');
+}
+function closeMobileMenu() {
+    document.getElementById('mobileMenu').classList.remove('open');
+}
+
+/* ══════════════════════════════════════════════════════
+   MENU CATEGORY FILTER
+══════════════════════════════════════════════════════ */
+document.getElementById('menuCats').addEventListener('click', function(e) {
+    const btn = e.target.closest('.menu-cat');
+    if (!btn) return;
+    document.querySelectorAll('.menu-cat').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('.menu-card').forEach(card => {
+        if (cat === 'all' || card.dataset.cat === cat) {
+            card.style.display = '';
+            card.style.animation = 'none';
+            card.offsetHeight; // reflow
+            card.style.animation = '';
+        } else {
+            card.style.display = 'none';
         }
+    });
+});
 
-        function closeModal() {
-            document.getElementById('authModal').classList.add('hidden');
-            document.body.style.overflow = '';
-            hideAlert();
+/* ══════════════════════════════════════════════════════
+   STATS COUNT-UP
+══════════════════════════════════════════════════════ */
+function formatNum(n, format) {
+    if (format === 'abbr') {
+        if (n >= 1000000) return (n / 1000000).toFixed(0) + 'M';
+        if (n >= 1000) return (n / 1000).toFixed(0) + 'K';
+    }
+    return n.toLocaleString();
+}
+
+function animateCounter(el) {
+    const target = parseInt(el.dataset.target, 10);
+    const suffix = el.dataset.suffix || '';
+    const format = el.dataset.format || '';
+    const duration = 1800;
+    const steps = 60;
+    const increment = target / steps;
+    let current = 0;
+    let step = 0;
+    const timer = setInterval(() => {
+        step++;
+        current = Math.min(Math.round(increment * step), target);
+        el.textContent = formatNum(current, format) + suffix;
+        if (step >= steps) clearInterval(timer);
+    }, duration / steps);
+}
+
+const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.querySelectorAll('.stat-num').forEach(animateCounter);
+            statsObserver.unobserve(entry.target);
         }
+    });
+}, { threshold: 0.4 });
 
-        // ── Tab switch ────────────────────────────────────────────────
-        function switchTab(tab) {
-            const loginPanel  = document.getElementById('loginPanel');
-            const signupPanel = document.getElementById('signupPanel');
-            const loginTab    = document.getElementById('loginTab');
-            const signupTab   = document.getElementById('signupTab');
-            hideAlert();
+const statsBar = document.getElementById('statsBar');
+if (statsBar) statsObserver.observe(statsBar);
 
-            if (tab === 'login') {
-                loginPanel.classList.remove('hidden');
-                signupPanel.classList.add('hidden');
-                loginTab.classList.add('text-yellow-400', 'border-yellow-400');
-                loginTab.classList.remove('text-gray-500', 'border-transparent');
-                signupTab.classList.add('text-gray-500', 'border-transparent');
-                signupTab.classList.remove('text-yellow-400', 'border-yellow-400');
-            } else {
-                signupPanel.classList.remove('hidden');
-                loginPanel.classList.add('hidden');
-                signupTab.classList.add('text-yellow-400', 'border-yellow-400');
-                signupTab.classList.remove('text-gray-500', 'border-transparent');
-                loginTab.classList.add('text-gray-500', 'border-transparent');
-                loginTab.classList.remove('text-yellow-400', 'border-yellow-400');
-            }
+/* ══════════════════════════════════════════════════════
+   FEATURES STAGGER ANIMATION
+══════════════════════════════════════════════════════ */
+const featObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const cards = entry.target.querySelectorAll('.feat-card');
+            cards.forEach((card, i) => {
+                setTimeout(() => card.classList.add('visible'), i * 90);
+            });
+            featObserver.unobserve(entry.target);
         }
+    });
+}, { threshold: 0.1 });
 
-        // ── Alert helpers ─────────────────────────────────────────────
-        function showAlert(msg, type = 'error') {
-            const el = document.getElementById('authAlert');
-            el.textContent = msg;
-            el.className = 'mx-8 mt-4 px-4 py-3 rounded-xl text-sm font-medium ' +
-                (type === 'success'
-                    ? 'bg-green-600/20 border border-green-500/40 text-green-300'
-                    : 'bg-red-600/20 border border-red-500/40 text-red-300');
-        }
+const featGrid = document.getElementById('featGrid');
+if (featGrid) featObserver.observe(featGrid);
 
-        function hideAlert() {
-            const el = document.getElementById('authAlert');
-            el.className = 'hidden';
-            el.textContent = '';
-        }
+/* ══════════════════════════════════════════════════════
+   FAQ ACCORDION
+══════════════════════════════════════════════════════ */
+function toggleFaq(item) {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+}
 
-        function setLoading(btnId, loading) {
-            const btn = document.getElementById(btnId);
-            btn.disabled = loading;
-            btn.textContent = loading ? 'Please wait…' : (btnId === 'loginBtn' ? 'Login' : 'Create Account');
-        }
+/* ══════════════════════════════════════════════════════
+   AUTH MODAL
+══════════════════════════════════════════════════════ */
+function openModal(tab) {
+    const modal = document.getElementById('authModal');
+    modal.classList.add('open');
+    switchTab(tab || 'login');
+    document.body.style.overflow = 'hidden';
+}
 
-        // ── LOGIN form submit ─────────────────────────────────────────
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            hideAlert();
-            setLoading('loginBtn', true);
+function closeModal() {
+    document.getElementById('authModal').classList.remove('open');
+    document.body.style.overflow = '';
+    clearAlert();
+}
 
-            try {
-                const res = await fetch('{{ route("auth.login") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': CSRF,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email:    document.getElementById('loginEmail').value,
-                        password: document.getElementById('loginPassword').value,
-                        remember: document.getElementById('loginRemember').checked,
-                    }),
-                });
+document.getElementById('authModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
 
-                const data = await res.json();
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+});
 
-                if (data.success) {
-                    showAlert('Login successful! Redirecting…', 'success');
-                    setTimeout(() => { window.location.href = data.redirect; }, 800);
-                } else {
-                    const msg = data.errors
-                        ? Object.values(data.errors).flat().join(' ')
-                        : (data.message || 'Invalid credentials.');
-                    showAlert(msg);
-                    setLoading('loginBtn', false);
-                }
-            } catch (err) {
-                showAlert('Something went wrong. Please try again.');
-                setLoading('loginBtn', false);
-            }
+function switchTab(tab) {
+    const loginTab = document.getElementById('loginTab');
+    const signupTab = document.getElementById('signupTab');
+    const loginPanel = document.getElementById('loginPanel');
+    const signupPanel = document.getElementById('signupPanel');
+    clearAlert();
+    if (tab === 'login') {
+        loginTab.classList.add('active');
+        signupTab.classList.remove('active');
+        loginPanel.classList.add('active');
+        signupPanel.classList.remove('active');
+    } else {
+        signupTab.classList.add('active');
+        loginTab.classList.remove('active');
+        signupPanel.classList.add('active');
+        loginPanel.classList.remove('active');
+    }
+}
+
+function showAlert(msg, type) {
+    const el = document.getElementById('authAlert');
+    el.textContent = msg;
+    el.className = 'auth-alert ' + (type || 'error');
+    el.style.display = 'block';
+}
+
+function clearAlert() {
+    const el = document.getElementById('authAlert');
+    el.style.display = 'none';
+    el.textContent = '';
+}
+
+/* ══════════════════════════════════════════════════════
+   LOGIN FETCH
+══════════════════════════════════════════════════════ */
+async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { showAlert('Please enter your email and password.'); return; }
+    clearAlert();
+    try {
+        const res = await fetch('{{ route("auth.login") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
         });
+        const data = await res.json();
+        if (res.ok && data.redirect) {
+            window.location.href = data.redirect;
+        } else {
+            showAlert(data.message || 'Invalid credentials. Please try again.');
+        }
+    } catch (err) {
+        showAlert('Something went wrong. Please try again.');
+    }
+}
 
-        // ── SIGNUP form submit ────────────────────────────────────────
-        document.getElementById('signupForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            hideAlert();
-            setLoading('signupBtn', true);
-
-            const password = document.getElementById('signupPassword').value;
-            const confirm  = document.getElementById('signupPasswordConfirm').value;
-
-            if (password !== confirm) {
-                showAlert('Passwords do not match.');
-                setLoading('signupBtn', false);
-                return;
-            }
-
-            try {
-                const res = await fetch('{{ route("auth.signup") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': CSRF,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        first_name:            document.getElementById('signupFirstName').value,
-                        last_name:             document.getElementById('signupLastName').value,
-                        email:                 document.getElementById('signupEmail').value,
-                        password:              password,
-                        password_confirmation: confirm,
-                    }),
-                });
-
-                const data = await res.json();
-
-                if (data.success) {
-                    showAlert('Account created! Redirecting…', 'success');
-                    setTimeout(() => { window.location.href = data.redirect; }, 800);
-                } else {
-                    const msg = data.errors
-                        ? Object.values(data.errors).flat().join(' ')
-                        : (data.message || 'Signup failed.');
-                    showAlert(msg);
-                    setLoading('signupBtn', false);
-                }
-            } catch (err) {
-                showAlert('Something went wrong. Please try again.');
-                setLoading('signupBtn', false);
-            }
+/* ══════════════════════════════════════════════════════
+   SIGNUP FETCH
+══════════════════════════════════════════════════════ */
+async function doSignup() {
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    if (!name || !email || !password) { showAlert('Please fill in all fields.'); return; }
+    if (password.length < 8) { showAlert('Password must be at least 8 characters.'); return; }
+    clearAlert();
+    try {
+        const res = await fetch('{{ route("auth.signup") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ name, email, password, password_confirmation: password })
         });
+        const data = await res.json();
+        if (res.ok && data.redirect) {
+            window.location.href = data.redirect;
+        } else {
+            showAlert(data.message || 'Could not create account. Please try again.');
+        }
+    } catch (err) {
+        showAlert('Something went wrong. Please try again.');
+    }
+}
 
-        // ── Auto-dismiss flash messages ───────────────────────────────
-        ['flashSuccess','flashError'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) setTimeout(() => el.remove(), 4000);
-        });
-
-        // ── Close on ESC ──────────────────────────────────────────────
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-    </script>
-
+/* ══════════════════════════════════════════════════════
+   ENTER KEY SUPPORT
+══════════════════════════════════════════════════════ */
+document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('signupPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doSignup(); });
+</script>
 </body>
-</html>
 </html>
