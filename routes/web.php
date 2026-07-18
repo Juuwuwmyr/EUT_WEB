@@ -19,12 +19,16 @@ Route::get('/shop/profile', [ShopController::class, 'profile'])->name('shop.prof
 // Public pages
 // -------------------------------------------------------
 Route::get('/', function () {
-    return view('restaurant');
+    return view('landing');
 })->name('home');
 
 Route::get('/welcome', function () {
     return view('welcome');
 });
+
+Route::get('/restaurant', function () {
+    return view('restaurant');
+})->name('restaurant');
 
 Route::get('/example', function () {
     return view('example');
