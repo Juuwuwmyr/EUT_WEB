@@ -39,8 +39,12 @@ Route::get('/menu-pdf', function () {
 });
 
 // -------------------------------------------------------
-// Auth — Email login & signup (JSON responses for modal)
+// Rider panel
 // -------------------------------------------------------
+Route::get('/rider/dashboard', function () {
+    return view('rider.dashboard');
+})->name('rider.dashboard');
+
 Route::post('/auth/login',  [AuthController::class, 'login'])->name('auth.login');
 Route::post('/auth/signup', [AuthController::class, 'signup'])->name('auth.signup');
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout')->middleware('auth');
@@ -92,6 +96,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // ── Orders ─────────────────────────────────────────────
     Route::get('/orders', [AdminController::class, 'orders'])->name('orders');
+
+    // ── Riders ─────────────────────────────────────────────
+    Route::get('/riders', [AdminController::class, 'riders'])->name('riders');
 
     // ── Settings ───────────────────────────────────────────
     Route::get ('/settings',          [AdminController::class, 'settings'])->name('settings');

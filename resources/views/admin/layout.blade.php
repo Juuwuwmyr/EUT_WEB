@@ -295,6 +295,10 @@
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 Menu Items
             </a>
+            <a href="{{ route('admin.riders') }}" class="nav-link {{ request()->routeIs('admin.riders*') ? 'active' : '' }}">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C9.239 2 7 4.239 7 7c0 1.626.784 3.07 2 4v1a1 1 0 001 1h4a1 1 0 001-1V11c1.216-.93 2-2.374 2-4 0-2.761-2.239-5-5-5zm-1 15v-2h2v2m-4 2h6a1 1 0 001-1v-1H6v1a1 1 0 001 1z"/></svg>
+                Riders
+            </a>
             <a href="{{ route('admin.orders') }}" class="nav-link {{ request()->routeIs('admin.orders*') ? 'active' : '' }}">
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                 Orders
