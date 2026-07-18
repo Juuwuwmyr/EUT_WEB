@@ -209,7 +209,7 @@ img { display: block; }
 }
 .hero-panda-wrap { position: relative; }
 .hero-panda {
-    width: 320px; height: auto; object-fit: contain;
+    width: 460px; height: auto; object-fit: contain;
     filter: drop-shadow(0 0 60px rgba(220,38,38,0.3)) drop-shadow(0 20px 40px rgba(220,38,38,0.2));
     animation: panda-float 5s ease-in-out infinite;
 }
@@ -764,16 +764,25 @@ img { display: block; }
     .nav-links { display: none; }
     .nav-hamburger { display: flex; }
     .hero { padding: 60px 24px; min-height: auto; }
-    .hero-inner { flex-direction: column; gap: 48px; text-align: center; }
-    .hero-title { font-size: 42px; }
-    .hero-panda { width: 240px; }
-    .hero-sales-card { position: relative; left: 0; bottom: 0; margin-top: 16px; }
+    .hero-inner { flex-direction: column; gap: 40px; text-align: center; }
+    .hero-right { order: -1; width: 100%; display: flex; justify-content: center; }
+    .hero-panda-wrap { width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 0 16px; }
+    .hero-panda { width: 260px; }
+    .hero-sales-card { position: relative; left: 0; bottom: 0; margin-top: 0; min-width: 130px; flex-shrink: 0; width: 140px; padding: 12px 14px; border-radius: 14px; }
+    .hero-sales-amount { font-size: 20px; }
+    .hero-sales-label { font-size: 9px; margin-bottom: 6px; }
+    .hero-sales-growth { font-size: 10px; }
     .hero-btns, .hero-stats { justify-content: center; }
+    .hero-btns { flex-direction: column; align-items: stretch; }
+    .hero-btns .btn-primary, .hero-btns .btn-secondary { width: 100%; justify-content: center; }
+    .hero-stat-chip { font-size: 11px; padding: 6px 10px; }
+    .hero-stats { gap: 6px; justify-content: center; flex-wrap: wrap; }
+    .stats-bar { padding: 40px 24px; }
     .stats-inner { grid-template-columns: repeat(2,1fr); gap: 0; }
     .stat-item:nth-child(2)::after, .stat-item:nth-child(4)::after { display: none; }
     .stat-item:nth-child(1), .stat-item:nth-child(2) { border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 28px; }
     .stat-item:nth-child(3), .stat-item:nth-child(4) { padding-top: 28px; }
-    .menu-section, .gallery-section, .features-section, .how-section, .testi-section, .faq-section, .cta-section { padding: 64px 24px; }
+    .menu-section, .gallery-section, .features-section, .how-section, .testi-section, .faq-section, .cta-section, .loc-section { padding: 64px 24px; }
     .menu-grid { grid-template-columns: repeat(2,1fr); }
     .gallery-grid { grid-template-columns: 1fr; }
     .features-grid { grid-template-columns: repeat(2,1fr); }
@@ -784,14 +793,58 @@ img { display: block; }
     .cta-points { grid-template-columns: 1fr; }
     .footer-top { justify-content: flex-start; flex-direction: column; gap: 20px; }
     .footer-bottom { flex-direction: column; text-align: center; }
+    /* Location section */
+    #loc-map-row { flex-direction: column !important; }
+    #loc-info-panel { flex: 1 1 100% !important; width: 100% !important; }
+    /* Space gallery */
+    #spaceGallery { grid-template-columns: repeat(2,1fr) !important; }
+    #spaceGallery .loc-thumb:first-child { grid-column: span 2 !important; grid-row: span 1 !important; }
 }
 @media (max-width: 600px) {
-    .hero-title { font-size: 34px; }
-    .section-title { font-size: 30px; }
-    .menu-grid { grid-template-columns: repeat(2,1fr); }
+    .hero { padding: 48px 16px; }
+    .hero-title { font-size: 30px; }
+    .hero-panda { width: 240px; }
+    .hero-sales-card { width: 130px; min-width: 120px; padding: 10px 12px; border-radius: 12px; }
+    .hero-sales-amount { font-size: 18px; }
+    .hero-sales-label { font-size: 8px; }
+    .hero-sales-growth { font-size: 9px; }
+    .hero-desc { font-size: 14px; }
+    .hero-btns { flex-direction: column; align-items: center; }
+    .hero-btns .btn-primary, .hero-btns .btn-secondary { width: 100%; justify-content: center; }
+    .hero-stat-chip { font-size: 12px; padding: 6px 12px; }
+    .hero-stats { gap: 8px; }
+    .section-title { font-size: 26px; }
+    .section-subtitle { font-size: 13px; }
+    .eyebrow { font-size: 10px; }
+    .menu-cats { gap: 6px; }
+    .menu-cat { font-size: 12px; padding: 8px 14px; }
+    .menu-grid { grid-template-columns: repeat(2,1fr); gap: 12px; }
+    .menu-card-name { font-size: 13px; }
+    .menu-card-price { font-size: 15px; }
     .features-grid { grid-template-columns: 1fr; }
-    .steps-row { grid-template-columns: 1fr; }
-    .stats-bar, .footer { padding-left: 20px; padding-right: 20px; }
+    .feat-card { padding: 20px; }
+    .steps-row { grid-template-columns: 1fr; gap: 28px; }
+    .step-circle { width: 64px; height: 64px; }
+    .stats-bar { padding: 32px 16px; }
+    .stat-num { font-size: 32px; }
+    .stat-label { font-size: 11px; }
+    .testi-card { padding: 20px; }
+    .faq-question { font-size: 14px; }
+    .cta-title { font-size: 26px; }
+    .cta-sub { font-size: 13px; }
+    .footer { padding: 24px 16px; }
+    .footer-nav { gap: 16px; flex-wrap: wrap; }
+    .footer-nav a { font-size: 12px; }
+    /* Location section mobile */
+    #loc-map-row { flex-direction: column !important; gap: 20px !important; }
+    #loc-map-frame { min-height: 240px !important; }
+    #loc-info-panel { flex: 1 1 100% !important; width: 100% !important; }
+    /* Auth modal */
+    .auth-modal { border-radius: 16px; }
+    .auth-body { padding: 20px; }
+    /* Sections padding */
+    .menu-section, .gallery-section, .features-section, .how-section,
+    .testi-section, .faq-section, .cta-section, .loc-section { padding: 48px 16px; }
 }
     </style>
 </head>
@@ -810,6 +863,7 @@ img { display: block; }
         <li><a href="#hero">Home</a></li>
         <li><a href="#menu">Menu</a></li>
         <li><a href="#about">About</a></li>
+        <li><a href="#location">Location</a></li>
         <li><a href="#why">Why EUT</a></li>
     </ul>
     <div class="nav-actions">
@@ -878,13 +932,13 @@ img { display: block; }
                 </div>
                 <div class="hero-stat-chip">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    Metro Manila
+                    Metro Naujan, Oriental Mindoro
                 </div>
             </div>
         </div>
         <div class="hero-right">
             <div class="hero-panda-wrap">
-                <img src="{{ asset('images/DeliveryPanda.png') }}" alt="EUT Delivery Mascot" class="hero-panda">
+                <img src="{{ asset('images/DeliveryPanda1.png') }}" alt="EUT Delivery Mascot" class="hero-panda">
                 <div class="hero-sales-card">
                     <div class="hero-sales-label">
                         <span class="hero-sales-dot"></span> Orders Today
@@ -1083,35 +1137,218 @@ img { display: block; }
     <div style="max-width:1160px;margin:0 auto;">
         <div style="text-align:center;margin-bottom:48px;">
             <span class="eyebrow">Our Space</span>
-            <h2 class="section-title">Inside <span class="gold">EUT Restaurant</span></h2>
-            <p class="section-subtitle">A glimpse of where the magic happens — our restaurant, our kitchen, our passion.</p>
+            <h2 class="section-title">Inside <span class="gold">EUT Snack House</span></h2>
+            <p class="section-subtitle">A glimpse of where the magic happens — our place in Naujan, Oriental Mindoro.</p>
         </div>
-        <div class="gallery-grid">
-            <div class="gallery-card">
-                <img src="{{ asset('images/restaurant-interior.jpg') }}" alt="Dining Area" class="gallery-img">
-                <div class="gallery-overlay">
-                    <div class="gallery-title-text">Our Cozy Dining Area</div>
-                    <div class="gallery-sub-text">Where every meal becomes a memory.</div>
+
+        <!-- Browsable Photo Grid -->
+        <div id="spaceGallery" style="
+            display:grid;
+            grid-template-columns: repeat(4,1fr);
+            grid-template-rows: auto auto;
+            gap:12px;
+        ">
+            <!-- Large hero tile -->
+            <div class="loc-thumb" onclick="openLightbox(0)" style="grid-column:span 2; grid-row:span 2;">
+                <img src="{{ asset('images/restaurant-interior.jpg') }}" alt="EUT Interior" style="width:100%;height:100%;object-fit:cover;">
+                <div class="loc-thumb-overlay">
+                    <div style="text-align:center;">
+                        <svg width="28" height="28" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <div style="font-size:13px;font-weight:700;color:#fff;margin-top:6px;">Our Cozy Dining Area</div>
+                    </div>
                 </div>
             </div>
-            <div class="gallery-card">
-                <img src="{{ asset('images/delicious-burger-fries.jpg') }}" alt="Fresh Ingredients" class="gallery-img">
-                <div class="gallery-overlay">
-                    <div class="gallery-title-text">Fresh Ingredients, Every Day</div>
-                    <div class="gallery-sub-text">Sourced locally. Cooked with passion.</div>
+            <!-- Small tiles -->
+            <div class="loc-thumb" onclick="openLightbox(1)">
+                <img src="{{ asset('images/gourmet-burger.jpg') }}" alt="Gourmet Burger" style="width:100%;height:100%;object-fit:cover;">
+                <div class="loc-thumb-overlay">
+                    <div style="font-size:12px;font-weight:700;color:#fff;text-align:center;">Signature Burger</div>
                 </div>
             </div>
-            <div class="gallery-card">
-                <img src="{{ asset('images/combo-meal.jpg') }}" alt="EUT Kitchen" class="gallery-img">
-                <div class="gallery-overlay">
-                    <div class="gallery-title-text">EUT Kitchen — Made with Love</div>
-                    <div class="gallery-sub-text">Behind every dish is a dedicated team.</div>
+            <div class="loc-thumb" onclick="openLightbox(2)">
+                <img src="{{ asset('images/combo-meal.jpg') }}" alt="Combo Meal" style="width:100%;height:100%;object-fit:cover;">
+                <div class="loc-thumb-overlay">
+                    <div style="font-size:12px;font-weight:700;color:#fff;text-align:center;">Combo Meal</div>
+                </div>
+            </div>
+            <div class="loc-thumb" onclick="openLightbox(3)">
+                <img src="{{ asset('images/delicious-burger-fries.jpg') }}" alt="Burger & Fries" style="width:100%;height:100%;object-fit:cover;">
+                <div class="loc-thumb-overlay">
+                    <div style="font-size:12px;font-weight:700;color:#fff;text-align:center;">Burger &amp; Fries</div>
+                </div>
+            </div>
+            <!-- Last tile with "View All" overlay -->
+            <div class="loc-thumb" onclick="openLightbox(4)" style="position:relative;">
+                <img src="{{ asset('images/french-fries.jpg') }}" alt="More Photos" style="width:100%;height:100%;object-fit:cover;">
+                <div class="loc-thumb-overlay" style="background:rgba(0,0,0,0.6);">
+                    <div style="text-align:center;">
+                        <div style="font-size:22px;font-weight:900;color:#facc15;">+{{ 3 }}</div>
+                        <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.8);margin-top:2px;">View All</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
+<!-- ══════════════════════════════════════════════════
+     LIGHTBOX
+══════════════════════════════════════════════════ -->
+<div id="lightbox" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);backdrop-filter:blur(10px);align-items:center;justify-content:center;flex-direction:column;">
+    <button onclick="closeLightbox()" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:#fff;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;z-index:2;" aria-label="Close">&times;</button>
+    <div id="lbCounter" style="position:absolute;top:22px;left:50%;transform:translateX(-50%);font-size:13px;font-weight:600;color:rgba(255,255,255,0.5);"></div>
+    <button onclick="shiftLightbox(-1)" style="position:absolute;left:20px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:#fff;width:48px;height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:26px;">&#8249;</button>
+    <img id="lbImg" src="" alt="" style="max-width:88vw;max-height:80vh;border-radius:16px;object-fit:contain;box-shadow:0 30px 80px rgba(0,0,0,0.7);transition:opacity 0.2s;">
+    <div id="lbCaption" style="margin-top:18px;font-size:14px;font-weight:500;color:rgba(255,255,255,0.7);text-align:center;"></div>
+    <button onclick="shiftLightbox(1)" style="position:absolute;right:20px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:#fff;width:48px;height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:26px;">&#8250;</button>
+    <div id="lbStrip" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;padding:8px;background:rgba(0,0,0,0.5);border-radius:12px;max-width:90vw;overflow-x:auto;"></div>
+</div>
+
+<style>
+.loc-thumb {
+    position:relative; border-radius:12px; overflow:hidden;
+    aspect-ratio:4/3; cursor:pointer;
+    border:1px solid rgba(255,255,255,0.07);
+    transition:transform 0.22s, border-color 0.22s;
+}
+.loc-thumb:hover { transform:scale(1.03); border-color:rgba(250,204,21,0.4); }
+.loc-thumb-overlay {
+    position:absolute; inset:0;
+    background:rgba(0,0,0,0); display:flex;
+    align-items:center; justify-content:center;
+    transition:background 0.22s;
+}
+.loc-thumb:hover .loc-thumb-overlay { background:rgba(0,0,0,0.38); }
+</style>
+
+<script>
+const lbImages = [
+    { src: '{{ asset("images/restaurant-interior.jpg") }}', caption: 'Our Place — EUT Snack House' },
+    { src: '{{ asset("images/gourmet-burger.jpg") }}',      caption: 'Signature Burger' },
+    { src: '{{ asset("images/combo-meal.jpg") }}',          caption: 'Combo Meal' },
+    { src: '{{ asset("images/delicious-burger-fries.jpg") }}', caption: 'Burger & Fries' },
+    { src: '{{ asset("images/french-fries.jpg") }}',        caption: 'Crispy French Fries' },
+    { src: '{{ asset("images/hero-burger.jpg") }}',         caption: 'Fresh Burger' },
+    { src: '{{ asset("images/hero-bg.jpg") }}',             caption: 'EUT Snack House Vibes' },
+];
+let lbCurrent = 0;
+
+function openLightbox(idx) {
+    lbCurrent = idx;
+    document.getElementById('lightbox').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    renderLightbox();
+    buildStrip();
+}
+function closeLightbox() {
+    document.getElementById('lightbox').style.display = 'none';
+    document.body.style.overflow = '';
+}
+function shiftLightbox(dir) {
+    lbCurrent = (lbCurrent + dir + lbImages.length) % lbImages.length;
+    renderLightbox();
+}
+function renderLightbox() {
+    const img = document.getElementById('lbImg');
+    img.style.opacity = '0';
+    setTimeout(() => { img.src = lbImages[lbCurrent].src; img.alt = lbImages[lbCurrent].caption; img.style.opacity = '1'; }, 100);
+    document.getElementById('lbCaption').textContent = lbImages[lbCurrent].caption;
+    document.getElementById('lbCounter').textContent = (lbCurrent + 1) + ' / ' + lbImages.length;
+    document.querySelectorAll('.lb-strip-thumb').forEach((el, i) => {
+        el.style.opacity = i === lbCurrent ? '1' : '0.4';
+        el.style.borderColor = i === lbCurrent ? '#facc15' : 'transparent';
+    });
+}
+function buildStrip() {
+    const strip = document.getElementById('lbStrip');
+    strip.innerHTML = '';
+    lbImages.forEach((item, i) => {
+        const t = document.createElement('img');
+        t.src = item.src; t.alt = item.caption; t.className = 'lb-strip-thumb';
+        t.style.cssText = 'width:52px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all 0.18s;flex-shrink:0;';
+        t.onclick = () => { lbCurrent = i; renderLightbox(); };
+        strip.appendChild(t);
+    });
+}
+document.addEventListener('keydown', e => {
+    if (document.getElementById('lightbox').style.display === 'flex') {
+        if (e.key === 'ArrowRight') shiftLightbox(1);
+        if (e.key === 'ArrowLeft')  shiftLightbox(-1);
+        if (e.key === 'Escape')     closeLightbox();
+    }
+});
+document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════
+     LOCATION / MAP
+══════════════════════════════════════════════════ -->
+<section class="loc-section" style="background:#080810; padding:90px 48px; border-top:1px solid rgba(255,255,255,0.05);" id="location">
+    <div style="max-width:1160px; margin:0 auto;">
+        <div style="text-align:center; margin-bottom:48px;">
+            <span class="eyebrow">Find Us</span>
+            <h2 class="section-title">Where to <span class="gold">Find Us</span></h2>
+            <p class="section-subtitle">Visit us at Apostol St, Naujan, Oriental Mindoro — or order online and we'll come to you.</p>
+        </div>
+        <div id="loc-map-row" style="display:flex; gap:40px; align-items:stretch; flex-wrap:wrap;">
+            <!-- Map Embed -->
+            <div id="loc-map-frame" style="flex:1; min-width:280px; border-radius:20px; overflow:hidden; border:1px solid rgba(255,255,255,0.08); min-height:360px;">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3891.234!2d121.3027265!3d13.3213129!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33bcc1aee4d46ba9%3A0xa7041e92dff79eb!2sEUT%20SNACK%20HOUSE!5e0!3m2!1sen!2sph!4v1700000000000!5m2!1sen!2sph"
+                    width="100%"
+                    height="100%"
+                    style="border:0; min-height:360px; display:block; filter:invert(90%) hue-rotate(180deg);"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="EUT Snack House Location">
+                </iframe>
+            </div>
+            <!-- Info Panel -->
+            <div id="loc-info-panel" style="flex:0 0 300px; display:flex; flex-direction:column; gap:20px;">
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px;">
+                    <div style="display:flex; align-items:flex-start; gap:14px;">
+                        <div style="width:40px; height:40px; border-radius:12px; background:rgba(220,38,38,0.12); border:1px solid rgba(220,38,38,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="18" height="18" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <div>
+                            <div style="font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Address</div>
+                            <div style="font-size:14px; font-weight:600; color:#f3f4f6; line-height:1.6;">Apostol St, Naujan<br>5204 Oriental Mindoro<br><span style="color:#9ca3af; font-weight:400;">Located in: LJM Apartments</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px;">
+                    <div style="display:flex; align-items:flex-start; gap:14px;">
+                        <div style="width:40px; height:40px; border-radius:12px; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="18" height="18" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div>
+                            <div style="font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Hours</div>
+                            <div style="font-size:14px; font-weight:600; color:#f3f4f6; line-height:1.6;">Open Daily<br><span style="color:#22c55e;">Until 11:00 PM</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:24px;">
+                    <div style="display:flex; align-items:flex-start; gap:14px;">
+                        <div style="width:40px; height:40px; border-radius:12px; background:rgba(250,204,21,0.1); border:1px solid rgba(250,204,21,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                            <svg width="18" height="18" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                        </div>
+                        <div>
+                            <div style="font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">Contact</div>
+                            <div style="font-size:14px; font-weight:600; color:#f3f4f6; line-height:1.6;"><a href="tel:09052883320" style="color:#facc15; text-decoration:none;">0905 288 3320</a></div>
+                        </div>
+                    </div>
+                </div>
+                <a href="https://maps.app.goo.gl/azFF3zxcrzwSnctY7" target="_blank" rel="noopener noreferrer" class="btn-primary" style="justify-content:center; text-decoration:none;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Open in Google Maps
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
 <!-- ══════════════════════════════════════════════════
      FEATURES
 ══════════════════════════════════════════════════ -->
@@ -1323,14 +1560,14 @@ img { display: block; }
                     <div class="faq-question">How long does delivery take?</div>
                     <div class="faq-chevron">›</div>
                 </div>
-                <div class="faq-answer">Our average delivery time is under 30 minutes within Metro Manila. You can track your order in real time from the moment it leaves our kitchen.</div>
+                <div class="faq-answer">Our average delivery time is under 30 minutes within Naujan, Oriental Mindoro. You can track your order in real time from the moment it leaves our kitchen.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">What areas do you deliver to?</div>
                     <div class="faq-chevron">›</div>
                 </div>
-                <div class="faq-answer">We currently deliver across Metro Manila and surrounding areas. Enter your address at checkout and we'll confirm if you're within our delivery zone.</div>
+                <div class="faq-answer">We currently deliver within Naujan and nearby areas in Oriental Mindoro. Enter your address at checkout and we'll confirm if you're within our delivery zone.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
@@ -1358,7 +1595,7 @@ img { display: block; }
     <div class="cta-inner">
         <div class="cta-left">
             <h2 class="cta-title">Why Choose EUT?</h2>
-            <p class="cta-sub">Order now and get fast, reliable delivery straight to your door — anytime, anywhere across Metro Manila.</p>
+            <p class="cta-sub">Order now and get fast, reliable delivery straight to your door — anytime, anywhere in Naujan, Oriental Mindoro.</p>
             <div class="cta-points">
                 <div class="cta-point">
                     <svg class="cta-check" fill="none" stroke="#22c55e" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1417,7 +1654,7 @@ img { display: block; }
     <div class="footer-bottom">
         <div class="footer-copy">© 2026 EUT-Delivery (Eat • Unwind • Tea). All rights reserved.</div>
         <div class="footer-badge">
-            <span style="color:#dc2626;">●</span> EUT Restaurant — Metro Manila
+            <span style="color:#dc2626;">●</span> EUT Snack House — Naujan, Oriental Mindoro
         </div>
     </div>
 </footer>
