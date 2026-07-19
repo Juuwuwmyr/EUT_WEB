@@ -392,7 +392,7 @@
     <div class="p-card" data-category="{{ $item->category->slug ?? '' }}" data-name="{{ strtolower($item->name) }}" style="animation-delay: {{ $index * 0.04 }}s;">
         <a href="{{ route('shop.product', $item->id) }}" style="text-decoration:none; display:block;">
             <div class="p-card-img-wrap">
-                <img src="{{ asset($item->image ?? '') }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy">
+                <img src="{{ $item->image ? asset($item->image) : 'https://placehold.co/400x300/1a1a2e/facc15?text=' . urlencode($item->name) }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy">
                 <div class="p-card-img-overlay"></div>
                 @if($item->featured)
                     <span class="badge-hot">🔥 Hot</span>
