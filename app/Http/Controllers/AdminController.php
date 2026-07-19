@@ -334,9 +334,7 @@ class AdminController extends Controller
 
             if (!empty($groupData['id'])) {
                 $group = ModifierGroup::where('id', $groupData['id'])->where('menu_item_id', $item->id)->first();
-                if ($group) {
-                    $group->update($groupPayload);
-                }
+                if ($group) $group->update($groupPayload);
             } else {
                 $group = ModifierGroup::create($groupPayload);
             }
@@ -344,8 +342,27 @@ class AdminController extends Controller
             if ($group) {
                 $keptGroupIds[] = $group->id;
                 $keptOptionIds  = [];
+                $options        = $groupData['options'] ?? [];
 
-                foreach ($groupData['options'] ?? [] as $oIdx => $optData) {
+                // Auto-prepend a "No X" default if none of the options is marked default
+                $hasDefault = collect($options)->contains(fn($o) => !empty($o['is_default']));
+                if (! $hasDefault) {
+                    $defaultLabel = match($group->type) {
+                        'flavor'   => 'No Flavor',
+                        'modifier' => 'No ' . $group->name,
+                        'addon'    => 'No Add-on',
+                        default    => 'None',
+                    };
+                    array_unshift($options, [
+                        'name'             => $defaultLabel,
+                        'price_type'       => 'none',
+                        'price_adjustment' => 0,
+                        'is_default'       => true,
+                        'is_active'        => true,
+                    ]);
+                }
+
+                foreach ($options as $oIdx => $optData) {
                     $optPayload = [
                         'modifier_group_id' => $group->id,
                         'name'              => $optData['name'],
@@ -358,20 +375,18 @@ class AdminController extends Controller
 
                     if (!empty($optData['id'])) {
                         $opt = ModifierOption::where('id', $optData['id'])->where('modifier_group_id', $group->id)->first();
-                        if ($opt) { $opt->update($optPayload); }
+                        if ($opt) $opt->update($optPayload);
                     } else {
                         $opt = ModifierOption::create($optPayload);
                     }
 
-                    if ($opt) { $keptOptionIds[] = $opt->id; }
+                    if ($opt ?? null) $keptOptionIds[] = $opt->id;
                 }
 
-                // Remove options that were deleted in the UI
                 $group->options()->whereNotIn('id', $keptOptionIds)->delete();
             }
         }
 
-        // Remove groups that were deleted in the UI
         $item->modifierGroups()->whereNotIn('id', $keptGroupIds)->delete();
     }
 

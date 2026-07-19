@@ -501,7 +501,14 @@ function clearAllGroups() {
 }
 
 function addGroup(type) {
-    loadGroup({ type: type, name: '', required: false, is_active: true, options: [] });
+function addGroup(type) {
+    var defaultLabel = type === 'flavor' ? 'No Flavor' : 'No Modifier';
+    loadGroup({
+        type: type, name: '', required: false, is_active: true,
+        options: [
+            { name: defaultLabel, price_type: 'none', price_adjustment: 0, is_default: true, is_active: true }
+        ]
+    });
     switchTab('tabCustomize');
 }
 

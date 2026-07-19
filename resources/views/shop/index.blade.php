@@ -44,13 +44,13 @@
         .search-wrap { flex: 1; max-width: 480px; position: relative; }
         .search-input {
             width: 100%; padding: 10px 46px 10px 16px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 12px; color: #fff; font-size: 13px;
-            outline: none; transition: border-color 0.2s;
+            background: rgba(255,255,255,0.92);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px; color: #111; font-size: 13px;
+            outline: none; transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .search-input::placeholder { color: #374151; }
-        .search-input:focus { border-color: rgba(250,204,21,0.4); background: rgba(255,255,255,0.07); }
+        .search-input::placeholder { color: #9ca3af; }
+        .search-input:focus { border-color: rgba(250,204,21,0.7); background: #fff; box-shadow: 0 0 0 3px rgba(250,204,21,0.15); }
         .search-btn {
             position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
             width: 30px; height: 30px; border-radius: 8px;
@@ -274,7 +274,7 @@
         .light-mode .topnav { background: rgba(255,255,255,0.96) !important; border-color: rgba(0,0,0,0.07) !important; }
         .light-mode .cats-wrap { background: rgba(255,255,255,0.96) !important; border-color: rgba(0,0,0,0.06) !important; }
         .light-mode .nav-logo-text { color: #d97706 !important; }
-        .light-mode .search-input { background: rgba(0,0,0,0.04) !important; border-color: rgba(0,0,0,0.1) !important; color: #111 !important; }
+        .light-mode .search-input { background: #fff !important; border-color: rgba(0,0,0,0.15) !important; color: #111 !important; }
         .light-mode .nav-icon-btn { background: rgba(0,0,0,0.05) !important; border-color: rgba(0,0,0,0.08) !important; color: #374151 !important; }
         .light-mode .p-card { background: #fff !important; border-color: rgba(0,0,0,0.07) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important; }
         .light-mode .p-card-name { color: #111 !important; }

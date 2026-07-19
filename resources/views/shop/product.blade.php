@@ -496,6 +496,21 @@
         <!-- JS populated -->
     </div>
 
+    <!-- ── ADD-ONS (multi-select checkboxes) ── -->
+    <div id="addonsContainer" style="display:none;">
+        <div class="sheet-divider"></div>
+        <div class="sheet-section">
+            <p class="sheet-section-title">
+                <span style="display:flex;align-items:center;gap:6px;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:#f59e0b;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    Add-ons
+                </span>
+                <span>Optional · Select multiple</span>
+            </p>
+            <div id="addonsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+    </div>
+
     <div class="sheet-divider"></div>
 
     <!-- ── QUANTITY ── -->
@@ -560,6 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     updateCartBadge();
     buildModifierGroups();
+    buildAddons();
     bindQty();
     bindActions();
 });
@@ -582,8 +598,12 @@ const ITEM_CAT   = @json($item['category']['slug'] ?? 'food');
 // ── Modifier groups from DB ──────────────────────────────
 const MODIFIER_GROUPS = @json($item['modifier_groups'] ?? []);
 
-let sheetMode      = 'cart';
+// ── Add-on groups from DB ─────────────────────────────────
+const ADDON_GROUPS = @json($item['addon_groups'] ?? []);
+
+let sheetMode       = 'cart';
 let selectedOptions = {}; // group_id → option object
+let selectedAddons  = {}; // addon_group_id → { name, priceType, adj }
 let currentQty      = 1;
 
 /* ── COLORS for flavor swatches (cycle if no color in DB) ── */
@@ -716,6 +736,63 @@ function selectOption(groupId, optId, isFlavor) {
     updateTotal();
 }
 
+/* ── BUILD ADD-ONS ── */
+function buildAddons() {
+    const container = document.getElementById('addonsContainer');
+    const list      = document.getElementById('addonsList');
+    if (!ADDON_GROUPS || !ADDON_GROUPS.length) {
+        container.style.display = 'none';
+        return;
+    }
+    container.style.display = 'block';
+    list.innerHTML = '';
+    selectedAddons = {};
+
+    ADDON_GROUPS.forEach(group => {
+        // Get the single option that holds price info
+        const opt       = group.active_options && group.active_options[0];
+        const priceType = opt ? opt.price_type : 'none';
+        const adj       = opt ? parseFloat(opt.price_adjustment || 0) : 0;
+        const isPaid    = priceType === 'add' && adj > 0;
+        const priceLabel = isPaid ? '+₱' + adj.toLocaleString() : 'Free';
+
+        const card = document.createElement('div');
+        card.className = 'addon-card';
+        card.id = 'addon_' + group.id;
+        card.innerHTML = `
+            <div class="addon-card-left">
+                <div class="addon-check" id="adcheck_${group.id}">
+                    <svg width="12" height="12" fill="none" stroke="#000" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <div class="addon-card-info">
+                    <p class="addon-name">${group.name}</p>
+                    ${group.description ? `<p class="addon-desc">${group.description}</p>` : ''}
+                </div>
+            </div>
+            <span class="addon-price-tag ${isPaid ? 'paid' : 'free'}">${priceLabel}</span>`;
+
+        card.addEventListener('click', () => toggleAddon(group.id, group.name, priceType, adj));
+        list.appendChild(card);
+    });
+}
+
+function toggleAddon(groupId, name, priceType, adj) {
+    const card  = document.getElementById('addon_' + groupId);
+    const check = document.getElementById('adcheck_' + groupId);
+    if (selectedAddons[groupId]) {
+        delete selectedAddons[groupId];
+        card.classList.remove('selected');
+        check.style.opacity = '0.4';
+    } else {
+        selectedAddons[groupId] = { name, priceType, adj };
+        card.classList.add('selected');
+        check.style.opacity = '1';
+    }
+    updateTotal();
+}
+
 /* ── QTY ── */
 function bindQty() {
     document.getElementById('qtyDec').addEventListener('click', () => {
@@ -736,18 +813,17 @@ function bindQty() {
 function updateTotal() {
     let price = parseFloat(BASE_PRICE);
 
+    // Apply modifier/flavor selections
     Object.entries(selectedOptions).forEach(([groupId, opt]) => {
-        if (!opt) return; // unselected group
-        // Skip addon groups — they don't affect price
-        const group = MODIFIER_GROUPS.find(g => g.id === parseInt(groupId));
-        if (!group || group.type === 'addon') return;
-
+        if (!opt) return;
         const adj = parseFloat(opt.price_adjustment || 0);
-        if (opt.price_type === 'add') {
-            price += adj;
-        } else if (opt.price_type === 'replace') {
-            price = adj;
-        }
+        if (opt.price_type === 'add')          price += adj;
+        else if (opt.price_type === 'replace') price  = adj;
+    });
+
+    // Apply checked add-ons
+    Object.values(selectedAddons).forEach(addon => {
+        if (addon.priceType === 'add') price += parseFloat(addon.adj || 0);
     });
 
     const unit  = Math.round(price);
@@ -760,8 +836,15 @@ function updateTotal() {
 /* ── SHEET OPEN / CLOSE ── */
 function openSheet(mode) {
     sheetMode = mode;
+    selectedAddons = {};
+    // Reset addon card visuals
+    document.querySelectorAll('.addon-card.selected').forEach(c => {
+        c.classList.remove('selected');
+        const chk = c.querySelector('.addon-check');
+        if(chk) chk.style.opacity = '0.4';
+    });
     document.getElementById('sheetAddBtn').textContent = mode === 'buy' ? 'Add to Cart' : '+ Add to Cart';
-    document.getElementById('sheetBuyBtn').textContent = mode === 'buy' ? 'Buy Now →'   : 'Buy Now →';
+    document.getElementById('sheetBuyBtn').textContent = 'Buy Now →';
     document.getElementById('sheetBackdrop').classList.add('open');
     document.getElementById('buySheet').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -783,19 +866,26 @@ function doAdd(goToCart) {
     let price = BASE_PRICE;
     Object.values(selectedOptions).forEach(opt => {
         if (!opt) return;
-        if (opt.price_type === 'add')     price += parseFloat(opt.price_adjustment || 0);
-        else if (opt.price_type === 'replace') price = parseFloat(opt.price_adjustment);
+        if (opt.price_type === 'add')          price += parseFloat(opt.price_adjustment || 0);
+        else if (opt.price_type === 'replace') price  = parseFloat(opt.price_adjustment);
+    });
+    // Add checked add-on prices
+    Object.values(selectedAddons).forEach(addon => {
+        if (addon.priceType === 'add') price += parseFloat(addon.adj || 0);
     });
     const unit = Math.round(price);
 
-    // Build a label from selected options for display
-    const optLabels = Object.values(selectedOptions).filter(Boolean).map(o => o.name);
-    const suffix    = optLabels.length ? ' (' + optLabels.join(', ') + ')' : '';
-    const name      = ITEM_NAME + suffix;
+    // Build label: item name + selected options + add-ons
+    const optLabels   = Object.values(selectedOptions).filter(Boolean).map(o => o.name);
+    const addonLabels = Object.values(selectedAddons).map(a => a.name);
+    const allLabels   = [...optLabels, ...addonLabels];
+    const suffix      = allLabels.length ? ' (' + allLabels.join(', ') + ')' : '';
+    const name        = ITEM_NAME + suffix;
 
-    // Unique cart key per item+option combo
-    const optKey = Object.values(selectedOptions).filter(Boolean).map(o => o.id).sort().join('-');
-    const key    = ITEM_ID + (optKey ? '_' + optKey : '');
+    // Unique cart key per item + option + addon combo
+    const optKey   = Object.values(selectedOptions).filter(Boolean).map(o => o.id).sort().join('-');
+    const addonKey = Object.keys(selectedAddons).sort().join('a');
+    const key      = ITEM_ID + (optKey ? '_' + optKey : '') + (addonKey ? '_ad' + addonKey : '');
 
     const existing = cart.find(i => i.id === key);
     if (existing) existing.quantity += currentQty;
@@ -825,6 +915,41 @@ function showToast(msg) {
 </script>
 <style>
 @keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+/* ── ADD-ON CARDS ── */
+.addon-card {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 14px; border-radius:14px;
+    background:rgba(255,255,255,0.04);
+    border:1.5px solid rgba(255,255,255,0.07);
+    cursor:pointer; transition:all 0.2s; user-select:none;
+    -webkit-tap-highlight-color:transparent;
+}
+.addon-card:hover { background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.12); }
+.addon-card.selected {
+    background:rgba(245,158,11,0.1);
+    border-color:#f59e0b;
+    box-shadow:0 2px 12px rgba(245,158,11,0.2);
+}
+.addon-card-left { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+.addon-check {
+    width:22px; height:22px; border-radius:6px; flex-shrink:0;
+    background:rgba(255,255,255,0.06); border:1.5px solid rgba(255,255,255,0.12);
+    display:flex; align-items:center; justify-content:center; transition:all 0.2s;
+}
+.addon-card.selected .addon-check {
+    background:#f59e0b; border-color:#f59e0b;
+}
+.addon-card-info { flex:1; min-width:0; }
+.addon-name { font-size:13px; font-weight:600; color:#e5e7eb; margin-bottom:2px; }
+.addon-desc { font-size:11px; color:#4b5563; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.addon-card.selected .addon-name { color:#fbbf24; }
+.addon-price-tag {
+    font-size:12px; font-weight:700; flex-shrink:0; margin-left:8px;
+    padding:3px 10px; border-radius:99px;
+}
+.addon-price-tag.free { color:#6b7280; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); }
+.addon-price-tag.paid { color:#4ade80; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); }
 </style>
 </body>
 </html>

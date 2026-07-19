@@ -102,7 +102,6 @@ class MenuSeeder extends Seeder
         $burgers = \App\Models\MenuItem::whereHas('category', fn($q) => $q->where('slug','burgers'))->get();
 
         foreach ($burgers as $burger) {
-            // Skip if already has a flavor group
             if ($burger->modifierGroups()->where('type','flavor')->exists()) continue;
 
             $flavorGroup = \App\Models\ModifierGroup::create([
@@ -110,17 +109,17 @@ class MenuSeeder extends Seeder
                 'required' => false, 'is_active' => true, 'sort_order' => 1
             ]);
             $flavors = [
-                ['name'=>'Classic','price_type'=>'none','price_adjustment'=>0,'is_default'=>true, 'sort_order'=>1],
-                ['name'=>'Spicy',  'price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>2],
-                ['name'=>'BBQ Smoke','price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>3],
-                ['name'=>'Garlic Aioli','price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>4],
+                ['name'=>'No Flavor',     'price_type'=>'none','price_adjustment'=>0,'is_default'=>true, 'sort_order'=>0],
+                ['name'=>'Classic',       'price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>1],
+                ['name'=>'Spicy',         'price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>2],
+                ['name'=>'BBQ Smoke',     'price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>3],
+                ['name'=>'Garlic Aioli',  'price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>4],
                 ['name'=>'Honey Sriracha','price_type'=>'none','price_adjustment'=>0,'is_default'=>false,'sort_order'=>5],
             ];
             foreach ($flavors as $f) {
                 \App\Models\ModifierOption::create(array_merge($f, ['modifier_group_id'=>$flavorGroup->id,'is_active'=>true]));
             }
 
-            // Skip if already has a modifier group
             if ($burger->modifierGroups()->where('type','modifier')->exists()) continue;
 
             $sizeGroup = \App\Models\ModifierGroup::create([
@@ -128,9 +127,10 @@ class MenuSeeder extends Seeder
                 'required' => false, 'is_active' => true, 'sort_order' => 2
             ]);
             foreach ([
-                ['name'=>'Regular','price_type'=>'none','price_adjustment'=>0,  'is_default'=>true, 'sort_order'=>1],
-                ['name'=>'Large',  'price_type'=>'add', 'price_adjustment'=>50, 'is_default'=>false,'sort_order'=>2],
-                ['name'=>'X-Large','price_type'=>'add', 'price_adjustment'=>100,'is_default'=>false,'sort_order'=>3],
+                ['name'=>'No Size', 'price_type'=>'none','price_adjustment'=>0,  'is_default'=>true, 'sort_order'=>0],
+                ['name'=>'Regular', 'price_type'=>'none','price_adjustment'=>0,  'is_default'=>false,'sort_order'=>1],
+                ['name'=>'Large',   'price_type'=>'add', 'price_adjustment'=>50, 'is_default'=>false,'sort_order'=>2],
+                ['name'=>'X-Large', 'price_type'=>'add', 'price_adjustment'=>100,'is_default'=>false,'sort_order'=>3],
             ] as $s) {
                 \App\Models\ModifierOption::create(array_merge($s, ['modifier_group_id'=>$sizeGroup->id,'is_active'=>true]));
             }
@@ -144,8 +144,9 @@ class MenuSeeder extends Seeder
                 'required'=>false,'is_active'=>true,'sort_order'=>1
             ]);
             foreach ([
-                ['name'=>'Regular','price_type'=>'none','price_adjustment'=>0, 'is_default'=>true, 'sort_order'=>1],
-                ['name'=>'Large',  'price_type'=>'add', 'price_adjustment'=>30,'is_default'=>false,'sort_order'=>2],
+                ['name'=>'No Size', 'price_type'=>'none','price_adjustment'=>0, 'is_default'=>true, 'sort_order'=>0],
+                ['name'=>'Regular', 'price_type'=>'none','price_adjustment'=>0, 'is_default'=>false,'sort_order'=>1],
+                ['name'=>'Large',   'price_type'=>'add', 'price_adjustment'=>30,'is_default'=>false,'sort_order'=>2],
             ] as $s) {
                 \App\Models\ModifierOption::create(array_merge($s, ['modifier_group_id'=>$sg->id,'is_active'=>true]));
             }
@@ -159,8 +160,9 @@ class MenuSeeder extends Seeder
                 'required'=>false,'is_active'=>true,'sort_order'=>1
             ]);
             foreach ([
-                ['name'=>'Medium','price_type'=>'none','price_adjustment'=>0, 'is_default'=>true, 'sort_order'=>1],
-                ['name'=>'Large', 'price_type'=>'add', 'price_adjustment'=>20,'is_default'=>false,'sort_order'=>2],
+                ['name'=>'No Size', 'price_type'=>'none','price_adjustment'=>0, 'is_default'=>true, 'sort_order'=>0],
+                ['name'=>'Medium',  'price_type'=>'none','price_adjustment'=>0, 'is_default'=>false,'sort_order'=>1],
+                ['name'=>'Large',   'price_type'=>'add', 'price_adjustment'=>20,'is_default'=>false,'sort_order'=>2],
             ] as $s) {
                 \App\Models\ModifierOption::create(array_merge($s, ['modifier_group_id'=>$sg->id,'is_active'=>true]));
             }

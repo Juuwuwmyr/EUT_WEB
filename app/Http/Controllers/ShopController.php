@@ -23,7 +23,7 @@ class ShopController extends Controller
                 $q->where('is_active', true)->orderBy('sort_order');
             },
             'modifierGroups.activeOptions' => function($q) {
-                $q->where('is_active', true)->orderBy('sort_order');
+                $q->orderBy('sort_order');
             },
         ])->active()->find((int) $id);
 
@@ -32,6 +32,10 @@ class ShopController extends Controller
         }
 
         $item = $item->toArray();
+
+        // Separate addon groups so the view can handle them distinctly
+        $item['addon_groups']    = array_values(array_filter($item['modifier_groups'] ?? [], fn($g) => $g['type'] === 'addon'));
+        $item['modifier_groups'] = array_values(array_filter($item['modifier_groups'] ?? [], fn($g) => $g['type'] !== 'addon'));
 
         return view('shop.product', compact('item'));
     }
