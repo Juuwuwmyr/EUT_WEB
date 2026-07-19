@@ -122,7 +122,7 @@ class AuthController extends Controller
     // -------------------------------------------------------
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')->stateless()->redirect();
     }
 
     // -------------------------------------------------------
@@ -130,10 +130,18 @@ class AuthController extends Controller
     // -------------------------------------------------------
     public function handleGoogleCallback()
     {
+        // Fix cURL SSL cert issue on local WAMP dev environment
+        if (app()->environment('local')) {
+            $client = new \GuzzleHttp\Client(['verify' => false]);
+            $provider = Socialite::driver('google')->stateless()->setHttpClient($client);
+        } else {
+            $provider = Socialite::driver('google')->stateless();
+        }
+
         try {
-            $googleUser = Socialite::driver('google')->user();
+            $googleUser = $provider->user();
         } catch (\Exception $e) {
-            return redirect()->route('home')->with('error', 'Google login failed. Please try again.');
+            return redirect()->route('restaurant')->with('error', 'Google login failed. Please try again.');
         }
 
         // First try to find by google_id

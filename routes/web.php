@@ -19,6 +19,12 @@ Route::get('/shop/profile', [ShopController::class, 'profile'])->name('shop.prof
 // Public pages
 // -------------------------------------------------------
 Route::get('/', function () {
+    if (auth()->check()) {
+        $user = auth()->user();
+        if ($user->isAdmin()) return redirect()->route('admin.dashboard');
+        if ($user->isRider()) return redirect()->route('rider.dashboard');
+        return redirect()->route('shop.home');
+    }
     return view('landing');
 })->name('home');
 
