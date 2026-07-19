@@ -114,7 +114,7 @@ class OrderController extends Controller
             'accepted_at'   => $order->accepted_at?->format('g:i A'),
             'picked_up_at'  => $order->picked_up_at?->format('g:i A'),
             'delivered_at'  => $order->delivered_at?->format('g:i A'),
-            'rider'         => $order->rider ? [
+            'rider'         => ($order->rider && $order->rider->user) ? [
                 'name'    => $order->rider->user->name,
                 'phone'   => $order->rider->phone,
                 'rating'  => $order->rider->rating,
@@ -177,7 +177,7 @@ class OrderController extends Controller
                 'picked_up_at'     => $order->picked_up_at?->format('g:i A'),
                 'delivered_at'     => $order->delivered_at?->format('g:i A'),
                 'cancelled_at'     => $order->cancelled_at?->format('g:i A'),
-                'rider'            => $order->rider ? [
+                'rider'            => ($order->rider && $order->rider->user) ? [
                     'name'    => $order->rider->user->name,
                     'phone'   => $order->rider->phone,
                     'rating'  => $order->rider->rating,

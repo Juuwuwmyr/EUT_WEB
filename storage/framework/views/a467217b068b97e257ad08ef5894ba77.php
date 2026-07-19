@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Orders - EUT Restaurant</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 </head>
@@ -108,7 +108,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
 <nav class="topnav">
     <div class="topnav-inner">
         <div class="topnav-row">
-            <a href="{{ route('shop.home') }}" class="back-btn">
+            <a href="<?php echo e(route('shop.home')); ?>" class="back-btn">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
                 </svg>
@@ -150,7 +150,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
             <div class="empty-icon">📦</div>
             <p class="empty-title">No completed orders yet</p>
             <p class="empty-sub">Your delivered orders will appear here.</p>
-            <a href="{{ route('shop.home') }}" class="btn-primary" style="display:inline-block;width:auto;padding:12px 28px;border-radius:99px;">Start Ordering</a>
+            <a href="<?php echo e(route('shop.home')); ?>" class="btn-primary" style="display:inline-block;width:auto;padding:12px 28px;border-radius:99px;">Start Ordering</a>
         </div>
     </div>
 
@@ -161,7 +161,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
             <div class="empty-icon">✅</div>
             <p class="empty-title">No cancelled orders</p>
             <p class="empty-sub">Great news — you haven't had to cancel any orders.</p>
-            <a href="{{ route('shop.home') }}" class="btn-primary" style="display:inline-block;width:auto;padding:12px 28px;border-radius:99px;">Browse Menu</a>
+            <a href="<?php echo e(route('shop.home')); ?>" class="btn-primary" style="display:inline-block;width:auto;padding:12px 28px;border-radius:99px;">Browse Menu</a>
         </div>
     </div>
 </div>
@@ -177,13 +177,13 @@ body{background:#080810;color:#fff;min-height:100vh;}
         <button onclick="closeCancelModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#9ca3af;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;" id="cancelReasons">
-        @foreach(['Changed my mind','Ordered by mistake','Found a better option','Taking too long','Other reason'] as $reason)
+        <?php $__currentLoopData = ['Changed my mind','Ordered by mistake','Found a better option','Taking too long','Other reason']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $reason): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.07);cursor:pointer;transition:all .2s;">
-            <input type="radio" name="cancelReason" value="{{ $reason }}" style="accent-color:#ef4444;width:16px;height:16px;"
+            <input type="radio" name="cancelReason" value="<?php echo e($reason); ?>" style="accent-color:#ef4444;width:16px;height:16px;"
                    onchange="document.querySelectorAll('#cancelReasons label').forEach(l=>l.style.borderColor='rgba(255,255,255,.07)');this.closest('label').style.borderColor='rgba(239,68,68,.5)';">
-            <span style="font-size:13px;color:#d1d5db;font-weight:500;">{{ $reason }}</span>
+            <span style="font-size:13px;color:#d1d5db;font-weight:500;"><?php echo e($reason); ?></span>
         </label>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
     <div id="cancelModalError" style="display:none;color:#f87171;font-size:12px;margin-bottom:10px;padding:8px 12px;background:rgba(239,68,68,.08);border-radius:8px;"></div>
     <button id="confirmCancelBtn" onclick="submitCancel()" style="width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(239,68,68,.3);">Yes, Cancel My Order</button>
@@ -208,19 +208,19 @@ body{background:#080810;color:#fff;min-height:100vh;}
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
-        <a href="{{ route('shop.home') }}" class="bnav-item">
+        <a href="<?php echo e(route('shop.home')); ?>" class="bnav-item">
             <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
             Home
         </a>
-        <a href="{{ route('shop.tracking') }}" class="bnav-item active">
+        <a href="<?php echo e(route('shop.tracking')); ?>" class="bnav-item active">
             <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
             Orders
         </a>
-        <a href="{{ route('shop.cart') }}" class="bnav-item">
+        <a href="<?php echo e(route('shop.cart')); ?>" class="bnav-item">
             <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             Cart
         </a>
-        <a href="{{ route('shop.profile') }}" class="bnav-item">
+        <a href="<?php echo e(route('shop.profile')); ?>" class="bnav-item">
             <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
             Profile
         </a>
@@ -273,7 +273,7 @@ async function submitCancel() {
     try {
         const res  = await fetch(`/orders/${currentCancelOrderId}/cancel`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>' },
             body: JSON.stringify({ reason: selected.value })
         });
         const data = await res.json();
@@ -323,7 +323,7 @@ function closeDebugPopup() {
 async function loadAllOrders() {
     try {
         const res = await fetch('/orders', {
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>' }
         });
 
         const rawText = await res.text();
@@ -451,7 +451,7 @@ function renderActiveOrders(orders) {
                 '<div class="empty-icon">📦</div>' +
                 '<p class="empty-title">No active orders</p>' +
                 '<p class="empty-sub">Place an order and track it here in real-time.</p>' +
-                '<a href="{{ route('shop.home') }}" class="btn-primary" style="display:inline-block;width:auto;padding:12px 28px;border-radius:99px;">Browse Menu</a>' +
+                '<a href="<?php echo e(route('shop.home')); ?>" class="btn-primary" style="display:inline-block;width:auto;padding:12px 28px;border-radius:99px;">Browse Menu</a>' +
             '</div>' +
             // TODO: REMOVE this demo map block when real orders are in use
             '<div style="margin-top:8px;">' +
@@ -627,7 +627,7 @@ function renderPastOrders(orders) {
                     <p class="pcard-total-label">Total paid</p>
                     <p class="pcard-total">₱${Number(o.total).toLocaleString()}</p>
                 </div>
-                <a href="{{ route('shop.home') }}" class="btn-reorder">🔁 Reorder</a>
+                <a href="<?php echo e(route('shop.home')); ?>" class="btn-reorder">🔁 Reorder</a>
             </div>
         </div>`).join('');
 }
@@ -668,7 +668,7 @@ function renderCancelledOrders(orders) {
                     <p class="pcard-total-label">Order total</p>
                     <p class="pcard-total">₱${Number(o.total).toLocaleString()}</p>
                 </div>
-                <a href="{{ route('shop.home') }}" class="btn-reorder" style="background:linear-gradient(135deg,#374151,#4b5563);color:#e5e7eb;box-shadow:none;">Try Again</a>
+                <a href="<?php echo e(route('shop.home')); ?>" class="btn-reorder" style="background:linear-gradient(135deg,#374151,#4b5563);color:#e5e7eb;box-shadow:none;">Try Again</a>
             </div>
         </div>`).join('');
 }
@@ -901,3 +901,4 @@ if (typeof initDemoMap === 'function' && !activeMaps['demo']) {
 </script>
 </body>
 </html>
+<?php /**PATH C:\Users\patri\Desktop\EUT_WEB\resources\views/shop/tracking.blade.php ENDPATH**/ ?>
