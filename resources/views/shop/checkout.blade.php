@@ -593,6 +593,32 @@ function closeAddrForm(){
     document.body.style.overflow='';
 }
 
+/* ── Geocode an address string → [lat, lng] using Nominatim ── */
+async function geocodeAddress(addrText) {
+    if (!addrText) return [null, null];
+    const queries = [
+        addrText + ', Naujan, Oriental Mindoro, Philippines',
+        addrText + ', Oriental Mindoro, Philippines',
+        addrText + ', Philippines',
+    ];
+    for (const q of queries) {
+        try {
+            const r = await fetch(
+                'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1&countrycodes=ph',
+                { headers: { 'Accept-Language': 'en', 'User-Agent': 'EUT-Delivery-App/1.0' } }
+            );
+            const data = await r.json();
+            if (data && data.length) {
+                const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+                // Sanity-check: must be within Philippine bounding box
+                if (lat > 4 && lat < 22 && lng > 116 && lng < 127) return [lat, lng];
+            }
+        } catch(e) { /* try next query */ }
+        await new Promise(res => setTimeout(res, 350));
+    }
+    return [null, null];
+}
+
 async function saveAddress(){
     const name=document.getElementById('fName').value.trim();
     const phone=document.getElementById('fPhone').value.trim();
@@ -602,11 +628,16 @@ async function saveAddress(){
     errEl.style.display='none';
     if(!name||!phone||!addr){errEl.textContent='Name, phone and address are required.';errEl.style.display='block';return;}
     btn.disabled=true;btn.textContent='Saving…';
+    // Geocode the address so we store accurate coords on the address record
+    const fullAddrText = [addr, document.getElementById('fBarangay').value.trim()].filter(Boolean).join(', ');
+    const [addrLat, addrLng] = await geocodeAddress(fullAddrText);
     const payload={
         label:activeLabel,recipient_name:name,phone,address:addr,
         barangay:document.getElementById('fBarangay').value.trim(),
         postal:document.getElementById('fPostal').value.trim(),
         is_default:document.getElementById('fDefault').checked,
+        lat: addrLat,
+        lng: addrLng,
     };
     const url=editingAddressId?`/addresses/${editingAddressId}`:'/addresses';
     const method=editingAddressId?'PUT':'POST';
@@ -698,8 +729,10 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         items, delivery_address: deliveryAddress,
         delivery_barangay: addr.barangay || addr.city || '',
         payment_method: payment, notes,
-        delivery_lat: _gpsLat || null,
-        delivery_lng: _gpsLng || null,
+        // Use the geocoded coords stored on the address record (accurate to the delivery location)
+        // Fall back to device GPS only if address has no saved coords
+        delivery_lat: addr.lat || _gpsLat || null,
+        delivery_lng: addr.lng || _gpsLng || null,
     };
 
     try {

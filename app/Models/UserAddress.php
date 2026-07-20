@@ -17,10 +17,14 @@ class UserAddress extends Model
         'city',
         'postal',
         'is_default',
+        'lat',
+        'lng',
     ];
 
     protected $casts = [
         'is_default' => 'boolean',
+        'lat'        => 'float',
+        'lng'        => 'float',
     ];
 
     public function user(): BelongsTo

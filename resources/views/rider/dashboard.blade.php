@@ -416,7 +416,7 @@
                 <!-- no label, map already has it -->
             @endif
 
-            <div class="order-card {{ $order->status === 'out_for_delivery' ? 'active-order' : '' }}">
+            <div class="order-card {{ $order->status === 'out_for_delivery' ? 'active-order' : '' }}" data-order-id="{{ $order->id }}">
                 <div class="oc-header">
                     <div class="oc-id-row">
                         <span class="oc-id">#{{ $order->order_number }}</span>
@@ -797,7 +797,7 @@ function switchTab(tab) {
     });
 }
 
-/* ”€”€ Mark Picked Up ”€”€ */
+/* ── Mark Picked Up ── */
 function markPickedUp(btn) {
     const card  = btn.closest('.order-card');
     const badge = card.querySelector('.badge');
@@ -809,11 +809,13 @@ function markPickedUp(btn) {
     </button>`;
 }
 
-/* ”€”€ Delivery Sheet ”€”€ */
-let _activeCard = null;
+/* ── Delivery Sheet ── */
+let _activeCard    = null;
+let _activeOrderId = null;
 
 function openDeliverySheet(btn) {
-    _activeCard = btn ? btn.closest('.order-card') : document.querySelector('.order-card.active-order');
+    _activeCard    = btn ? btn.closest('.order-card') : document.querySelector('.order-card.active-order');
+    _activeOrderId = _activeCard ? (_activeCard.dataset.orderId || _activeCard.querySelector('[data-order-id]')?.dataset.orderId || null) : null;
     const orderId  = _activeCard ? _activeCard.querySelector('.oc-id').textContent  : '';
     const custName = _activeCard ? _activeCard.querySelector('.oc-cname').textContent : '';
     document.getElementById('sheetOrderId').textContent = orderId + ' · ' + custName;
@@ -847,7 +849,7 @@ function sheetStep(step, type) {
     else if (step === 2 && type === 'photo')   document.getElementById('sheet-step-2-photo').classList.add('active');
 }
 
-/* ”€”€ Photo handling ”€”€ */
+/* ── Photo handling ── */
 function handlePhoto(input) {
     if (!input.files || !input.files[0]) return;
     const reader = new FileReader();
@@ -865,47 +867,94 @@ function handlePhoto(input) {
     reader.readAsDataURL(input.files[0]);
 }
 
-/* ”€”€ Confirm Delivered ”€”€ */
-function confirmDelivered(type) {
-    closeSheet();
-
-    if (_activeCard) {
-        const badge = _activeCard.querySelector('.badge');
-        badge.className = 'badge badge-done';
-        badge.innerHTML = 'œ“ Delivered';
-        _activeCard.style.opacity = '.55';
-        _activeCard.style.pointerEvents = 'none';
-        const actionDiv = _activeCard.querySelector('.oc-footer div:last-child');
-        actionDiv.innerHTML = '<span style="font-size:13px;color:#4ade80;font-weight:700;">&#x1F389; Completed!</span>';
+/* ── Confirm Delivered ── sends actual request to backend ── */
+async function confirmDelivered(type) {
+    if (!_activeOrderId) {
+        alert('Error: could not determine order ID. Please refresh and try again.');
+        return;
     }
 
-    const orderId = _activeCard ? _activeCard.querySelector('.oc-id').textContent : '';
-    const now = new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
-    const date = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    // Disable confirm buttons to prevent double-submit
+    const presBtn  = document.querySelector('#sheet-step-2-present .btn-sheet-confirm');
+    const photoBtn = document.getElementById('photoConfirmBtn');
+    if (presBtn)  { presBtn.disabled  = true; presBtn.textContent  = 'Saving…'; }
+    if (photoBtn) { photoBtn.disabled = true; photoBtn.textContent = 'Saving…'; }
 
-    document.getElementById('successOrderId').textContent = orderId;
-    document.getElementById('successTime').textContent = now + ' · ' + date;
-    document.getElementById('successSubText').textContent = type === 'photo'
-        ? 'Proof photo submitted. Order marked as delivered.'
-        : 'Order handed directly to customer.';
+    const formData = new FormData();
+    formData.append('delivery_type', type);
 
-    const thumb   = document.getElementById('successPhotoThumb');
-    const preview = document.getElementById('photoPreview');
-    if (type === 'photo' && preview.src && preview.src !== window.location.href) {
-        thumb.src = preview.src;
-        thumb.style.display = 'block';
-    } else {
-        thumb.style.display = 'none';
+    // Attach proof photo if available
+    const photoInput = document.getElementById('photoInput');
+    if (type === 'photo' && photoInput.files && photoInput.files[0]) {
+        formData.append('proof_photo', photoInput.files[0]);
     }
 
-    document.getElementById('successOverlay').classList.add('show');
-    document.body.style.overflow = 'hidden';
+    try {
+        const res = await fetch(`/rider/orders/${_activeOrderId}/delivered`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: formData,
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Server returned an error.');
+        }
+
+        // ✔ Success — update UI
+        closeSheet();
+
+        if (_activeCard) {
+            const badge = _activeCard.querySelector('.badge');
+            badge.className = 'badge badge-done';
+            badge.innerHTML = '✓ Delivered';
+            _activeCard.style.opacity = '.55';
+            _activeCard.style.pointerEvents = 'none';
+            const actionDiv = _activeCard.querySelector('.oc-footer div:last-child');
+            if (actionDiv) actionDiv.innerHTML = '<span style="font-size:13px;color:#4ade80;font-weight:700;">&#x1F389; Completed!</span>';
+        }
+
+        const orderId = _activeCard ? _activeCard.querySelector('.oc-id').textContent : '';
+        const now  = new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true });
+        const date = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        document.getElementById('successOrderId').textContent  = orderId;
+        document.getElementById('successTime').textContent     = now + ' · ' + date;
+        document.getElementById('successSubText').textContent  = type === 'photo'
+            ? 'Proof photo submitted. Order marked as delivered.'
+            : 'Order handed directly to customer.';
+
+        const thumb   = document.getElementById('successPhotoThumb');
+        const preview = document.getElementById('photoPreview');
+        if (type === 'photo' && preview.src && preview.src !== window.location.href) {
+            thumb.src = preview.src;
+            thumb.style.display = 'block';
+        } else {
+            thumb.style.display = 'none';
+        }
+
+        document.getElementById('successOverlay').classList.add('show');
+        document.body.style.overflow = 'hidden';
+
+    } catch (err) {
+        console.error('Delivered error:', err);
+        // Re-enable buttons
+        if (presBtn)  { presBtn.disabled  = false; presBtn.textContent  = 'Confirm Delivered'; }
+        if (photoBtn) { photoBtn.disabled = false; photoBtn.textContent = 'Submit Proof & Confirm'; }
+        alert('⚠️ Failed to mark as delivered: ' + err.message);
+    }
 }
 
 function dismissSuccess() {
     document.getElementById('successOverlay').classList.remove('show');
     document.body.style.overflow = '';
+    // Reload so the delivered order moves to history and stats update
+    window.location.reload();
 }
+
 </script>
 
 <!-- LEAFLET + OSRM RIDER MAP -->

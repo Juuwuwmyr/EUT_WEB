@@ -30,6 +30,8 @@ class AddressController extends Controller
             'city'           => 'nullable|string|max:100',
             'postal'         => 'nullable|string|max:20',
             'is_default'     => 'nullable|boolean',
+            'lat'            => 'nullable|numeric|between:-90,90',
+            'lng'            => 'nullable|numeric|between:-180,180',
         ]);
 
         $user      = auth()->user();
@@ -54,6 +56,8 @@ class AddressController extends Controller
             'city'           => $request->city,
             'postal'         => $request->postal,
             'is_default'     => $isDefault,
+            'lat'            => $request->lat,
+            'lng'            => $request->lng,
         ]);
 
         return response()->json(['success' => true, 'address' => $this->format($address)]);
@@ -73,6 +77,8 @@ class AddressController extends Controller
             'city'           => 'nullable|string|max:100',
             'postal'         => 'nullable|string|max:20',
             'is_default'     => 'nullable|boolean',
+            'lat'            => 'nullable|numeric|between:-90,90',
+            'lng'            => 'nullable|numeric|between:-180,180',
         ]);
 
         $user      = auth()->user();
@@ -91,6 +97,9 @@ class AddressController extends Controller
             'city'           => $request->city,
             'postal'         => $request->postal,
             'is_default'     => $isDefault,
+            // Only overwrite coords if new ones are provided (geocode on address change)
+            'lat'            => $request->has('lat') ? $request->lat : $address->lat,
+            'lng'            => $request->has('lng') ? $request->lng : $address->lng,
         ]);
 
         return response()->json(['success' => true, 'address' => $this->format($address->fresh())]);
@@ -137,6 +146,8 @@ class AddressController extends Controller
             'postal'         => $a->postal,
             'is_default'     => $a->is_default,
             'full_address'   => $a->full_address,
+            'lat'            => $a->lat,
+            'lng'            => $a->lng,
         ];
     }
 }

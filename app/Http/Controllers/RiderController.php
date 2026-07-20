@@ -95,7 +95,8 @@ class RiderController extends Controller
             'status'        => 'delivered',
             'delivered_at'  => now(),
             'proof_photo'   => $photoPath,
-            'delivery_type' => $request->input('delivery_type', 'handover'),
+            // 'present' (direct handover) maps to DB enum value 'handover'
+            'delivery_type' => $request->input('delivery_type') === 'photo' ? 'photo' : 'handover',
         ]);
 
         // Increment rider stats

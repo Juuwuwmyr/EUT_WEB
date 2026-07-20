@@ -744,14 +744,6 @@ async function initOrderMap(order) {
 
     if (!hasRider) simulateMapRider(order.id, dest);
 }
-        } else {
-            activeMaps[order.id].routeLine = L.polyline([RESTAURANT_POS, dest], { color: '#facc15', weight: 3, opacity: 0.6, dashArray: '8 6' }).addTo(map);
-        }
-        if (etaEl) etaEl.textContent = 'Rider heading to pickup';
-    }
-
-    if (!hasRider) simulateMapRider(order.id, dest);
-}
 
 /* Called on every poll — only moves the marker and trims the route, never rebuilds the map */
 function updateMapRiderPos(orderId, lat, lng) {
