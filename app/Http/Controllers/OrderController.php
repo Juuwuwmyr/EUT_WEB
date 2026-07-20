@@ -20,6 +20,8 @@ class OrderController extends Controller
             'items.*.modifiers'=> 'nullable|array',
             'delivery_address' => 'required|string|max:255',
             'delivery_barangay'=> 'nullable|string|max:100',
+            'delivery_lat'     => 'nullable|numeric|between:-90,90',
+            'delivery_lng'     => 'nullable|numeric|between:-180,180',
             'payment_method'   => 'required|in:cash,gcash,card',
             'notes'            => 'nullable|string|max:500',
         ]);
@@ -88,6 +90,8 @@ class OrderController extends Controller
                 'payment_status'   => 'pending',
                 'delivery_address' => $request->delivery_address,
                 'delivery_barangay'=> $request->delivery_barangay,
+                'delivery_lat'     => $request->delivery_lat,
+                'delivery_lng'     => $request->delivery_lng,
                 'notes'            => $request->notes,
             ]);
 
@@ -121,18 +125,21 @@ class OrderController extends Controller
         $order->load(['items', 'rider.user']);
 
         return response()->json([
-            'id'            => $order->id,
-            'order_number'  => $order->order_number,
-            'status'        => $order->status,
-            'status_label'  => $order->status_label,
-            'total'         => $order->total,
+            'id'               => $order->id,
+            'order_number'     => $order->order_number,
+            'status'           => $order->status,
+            'status_label'     => $order->status_label,
+            'total'            => $order->total,
             'delivery_address' => $order->delivery_address,
-            'payment_method'=> $order->payment_method,
-            'placed_at'     => $order->created_at->format('g:i A'),
-            'accepted_at'   => $order->accepted_at?->format('g:i A'),
-            'picked_up_at'  => $order->picked_up_at?->format('g:i A'),
-            'delivered_at'  => $order->delivered_at?->format('g:i A'),
-            'rider'         => ($order->rider && $order->rider->user) ? [
+            'delivery_lat'     => $order->delivery_lat,
+            'delivery_lng'     => $order->delivery_lng,
+            'payment_method'   => $order->payment_method,
+            'placed_at'        => $order->created_at->format('g:i A'),
+            'accepted_at'      => $order->accepted_at?->format('g:i A'),
+            'assigned_at'      => $order->assigned_at?->format('g:i A'),
+            'picked_up_at'     => $order->picked_up_at?->format('g:i A'),
+            'delivered_at'     => $order->delivered_at?->format('g:i A'),
+            'rider'            => ($order->rider && $order->rider->user) ? [
                 'name'    => $order->rider->user->name,
                 'phone'   => $order->rider->phone,
                 'rating'  => $order->rider->rating,
@@ -150,7 +157,7 @@ class OrderController extends Controller
         ]);
     }
 
-    // ── POST /orders/{order}/cancel ────────────────────────
+    // ── PATCH /orders/{order}/cancel ────────────────────────
     public function cancel(Request $request, Order $order)
     {
         if ($order->user_id !== auth()->id()) abort(403);
@@ -162,6 +169,34 @@ class OrderController extends Controller
             'status'       => 'cancelled',
             'cancel_reason'=> $request->input('reason', 'Cancelled by customer'),
             'cancelled_at' => now(),
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
+    // ── PATCH /orders/{order}/set-coords — save geocoded delivery coords ──
+    public function setCoords(Request $request, Order $order)
+    {
+        // Allow order owner OR the assigned rider to update coords
+        $user = auth()->user();
+        $isOwner = $order->user_id === $user->id;
+        $isRider = $user->isRider() && $order->rider_id === $user->rider?->id;
+
+        if (!$isOwner && !$isRider) abort(403);
+
+        // Only update if coords are still null (don't overwrite real GPS data)
+        if ($order->delivery_lat && $order->delivery_lng) {
+            return response()->json(['success' => true, 'skipped' => true]);
+        }
+
+        $request->validate([
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+        ]);
+
+        $order->update([
+            'delivery_lat' => $request->lat,
+            'delivery_lng' => $request->lng,
         ]);
 
         return response()->json(['success' => true]);
@@ -189,11 +224,14 @@ class OrderController extends Controller
                 'delivery_fee'     => $order->delivery_fee,
                 'total'            => $order->total,
                 'delivery_address' => $order->delivery_address,
+                'delivery_lat'     => $order->delivery_lat,
+                'delivery_lng'     => $order->delivery_lng,
                 'payment_method'   => $order->payment_method,
                 'notes'            => $order->notes,
                 'cancel_reason'    => $order->cancel_reason,
                 'placed_at'        => $order->created_at->format('M d, Y g:i A'),
                 'accepted_at'      => $order->accepted_at?->format('g:i A'),
+                'assigned_at'      => $order->assigned_at?->format('g:i A'),
                 'picked_up_at'     => $order->picked_up_at?->format('g:i A'),
                 'delivered_at'     => $order->delivered_at?->format('g:i A'),
                 'cancelled_at'     => $order->cancelled_at?->format('g:i A'),

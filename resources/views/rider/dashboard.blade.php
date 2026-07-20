@@ -911,41 +911,148 @@ function dismissSuccess() {
 <!-- LEAFLET + OSRM RIDER MAP -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- GPS Permission Banner (shown when permission is denied/missing) -->
+<div id="gpsBanner" style="display:none;position:fixed;top:62px;left:0;right:0;z-index:9997;background:linear-gradient(135deg,#7c2d12,#92400e);border-bottom:1px solid rgba(245,158,11,.4);padding:10px 16px;text-align:center;">
+    <p style="font-size:12px;font-weight:700;color:#fef3c7;margin:0 0 6px;">📍 Location access is needed for delivery tracking</p>
+    <p style="font-size:11px;color:#fcd34d;margin:0 0 8px;">Open your browser settings → Site Settings → Location → Allow for this site, then tap below.</p>
+    <button onclick="retryGps()" style="background:linear-gradient(135deg,#f59e0b,#facc15);border:none;color:#000;padding:7px 18px;border-radius:99px;font-size:12px;font-weight:800;cursor:pointer;">🔄 Retry Location</button>
+</div>
+
 <script>
 <?php
-// Get restaurant coordinates (fixed for now, can make dynamic later)
 $restaurantPos = [13.3213129, 121.3027265];
-// Get rider's current position from database
-$riderPos = [$rider->current_lat ?? 13.3235, $rider->current_lng ?? 121.3050];
-// Get active order (if any)
-$activeOrder = $active->firstWhere('status', 'out_for_delivery') ?? $active->first();
-$customerPos = null;
-$customerName = null;
-if ($activeOrder && $activeOrder->delivery_lat && $activeOrder->delivery_lng) {
-    $customerPos = [$activeOrder->delivery_lat, $activeOrder->delivery_lng];
+$riderPos      = [$rider->current_lat ?? 13.3235, $rider->current_lng ?? 121.3050];
+$activeOrder   = $active->firstWhere('status', 'out_for_delivery') ?? $active->first();
+$customerPos   = null;
+$customerName  = null;
+$deliveryAddr  = null;
+if ($activeOrder) {
     $customerName = $activeOrder->user->name;
+    $deliveryAddr = $activeOrder->delivery_address;
+    if ($activeOrder->delivery_lat && $activeOrder->delivery_lng) {
+        $customerPos = [$activeOrder->delivery_lat, $activeOrder->delivery_lng];
+    }
 }
+$mapOrderStatus = $activeOrder ? $activeOrder->status : '';
 ?>
-const RESTAURANT_R = [<?= $restaurantPos[0] ?>, <?= $restaurantPos[1] ?>];
-const CUSTOMER_R   = <?= $customerPos ? json_encode($customerPos) : 'null' ?>;
-const CUSTOMER_NAME = <?= $customerName ? json_encode($customerName) : 'null' ?>;
-let myPos          = [<?= $riderPos[0] ?>, <?= $riderPos[1] ?>];
-let myMarker       = null;
-let riderRouteL    = null;
-let riderMapL      = null;
-let roadPoints     = [];
-let simStep        = 0;
+const RESTAURANT_R    = [<?= $restaurantPos[0] ?>, <?= $restaurantPos[1] ?>];
+const CUSTOMER_R_INIT = <?= $customerPos ? json_encode($customerPos) : 'null' ?>;
+const CUSTOMER_NAME   = <?= $customerName ? json_encode($customerName) : '"Customer"' ?>;
+const DELIVERY_ADDR   = <?= $deliveryAddr ? json_encode($deliveryAddr) : 'null' ?>;
+const ORDER_STATUS_R  = '<?= $mapOrderStatus ?? '' ?>';
+
+let CUSTOMER_R   = CUSTOMER_R_INIT;   // may be filled later via geocode
+let myPos        = [<?= $riderPos[0] ?>, <?= $riderPos[1] ?>];
+let myMarker     = null;
+let riderRouteL  = null;
+let riderMapL    = null;
+let roadPoints   = [];
+let customerMarker = null;
+
+/* ── Geocode delivery address via Nominatim (robust multi-attempt fallback) ── */
+async function geocodeAddress(rawAddr) {
+    if (!rawAddr) return null;
+
+    // Strip leading "Name, " prefix — delivery_address is stored as "Name, street address"
+    // Pattern: if the first comma-separated part has no digits, it's a name
+    let addr = rawAddr;
+    const parts = rawAddr.split(',');
+    if (parts.length > 1 && !/\d/.test(parts[0])) {
+        addr = parts.slice(1).join(',').trim();
+    }
+
+    // Try progressively broader queries
+    const attempts = [
+        addr + ', Naujan, Oriental Mindoro, Philippines',
+        addr + ', Oriental Mindoro, Philippines',
+        addr + ', Philippines',
+        // Last resort: just the barangay/area words
+        addr.split(',').pop().trim() + ', Naujan, Oriental Mindoro, Philippines',
+    ];
+
+    for (const q of attempts) {
+        try {
+            const res  = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=ph`,
+                { headers: { 'Accept-Language': 'en', 'User-Agent': 'EUT-Delivery-App/1.0' } }
+            );
+            const data = await res.json();
+            if (data && data.length) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                // Sanity check — must be somewhere in Philippines (roughly)
+                if (lat > 4 && lat < 22 && lng > 116 && lng < 127) {
+                    console.log('Geocoded via Nominatim:', q, '->', lat, lng);
+                    return [lat, lng];
+                }
+            }
+        } catch(e) { /* try next */ }
+        // Nominatim rate limit — small delay between attempts
+        await new Promise(r => setTimeout(r, 400));
+    }
+
+    // Absolute fallback: use Naujan, Oriental Mindoro area center
+    console.warn('Geocode failed for:', rawAddr, '— using area fallback');
+    return [13.3100, 121.2950]; // Naujan area center
+}
 
 async function fetchOSRMRoute(from, to) {
     const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
     try {
         const res  = await fetch(url);
         const data = await res.json();
-        if (data.code === 'Ok' && data.routes.length) {
+        if (data.code === 'Ok' && data.routes.length)
             return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-        }
-    } catch (e) { console.warn('OSRM error:', e); }
+    } catch(e) { console.warn('OSRM error:', e); }
     return null;
+}
+
+/* ── Draw / refresh route on map ── */
+async function drawRoute() {
+    if (!riderMapL || !CUSTOMER_R) return;
+
+    const dest = CUSTOMER_R;
+
+    // Add customer marker if not yet on map
+    if (!customerMarker) {
+        customerMarker = L.marker(dest, { icon: L.divIcon({
+            html: `<div style="background:#ef4444;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:16px;line-height:1;">&#x1F3E0;</span></div>`,
+            className: '', iconSize: [38, 38], iconAnchor: [19, 38],
+        }) }).addTo(riderMapL).bindPopup(`<b>${CUSTOMER_NAME}</b>`);
+    }
+
+    if (ORDER_STATUS_R === 'out_for_delivery') {
+        const route = await fetchOSRMRoute(myPos, dest);
+        if (route) {
+            roadPoints = route;
+            if (riderRouteL) { riderRouteL.setLatLngs(route); }
+            else { riderRouteL = L.polyline(route, { color: '#8b5cf6', weight: 5, opacity: 1 }).addTo(riderMapL); }
+            riderMapL.fitBounds(riderRouteL.getBounds(), { padding: [40, 40] });
+        } else {
+            if (!riderRouteL) {
+                riderRouteL = L.polyline([myPos, dest], { color: '#8b5cf6', weight: 3, opacity: 0.7, dashArray: '8 5' }).addTo(riderMapL);
+            } else {
+                riderRouteL.setLatLngs([myPos, dest]);
+            }
+            riderMapL.fitBounds([myPos, dest], { padding: [44, 44] });
+        }
+    } else {
+        // rider_assigned: show full path rider → restaurant → customer
+        const seg1 = await fetchOSRMRoute(myPos, RESTAURANT_R);
+        const seg2 = await fetchOSRMRoute(RESTAURANT_R, dest);
+        if (seg1 && seg2) {
+            roadPoints = [...seg1, ...seg2];
+            if (riderRouteL) { riderRouteL.setLatLngs(roadPoints); }
+            else { riderRouteL = L.polyline(roadPoints, { color: '#8b5cf6', weight: 5, opacity: 1 }).addTo(riderMapL); }
+            riderMapL.fitBounds(riderRouteL.getBounds(), { padding: [40, 40] });
+        } else {
+            if (!riderRouteL) {
+                riderRouteL = L.polyline([myPos, RESTAURANT_R, dest], { color: '#8b5cf6', weight: 3, opacity: 0.7, dashArray: '8 5' }).addTo(riderMapL);
+            }
+            riderMapL.fitBounds([RESTAURANT_R, dest, myPos], { padding: [44, 44] });
+        }
+    }
 }
 
 async function initRiderMap() {
@@ -953,111 +1060,51 @@ async function initRiderMap() {
     if (!el || riderMapL) return;
 
     riderMapL = L.map('riderMap', { zoomControl: true });
+    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { attribution: '&copy; Google Maps', maxZoom: 20 }).addTo(riderMapL);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', { attribution: '', maxZoom: 20, opacity: 0.85 }).addTo(riderMapL);
 
-    // Google Satellite — full PH coverage
-    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-        attribution: '&copy; Google Maps',
-        maxZoom: 20,
-    }).addTo(riderMapL);
-
-    // Google Hybrid labels overlay (roads + street names on satellite)
-    L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
-        attribution: '',
-        maxZoom: 20,
-        opacity: 0.85,
-    }).addTo(riderMapL);
-
-    // Add restaurant marker
+    // Restaurant pin
     L.marker(RESTAURANT_R, { icon: L.divIcon({
         html: `<div style="background:#facc15;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:16px;line-height:1;">&#x1F354;</span></div>`,
-        className:'', iconSize:[38,38], iconAnchor:[19,38],
-    })}).addTo(riderMapL).bindPopup('<b>EUT Restaurant</b>');
+        className: '', iconSize: [38, 38], iconAnchor: [19, 38],
+    }) }).addTo(riderMapL).bindPopup('<b>EUT Restaurant</b>');
 
-    let customerMarker = null;
-
-    // Add customer marker only if we have an active order
-    if (CUSTOMER_R) {
-        customerMarker = L.marker(CUSTOMER_R, { icon: L.divIcon({
-            html: `<div style="background:#ef4444;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:16px;line-height:1;">&#x1F3E0;</span></div>`,
-            className:'', iconSize:[38,38], iconAnchor:[19,38],
-        })}).addTo(riderMapL).bindPopup(`<b>${CUSTOMER_NAME ?? 'Customer'}</b>`);
-    }
-
-    // Add rider marker
+    // Rider marker
     myMarker = L.marker(myPos, { icon: L.divIcon({
         html: `<div style="background:#8b5cf6;width:46px;height:46px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 14px rgba(139,92,246,0.7);">&#x1F6F5;</div>`,
-        className:'', iconSize:[46,46], iconAnchor:[23,23],
-    })}).addTo(riderMapL).bindPopup('<b>You (Rider)</b>');
+        className: '', iconSize: [46, 46], iconAnchor: [23, 23],
+    }) }).addTo(riderMapL).bindPopup('<b>You (Rider)</b>');
 
-    // Fit bounds depending on whether we have a customer or not
-    if (CUSTOMER_R) {
-        riderMapL.fitBounds([RESTAURANT_R, CUSTOMER_R, myPos], { padding:[44,44] });
-
-        // Fetch route
-        const seg1 = await fetchOSRMRoute(RESTAURANT_R, myPos);
-        const seg2 = await fetchOSRMRoute(myPos, CUSTOMER_R);
-
-        if (seg1 && seg2) {
-            roadPoints = [...seg1, ...seg2];
-            riderRouteL = L.polyline(roadPoints, { color:'#8b5cf6', weight:5, opacity:1 }).addTo(riderMapL);
-            riderMapL.fitBounds(riderRouteL.getBounds(), { padding:[40,40] });
-        } else {
-            riderRouteL = L.polyline([RESTAURANT_R, myPos, CUSTOMER_R], { color:'#8b5cf6', weight:3, opacity:0.7, dashArray:'8 5' }).addTo(riderMapL);
+    // If no stored coords, try geocoding the address
+    if (!CUSTOMER_R && DELIVERY_ADDR) {
+        const gps = await geocodeAddress(DELIVERY_ADDR);
+        if (gps) {
+            CUSTOMER_R = gps;
+            // Save the geocoded coords back to the order so future loads are instant
+            @if($activeOrder)
+            fetch('/orders/{{ $activeOrder->id }}/set-coords', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify({ lat: gps[0], lng: gps[1] })
+            }).catch(() => {});
+            @endif
         }
+    }
+
+    if (CUSTOMER_R) {
+        await drawRoute();
     } else {
-        // No active order: just fit to restaurant and rider
-        riderMapL.fitBounds([RESTAURANT_R, myPos], { padding:[44,44] });
+        riderMapL.fitBounds([RESTAURANT_R, myPos], { padding: [44, 44] });
     }
-
-    if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
-            async pos => {
-                myPos = [pos.coords.latitude, pos.coords.longitude];
-                myMarker.setLatLng(myPos);
-                riderMapL.panTo(myPos);
-                if (CUSTOMER_R && riderRouteL) {
-                    const fresh = await fetchOSRMRoute(myPos, CUSTOMER_R);
-                    if (fresh) riderRouteL.setLatLngs(fresh);
-                }
-                updateRiderDist();
-            },
-            () => {}, // Don't simulate if we can't get GPS
-            { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-        );
-    }
-}
-
-function simulateRiderPos() {
-    if (!roadPoints.length) {
-        let step = 0, steps = 80;
-        const dLat = (CUSTOMER_R[0]-myPos[0])/steps;
-        const dLng = (CUSTOMER_R[1]-myPos[1])/steps;
-        setInterval(() => {
-            if (step >= steps) return; step++;
-            myPos = [myPos[0]+dLat, myPos[1]+dLng];
-            if (myMarker) myMarker.setLatLng(myPos);
-            updateRiderDist();
-        }, 4000);
-        return;
-    }
-    setInterval(() => {
-        if (simStep >= roadPoints.length - 1) return;
-        simStep++;
-        myPos = roadPoints[simStep];
-        myMarker.setLatLng(myPos);
-        riderMapL.panTo(myPos);
-        riderRouteL.setLatLngs(roadPoints.slice(simStep));
-        updateRiderDist();
-    }, 2500);
 }
 
 function updateRiderDist() {
     const el = document.getElementById('riderDistText');
     if (!el) return;
     if (CUSTOMER_R) {
-        const d = Math.sqrt(Math.pow(CUSTOMER_R[0]-myPos[0],2)+Math.pow(CUSTOMER_R[1]-myPos[1],2));
+        const d    = Math.sqrt(Math.pow(CUSTOMER_R[0] - myPos[0], 2) + Math.pow(CUSTOMER_R[1] - myPos[1], 2));
         const dist = Math.round(d * 111000);
-        el.textContent = dist > 30 ? `~${dist}m to customer` : 'Almost there!';
+        el.textContent = dist > 50 ? `~${Math.max(1, Math.round(dist / 400))} min away` : 'Almost there! 🎉';
     } else {
         el.textContent = '';
     }
@@ -1065,7 +1112,9 @@ function updateRiderDist() {
 
 document.addEventListener('DOMContentLoaded', initRiderMap);
 
-/* -- GPS Location Ping every 10 seconds -- */
+/* ═══════════════════════════════════════════
+   GPS — single watcher for ping + map update
+═══════════════════════════════════════════ */
 function pingLocation(lat, lng) {
     fetch('{{ route("rider.location") }}', {
         method: 'PATCH',
@@ -1074,34 +1123,91 @@ function pingLocation(lat, lng) {
     }).catch(() => {});
 }
 
-function showGpsWarning(msg) {
+function setGpsLabel(ok, msg) {
     const el = document.getElementById('gpsStatusLabel');
-    if (el) { el.textContent = '⚠ ' + msg; el.style.color = '#f59e0b'; }
+    if (el) { el.textContent = ok ? '● GPS Live' : '⚠ ' + msg; el.style.color = ok ? '#22c55e' : '#f59e0b'; }
 }
 
-if (!window.isSecureContext) {
-    showGpsWarning('GPS requires HTTPS — location may be inaccurate');
+function showGpsBanner(show) {
+    const b = document.getElementById('gpsBanner');
+    if (b) b.style.display = show ? 'block' : 'none';
 }
 
-if (navigator.geolocation) {
-    navigator.geolocation.watchPosition(
-        pos => {
-            const el = document.getElementById('gpsStatusLabel');
-            if (el) { el.textContent = '● GPS Live'; el.style.color = '#22c55e'; }
-            pingLocation(pos.coords.latitude, pos.coords.longitude);
+function retryGps() {
+    showGpsBanner(false);
+    startGpsWatch();
+}
+
+let _gpsWatchId    = null;
+let _lastPing      = 0;
+let _lastRoute     = 0;
+
+function startGpsWatch() {
+    if (!navigator.geolocation) {
+        setGpsLabel(false, 'GPS not supported');
+        showGpsBanner(true);
+        return;
+    }
+
+    // Clear any existing watcher
+    if (_gpsWatchId !== null) navigator.geolocation.clearWatch(_gpsWatchId);
+
+    _gpsWatchId = navigator.geolocation.watchPosition(
+        async pos => {
+            showGpsBanner(false);
+            setGpsLabel(true, '');
+
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const now = Date.now();
+
+            // Move rider marker
+            myPos = [lat, lng];
+            if (myMarker) myMarker.setLatLng(myPos);
+            if (riderMapL) riderMapL.panTo(myPos);
+            updateRiderDist();
+
+            // Refresh OSRM route — throttled to once per 20 seconds
+            if (CUSTOMER_R && now - _lastRoute > 20000) {
+                _lastRoute = now;
+                const fresh = await fetchOSRMRoute(myPos, CUSTOMER_R);
+                if (fresh) {
+                    roadPoints = fresh;
+                    if (riderRouteL) riderRouteL.setLatLngs(fresh);
+                }
+            }
+
+            // Ping server — throttled to once per 10 seconds
+            if (now - _lastPing >= 10000) {
+                _lastPing = now;
+                pingLocation(lat, lng);
+            }
         },
         err => {
-            const msgs = {
-                1: 'Location permission denied',
-                2: 'Position unavailable',
-                3: 'GPS request timed out',
-            };
-            showGpsWarning(msgs[err.code] || 'GPS error');
+            const msgs = { 1: 'Location denied — tap to enable', 2: 'Position unavailable', 3: 'GPS timeout' };
+            setGpsLabel(false, msgs[err.code] || 'GPS error');
+            if (err.code === 1) showGpsBanner(true); // permission denied — show banner
         },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
     );
+}
+
+// Check permission state immediately and start watching
+if (navigator.permissions) {
+    navigator.permissions.query({ name: 'geolocation' }).then(result => {
+        if (result.state === 'denied') {
+            setGpsLabel(false, 'Location denied — tap to enable');
+            showGpsBanner(true);
+        } else {
+            startGpsWatch(); // 'granted' or 'prompt' — start watching (will trigger browser prompt if needed)
+        }
+        result.onchange = () => {
+            if (result.state === 'granted') { showGpsBanner(false); startGpsWatch(); }
+            if (result.state === 'denied')  { showGpsBanner(true); }
+        };
+    });
 } else {
-    showGpsWarning('GPS not supported on this browser');
+    startGpsWatch(); // fallback for browsers without Permissions API
 }
 </script>
 </body>

@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders',                   [\App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}',           [\App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel',   [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::patch('/orders/{order}/set-coords', [\App\Http\Controllers\OrderController::class, 'setCoords'])->name('orders.set-coords');
 
     // Saved addresses
     Route::get   ('/addresses',                      [\App\Http\Controllers\AddressController::class, 'index'])->name('addresses.index');

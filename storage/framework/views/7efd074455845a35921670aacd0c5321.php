@@ -489,7 +489,7 @@ function confirmRemoveRider(name) {
 </script>
 
 <script>
-// ── LEAFLET + OSRM ADMIN RIDERS MAP ──
+// ── LEAFLET + OSRM ADMIN RIDERS MAP — with real-time polling ──
 </script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -505,35 +505,36 @@ $adminRidersJson = $riders->map(function($rider) {
     } else {
         $currentStatus = 'offline';
     }
-    // Get rider's current position (default to restaurant if not available)
     $pos = [
         $rider->current_lat ?? 13.3213129,
         $rider->current_lng ?? 121.3027265
     ];
-    // Get customer destination if on delivery
     $dest = null;
-    if ($currentStatus === 'on_delivery' && $activeOrder->delivery_lat && $activeOrder->delivery_lng) {
+    if ($currentStatus === 'on_delivery' && $activeOrder && $activeOrder->delivery_lat && $activeOrder->delivery_lng) {
         $dest = [$activeOrder->delivery_lat, $activeOrder->delivery_lng];
     }
-    // Get color based on status
     $color = $currentStatus === 'on_delivery' ? '#8b5cf6' : ($currentStatus === 'online' ? '#10b981' : '#6b7280');
     return [
-        'id' => $rider->id,
-        'name' => $rider->user->name,
-        'pos' => $pos,
-        'dest' => $dest,
+        'id'     => $rider->id,
+        'name'   => $rider->user->name,
+        'pos'    => $pos,
+        'dest'   => $dest,
         'status' => $currentStatus,
-        'order' => $activeOrder ? '#' . $activeOrder->order_number : null,
-        'color' => $color
+        'order'  => $activeOrder ? '#' . $activeOrder->order_number : null,
+        'color'  => $color,
     ];
 })->values();
 ?>
-const ADMIN_RIDERS = <?php echo $adminRidersJson; ?>;
+const ADMIN_RIDERS_INIT = <?php echo $adminRidersJson; ?>;
+
+// Map state — built once, updated by polling
+let adminMapInst   = null;
+const adminMarkers = {};   // riderId → { marker, routeLine }
 
 async function fetchOSRMAdmin(from, to) {
     const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
     try {
-        const res = await fetch(url);
+        const res  = await fetch(url);
         const data = await res.json();
         if (data.code === 'Ok' && data.routes.length)
             return data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
@@ -543,58 +544,117 @@ async function fetchOSRMAdmin(from, to) {
 
 async function initAdminMap() {
     const el = document.getElementById('adminRidersMap');
-    if (!el) return;
+    if (!el || adminMapInst) return;
 
-    const adminMap = L.map('adminRidersMap', { zoomControl: true });
+    adminMapInst = L.map('adminRidersMap', { zoomControl: true });
 
-    // Google Satellite — full PH coverage
-    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-        attribution: '&copy; Google Maps',
-        maxZoom: 20,
-    }).addTo(adminMap);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { attribution: '&copy; Google Maps', maxZoom: 20 }).addTo(adminMapInst);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', { attribution: '', maxZoom: 20, opacity: 0.85 }).addTo(adminMapInst);
 
-    // Google Hybrid labels overlay (roads + street names on satellite)
-    L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
-        attribution: '',
-        maxZoom: 20,
-        opacity: 0.85,
-    }).addTo(adminMap);
-
-    // Restaurant marker
+    // Restaurant marker (permanent)
     L.marker(RESTAURANT_ADMIN, { icon: L.divIcon({
         html: `<div style="background:#facc15;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:18px;line-height:1;">&#x1F354;</span></div>`,
-        className:'', iconSize:[42,42], iconAnchor:[21,42],
-    })}).addTo(adminMap).bindPopup('<b>EUT Restaurant</b><br>Metro Naujan, Oriental Mindoro');
+        className: '', iconSize: [42, 42], iconAnchor: [21, 42],
+    }) }).addTo(adminMapInst).bindPopup('<b>EUT Restaurant</b><br>Metro Naujan, Oriental Mindoro');
 
     const allPoints = [RESTAURANT_ADMIN];
 
-    for (const r of ADMIN_RIDERS) {
+    for (const r of ADMIN_RIDERS_INIT) {
         allPoints.push(r.pos);
-        // Rider marker
-        const m = L.marker(r.pos, { icon: L.divIcon({
-            html: `<div style="background:${r.color};width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 10px ${r.color}88;">&#x1F6F5;</div>`,
-            className:'', iconSize:[42,42], iconAnchor:[21,21],
-        })}).addTo(adminMap);
-        m.bindPopup(`<b>${r.name}</b><br>${r.order ? '&#x1F7E3; ' + r.order : '&#x1F7E2; Available'}`);
+        await addOrUpdateAdminRider(r);
+    }
 
-        // Draw OSRM route for on-delivery riders
+    adminMapInst.fitBounds(allPoints.length > 1 ? allPoints : [RESTAURANT_ADMIN, [RESTAURANT_ADMIN[0]+0.01, RESTAURANT_ADMIN[1]+0.01]], { padding: [40, 40] });
+}
+
+async function addOrUpdateAdminRider(r) {
+    if (!adminMapInst) return;
+
+    if (adminMarkers[r.id]) {
+        // Rider already on map — just move the marker
+        adminMarkers[r.id].marker.setLatLng(r.pos);
+        adminMarkers[r.id].marker.setPopupContent(`<b>${r.name}</b><br>${r.order ? '&#x1F7E3; ' + r.order : '&#x1F7E2; Available'}`);
+
+        // Update route line for on-delivery riders
         if (r.status === 'on_delivery' && r.dest) {
             const route = await fetchOSRMAdmin(r.pos, r.dest);
             if (route) {
-                L.polyline(route, { color: r.color, weight: 5, opacity: 1 }).addTo(adminMap);
-                // Customer destination pin
-                L.circleMarker(r.dest, { radius: 7, color: '#ef4444', fillColor:'#ef4444', fillOpacity:0.8, weight:2 })
-                 .addTo(adminMap).bindPopup('Customer destination');
+                if (adminMarkers[r.id].routeLine) {
+                    adminMarkers[r.id].routeLine.setLatLngs(route);
+                } else {
+                    adminMarkers[r.id].routeLine = L.polyline(route, { color: r.color, weight: 5, opacity: 1 }).addTo(adminMapInst);
+                    // Customer pin (added once per rider, not re-added on updates)
+                    if (!adminMarkers[r.id].destMarker) {
+                        adminMarkers[r.id].destMarker = L.circleMarker(r.dest, {
+                            radius: 8, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.85, weight: 2,
+                        }).addTo(adminMapInst).bindPopup(`<b>Customer</b><br>${r.order || ''}`);
+                    }
+                }
+            } else if (adminMarkers[r.id].routeLine) {
+                adminMarkers[r.id].routeLine.setLatLngs([r.pos, r.dest]);
+            }
+        } else {
+            // No longer on delivery — remove route line
+            if (adminMarkers[r.id].routeLine) {
+                adminMarkers[r.id].routeLine.remove();
+                adminMarkers[r.id].routeLine = null;
+            }
+            if (adminMarkers[r.id].destMarker) {
+                adminMarkers[r.id].destMarker.remove();
+                adminMarkers[r.id].destMarker = null;
+            }
+        }
+    } else {
+        // New rider — add to map
+        const marker = L.marker(r.pos, { icon: L.divIcon({
+            html: `<div style="background:${r.color};width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 10px ${r.color}88;">&#x1F6F5;</div>`,
+            className: '', iconSize: [42, 42], iconAnchor: [21, 21],
+        }) }).addTo(adminMapInst);
+        marker.bindPopup(`<b>${r.name}</b><br>${r.order ? '&#x1F7E3; ' + r.order : '&#x1F7E2; Available'}`);
+        adminMarkers[r.id] = { marker, routeLine: null, destMarker: null };
+
+        if (r.status === 'on_delivery' && r.dest) {
+            const route = await fetchOSRMAdmin(r.pos, r.dest);
+            if (route) {
+                adminMarkers[r.id].routeLine = L.polyline(route, { color: r.color, weight: 5, opacity: 1 }).addTo(adminMapInst);
+                adminMarkers[r.id].destMarker = L.circleMarker(r.dest, {
+                    radius: 8, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.85, weight: 2,
+                }).addTo(adminMapInst).bindPopup(`<b>Customer</b><br>${r.order || ''}`);
             } else {
-                L.polyline([r.pos, r.dest], { color: r.color, weight: 2, opacity: 0.5, dashArray:'6 4' }).addTo(adminMap);
+                adminMarkers[r.id].routeLine = L.polyline([r.pos, r.dest], { color: r.color, weight: 3, opacity: 0.6, dashArray: '6 4' }).addTo(adminMapInst);
             }
         }
     }
-
-    adminMap.fitBounds(allPoints, { padding:[40,40] });
 }
 
-document.addEventListener('DOMContentLoaded', initAdminMap);
+async function pollAdminMap() {
+    try {
+        const res  = await fetch('<?php echo e(route("admin.riders.locations")); ?>', {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>' }
+        });
+        if (!res.ok) return;
+        const riders = await res.json();
+        for (const r of riders) {
+            // Build a compatible object for addOrUpdateAdminRider
+            const rd = {
+                id:     r.id,
+                name:   r.name,
+                pos:    [parseFloat(r.lat), parseFloat(r.lng)],
+                dest:   r.dest_lat && r.dest_lng ? [parseFloat(r.dest_lat), parseFloat(r.dest_lng)] : null,
+                status: r.status === 'On Delivery' ? 'on_delivery' : 'online',
+                order:  r.order ? '#' + r.order : null,
+                color:  r.status === 'On Delivery' ? '#8b5cf6' : '#10b981',
+            };
+            await addOrUpdateAdminRider(rd);
+        }
+    } catch(e) { /* silent */ }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await initAdminMap();
+    // Poll rider positions every 8 seconds without rebuilding the map
+    setInterval(pollAdminMap, 8000);
+});
 </script>
 
 <style>

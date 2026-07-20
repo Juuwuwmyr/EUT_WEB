@@ -601,18 +601,24 @@ class AdminController extends Controller
 
     public function riderLocations()
     {
-        $riders = \App\Models\Rider::with('user')
+        $riders = \App\Models\Rider::with(['user', 'activeOrder'])
             ->where('is_available', true)
             ->whereNotNull('current_lat')
             ->get()
-            ->map(fn($r) => [
-                'id'     => $r->id,
-                'name'   => $r->user->name,
-                'lat'    => $r->current_lat,
-                'lng'    => $r->current_lng,
-                'status' => $r->status_label,
-                'order'  => $r->activeOrder()?->order_number,
-            ]);
+            ->map(function ($r) {
+                $order = $r->activeOrder();
+                $isOnDelivery = $order && in_array($order->status, ['rider_assigned', 'out_for_delivery']);
+                return [
+                    'id'       => $r->id,
+                    'name'     => $r->user->name,
+                    'lat'      => $r->current_lat,
+                    'lng'      => $r->current_lng,
+                    'status'   => $isOnDelivery ? 'On Delivery' : 'Online',
+                    'order'    => $order?->order_number,
+                    'dest_lat' => ($isOnDelivery && $order->delivery_lat)  ? $order->delivery_lat  : null,
+                    'dest_lng' => ($isOnDelivery && $order->delivery_lng)  ? $order->delivery_lng  : null,
+                ];
+            });
 
         return response()->json($riders);
     }

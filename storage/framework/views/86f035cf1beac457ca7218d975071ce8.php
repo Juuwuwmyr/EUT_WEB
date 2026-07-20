@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <?php echo $__env->yieldPushContent('head'); ?>
     <style>
         /* ── CSS VARIABLES ─────────────────────────────────── */
         :root {
@@ -446,6 +447,7 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ document.
     };
 })();
 </script>
+<?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html>
 <?php /**PATH C:\Users\patri\Desktop\EUT_WEB\resources\views/admin/layout.blade.php ENDPATH**/ ?>

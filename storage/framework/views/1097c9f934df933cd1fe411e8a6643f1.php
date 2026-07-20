@@ -1,6 +1,14 @@
 
 <?php $__env->startSection('title', 'Orders'); ?>
 
+
+<?php $__env->startPush('head'); ?>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<?php $__env->stopPush(); ?>
+<?php $__env->startPush('scripts'); ?>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<?php $__env->stopPush(); ?>
+
 <?php $__env->startSection('content'); ?>
 
 
@@ -189,6 +197,8 @@ foreach($orders as $o) {
         'customer'     => $o->user?->name ?? 'Guest',
         'email'        => $o->user?->email ?? '',
         'address'      => $o->delivery_address,
+        'delivery_lat' => $o->delivery_lat,
+        'delivery_lng' => $o->delivery_lng,
         'payment'      => $o->payment_method,
         'subtotal'     => $o->subtotal,
         'delivery_fee' => $o->delivery_fee,
@@ -199,6 +209,8 @@ foreach($orders as $o) {
         'picked_up_at' => $o->picked_up_at?->format('g:i A'),
         'delivered_at' => $o->delivered_at?->format('g:i A'),
         'rider'        => ($o->rider && $o->rider->user) ? $o->rider->user->name : null,
+        'rider_lat'    => $o->rider?->current_lat,
+        'rider_lng'    => $o->rider?->current_lng,
         'items'        => $o->items->map(fn($i) => [
             'name'      => $i->item_name,
             'qty'       => $i->quantity,
@@ -372,13 +384,98 @@ function openManageModal(id) {
             '</div>' +
         '</div>' +
         (o.notes ? '<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:.625rem;padding:.75rem 1rem;"><p style="font-size:.68rem;color:#d97706;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .3rem;font-weight:700;">&#x1F4DD; Customer Note</p><p style="font-size:.8rem;color:var(--text-body);margin:0;">' + o.notes + '</p></div>' : '') +
-        (o.status === 'out_for_delivery' ? '<div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:.625rem;padding:.75rem 1rem;display:flex;align-items:center;gap:.625rem;"><span style="font-size:1.25rem;">&#x1F6F5;</span><div><p style="font-size:.75rem;font-weight:700;color:#10b981;margin:0 0 .2rem;">Waiting for rider delivery confirmation</p><p style="font-size:.7rem;color:var(--text-muted);margin:0;">Only the assigned rider can mark this order as delivered.</p></div></div>' : '') +
+        (o.status === 'out_for_delivery'
+            ? '<div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.2);border-radius:.625rem;padding:.75rem 1rem;">' +
+                '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.625rem;">' +
+                    '<span style="font-size:1.1rem;">&#x1F6F5;</span>' +
+                    '<div>' +
+                        '<p style="font-size:.75rem;font-weight:700;color:#a78bfa;margin:0 0 .1rem;">Rider En Route to Customer</p>' +
+                        '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">Live tracking — only the rider can mark as delivered.</p>' +
+                    '</div>' +
+                '</div>' +
+                '<div id="adminOrderMap-' + o.id + '" style="height:220px;width:100%;border-radius:.5rem;overflow:hidden;background:#0a0a14;"></div>' +
+              '</div>'
+            : '') +
         (actionsHtml ? '<div><p style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .5rem;font-weight:600;">Actions</p>' + actionsHtml + '</div>' : '');
 
     document.getElementById('mmBody').innerHTML = html;
     openModal('manageModal');
     if (typeof lucide !== 'undefined') setTimeout(function(){ lucide.createIcons(); }, 0);
+
+    // Init live rider map for out_for_delivery orders
+    if (o.status === 'out_for_delivery' && o.rider_lat && o.rider_lng) {
+        setTimeout(function() { initAdminRiderMap(o); }, 250);
+    }
 }
+
+// Admin live rider map
+var adminMapInstance = null;
+const ADMIN_RESTAURANT = [13.3213129, 121.3027265];
+
+async function fetchAdminRoute(from, to) {
+    var url = 'https://router.project-osrm.org/route/v1/driving/' + from[1] + ',' + from[0] + ';' + to[1] + ',' + to[0] + '?overview=full&geometries=geojson';
+    try {
+        var r = await fetch(url);
+        var d = await r.json();
+        if (d.code === 'Ok' && d.routes.length) {
+            return d.routes[0].geometry.coordinates.map(function(c){ return [c[1], c[0]]; });
+        }
+    } catch(e) { console.warn('OSRM admin', e); }
+    return null;
+}
+
+async function initAdminRiderMap(o) {
+    var mapEl = document.getElementById('adminOrderMap-' + o.id);
+    if (!mapEl) return;
+
+    // Destroy previous map if exists
+    if (adminMapInstance) {
+        try { adminMapInstance.remove(); } catch(e) {}
+        adminMapInstance = null;
+    }
+
+    var riderPos = [parseFloat(o.rider_lat), parseFloat(o.rider_lng)];
+    var custPos  = (o.delivery_lat && o.delivery_lng)
+        ? [parseFloat(o.delivery_lat), parseFloat(o.delivery_lng)]
+        : null;
+
+    adminMapInstance = L.map(mapEl, { zoomControl: true, attributionControl: false });
+    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(adminMapInstance);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', { maxZoom: 20, opacity: 0.85 }).addTo(adminMapInstance);
+
+    // Restaurant marker
+    L.marker(ADMIN_RESTAURANT, { icon: L.divIcon({
+        html: '<div style="background:#facc15;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:14px;">&#x1F354;</span></div>',
+        className: '', iconSize: [34,34], iconAnchor: [17,34]
+    })}).addTo(adminMapInstance).bindPopup('<b>EUT Restaurant</b>');
+
+    // Rider marker
+    L.marker(riderPos, { icon: L.divIcon({
+        html: '<div style="background:#8b5cf6;width:40px;height:40px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 12px rgba(139,92,246,.7);">&#x1F6F5;</div>',
+        className: '', iconSize: [40,40], iconAnchor: [20,20]
+    })}).addTo(adminMapInstance).bindPopup('<b>Rider: ' + (o.rider || 'Rider') + '</b>');
+
+    // Customer marker
+    if (custPos) {
+        L.marker(custPos, { icon: L.divIcon({
+            html: '<div style="background:#ef4444;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:14px;">&#x1F3E0;</span></div>',
+            className: '', iconSize: [34,34], iconAnchor: [17,34]
+        })}).addTo(adminMapInstance).bindPopup('<b>' + o.customer + '</b>');
+    }
+
+    var dest = custPos || [ADMIN_RESTAURANT[0]+.005, ADMIN_RESTAURANT[1]+.005];
+    adminMapInstance.fitBounds([riderPos, dest], { padding: [40,40] });
+
+    // Draw route: rider -> customer
+    var route = await fetchAdminRoute(riderPos, dest);
+    if (route && route.length) {
+        var line = L.polyline(route, { color:'#8b5cf6', weight:5, opacity:1 }).addTo(adminMapInstance);
+        adminMapInstance.fitBounds(line.getBounds(), { padding: [35,35] });
+    } else {
+        L.polyline([riderPos, dest], { color:'#8b5cf6', weight:3, opacity:.7, dashArray:'8 5' }).addTo(adminMapInstance);
+    }
+}
+
 </script>
 
 <?php $__env->stopSection(); ?>

@@ -618,40 +618,78 @@ async function saveAddress(){
     btn.disabled=false;btn.textContent='Save Address';
 }
 
+/* ── GPS capture on page load ── */
+let _gpsLat = null, _gpsLng = null;
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        p => { _gpsLat = p.coords.latitude; _gpsLng = p.coords.longitude; },
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+    );
+}
+
 /* ── Place Order ── */
-document.getElementById('checkoutForm').addEventListener('submit',async function(e){
+document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    <?php if(auth()->guard()->guest()): ?> alert('Please log in to place an order.');return; <?php endif; ?>
+    <?php if(auth()->guard()->guest()): ?> alert('Please log in to place an order.'); return; <?php endif; ?>
 
-    const cart=JSON.parse(localStorage.getItem('eutCart')||'[]');
-    if(!cart.length){alert('Your cart is empty.');return;}
+    const cart = JSON.parse(localStorage.getItem('eutCart') || '[]');
+    if (!cart.length) { alert('Your cart is empty.'); return; }
 
-    const addr=addresses.find(a=>a.id===selectedAddressId);
-    if(!addr){alert('Please add a delivery address first.');openAddForm();return;}
+    const addr = addresses.find(a => a.id === selectedAddressId);
+    if (!addr) { alert('Please add a delivery address first.'); openAddForm(); return; }
 
-    const btn=document.getElementById('placeOrderBtn');
-    btn.disabled=true;btn.textContent='⏳ Placing order…';
+    const btn = document.getElementById('placeOrderBtn');
+    btn.disabled = true; btn.textContent = '⏳ Placing order…';
 
-    const payRaw=document.querySelector('input[name=payment]:checked')?.value||'cod';
-    const payment=payRaw==='cod'?'cash':payRaw;
-    const notes=document.getElementById('orderNotes')?.value?.trim()||'';
-    const deliveryAddress=`${addr.recipient_name}, ${addr.full_address}`;
+    const payRaw  = document.querySelector('input[name=payment]:checked')?.value || 'cod';
+    const payment = payRaw === 'cod' ? 'cash' : payRaw;
+    const notes   = document.getElementById('orderNotes')?.value?.trim() || '';
+    const deliveryAddress = `${addr.recipient_name}, ${addr.full_address}`;
 
-    const items=cart.map(i=>({
-        id:i.id,qty:i.quantity,
-        modifiers:(i.modifiers||[]).map(m=>({type:m.type||'modifier',name:m.name||'',price_type:m.price_type||'none',price_adjustment:parseFloat(m.price_adjustment||0)})),
+    const items = cart.map(i => ({
+        id: i.id, qty: i.quantity,
+        modifiers: (i.modifiers || []).map(m => ({
+            type: m.type || 'modifier', name: m.name || '',
+            price_type: m.price_type || 'none', price_adjustment: parseFloat(m.price_adjustment || 0),
+        })),
     }));
 
-    try{
-        const r=await fetch('<?php echo e(route("orders.store")); ?>',{
-            method:'POST',
-            headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
-            body:JSON.stringify({items,delivery_address:deliveryAddress,delivery_barangay:addr.barangay||addr.city||'',payment_method:payment,notes}),
+    /* If GPS not yet captured, try one more time (blocking 3s max) */
+    if (!_gpsLat && navigator.geolocation) {
+        await new Promise(res => navigator.geolocation.getCurrentPosition(
+            p => { _gpsLat = p.coords.latitude; _gpsLng = p.coords.longitude; res(); },
+            () => res(),
+            { enableHighAccuracy: true, timeout: 3000, maximumAge: 60000 }
+        ));
+    }
+
+    const payload = {
+        items, delivery_address: deliveryAddress,
+        delivery_barangay: addr.barangay || addr.city || '',
+        payment_method: payment, notes,
+        delivery_lat: _gpsLat || null,
+        delivery_lng: _gpsLng || null,
+    };
+
+    try {
+        const r = await fetch('<?php echo e(route("orders.store")); ?>', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+            body: JSON.stringify(payload),
         });
-        const d=await r.json();
-        if(d.success){localStorage.setItem('eutCart',JSON.stringify([]));window.location.href='<?php echo e(route("shop.tracking")); ?>';}
-        else{alert(d.message||'Order failed.');btn.disabled=false;btn.textContent='🛒 Place Order';}
-    }catch(err){console.error(err);alert('Network error.');btn.disabled=false;btn.textContent='🛒 Place Order';}
+        const d = await r.json();
+        if (d.success) {
+            localStorage.setItem('eutCart', JSON.stringify([]));
+            window.location.href = '<?php echo e(route("shop.tracking")); ?>';
+        } else {
+            alert(d.message || 'Order failed.');
+            btn.disabled = false; btn.textContent = '🛒 Place Order';
+        }
+    } catch (err) {
+        console.error(err); alert('Network error.');
+        btn.disabled = false; btn.textContent = '🛒 Place Order';
+    }
 });
 </script>
 </body>

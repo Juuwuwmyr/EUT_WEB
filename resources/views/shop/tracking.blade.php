@@ -492,7 +492,7 @@ async function loadAllOrders() {
             return;
         }
         allOrders = [...(data.active||[]), ...(data.past||[]), ...(data.cancelled||[])];
-        // Keep full data on each order for the detail sheet
+        // Keep timestamp fields
         allOrders.forEach(o => {
             o.accepted_at  = o.accepted_at  || null;
             o.assigned_at  = o.assigned_at  || null;
@@ -501,23 +501,44 @@ async function loadAllOrders() {
             o.cancelled_at = o.cancelled_at || null;
         });
         renderAll();
-        // Refresh detail sheet if open
-        if(detailOrderId) {
-            const updated = allOrders.find(x=>x.id===detailOrderId);
-            if(updated) {
-                // Destroy old map before wiping innerHTML so initOrderMap can re-init cleanly
-                if(activeMaps[detailOrderId]) {
-                    try { activeMaps[detailOrderId].map.remove(); } catch(e) {}
-                    delete activeMaps[detailOrderId];
+
+        if (detailOrderId) {
+            const updated = allOrders.find(x => x.id === detailOrderId);
+            if (updated) {
+                const prevStatus = (activeMaps[detailOrderId] && activeMaps[detailOrderId]._lastStatus) || null;
+                const statusChanged = prevStatus !== null && prevStatus !== updated.status;
+
+                if (statusChanged) {
+                    // Status changed — rebuild sheet + map so timeline/progress update
+                    if (activeMaps[detailOrderId]) {
+                        try { activeMaps[detailOrderId].map.remove(); } catch(e) {}
+                        delete activeMaps[detailOrderId];
+                    }
+                    document.getElementById('detailBody').innerHTML = buildDetailBody(updated);
+                    if (!['delivered','cancelled'].includes(updated.status)) {
+                        setTimeout(() => initOrderMap(updated), 200);
+                    }
+                } else {
+                    // Status unchanged — only move the rider marker, no rebuild
+                    if (updated.rider && updated.rider.lat && updated.rider.lng) {
+                        updateMapRiderPos(updated.id, updated.rider.lat, updated.rider.lng);
+                    }
+                    // Update timeline timestamps silently (no map impact)
                 }
-                document.getElementById('detailBody').innerHTML = buildDetailBody(updated);
-                if(!['delivered','cancelled'].includes(updated.status)) setTimeout(()=>initOrderMap(updated), 200);
+
+                // Track current status on the map state
+                if (activeMaps[detailOrderId]) {
+                    activeMaps[detailOrderId]._lastStatus = updated.status;
+                }
             }
         }
-        // Update live rider positions on existing maps (only when sheet is NOT being refreshed above)
-        else {
-            (data.active||[]).forEach(o=>{if(o.rider&&o.rider.lat&&o.rider.lng&&activeMaps[o.id])updateMapRiderPos(o.id,o.rider.lat,o.rider.lng);});
-        }
+
+        // Also update any maps not currently in the open sheet
+        (data.active||[]).forEach(o => {
+            if (o.id !== detailOrderId && o.rider && o.rider.lat && o.rider.lng && activeMaps[o.id]) {
+                updateMapRiderPos(o.id, o.rider.lat, o.rider.lng);
+            }
+        });
     } catch(e) {
         console.error(e);
         document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p class="empty-title">Network error</p><p class="empty-sub">Check your connection and try refreshing.</p></div>`;
@@ -545,7 +566,24 @@ async function submitCancel(){
     btn.textContent='Yes, Cancel My Order';btn.disabled=false;
 }
 function showToast(msg){const t=document.createElement('div');t.textContent=msg;Object.assign(t.style,{position:'fixed',bottom:'90px',left:'50%',transform:'translateX(-50%)',background:'#0d1f17',border:'1px solid rgba(74,222,128,.3)',color:'#4ade80',padding:'12px 22px',borderRadius:'99px',fontSize:'13px',fontWeight:'700',zIndex:'9999'});document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
-function updateMapRiderPos(orderId,lat,lng){const s=activeMaps[orderId];if(s&&s.riderMarker)s.riderMarker.setLatLng([lat,lng]);}
+async function updateMapRiderPos(orderId,lat,lng){
+    const s=activeMaps[orderId];
+    if(!s)return;
+    const newPos=[lat,lng];
+    if(s.riderMarker) s.riderMarker.setLatLng(newPos);
+    // Refresh route polyline from new rider pos to customer
+    if(s.routeLine && s.map) {
+        // Find customer position by looking at the end of the current route
+        const lls = s.routeLine.getLatLngs();
+        if(lls && lls.length > 0) {
+            const dest = lls[lls.length-1];
+            fetchOSRMRoute(newPos, [dest.lat, dest.lng]).then(function(route){
+                if(route && s.routeLine) s.routeLine.setLatLngs(route);
+                else if(s.routeLine) s.routeLine.setLatLngs([newPos, [dest.lat, dest.lng]]);
+            });
+        }
+    }
+}
 
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded',()=>{
@@ -563,47 +601,212 @@ document.addEventListener('DOMContentLoaded',()=>{
 /* ── Map (Leaflet + OSRM) — only initialised inside the detail sheet ── */
 const RESTAURANT_POS = [13.3213129, 121.3027265];
 
-async function fetchOSRMRoute(from,to){
-    const url='https://router.project-osrm.org/route/v1/driving/'+from[1]+','+from[0]+';'+to[1]+','+to[0]+'?overview=full&geometries=geojson';
-    try{const r=await fetch(url);const d=await r.json();if(d.code==='Ok'&&d.routes.length)return d.routes[0].geometry.coordinates.map(c=>[c[1],c[0]]);}catch(e){console.warn('OSRM',e);}return null;
+async function fetchOSRMRoute(from, to) {
+    const url = 'https://router.project-osrm.org/route/v1/driving/'
+        + from[1] + ',' + from[0] + ';' + to[1] + ',' + to[0]
+        + '?overview=full&geometries=geojson';
+    try {
+        const r = await fetch(url);
+        const d = await r.json();
+        if (d.code === 'Ok' && d.routes.length)
+            return d.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+    } catch(e) { console.warn('OSRM', e); }
+    return null;
 }
 
-async function initOrderMap(order){
-    const el=document.getElementById('trackingMap-'+order.id);
-    if(!el||activeMaps[order.id])return;
-    const isOnWay=['rider_assigned','out_for_delivery'].includes(order.status);
-    const etaEl=document.getElementById('riderEtaText-'+order.id);
-    const hasReal=order.rider&&order.rider.lat&&order.rider.lng;
-    let riderPos=hasReal?[parseFloat(order.rider.lat),parseFloat(order.rider.lng)]:[RESTAURANT_POS[0]+0.002,RESTAURANT_POS[1]+0.002];
-    const map=L.map(el,{zoomControl:true,attributionControl:false});
-    activeMaps[order.id]={map,riderMarker:null,routeLine:null,roadPoints:[],simStep:0};
-    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{maxZoom:20}).addTo(map);
-    L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}',{maxZoom:20,opacity:.85}).addTo(map);
-    L.marker(RESTAURANT_POS,{icon:L.divIcon({html:'<div style="background:#facc15;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);font-size:15px;">🍔</span></div>',className:'',iconSize:[36,36],iconAnchor:[18,36]})}).addTo(map).bindPopup('<b>EUT Restaurant</b>');
-    let customerPos=null;
-    if(navigator.geolocation){try{customerPos=await new Promise(res=>navigator.geolocation.getCurrentPosition(p=>res([p.coords.latitude,p.coords.longitude]),()=>res(null),{timeout:5000,maximumAge:30000}));}catch(e){}}
-    if(customerPos)L.marker(customerPos,{icon:L.divIcon({html:'<div style="background:#ef4444;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);font-size:15px;">🏠</span></div>',className:'',iconSize:[36,36],iconAnchor:[18,36]})}).addTo(map).bindPopup('<b>Your Location</b>');
-    if(!isOnWay){map.fitBounds(customerPos?[RESTAURANT_POS,customerPos]:[RESTAURANT_POS,[RESTAURANT_POS[0]+.01,RESTAURANT_POS[1]+.01]],{padding:[50,50]});if(etaEl)etaEl.textContent=customerPos?'Restaurant & your location':'Restaurant location';return;}
-    const dest=customerPos||[RESTAURANT_POS[0]+.005,RESTAURANT_POS[1]+.006];
-    const rM=L.marker(riderPos,{icon:L.divIcon({html:'<div style="background:#10b981;width:44px;height:44px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 14px rgba(16,185,129,.7);">🛵</div>',className:'',iconSize:[44,44],iconAnchor:[22,22]})}).addTo(map);
-    if(order.rider)rM.bindPopup('<b>'+order.rider.name+'</b><br>⭐ '+order.rider.rating);
-    activeMaps[order.id].riderMarker=rM;
-    map.fitBounds([RESTAURANT_POS,dest,riderPos],{padding:[40,40]});
-    const route=await fetchOSRMRoute(riderPos,dest);
-    if(route){activeMaps[order.id].roadPoints=route;const ln=L.polyline(route,{color:'#facc15',weight:5,opacity:1}).addTo(map);activeMaps[order.id].routeLine=ln;map.fitBounds(ln.getBounds(),{padding:[40,40]});}
-    else{activeMaps[order.id].routeLine=L.polyline([riderPos,dest],{color:'#facc15',weight:3,opacity:.7,dashArray:'8 6'}).addTo(map);}
-    if(!hasReal)simulateMapRider(order.id,dest);
+/* ── Geocode address text → [lat, lng] with multi-attempt fallback ── */
+async function geocodeDeliveryAddr(rawAddr) {
+    if (!rawAddr) return null;
+    // Strip leading "Name, " prefix if first segment has no digits
+    let addr = rawAddr;
+    const parts = rawAddr.split(',');
+    if (parts.length > 1 && !/\d/.test(parts[0])) addr = parts.slice(1).join(',').trim();
+
+    const attempts = [
+        addr + ', Naujan, Oriental Mindoro, Philippines',
+        addr + ', Oriental Mindoro, Philippines',
+        addr + ', Philippines',
+        parts[parts.length - 1].trim() + ', Naujan, Oriental Mindoro, Philippines',
+    ];
+    for (const q of attempts) {
+        try {
+            const res  = await fetch(
+                'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1&countrycodes=ph',
+                { headers: { 'Accept-Language': 'en', 'User-Agent': 'EUT-Delivery-App/1.0' } }
+            );
+            const data = await res.json();
+            if (data && data.length) {
+                const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+                if (lat > 4 && lat < 22 && lng > 116 && lng < 127) return [lat, lng];
+            }
+        } catch(e) { /* try next */ }
+        await new Promise(r => setTimeout(r, 400));
+    }
+    return [13.3100, 121.2950]; // Naujan area fallback
 }
 
-function simulateMapRider(orderId,dest){
-    const s=activeMaps[orderId];if(!s)return;
-    const etaEl=document.getElementById('riderEtaText-'+orderId);
-    if(s.roadPoints.length){
-        const total=s.roadPoints.length;
-        const iv=setInterval(()=>{if(!activeMaps[orderId]){clearInterval(iv);return;}s.simStep=Math.min(s.simStep+1,total-1);const pos=s.roadPoints[s.simStep];s.riderMarker.setLatLng(pos);s.routeLine.setLatLngs(s.roadPoints.slice(s.simStep));const m=Math.max(0,Math.round(30*(1-s.simStep/total)));if(etaEl)etaEl.textContent=m>0?'~'+m+' min away':'Arriving now!';if(s.simStep>=total-1)clearInterval(iv);},2500);
-    }else{
-        let step=0,tot=60,pos=s.riderMarker.getLatLng();const dLat=(dest[0]-pos.lat)/tot,dLng=(dest[1]-pos.lng)/tot;
-        const iv=setInterval(()=>{if(!activeMaps[orderId]){clearInterval(iv);return;}step++;pos={lat:pos.lat+dLat,lng:pos.lng+dLng};s.riderMarker.setLatLng(pos);s.routeLine.setLatLngs([[pos.lat,pos.lng],dest]);const m=Math.max(0,Math.round(30*(1-step/tot)));if(etaEl)etaEl.textContent=m>0?'~'+m+' min away':'Arriving now!';if(step>=tot)clearInterval(iv);},3000);
+async function initOrderMap(order) {
+    const el = document.getElementById('trackingMap-' + order.id);
+    if (!el || activeMaps[order.id]) return;   // never rebuild an existing map
+
+    const isOnWay  = ['rider_assigned', 'out_for_delivery'].includes(order.status);
+    const isOut    = order.status === 'out_for_delivery';
+    const etaEl    = document.getElementById('riderEtaText-' + order.id);
+    const hasRider = order.rider && order.rider.lat && order.rider.lng;
+    const riderPos = hasRider
+        ? [parseFloat(order.rider.lat),  parseFloat(order.rider.lng)]
+        : [RESTAURANT_POS[0] + 0.002,    RESTAURANT_POS[1] + 0.002];
+
+    // Use saved delivery coords if available, otherwise geocode the address text
+    let customerPos = (order.delivery_lat && order.delivery_lng)
+        ? [parseFloat(order.delivery_lat), parseFloat(order.delivery_lng)]
+        : null;
+
+    const map = L.map(el, { zoomControl: true, attributionControl: false });
+    activeMaps[order.id] = { map, riderMarker: null, routeLine: null, roadPoints: [], simStep: 0, _lastStatus: order.status };
+
+    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(map);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', { maxZoom: 20, opacity: 0.85 }).addTo(map);
+
+    // Restaurant pin
+    L.marker(RESTAURANT_POS, { icon: L.divIcon({
+        html: '<div style="background:#facc15;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);font-size:15px;">🍔</span></div>',
+        className: '', iconSize: [36, 36], iconAnchor: [18, 36],
+    }) }).addTo(map).bindPopup('<b>EUT Restaurant</b>');
+
+    // Geocode fallback if coords missing
+    if (!customerPos && order.delivery_address) {
+        if (etaEl) etaEl.textContent = 'Locating address…';
+        customerPos = await geocodeDeliveryAddr(order.delivery_address);
+        // Save back so next time is instant
+        if (customerPos) {
+            fetch('/orders/' + order.id + '/set-coords', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify({ lat: customerPos[0], lng: customerPos[1] })
+            }).catch(() => {});
+        }
+    }
+
+    // Customer / delivery destination pin
+    if (customerPos) {
+        L.marker(customerPos, { icon: L.divIcon({
+            html: '<div style="background:#ef4444;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);font-size:15px;">🏠</span></div>',
+            className: '', iconSize: [36, 36], iconAnchor: [18, 36],
+        }) }).addTo(map).bindPopup('<b>Your Delivery Location</b>');
+    }
+
+    if (!isOnWay) {
+        const bounds = customerPos
+            ? [RESTAURANT_POS, customerPos]
+            : [RESTAURANT_POS, [RESTAURANT_POS[0] + 0.01, RESTAURANT_POS[1] + 0.01]];
+        map.fitBounds(bounds, { padding: [50, 50] });
+        if (etaEl) etaEl.textContent = customerPos ? 'Waiting for pickup' : 'Preparing your order';
+        return;
+    }
+
+    const dest = customerPos || [RESTAURANT_POS[0] + 0.005, RESTAURANT_POS[1] + 0.006];
+
+    // Rider marker
+    const rM = L.marker(riderPos, { icon: L.divIcon({
+        html: '<div style="background:#10b981;width:44px;height:44px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 14px rgba(16,185,129,.7);">🛵</div>',
+        className: '', iconSize: [44, 44], iconAnchor: [22, 22],
+    }) }).addTo(map);
+    if (order.rider) rM.bindPopup('<b>' + order.rider.name + '</b><br>⭐ ' + order.rider.rating);
+    activeMaps[order.id].riderMarker = rM;
+
+    if (isOut) {
+        map.fitBounds([riderPos, dest], { padding: [40, 40] });
+        const route = await fetchOSRMRoute(riderPos, dest);
+        if (route) {
+            activeMaps[order.id].roadPoints = route;
+            const ln = L.polyline(route, { color: '#facc15', weight: 5, opacity: 1 }).addTo(map);
+            activeMaps[order.id].routeLine = ln;
+            map.fitBounds(ln.getBounds(), { padding: [40, 40] });
+            if (etaEl) etaEl.textContent = '~' + Math.max(1, Math.round(route.length / 30)) + ' min away';
+        } else {
+            activeMaps[order.id].routeLine = L.polyline([riderPos, dest], { color: '#facc15', weight: 3, opacity: 0.7, dashArray: '8 6' }).addTo(map);
+            if (etaEl) etaEl.textContent = 'On the way';
+        }
+    } else {
+        map.fitBounds([RESTAURANT_POS, dest, riderPos], { padding: [40, 40] });
+        const route = await fetchOSRMRoute(RESTAURANT_POS, dest);
+        if (route) {
+            activeMaps[order.id].roadPoints = route;
+            const ln = L.polyline(route, { color: '#facc15', weight: 5, opacity: 0.7, dashArray: '8 6' }).addTo(map);
+            activeMaps[order.id].routeLine = ln;
+            map.fitBounds(ln.getBounds(), { padding: [40, 40] });
+        } else {
+            activeMaps[order.id].routeLine = L.polyline([RESTAURANT_POS, dest], { color: '#facc15', weight: 3, opacity: 0.6, dashArray: '8 6' }).addTo(map);
+        }
+        if (etaEl) etaEl.textContent = 'Rider heading to pickup';
+    }
+
+    if (!hasRider) simulateMapRider(order.id, dest);
+}
+        } else {
+            activeMaps[order.id].routeLine = L.polyline([RESTAURANT_POS, dest], { color: '#facc15', weight: 3, opacity: 0.6, dashArray: '8 6' }).addTo(map);
+        }
+        if (etaEl) etaEl.textContent = 'Rider heading to pickup';
+    }
+
+    if (!hasRider) simulateMapRider(order.id, dest);
+}
+
+/* Called on every poll — only moves the marker and trims the route, never rebuilds the map */
+function updateMapRiderPos(orderId, lat, lng) {
+    const s = activeMaps[orderId];
+    if (!s || !s.riderMarker) return;
+    const newPos = [parseFloat(lat), parseFloat(lng)];
+    s.riderMarker.setLatLng(newPos);
+
+    if (s.routeLine && s.roadPoints && s.roadPoints.length) {
+        // Trim to closest point on stored route from new rider position
+        let closest = 0, minDist = Infinity;
+        s.roadPoints.forEach((pt, i) => {
+            const d = (pt[0] - newPos[0]) * (pt[0] - newPos[0]) + (pt[1] - newPos[1]) * (pt[1] - newPos[1]);
+            if (d < minDist) { minDist = d; closest = i; }
+        });
+        s.routeLine.setLatLngs(s.roadPoints.slice(closest));
+        const remaining = s.roadPoints.length - closest;
+        const etaEl = document.getElementById('riderEtaText-' + orderId);
+        if (etaEl) {
+            const mins = Math.max(0, Math.round(30 * remaining / s.roadPoints.length));
+            etaEl.textContent = mins > 0 ? '~' + mins + ' min away' : 'Arriving now!';
+        }
+    }
+}
+
+function simulateMapRider(orderId, dest) {
+    const s = activeMaps[orderId];
+    if (!s) return;
+    const etaEl = document.getElementById('riderEtaText-' + orderId);
+    if (s.roadPoints && s.roadPoints.length) {
+        const total = s.roadPoints.length;
+        const iv = setInterval(() => {
+            if (!activeMaps[orderId]) { clearInterval(iv); return; }
+            s.simStep = Math.min(s.simStep + 1, total - 1);
+            const pos = s.roadPoints[s.simStep];
+            if (s.riderMarker) s.riderMarker.setLatLng(pos);
+            if (s.routeLine)   s.routeLine.setLatLngs(s.roadPoints.slice(s.simStep));
+            const m = Math.max(0, Math.round(30 * (1 - s.simStep / total)));
+            if (etaEl) etaEl.textContent = m > 0 ? '~' + m + ' min away' : 'Arriving now!';
+            if (s.simStep >= total - 1) clearInterval(iv);
+        }, 2500);
+    } else {
+        let step = 0, tot = 60;
+        let pos = s.riderMarker ? s.riderMarker.getLatLng() : { lat: RESTAURANT_POS[0], lng: RESTAURANT_POS[1] };
+        const dLat = (dest[0] - pos.lat) / tot, dLng = (dest[1] - pos.lng) / tot;
+        const iv = setInterval(() => {
+            if (!activeMaps[orderId]) { clearInterval(iv); return; }
+            if (step >= tot) { clearInterval(iv); return; }
+            step++;
+            pos = { lat: pos.lat + dLat, lng: pos.lng + dLng };
+            if (s.riderMarker) s.riderMarker.setLatLng(pos);
+            if (s.routeLine)   s.routeLine.setLatLngs([[pos.lat, pos.lng], dest]);
+            const m = Math.max(0, Math.round(30 * (1 - step / tot)));
+            if (etaEl) etaEl.textContent = m > 0 ? '~' + m + ' min away' : 'Arriving now!';
+        }, 3000);
     }
 }
 </script>
