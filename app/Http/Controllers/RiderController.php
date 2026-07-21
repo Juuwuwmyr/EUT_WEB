@@ -58,21 +58,28 @@ class RiderController extends Controller
     }
 
     // ── POST /rider/orders/{order}/picked-up ──────────────
-    public function pickedUp(Order $order)
+    public function pickedUp(Request $request, Order $order)
     {
         $rider = auth()->user()->rider;
         $this->authorizeRiderOrder($order, $rider);
 
         if ($order->status !== 'rider_assigned') {
-            return response()->json(['success' => false, 'message' => 'Invalid status transition.'], 422);
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Invalid status transition.'], 422);
+            }
+            return back()->with('error', 'Order cannot be picked up at this stage.');
         }
 
         $order->update([
-            'status'      => 'out_for_delivery',
-            'picked_up_at'=> now(),
+            'status'       => 'out_for_delivery',
+            'picked_up_at' => now(),
         ]);
 
-        return response()->json(['success' => true, 'status' => 'out_for_delivery']);
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'status' => 'out_for_delivery']);
+        }
+
+        return redirect()->route('rider.dashboard')->with('success', 'Order marked as picked up!');
     }
 
     // ── POST /rider/orders/{order}/delivered ──────────────

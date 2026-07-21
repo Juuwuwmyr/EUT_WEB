@@ -456,7 +456,7 @@
                         <div>
                             <p class="oc-addr-label">Pick Up (Restaurant)</p>
                             <p class="oc-addr-val">
-                                {{ $order->status === 'out_for_delivery' ? '✅ Picked up at ' . $order->picked_up_at->format('g:i A') : 'EUT Restaurant — Metro Naujan' }}
+                                {{ $order->status === 'out_for_delivery' ? '✅ Picked up at ' . $order->picked_up_at?->format('g:i A') : 'EUT Restaurant — Metro Naujan' }}
                             </p>
                         </div>
                     </div>
