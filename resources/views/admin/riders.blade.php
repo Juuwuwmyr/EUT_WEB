@@ -602,6 +602,10 @@ function destPopupHtml(o) {
     </div>`;
 }
 
+// ── Route fetch throttle — key: riderId_orderNum → timestamp ──
+const _adminRouteLastFetch = {};
+const ADMIN_ROUTE_THROTTLE_MS = 20000; // re-fetch OSRM at most every 20s per route
+
 async function addOrUpdateAdminRider(r) {
     if (!adminMapInst) return;
 
@@ -642,21 +646,37 @@ async function addOrUpdateAdminRider(r) {
 
     // Add/update route + dest pin for each active order
     for (const o of destinations) {
-        const key  = o.order_number;
-        const dest = [parseFloat(o.dest_lat), parseFloat(o.dest_lng)];
-        // Use a different color per order so lines are distinguishable
+        const key      = o.order_number;
+        const dest     = [parseFloat(o.dest_lat), parseFloat(o.dest_lng)];
         const lineColor = r.color;
+        const throttleKey = r.id + '_' + key;
+        const now = Date.now();
 
-        const route = await fetchOSRMAdmin(r.pos, dest);
-        const latLngs = route || [r.pos, dest];
+        // Only re-fetch OSRM if rider moved significantly or throttle expired
+        let latLngs;
+        if (!adminMarkers[r.id].routes[key] || (now - (_adminRouteLastFetch[throttleKey] || 0)) > ADMIN_ROUTE_THROTTLE_MS) {
+            _adminRouteLastFetch[throttleKey] = now;
+            const route = await fetchOSRMAdmin(r.pos, dest);
+            latLngs = route || [r.pos, dest];
 
-        if (adminMarkers[r.id].routes[key]) {
-            adminMarkers[r.id].routes[key].setLatLngs(latLngs);
+            if (adminMarkers[r.id].routes[key]) {
+                adminMarkers[r.id].routes[key].setLatLngs(latLngs);
+            } else {
+                adminMarkers[r.id].routes[key] = L.polyline(latLngs, {
+                    color: lineColor, weight: latLngs.length > 2 ? 5 : 3,
+                    opacity: latLngs.length > 2 ? 1 : 0.6,
+                    dashArray: latLngs.length > 2 ? null : '6 4',
+                }).addTo(adminMapInst);
+            }
         } else {
-            adminMarkers[r.id].routes[key] = L.polyline(latLngs, {
-                color: lineColor, weight: route ? 5 : 3, opacity: route ? 1 : 0.6,
-                dashArray: route ? null : '6 4',
-            }).addTo(adminMapInst);
+            // Throttled — just move the start of the existing polyline to rider's new pos
+            if (adminMarkers[r.id].routes[key]) {
+                const lls = adminMarkers[r.id].routes[key].getLatLngs();
+                if (lls && lls.length > 0) {
+                    lls[0] = L.latLng(r.pos[0], r.pos[1]);
+                    adminMarkers[r.id].routes[key].setLatLngs(lls);
+                }
+            }
         }
 
         if (adminMarkers[r.id].destMarkers[key]) {

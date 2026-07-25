@@ -567,22 +567,9 @@ async function submitCancel(){
 }
 function showToast(msg){const t=document.createElement('div');t.textContent=msg;Object.assign(t.style,{position:'fixed',bottom:'90px',left:'50%',transform:'translateX(-50%)',background:'#0d1f17',border:'1px solid rgba(74,222,128,.3)',color:'#4ade80',padding:'12px 22px',borderRadius:'99px',fontSize:'13px',fontWeight:'700',zIndex:'9999'});document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
 async function updateMapRiderPos(orderId,lat,lng){
+    // Delegated to the full implementation below — this stub kept for safety
     const s=activeMaps[orderId];
     if(!s)return;
-    const newPos=[lat,lng];
-    if(s.riderMarker) s.riderMarker.setLatLng(newPos);
-    // Refresh route polyline from new rider pos to customer
-    if(s.routeLine && s.map) {
-        // Find customer position by looking at the end of the current route
-        const lls = s.routeLine.getLatLngs();
-        if(lls && lls.length > 0) {
-            const dest = lls[lls.length-1];
-            fetchOSRMRoute(newPos, [dest.lat, dest.lng]).then(function(route){
-                if(route && s.routeLine) s.routeLine.setLatLngs(route);
-                else if(s.routeLine) s.routeLine.setLatLngs([newPos, [dest.lat, dest.lng]]);
-            });
-        }
-    }
 }
 
 /* ── Init ── */
@@ -663,7 +650,7 @@ async function initOrderMap(order) {
         : null;
 
     const map = L.map(el, { zoomControl: true, attributionControl: false });
-    activeMaps[order.id] = { map, riderMarker: null, routeLine: null, roadPoints: [], simStep: 0, _lastStatus: order.status };
+    activeMaps[order.id] = { map, riderMarker: null, routeLine: null, roadPoints: [], simStep: 0, _lastStatus: order.status, destLatLng: null, _lastReroute: 0 };
 
     L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(map);
     L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', { maxZoom: 20, opacity: 0.85 }).addTo(map);
@@ -706,6 +693,8 @@ async function initOrderMap(order) {
     }
 
     const dest = customerPos || [RESTAURANT_POS[0] + 0.005, RESTAURANT_POS[1] + 0.006];
+    // Store destination on map state for re-routing
+    activeMaps[order.id].destLatLng = dest;
 
     // Rider marker
     const rM = L.marker(riderPos, { icon: L.divIcon({
@@ -745,27 +734,58 @@ async function initOrderMap(order) {
     if (!hasRider) simulateMapRider(order.id, dest);
 }
 
-/* Called on every poll — only moves the marker and trims the route, never rebuilds the map */
-function updateMapRiderPos(orderId, lat, lng) {
+/* Called on every poll — moves the marker, trims the route, re-routes if rider is off-route */
+const REROUTE_THRESHOLD_DEG = 0.0015; // ~150m — if rider is further than this from the route, re-route
+const REROUTE_COOLDOWN_MS   = 20000;  // re-fetch OSRM at most every 20s
+
+async function updateMapRiderPos(orderId, lat, lng) {
     const s = activeMaps[orderId];
     if (!s || !s.riderMarker) return;
+
     const newPos = [parseFloat(lat), parseFloat(lng)];
     s.riderMarker.setLatLng(newPos);
 
-    if (s.routeLine && s.roadPoints && s.roadPoints.length) {
-        // Trim to closest point on stored route from new rider position
+    if (!s.routeLine) return;
+
+    const etaEl = document.getElementById('riderEtaText-' + orderId);
+
+    if (s.roadPoints && s.roadPoints.length > 1) {
+        // Find closest point on stored road route
         let closest = 0, minDist = Infinity;
         s.roadPoints.forEach((pt, i) => {
-            const d = (pt[0] - newPos[0]) * (pt[0] - newPos[0]) + (pt[1] - newPos[1]) * (pt[1] - newPos[1]);
+            const d = (pt[0] - newPos[0]) ** 2 + (pt[1] - newPos[1]) ** 2;
             if (d < minDist) { minDist = d; closest = i; }
         });
-        s.routeLine.setLatLngs(s.roadPoints.slice(closest));
-        const remaining = s.roadPoints.length - closest;
-        const etaEl = document.getElementById('riderEtaText-' + orderId);
-        if (etaEl) {
-            const mins = Math.max(0, Math.round(30 * remaining / s.roadPoints.length));
-            etaEl.textContent = mins > 0 ? '~' + mins + ' min away' : 'Arriving now!';
+
+        const distFromRoute = Math.sqrt(minDist);
+        const now = Date.now();
+        const canReroute = (now - (s._lastReroute || 0)) > REROUTE_COOLDOWN_MS;
+
+        if (distFromRoute > REROUTE_THRESHOLD_DEG && canReroute && s.destLatLng) {
+            // Rider is off-route — fetch a fresh OSRM route from current position
+            s._lastReroute = now;
+            const fresh = await fetchOSRMRoute(newPos, s.destLatLng);
+            if (fresh && fresh.length > 1) {
+                s.roadPoints = fresh;
+                s.routeLine.setLatLngs(fresh);
+                if (etaEl) etaEl.textContent = '~' + Math.max(1, Math.round(fresh.length / 30)) + ' min away';
+            } else {
+                // OSRM failed — fall back to straight line
+                s.routeLine.setLatLngs([newPos, s.destLatLng]);
+                if (etaEl) etaEl.textContent = 'On the way';
+            }
+        } else {
+            // On-route — trim the polyline to start from the rider's current position
+            s.routeLine.setLatLngs(s.roadPoints.slice(closest));
+            const remaining = s.roadPoints.length - closest;
+            if (etaEl) {
+                const mins = Math.max(0, Math.round(30 * remaining / s.roadPoints.length));
+                etaEl.textContent = mins > 0 ? '~' + mins + ' min away' : 'Arriving now! 🎉';
+            }
         }
+    } else if (s.destLatLng) {
+        // No road points yet — just draw straight line
+        s.routeLine.setLatLngs([newPos, s.destLatLng]);
     }
 }
 
