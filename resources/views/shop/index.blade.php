@@ -308,6 +308,9 @@
 <!-- ── NAVBAR ── -->
 <nav class="topnav">
     <div class="topnav-inner">
+        <a href="{{ route('shop.home') }}" class="nav-brand" style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;text-decoration:none;flex-shrink:0;white-space:nowrap;letter-spacing:.05em;line-height:1;">
+            <span style="color:#f97316;">E</span><span style="color:#38bdf8;">U</span><span style="color:#ef4444;">T</span>
+        </a>
         <div class="search-wrap" style="max-width:100%;">
             <input type="text" id="searchInput" class="search-input" placeholder="Search burgers, fries, drinks…">
             <button class="search-btn">
