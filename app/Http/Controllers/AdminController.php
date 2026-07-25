@@ -619,30 +619,43 @@ class AdminController extends Controller
     public function riderLocations()
     {
         // Include ALL riders who have a GPS position — both available AND actively delivering
-        $riders = \App\Models\Rider::with(['user', 'activeOrder'])
+        $riders = \App\Models\Rider::with(['user', 'orders' => function($q) {
+                $q->with('user')->whereIn('status', ['rider_assigned', 'out_for_delivery']);
+            }])
             ->where(function ($q) {
-                // Available riders (idle, ready for orders)
                 $q->where('is_available', true)
-                  // OR riders currently on an active delivery (even if marked unavailable)
-                  ->orWhereHas('activeOrder', fn($oq) => $oq->whereIn('status', ['rider_assigned', 'out_for_delivery']));
+                  ->orWhereHas('orders', fn($oq) => $oq->whereIn('status', ['rider_assigned', 'out_for_delivery']));
             })
             ->whereNotNull('current_lat')
             ->get()
             ->map(function ($r) {
-                $order = $r->activeOrder();
-                $isOnDelivery = $order && in_array($order->status, ['rider_assigned', 'out_for_delivery']);
+                $activeOrders = $r->orders; // already eager-loaded with filter above
+                $isOnDelivery = $activeOrders->isNotEmpty();
+
+                // Build one destination entry per active order
+                $destinations = $activeOrders->map(fn($o) => [
+                    'order_number' => $o->order_number,
+                    'customer'     => $o->user?->name,
+                    'address'      => $o->delivery_address,
+                    'dest_lat'     => $o->delivery_lat,
+                    'dest_lng'     => $o->delivery_lng,
+                    'status'       => $o->status,
+                ])->values()->all();
+
                 return [
-                    'id'          => $r->id,
-                    'name'        => $r->user->name,
-                    'lat'         => $r->current_lat,
-                    'lng'         => $r->current_lng,
-                    'status'      => $isOnDelivery ? 'On Delivery' : 'Online',
-                    'order'       => $order?->order_number,
-                    'order_id'    => $order?->id,
-                    'customer'    => $order?->user?->name,
-                    'address'     => $order?->delivery_address,
-                    'dest_lat'    => ($isOnDelivery && $order->delivery_lat)  ? $order->delivery_lat  : null,
-                    'dest_lng'    => ($isOnDelivery && $order->delivery_lng)  ? $order->delivery_lng  : null,
+                    'id'           => $r->id,
+                    'name'         => $r->user->name,
+                    'lat'          => $r->current_lat,
+                    'lng'          => $r->current_lng,
+                    'status'       => $isOnDelivery ? 'On Delivery' : 'Online',
+                    'order_count'  => $activeOrders->count(),
+                    'orders'       => $destinations,
+                    // Legacy single-order fields (kept for backwards compat)
+                    'order'        => $activeOrders->first()?->order_number,
+                    'dest_lat'     => $activeOrders->first()?->delivery_lat,
+                    'dest_lng'     => $activeOrders->first()?->delivery_lng,
+                    'customer'     => $activeOrders->first()?->user?->name,
+                    'address'      => $activeOrders->first()?->delivery_address,
                 ];
             });
 
@@ -849,7 +862,9 @@ class AdminController extends Controller
 
     public function riders(Request $request)
     {
-        $riders = \App\Models\Rider::with('user')
+        $riders = \App\Models\Rider::with(['user', 'orders' => function($q) {
+                $q->with('user')->whereIn('status', ['rider_assigned', 'out_for_delivery']);
+            }])
             ->when($request->filled('status'), function ($q) use ($request) {
                 if ($request->status === 'online') {
                     $q->where('is_available', true);

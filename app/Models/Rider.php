@@ -39,12 +39,18 @@ class Rider extends Model
         return $this->hasMany(Order::class);
     }
 
-    public function activeOrder()
+    public function activeOrders()
     {
         return $this->orders()
             ->whereIn('status', ['rider_assigned', 'out_for_delivery'])
             ->latest()
-            ->first();
+            ->get();
+    }
+
+    // Keep for backwards compatibility — returns first active order
+    public function activeOrder()
+    {
+        return $this->activeOrders()->first();
     }
 
     // ── Helpers ────────────────────────────────────────────
@@ -62,9 +68,7 @@ class Rider extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        // Always check active order first — a rider on delivery is "on_delivery"
-        // regardless of their is_available flag
-        if ($this->activeOrder()) return 'on_delivery';
+        if ($this->activeOrders()->isNotEmpty()) return 'on_delivery';
         if (!$this->is_available) return 'offline';
         return 'online';
     }
