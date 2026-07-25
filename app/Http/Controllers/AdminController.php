@@ -732,6 +732,10 @@ class AdminController extends Controller
             'assigned_at'     => $order->assigned_at?->format('g:i A'),
             'picked_up_at'    => $order->picked_up_at?->format('g:i A'),
             'rider_name'      => $order->rider?->user?->name,
+            'subtotal'        => (float) $order->subtotal,
+            'delivery_fee'    => (float) $order->delivery_fee,
+            'total'           => (float) $order->total,
+            'payment_method'  => $order->payment_method,
             'delivery_status' => $delivery['status'],
             'delivery_label'  => $delivery['label'],
             'delivery_detail' => $delivery['detail'],
@@ -740,8 +744,13 @@ class AdminController extends Controller
             'items'           => $order->items->map(fn ($i) => [
                 'name'      => $i->item_name,
                 'qty'       => $i->quantity,
+                'price'     => (float) $i->unit_price,
+                'subtotal'  => (float) $i->subtotal,
                 'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.jpg'),
-                'modifiers' => collect($i->modifiers ?? [])->pluck('name')->filter()->values()->all(),
+                'modifiers' => collect($i->modifiers ?? [])
+                    ->filter(fn ($m) => !empty($m['name']) && !preg_match('/^no\s/i', $m['name']))
+                    ->values()
+                    ->all(),
             ])->all(),
         ];
     }

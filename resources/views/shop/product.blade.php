@@ -1008,14 +1008,23 @@ function doAdd(goToCart) {
     const unit = Math.round(price);
 
     // Build label: item name + selected options + add-ons
-    const optLabels   = Object.values(selectedOptions).filter(Boolean).map(o => o.name);
+    const optLabels = [];
+    Object.values(selectedOptions).filter(Boolean).forEach(o => {
+        if (Array.isArray(o)) o.forEach(x => { if (x && x.name) optLabels.push(x.name); });
+        else if (o.name) optLabels.push(o.name);
+    });
     const addonLabels = Object.values(selectedAddons).map(a => a.name);
     const allLabels   = [...optLabels, ...addonLabels];
     const suffix      = allLabels.length ? ' (' + allLabels.join(', ') + ')' : '';
     const name        = ITEM_NAME + suffix;
 
     // Unique cart key per item + option + addon combo
-    const optKey   = Object.values(selectedOptions).filter(Boolean).map(o => o.id).sort().join('-');
+    const optIds = [];
+    Object.values(selectedOptions).filter(Boolean).forEach(o => {
+        if (Array.isArray(o)) o.forEach(x => { if (x && x.id) optIds.push(x.id); });
+        else if (o.id) optIds.push(o.id);
+    });
+    const optKey   = optIds.sort().join('-');
     const addonKey = Object.keys(selectedAddons).sort().join('a');
     const key      = ITEM_ID + (optKey ? '_' + optKey : '') + (addonKey ? '_ad' + addonKey : '');
 
@@ -1025,15 +1034,36 @@ function doAdd(goToCart) {
     // Build modifiers array for backend (flavors, modifiers, addons)
     const modifiers = [];
     Object.values(selectedOptions).filter(Boolean).forEach(opt => {
-        // Find parent group to get type
-        const group = MODIFIER_GROUPS.find(g => g.options && g.options.find(o => o.id === opt.id));
-        if (group && !/^no\s/i.test(opt.name)) {  // skip "No Flavor" / "No X" defaults
-            modifiers.push({
-                type:              group.type,
-                name:              opt.name,
-                price_type:        opt.price_type,
-                price_adjustment:  parseFloat(opt.price_adjustment || 0),
+        if (Array.isArray(opt)) {
+            // multi-select group
+            opt.forEach(o => {
+                if (!o || /^no\s/i.test(o.name)) return;
+                const group = MODIFIER_GROUPS.find(g =>
+                    g.active_options && g.active_options.find(x => x.id === o.id)
+                );
+                if (group) {
+                    modifiers.push({
+                        type:             group.type,
+                        name:             o.name,
+                        price_type:       o.price_type,
+                        price_adjustment: parseFloat(o.price_adjustment || 0),
+                    });
+                }
             });
+        } else {
+            // single-select group
+            if (/^no\s/i.test(opt.name)) return;
+            const group = MODIFIER_GROUPS.find(g =>
+                g.active_options && g.active_options.find(x => x.id === opt.id)
+            );
+            if (group) {
+                modifiers.push({
+                    type:             group.type,
+                    name:             opt.name,
+                    price_type:       opt.price_type,
+                    price_adjustment: parseFloat(opt.price_adjustment || 0),
+                });
+            }
         }
     });
     Object.entries(selectedAddons).forEach(([groupId, addon]) => {

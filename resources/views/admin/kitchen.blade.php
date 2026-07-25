@@ -260,6 +260,221 @@
     body.kitchen-fullscreen .admin-nav { display: none; }
     body.kitchen-fullscreen .admin-content { max-width: none; padding: 1rem; }
     body.kitchen-fullscreen .kitchen-hide-fs { display: none; }
+
+    /* ── Order Detail Modal ── */
+    .k-modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(0,0,0,.75);
+        backdrop-filter: blur(6px);
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .k-modal-backdrop.open { display: flex; }
+
+    .k-modal {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 1.25rem;
+        width: 100%;
+        max-width: 520px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 30px 80px rgba(0,0,0,.6);
+        animation: kModalIn .2s ease;
+    }
+    @keyframes kModalIn {
+        from { opacity: 0; transform: translateY(16px) scale(.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .k-modal::-webkit-scrollbar { width: 4px; }
+    .k-modal::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 99px; }
+
+    .k-modal-header {
+        padding: 1.1rem 1.25rem;
+        border-bottom: 1px solid var(--border-divider);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        position: sticky;
+        top: 0;
+        background: var(--bg-card);
+        z-index: 1;
+    }
+    .k-modal-title {
+        font-family: monospace;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--accent);
+    }
+    .k-modal-close {
+        width: 2rem;
+        height: 2rem;
+        border-radius: .5rem;
+        border: 1px solid var(--border-divider);
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: all .15s;
+        flex-shrink: 0;
+    }
+    .k-modal-close:hover { background: rgba(239,68,68,.12); color: #ef4444; border-color: rgba(239,68,68,.3); }
+
+    .k-modal-meta {
+        padding: .75rem 1.25rem;
+        border-bottom: 1px solid var(--border-divider);
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: .75rem;
+        color: var(--text-muted);
+    }
+    .k-modal-meta span { display: flex; align-items: center; gap: .3rem; }
+    .k-modal-meta strong { color: var(--text-strong); }
+
+    .k-modal-items { padding: .85rem 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+
+    .k-modal-item {
+        background: rgba(255,255,255,.03);
+        border: 1px solid var(--border-divider);
+        border-radius: .875rem;
+        overflow: hidden;
+    }
+    .k-modal-item-header {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .75rem .85rem;
+    }
+    .k-modal-item-img {
+        width: 52px;
+        height: 52px;
+        border-radius: .6rem;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid var(--border-divider);
+    }
+    .k-modal-item-qty {
+        font-size: 1rem;
+        font-weight: 900;
+        color: #facc15;
+        flex-shrink: 0;
+    }
+    .k-modal-item-name {
+        font-size: .9rem;
+        font-weight: 700;
+        color: var(--text-strong);
+        flex: 1;
+        min-width: 0;
+    }
+    .k-modal-item-price {
+        font-size: .8rem;
+        font-weight: 700;
+        color: #4ade80;
+        flex-shrink: 0;
+    }
+
+    .k-modal-specs {
+        border-top: 1px solid var(--border-divider);
+        padding: .65rem .85rem .75rem;
+    }
+    .k-modal-specs-label {
+        font-size: .65rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: .45rem;
+    }
+    .k-modal-spec-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .3rem 0;
+        border-bottom: 1px solid rgba(255,255,255,.04);
+        gap: .5rem;
+    }
+    .k-modal-spec-row:last-child { border-bottom: none; }
+    .k-modal-spec-left { display: flex; align-items: center; gap: .4rem; }
+    .k-modal-spec-badge {
+        font-size: .58rem;
+        font-weight: 800;
+        padding: .1rem .35rem;
+        border-radius: .25rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        flex-shrink: 0;
+    }
+    .spec-flavor   { background: rgba(59,130,246,.15);  color: #3b82f6; }
+    .spec-modifier { background: rgba(139,92,246,.15); color: #8b5cf6; }
+    .spec-addon    { background: rgba(245,158,11,.15);  color: #d97706; }
+    .k-modal-spec-name {
+        font-size: .78rem;
+        font-weight: 600;
+        color: var(--text-strong);
+    }
+    .k-modal-spec-price {
+        font-size: .75rem;
+        font-weight: 700;
+        color: #4ade80;
+        flex-shrink: 0;
+    }
+
+    .k-modal-no-specs {
+        font-size: .75rem;
+        color: var(--text-muted);
+        font-style: italic;
+        padding: .3rem 0;
+    }
+
+    .k-modal-footer {
+        padding: .85rem 1.25rem;
+        border-top: 1px solid var(--border-divider);
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+    }
+    .k-modal-total-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: .8rem;
+        color: var(--text-muted);
+    }
+    .k-modal-total-row.grand {
+        font-size: .95rem;
+        font-weight: 800;
+        color: var(--text-strong);
+        padding-top: .4rem;
+        border-top: 1px solid var(--border-divider);
+        margin-top: .2rem;
+    }
+    .k-modal-total-row.grand span:last-child { color: #facc15; }
+
+    .k-modal-notes {
+        margin: 0 1.25rem .85rem;
+        padding: .65rem .85rem;
+        border-radius: .65rem;
+        background: rgba(245,158,11,.08);
+        border: 1px solid rgba(245,158,11,.2);
+        font-size: .78rem;
+        color: #fbbf24;
+        line-height: 1.5;
+    }
+
+    .k-modal-action-bar {
+        padding: .85rem 1.25rem 1rem;
+        border-top: 1px solid var(--border-divider);
+        display: flex;
+        gap: .6rem;
+    }
 </style>
 @endpush
 
@@ -360,6 +575,24 @@
     </div>
 </div>
 
+{{-- ── Order Detail Modal ── --}}
+<div class="k-modal-backdrop" id="orderModal" onclick="closeOrderModal(event)">
+    <div class="k-modal" id="orderModalBox">
+        <div class="k-modal-header">
+            <div>
+                <div class="k-modal-title" id="modalOrderNum">—</div>
+                <div style="font-size:.72rem;color:var(--text-muted);margin-top:.15rem;" id="modalCustomer">—</div>
+            </div>
+            <button class="k-modal-close" onclick="closeOrderModal()">✕</button>
+        </div>
+        <div class="k-modal-meta" id="modalMeta"></div>
+        <div class="k-modal-items" id="modalItems"></div>
+        <div id="modalNotes"></div>
+        <div class="k-modal-footer" id="modalFooter"></div>
+        <div class="k-modal-action-bar" id="modalActions"></div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -373,6 +606,7 @@ const READY_URL   = id => `/admin/kitchen/orders/${id}/ready`;
 let refreshTimer = 15;
 let countdownTimer = null;
 let lastNewCount = {{ $newOrders->count() }};
+let orderDataMap = {};
 
 function elapsedBadge(mins) {
     let bg, color, label;
@@ -384,9 +618,20 @@ function elapsedBadge(mins) {
 
 function renderItems(items) {
     return items.map(item => {
-        const mods = (item.modifiers || []).map(m =>
-            `<span class="k-mod-tag">${escapeHtml(m)}</span>`
-        ).join('');
+        const modList = item.modifiers || [];
+        // modifiers may be plain strings (plucked) or objects {name, type, ...}
+        const mods = modList
+            .filter(m => m && (typeof m === 'string' ? m : m.name) && !/^no\s/i.test(typeof m === 'string' ? m : (m.name || '')))
+            .map(m => {
+                if (typeof m === 'string') {
+                    return `<span class="k-mod-tag">${escapeHtml(m)}</span>`;
+                }
+                const colors = { flavor: '#3b82f6', modifier: '#8b5cf6', addon: '#d97706' };
+                const c = colors[m.type] || '#60a5fa';
+                const adj = parseFloat(m.price_adjustment || 0);
+                const extra = (m.price_type === 'add' && adj > 0) ? ` +₱${adj}` : '';
+                return `<span class="k-mod-tag" style="background:${c}18;color:${c};border-color:${c}30;">${escapeHtml(m.name)}${extra}</span>`;
+            }).join('');
         return `
             <div class="k-item">
                 <img class="k-item-img" src="${item.image}" alt="">
@@ -403,13 +648,13 @@ function renderItems(items) {
 
 function renderActions(order, column) {
     if (column === 'new') {
-        return `<button class="k-btn k-btn-accept" onclick="kitchenAction('accept', ${order.id}, this)">✓ Accept</button>`;
+        return `<button class="k-btn k-btn-accept" onclick="event.stopPropagation();kitchenAction('accept', ${order.id}, this)">✓ Accept</button>`;
     }
     if (column === 'queued') {
-        return `<button class="k-btn k-btn-cook" onclick="kitchenAction('start', ${order.id}, this)">🍳 Start Cooking</button>`;
+        return `<button class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', ${order.id}, this)">🍳 Start Cooking</button>`;
     }
     if (column === 'cooking') {
-        return `<button class="k-btn k-btn-ready" onclick="kitchenAction('ready', ${order.id}, this)">✅ Mark Ready</button>`;
+        return `<button class="k-btn k-btn-ready" onclick="event.stopPropagation();kitchenAction('ready', ${order.id}, this)">✅ Mark Ready</button>`;
     }
     const detail = order.delivery_detail || 'Ready for delivery';
     const color = order.delivery_color || '#10b981';
@@ -432,7 +677,7 @@ function renderOrderCard(order, column) {
         : '';
 
     return `
-        <div class="k-order-card${urgent}${pickedUp}" data-order-id="${order.id}">
+        <div class="k-order-card${urgent}${pickedUp}" data-order-id="${order.id}" onclick="openOrderModal(${order.id})" style="cursor:pointer;">
             ${deliveryBanner}
             <div class="k-card-top">
                 <div>
@@ -462,7 +707,112 @@ function renderColumn(col, orders) {
     }
 
     el.innerHTML = orders.map(o => renderOrderCard(o, col)).join('');
+    orders.forEach(o => { orderDataMap[o.id] = { ...o, column: col }; });
 }
+
+// ── ORDER DETAIL MODAL ──────────────────────────────────────────────────────
+function openOrderModal(orderId) {
+    const order = orderDataMap[orderId];
+    if (!order) return;
+
+    document.getElementById('modalOrderNum').textContent = order.order_number;
+    document.getElementById('modalCustomer').textContent = order.customer + ' · ' + order.placed_at;
+
+    const statusColors = { pending:'#f59e0b', accepted:'#3b82f6', preparing:'#ef4444', rider_assigned:'#8b5cf6', out_for_delivery:'#8b5cf6', delivered:'#22c55e' };
+    const statusLabels = { pending:'Pending', accepted:'Accepted', preparing:'Cooking', rider_assigned:'Rider Assigned', out_for_delivery:'Out for Delivery', delivered:'Delivered' };
+    const sc = statusColors[order.status] || '#6b7280';
+    document.getElementById('modalMeta').innerHTML =
+        `<span>🕐 <strong>${order.placed_at}</strong></span>` +
+        `<span style="color:${sc};font-weight:700;">● ${statusLabels[order.status] || order.status}</span>` +
+        (order.elapsed_mins >= 0 ? `<span>⏱ <strong>${order.elapsed_mins}m ago</strong></span>` : '') +
+        (order.rider_name ? `<span>🛵 <strong>${escapeHtml(order.rider_name)}</strong></span>` : '');
+
+    let subtotal = 0;
+    const itemsHtml = (order.items || []).map(item => {
+        const qty = parseInt(item.qty || 1);
+        const price = parseFloat(item.price || 0);
+        // prefer stored subtotal if available, otherwise compute
+        const itemTotal = item.subtotal > 0 ? parseFloat(item.subtotal) : price * qty;
+        subtotal += itemTotal;
+
+        const specs = (item.modifiers || []).filter(m => {
+            const name = typeof m === 'string' ? m : (m.name || '');
+            return name && !/^no\s/i.test(name);
+        });
+
+        const specsInner = specs.length ? specs.map(m => {
+            const name  = typeof m === 'string' ? m : m.name;
+            const type  = typeof m === 'object' ? (m.type || 'modifier') : 'modifier';
+            const adj   = typeof m === 'object' ? parseFloat(m.price_adjustment || 0) : 0;
+            const pType = typeof m === 'object' ? (m.price_type || 'none') : 'none';
+            const label = { flavor:'Flavor', modifier:'Option', addon:'Add-on' }[type] || 'Option';
+            const priceHtml = (pType === 'add' && adj > 0) ? `<span class="k-modal-spec-price">+₱${adj.toLocaleString()}</span>` : '';
+            return `<div class="k-modal-spec-row">
+                <div class="k-modal-spec-left">
+                    <span class="k-modal-spec-badge spec-${type}">${label}</span>
+                    <span class="k-modal-spec-name">${escapeHtml(name)}</span>
+                </div>${priceHtml}</div>`;
+        }).join('') : `<div class="k-modal-no-specs">Standard / No special customization</div>`;
+
+        return `<div class="k-modal-item">
+            <div class="k-modal-item-header">
+                <img class="k-modal-item-img" src="${escapeHtml(item.image||'')}" alt="" onerror="this.src='/images/hero-burger.jpg'">
+                <span class="k-modal-item-qty">${qty}×</span>
+                <span class="k-modal-item-name">${escapeHtml(item.name)}</span>
+                <span class="k-modal-item-price">₱${itemTotal.toLocaleString()}</span>
+            </div>
+            <div class="k-modal-specs">
+                <div class="k-modal-specs-label">📋 Specifications / Choices</div>
+                ${specsInner}
+            </div>
+        </div>`;
+    }).join('');
+    document.getElementById('modalItems').innerHTML = itemsHtml;
+
+    document.getElementById('modalNotes').innerHTML = order.notes
+        ? `<div class="k-modal-notes">📝 <strong>Note:</strong> ${escapeHtml(order.notes)}</div>` : '';
+
+    const delivery = parseFloat(order.delivery_fee ?? 50);
+    const total    = parseFloat(order.total > 0 ? order.total : (order.subtotal + delivery));
+    const displaySub = parseFloat(order.subtotal > 0 ? order.subtotal : subtotal);
+    document.getElementById('modalFooter').innerHTML =
+        `<div class="k-modal-total-row"><span>Subtotal</span><span>₱${displaySub.toLocaleString()}</span></div>` +
+        `<div class="k-modal-total-row"><span>Delivery fee</span><span>${delivery === 0 ? '<span style="color:#4ade80">FREE</span>' : '₱' + delivery.toLocaleString()}</span></div>` +
+        (order.payment_method ? `<div class="k-modal-total-row"><span>Payment</span><span style="text-transform:capitalize;">${escapeHtml(order.payment_method === 'cash' ? '💵 Cash on Delivery' : order.payment_method === 'gcash' ? '📱 GCash' : '💳 Card')}</span></div>` : '') +
+        `<div class="k-modal-total-row grand"><span>Total</span><span>₱${total.toLocaleString()}</span></div>`;
+
+    const col = order.column;
+    let btn = '';
+    if (col === 'new')     btn = `<button class="k-btn k-btn-accept" style="flex:1;" onclick="modalAction('accept',${order.id})">✓ Accept Order</button>`;
+    if (col === 'queued')  btn = `<button class="k-btn k-btn-cook" style="flex:1;" onclick="modalAction('start',${order.id})">🍳 Start Cooking</button>`;
+    if (col === 'cooking') btn = `<button class="k-btn k-btn-ready" style="flex:1;" onclick="modalAction('ready',${order.id})">✅ Mark Ready</button>`;
+    document.getElementById('modalActions').innerHTML =
+        btn + `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);flex:0 0 auto;padding:.6rem 1.2rem;" onclick="closeOrderModal()">Close</button>`;
+
+    document.getElementById('orderModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeOrderModal(e) {
+    if (e && e.target !== document.getElementById('orderModal')) return;
+    document.getElementById('orderModal').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+async function modalAction(action, orderId) {
+    const btn = document.querySelector('#modalActions button:first-child');
+    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    const urls = { accept: ACCEPT_URL(orderId), start: START_URL(orderId), ready: READY_URL(orderId) };
+    try {
+        const res = await fetch(urls[action], { method:'POST', headers:{ 'X-CSRF-TOKEN':CSRF_TOKEN, 'Accept':'application/json', 'Content-Type':'application/json' } });
+        const data = await res.json();
+        if (!data.success) { alert(data.message || 'Action failed.'); if (btn) btn.disabled = false; return; }
+        closeOrderModal();
+        await refreshKitchen(true);
+    } catch(e) { alert('Network error.'); if (btn) btn.disabled = false; }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOrderModal(); });
 
 function escapeHtml(str) {
     if (!str) return '';
@@ -563,6 +913,69 @@ function startCountdown() {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
+
+    // Seed orderDataMap from initial server-rendered data
+    @php
+        $allKitchenOrders = array_merge(
+            $newOrders->all(),
+            $queuedOrders->all(),
+            $cookingOrders->all(),
+            $readyOrders->all()
+        );
+        $kitchenSeed = [];
+        foreach ($allKitchenOrders as $o) {
+            if (in_array($o->status, ['pending'])) {
+                $col = 'new';
+            } elseif (in_array($o->status, ['accepted'])) {
+                $col = 'queued';
+            } elseif ($o->status === 'preparing' && !$o->prepared_at) {
+                $col = 'cooking';
+            } else {
+                $col = 'ready';
+            }
+            $kitchenSeed[] = [
+                'id'           => $o->id,
+                'order_number' => $o->order_number,
+                'customer'     => $o->user?->name ?? 'Guest',
+                'status'       => $o->status,
+                'placed_at'    => $o->created_at->format('g:i A'),
+                'elapsed_mins' => (int) $o->created_at->diffInMinutes(now()),
+                'notes'        => $o->notes,
+                'subtotal'     => (float) ($o->subtotal ?? 0),
+                'delivery_fee' => (float) ($o->delivery_fee ?? 50),
+                'total'        => (float) ($o->total ?? 0),
+                'payment_method' => $o->payment_method,
+                'rider_name'   => $o->rider?->user?->name,
+                'column'       => $col,
+                'items'        => $o->items->map(function($i) {
+                    $mods = collect($i->modifiers ?? [])
+                        ->filter(fn($m) => !empty($m['name']) && !preg_match('/^no\s/i', $m['name']))
+                        ->values()
+                        ->all();
+                    return [
+                        'name'      => $i->item_name,
+                        'qty'       => $i->quantity,
+                        'price'     => (float) $i->unit_price,
+                        'subtotal'  => (float) $i->subtotal,
+                        'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.jpg'),
+                        'modifiers' => $mods,
+                    ];
+                })->all(),
+            ];
+        }
+    @endphp
+    const _kitchenSeed = @json($kitchenSeed);
+    _kitchenSeed.forEach(o => { orderDataMap[o.id] = o; });
+
+    // Wire click on blade-rendered cards (before first AJAX refresh)
+    document.querySelectorAll('.k-order-card[data-order-id]').forEach(card => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function(e) {
+            if (e.target.closest('.k-actions')) return;
+            openOrderModal(parseInt(this.dataset.orderId));
+        });
+    });
+
     startCountdown();
 });
 </script>

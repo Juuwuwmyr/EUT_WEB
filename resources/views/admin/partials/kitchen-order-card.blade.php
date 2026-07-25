@@ -30,7 +30,8 @@
     };
 @endphp
 
-<div class="k-order-card{{ $urgent ? ' is-urgent' : '' }}{{ !empty($deliveryMeta['picked']) ? ' is-picked-up' : '' }}" data-order-id="{{ $order->id }}">
+<div class="k-order-card{{ $urgent ? ' is-urgent' : '' }}{{ !empty($deliveryMeta['picked']) ? ' is-picked-up' : '' }}" data-order-id="{{ $order->id }}" style="cursor:pointer;"
+    onclick="if(!event.target.closest('.k-actions'))openOrderModal({{ $order->id }})">
     @if($column === 'ready')
         <div class="k-delivery-banner" style="background:{{ $deliveryMeta['bg'] }};color:{{ $deliveryMeta['color'] }};">
             {{ $deliveryMeta['label'] }}
@@ -76,11 +77,11 @@
 
     <div class="k-actions">
         @if($column === 'new')
-            <button type="button" class="k-btn k-btn-accept" onclick="kitchenAction('accept', {{ $order->id }}, this)">✓ Accept</button>
+            <button type="button" class="k-btn k-btn-accept" onclick="event.stopPropagation();kitchenAction('accept', {{ $order->id }}, this)">✓ Accept</button>
         @elseif($column === 'queued')
-            <button type="button" class="k-btn k-btn-cook" onclick="kitchenAction('start', {{ $order->id }}, this)">🍳 Start Cooking</button>
+            <button type="button" class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', {{ $order->id }}, this)">🍳 Start Cooking</button>
         @elseif($column === 'cooking')
-            <button type="button" class="k-btn k-btn-ready" onclick="kitchenAction('ready', {{ $order->id }}, this)">✅ Mark Ready</button>
+            <button type="button" class="k-btn k-btn-ready" onclick="event.stopPropagation();kitchenAction('ready', {{ $order->id }}, this)">✅ Mark Ready</button>
         @else
             <div style="text-align:center;width:100%;font-size:.72rem;color:{{ $deliveryMeta['color'] }};font-weight:700;padding:.4rem;line-height:1.45;">
                 {{ $deliveryMeta['detail'] ?? 'Ready for delivery' }}

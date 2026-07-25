@@ -710,10 +710,14 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
 
     const items = cart.map(i => ({
         id: i.id, qty: i.quantity,
-        modifiers: (i.modifiers || []).map(m => ({
-            type: m.type || 'modifier', name: m.name || '',
-            price_type: m.price_type || 'none', price_adjustment: parseFloat(m.price_adjustment || 0),
-        })),
+        modifiers: (i.modifiers || [])
+            .filter(m => m && typeof m === 'object' && m.name)
+            .map(m => ({
+                type: m.type || 'modifier',
+                name: m.name || '',
+                price_type: m.price_type || 'none',
+                price_adjustment: parseFloat(m.price_adjustment || 0),
+            })),
     }));
 
     /* If GPS not yet captured, do one last blocking attempt (5s max) */

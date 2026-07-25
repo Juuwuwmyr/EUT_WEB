@@ -620,18 +620,31 @@ function renderCart() {
         div.dataset.id    = item.id;
         div.dataset.price = item.price;
 
+        // Build modifier chips
+        const modChipsHtml = (item.modifiers || [])
+            .filter(m => m && m.name && !/^no\s/i.test(m.name))
+            .map(m => {
+                const colors = { flavor: '#3b82f6', modifier: '#8b5cf6', addon: '#d97706' };
+                const c = colors[m.type] || '#8b5cf6';
+                const adj = parseFloat(m.price_adjustment || 0);
+                const extra = (m.price_type === 'add' && adj > 0)
+                    ? ` <span style="color:#4ade80;font-size:.6rem;">+₱${adj.toLocaleString()}</span>` : '';
+                return `<span style="display:inline-flex;align-items:center;gap:.2rem;padding:.15rem .5rem;border-radius:999px;font-size:.65rem;font-weight:600;background:${c}18;color:${c};border:1px solid ${c}30;">${m.name}${extra}</span>`;
+            }).join('');
+
         div.innerHTML = `
             <img src="${item.image}" alt="${item.name}" class="item-img">
             <div class="item-info">
                 <p class="item-name">${item.name}</p>
                 <p class="item-unit-price">₱${item.price.toLocaleString()} each</p>
                 <span class="item-category-tag">${item.category || 'Food'}</span>
+                ${modChipsHtml ? `<div style="display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.4rem;">${modChipsHtml}</div>` : ''}
             </div>
             <div class="item-right">
-                <p class="item-total-price" id="itotal-${item.id}">₱${(item.price * item.quantity).toLocaleString()}</p>
+                <p class="item-total-price">₱${(item.price * item.quantity).toLocaleString()}</p>
                 <div class="qty-wrap">
                     <button class="qty-btn qty-dec">−</button>
-                    <input type="number" class="qty-value" value="${item.quantity}" min="1" id="qty-${item.id}">
+                    <input type="number" class="qty-value" value="${item.quantity}" min="1">
                     <button class="qty-btn qty-inc">+</button>
                 </div>
             </div>
@@ -641,14 +654,12 @@ function renderCart() {
                 </svg>
             </button>`;
 
-
-
         list.appendChild(div);
 
         const id       = item.id;
         const price    = item.price;
         const qtyInput = div.querySelector('.qty-value');
-        const totalEl  = div.querySelector(`#itotal-${id}`);
+        const totalEl  = div.querySelector('.item-total-price');
 
         function setQty(val) {
             const q = Math.max(1, val);
