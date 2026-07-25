@@ -474,6 +474,67 @@
         border-top: 1px solid var(--border-divider);
         display: flex;
         gap: .6rem;
+        flex-wrap: wrap;
+    }
+
+    /* ── Rider assign section inside modal ── */
+    .k-rider-assign {
+        padding: .75rem 1.25rem .85rem;
+        border-top: 1px solid var(--border-divider);
+        background: rgba(59,130,246,.04);
+    }
+    .k-rider-assign-label {
+        font-size: .65rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: .5rem;
+    }
+    .k-rider-row {
+        display: flex;
+        gap: .5rem;
+        align-items: center;
+    }
+    .k-rider-select {
+        flex: 1;
+        background: var(--bg-card);
+        border: 1px solid var(--border-divider);
+        border-radius: .55rem;
+        padding: .55rem .75rem;
+        font-size: .8rem;
+        color: var(--text-strong);
+        cursor: pointer;
+        outline: none;
+        transition: border-color .15s;
+    }
+    .k-rider-select:focus { border-color: rgba(59,130,246,.5); }
+    .k-btn-assign {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: .55rem;
+        padding: .55rem 1rem;
+        font-size: .78rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background .15s;
+        flex-shrink: 0;
+    }
+    .k-btn-assign:hover:not(:disabled) { background: #1d4ed8; }
+    .k-btn-assign:disabled { opacity: .55; cursor: not-allowed; }
+    .k-rider-assigned-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        font-size: .75rem;
+        font-weight: 700;
+        color: #60a5fa;
+        background: rgba(59,130,246,.1);
+        border: 1px solid rgba(59,130,246,.25);
+        border-radius: .5rem;
+        padding: .3rem .7rem;
     }
 </style>
 @endpush
@@ -589,6 +650,7 @@
         <div class="k-modal-items" id="modalItems"></div>
         <div id="modalNotes"></div>
         <div class="k-modal-footer" id="modalFooter"></div>
+        <div id="riderAssignSection"></div>
         <div class="k-modal-action-bar" id="modalActions"></div>
     </div>
 </div>
@@ -607,6 +669,8 @@ let refreshTimer = 15;
 let countdownTimer = null;
 let lastNewCount = {{ $newOrders->count() }};
 let orderDataMap = {};
+
+const AVAILABLE_RIDERS = @json($availableRiders ?? []);
 
 function elapsedBadge(mins) {
     let bg, color, label;
@@ -789,8 +853,95 @@ function openOrderModal(orderId) {
     document.getElementById('modalActions').innerHTML =
         btn + `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);flex:0 0 auto;padding:.6rem 1.2rem;" onclick="closeOrderModal()">Close</button>`;
 
+    // ── Rider assign section (visible on cooking + ready columns) ──────────
+    const canAssign = (col === 'cooking' || col === 'ready');
+    const riderSection = document.getElementById('riderAssignSection');
+    if (canAssign) {
+        if (order.rider_id && order.rider_name) {
+            riderSection.innerHTML = `
+                <div class="k-rider-assign">
+                    <div class="k-rider-assign-label">🛵 Rider Assignment</div>
+                    <div class="k-rider-assigned-badge">✓ ${escapeHtml(order.rider_name)} assigned</div>
+                    <div style="margin-top:.5rem;">
+                        <button class="k-btn-assign" style="font-size:.72rem;padding:.4rem .7rem;background:rgba(255,255,255,.08);color:var(--text-muted);" onclick="showRiderReassign(${order.id})">Change Rider</button>
+                    </div>
+                </div>`;
+        } else {
+            riderSection.innerHTML = buildRiderSelectHtml(order.id);
+        }
+    } else {
+        riderSection.innerHTML = '';
+    }
+
     document.getElementById('orderModal').classList.add('open');
     document.body.style.overflow = 'hidden';
+}
+
+function buildRiderSelectHtml(orderId) {
+    if (!AVAILABLE_RIDERS.length) {
+        return `<div class="k-rider-assign">
+            <div class="k-rider-assign-label">🛵 Rider Assignment</div>
+            <div style="font-size:.75rem;color:var(--text-muted);font-style:italic;">No riders available right now</div>
+        </div>`;
+    }
+    const options = AVAILABLE_RIDERS.map(r =>
+        `<option value="${r.id}">${escapeHtml(r.name)}${r.phone ? ' · ' + escapeHtml(r.phone) : ''}</option>`
+    ).join('');
+    return `
+        <div class="k-rider-assign">
+            <div class="k-rider-assign-label">🛵 Assign Rider</div>
+            <div class="k-rider-row">
+                <select class="k-rider-select" id="riderSelectFor_${orderId}">
+                    <option value="">— Choose a rider —</option>
+                    ${options}
+                </select>
+                <button class="k-btn-assign" id="riderAssignBtn_${orderId}"
+                    onclick="assignRiderAction(${orderId})">Assign</button>
+            </div>
+        </div>`;
+}
+
+function showRiderReassign(orderId) {
+    document.getElementById('riderAssignSection').innerHTML = buildRiderSelectHtml(orderId);
+}
+
+async function assignRiderAction(orderId) {
+    const select = document.getElementById('riderSelectFor_' + orderId);
+    const btn    = document.getElementById('riderAssignBtn_' + orderId);
+    const riderId = select ? select.value : '';
+
+    if (!riderId) { select.style.borderColor = '#ef4444'; setTimeout(() => select.style.borderColor = '', 1500); return; }
+
+    btn.disabled = true;
+    btn.textContent = '…';
+
+    try {
+        const res = await fetch(`/admin/orders/${orderId}/assign-rider`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rider_id: riderId }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+            alert(data.message || 'Failed to assign rider.');
+            btn.disabled = false;
+            btn.textContent = 'Assign';
+            return;
+        }
+        // Update local orderDataMap
+        const riderObj = AVAILABLE_RIDERS.find(r => r.id == riderId);
+        if (orderDataMap[orderId]) {
+            orderDataMap[orderId].rider_id   = parseInt(riderId);
+            orderDataMap[orderId].rider_name = riderObj ? riderObj.name : 'Rider';
+            orderDataMap[orderId].column     = 'ready';
+        }
+        closeOrderModal();
+        await refreshKitchen(true);
+    } catch (e) {
+        alert('Network error. Please try again.');
+        btn.disabled = false;
+        btn.textContent = 'Assign';
+    }
 }
 
 function closeOrderModal(e) {
@@ -970,6 +1121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'total'        => (float) ($o->total ?? 0),
                 'payment_method' => $o->payment_method,
                 'rider_name'   => $o->rider?->user?->name,
+                'rider_id'     => $o->rider_id,
                 'column'       => $col,
                 'items'        => $o->items->map(function($i) {
                     $mods = collect($i->modifiers ?? [])

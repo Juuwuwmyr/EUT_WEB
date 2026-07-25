@@ -571,6 +571,9 @@ class AdminController extends Controller
         $request->validate(['rider_id' => 'required|exists:riders,id']);
 
         if (!$order->isAssignable()) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Order cannot be assigned at this stage.'], 422);
+            }
             return back()->with('error', 'Order cannot be assigned at this stage.');
         }
 
@@ -580,6 +583,10 @@ class AdminController extends Controller
             'assigned_at' => now(),
             'prepared_at' => $order->prepared_at ?? now(),
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => "Rider assigned to order #{$order->order_number}."]);
+        }
 
         return back()->with('success', "Rider assigned to order #{$order->order_number}.");
     }
@@ -641,11 +648,17 @@ class AdminController extends Controller
     {
         $orders = $this->getKitchenOrders();
 
+        $availableRiders = \App\Models\Rider::with('user')
+            ->where('is_available', true)
+            ->get()
+            ->map(fn($r) => ['id' => $r->id, 'name' => $r->user->name, 'phone' => $r->phone]);
+
         return view('admin.kitchen', [
             'newOrders'      => $orders['new'],
             'queuedOrders'   => $orders['queued'],
             'cookingOrders'  => $orders['cooking'],
             'readyOrders'    => $orders['ready'],
+            'availableRiders'=> $availableRiders,
         ]);
     }
 
@@ -747,6 +760,7 @@ class AdminController extends Controller
             'assigned_at'     => $order->assigned_at?->format('g:i A'),
             'picked_up_at'    => $order->picked_up_at?->format('g:i A'),
             'rider_name'      => $order->rider?->user?->name,
+            'rider_id'        => $order->rider_id,
             'subtotal'        => (float) $order->subtotal,
             'delivery_fee'    => (float) $order->delivery_fee,
             'total'           => (float) $order->total,
