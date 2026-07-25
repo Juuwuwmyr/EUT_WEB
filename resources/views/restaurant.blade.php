@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E.U.T Snack House — Eat • Unwind • Tea</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Black+Ops+One&display=swap" rel="stylesheet">
     <style>
 /* ══════════════════════════════════════════════════════
    RESET & BASE
@@ -97,6 +97,29 @@ img { display: block; }
     color: #facc15; font-family: 'Playfair Display', serif;
     font-weight: 700; font-style: italic; font-size: 17px;
     letter-spacing: -0.01em; text-decoration: none; flex-shrink: 0;
+}
+/* ── EUT tri-color solid logo ── */
+.eut-logo-letter {
+    font-family: 'Black Ops One', 'Arial Black', sans-serif;
+    font-size: 22px;
+    font-weight: 900;
+    font-style: normal;
+    letter-spacing: .04em;
+    line-height: 1;
+}
+.eut-logo-e { color: #f97316; }
+.eut-logo-u { color: #38bdf8; }
+.eut-logo-t { color: #ef4444; }
+.eut-logo-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    font-style: normal;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-left: 4px;
+    align-self: center;
 }
 .nav-links {
     display: flex; align-items: center; gap: 32px; list-style: none;
@@ -638,9 +661,9 @@ img { display: block; }
     gap: 24px; flex-wrap: wrap;
 }
 .footer-brand {
-    display: flex; align-items: center; gap: 9px;
-    color: #facc15; font-family: 'Playfair Display', serif;
-    font-weight: 700; font-style: italic; font-size: 18px;
+    display: flex; align-items: center; gap: 4px;
+    font-family: 'Black Ops One', sans-serif;
+    font-weight: 700; font-style: normal; font-size: 18px;
     text-decoration: none;
 }
 .footer-nav { display: flex; gap: 28px; flex-wrap: wrap; }
@@ -855,9 +878,9 @@ img { display: block; }
      NAV
 ══════════════════════════════════════════════════ -->
 <nav class="nav" id="mainNav">
-    <a href="{{ route('restaurant') }}" class="nav-brand">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-        E.U.T Snack House
+    <a href="{{ route('restaurant') }}" class="nav-brand" style="gap:2px;">
+        <span style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;color:#f97316;text-decoration:none;letter-spacing:.05em;line-height:1;">E</span><span style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;color:#38bdf8;letter-spacing:.05em;line-height:1;">U</span><span style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;color:#ef4444;letter-spacing:.05em;line-height:1;">T</span>
+        <span class="eut-logo-sub">Snack House</span>
     </a>
     <ul class="nav-links">
         <li><a href="#hero">Home</a></li>
@@ -1628,9 +1651,9 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
 ══════════════════════════════════════════════════ -->
 <footer class="footer">
     <div class="footer-top">
-        <a href="{{ route('restaurant') }}" class="footer-brand">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-            E.U.T Snack House
+        <a href="{{ route('restaurant') }}" class="footer-brand" style="gap:2px;">
+            <span style="font-family:'Playfair Display',serif;font-weight:800;font-size:20px;color:#f97316;letter-spacing:.05em;line-height:1;">E</span><span style="font-family:'Playfair Display',serif;font-weight:800;font-size:20px;color:#38bdf8;letter-spacing:.05em;line-height:1;">U</span><span style="font-family:'Playfair Display',serif;font-weight:800;font-size:20px;color:#ef4444;letter-spacing:.05em;line-height:1;">T</span>
+            <span class="eut-logo-sub" style="margin-left:6px;">Snack House</span>
         </a>
         <nav class="footer-nav">
             <a href="#hero">Home</a>
