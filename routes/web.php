@@ -136,6 +136,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/kitchen/orders',                   [AdminController::class, 'kitchenOrders'])->name('kitchen.orders');
     Route::post('/kitchen/orders/{order}/start',    [AdminController::class, 'kitchenStartCooking'])->name('kitchen.start');
     Route::post('/kitchen/orders/{order}/ready',    [AdminController::class, 'kitchenMarkReady'])->name('kitchen.ready');
+    Route::get('/kitchen/orders/{order}/receipt',   [AdminController::class, 'kitchenReceipt'])->name('kitchen.receipt');
 
     // ── Riders ─────────────────────────────────────────────
     Route::get('/riders',                           [AdminController::class, 'riders'])->name('riders');

@@ -554,7 +554,16 @@ class AdminController extends Controller
             return $this->kitchenActionResponse(false, 'Order cannot be accepted.');
         }
         $order->update(['status' => 'accepted', 'accepted_at' => now()]);
-        return $this->kitchenActionResponse(true, "Order #{$order->order_number} accepted.");
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success'     => true,
+                'message'     => "Order #{$order->order_number} accepted.",
+                'receipt_url' => route('admin.kitchen.receipt', $order->id),
+            ]);
+        }
+
+        return back()->with('success', "Order #{$order->order_number} accepted.");
     }
 
     public function assignRider(Request $request, \App\Models\Order $order)
@@ -679,6 +688,12 @@ class AdminController extends Controller
         $order->update(['prepared_at' => now()]);
 
         return $this->kitchenActionResponse(true, "Order #{$order->order_number} is ready for pickup.");
+    }
+
+    public function kitchenReceipt(\App\Models\Order $order)
+    {
+        $order->load(['items', 'user']);
+        return view('admin.partials.kitchen-receipt', compact('order'));
     }
 
     private function getKitchenOrders(): array
