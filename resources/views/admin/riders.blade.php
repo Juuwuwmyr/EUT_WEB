@@ -512,13 +512,15 @@ $adminRidersJson = $riders->map(function($rider) {
     }
     $color = $currentStatus === 'on_delivery' ? '#8b5cf6' : ($currentStatus === 'online' ? '#10b981' : '#6b7280');
     return [
-        'id'     => $rider->id,
-        'name'   => $rider->user->name,
-        'pos'    => $pos,
-        'dest'   => $dest,
-        'status' => $currentStatus,
-        'order'  => $activeOrder ? '#' . $activeOrder->order_number : null,
-        'color'  => $color,
+        'id'       => $rider->id,
+        'name'     => $rider->user->name,
+        'pos'      => $pos,
+        'dest'     => $dest,
+        'status'   => $currentStatus,
+        'order'    => $activeOrder ? '#' . $activeOrder->order_number : null,
+        'customer' => $activeOrder?->user?->name,
+        'address'  => $activeOrder?->delivery_address,
+        'color'    => $color,
     ];
 })->values();
 @endphp
@@ -564,15 +566,46 @@ async function initAdminMap() {
     adminMapInst.fitBounds(allPoints.length > 1 ? allPoints : [RESTAURANT_ADMIN, [RESTAURANT_ADMIN[0]+0.01, RESTAURANT_ADMIN[1]+0.01]], { padding: [40, 40] });
 }
 
+function riderPopupHtml(r) {
+    const orderLine = r.order
+        ? `<div style="margin-top:4px;">🛵 <b>${r.order}</b>${r.customer ? ' — ' + r.customer : ''}</div>`
+        : '<div style="margin-top:4px;color:#10b981;">🟢 Available</div>';
+    const addrLine = (r.status === 'on_delivery' && r.address)
+        ? `<div style="font-size:11px;color:#9ca3af;margin-top:3px;max-width:200px;">📍 ${r.address}</div>` : '';
+    const statusBadge = r.status === 'on_delivery'
+        ? `<span style="background:#8b5cf620;color:#a78bfa;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid #8b5cf640;">On Delivery</span>`
+        : `<span style="background:#10b98120;color:#34d399;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid #10b98140;">Online</span>`;
+    return `<div style="font-family:sans-serif;min-width:160px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <b style="font-size:13px;">${r.name}</b>${statusBadge}
+        </div>
+        ${orderLine}${addrLine}
+    </div>`;
+}
+
+function destPopupHtml(r) {
+    return `<div style="font-family:sans-serif;">
+        <b style="font-size:12px;">📦 Delivery Point</b>
+        ${r.order ? `<div style="margin-top:3px;font-size:11px;color:#f87171;">${r.order}</div>` : ''}
+        ${r.customer ? `<div style="font-size:11px;color:#9ca3af;">${r.customer}</div>` : ''}
+        ${r.address ? `<div style="font-size:10px;color:#6b7280;margin-top:2px;max-width:200px;">${r.address}</div>` : ''}
+    </div>`;
+}
+
 async function addOrUpdateAdminRider(r) {
     if (!adminMapInst) return;
 
     if (adminMarkers[r.id]) {
-        // Rider already on map — just move the marker
+        // Rider already on map — move the marker and update popup
         adminMarkers[r.id].marker.setLatLng(r.pos);
-        adminMarkers[r.id].marker.setPopupContent(`<b>${r.name}</b><br>${r.order ? '&#x1F7E3; ' + r.order : '&#x1F7E2; Available'}`);
+        adminMarkers[r.id].marker.getPopup().setContent(riderPopupHtml(r));
 
-        // Update route line for on-delivery riders
+        // Update marker icon color if status changed
+        adminMarkers[r.id].marker.setIcon(L.divIcon({
+            html: `<div style="background:${r.color};width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 10px ${r.color}88;">&#x1F6F5;</div>`,
+            className: '', iconSize: [42, 42], iconAnchor: [21, 21],
+        }));
+
         if (r.status === 'on_delivery' && r.dest) {
             const route = await fetchOSRMAdmin(r.pos, r.dest);
             if (route) {
@@ -580,18 +613,29 @@ async function addOrUpdateAdminRider(r) {
                     adminMarkers[r.id].routeLine.setLatLngs(route);
                 } else {
                     adminMarkers[r.id].routeLine = L.polyline(route, { color: r.color, weight: 5, opacity: 1 }).addTo(adminMapInst);
-                    // Customer pin (added once per rider, not re-added on updates)
-                    if (!adminMarkers[r.id].destMarker) {
-                        adminMarkers[r.id].destMarker = L.circleMarker(r.dest, {
-                            radius: 8, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.85, weight: 2,
-                        }).addTo(adminMapInst).bindPopup(`<b>Customer</b><br>${r.order || ''}`);
-                    }
                 }
-            } else if (adminMarkers[r.id].routeLine) {
-                adminMarkers[r.id].routeLine.setLatLngs([r.pos, r.dest]);
+                if (!adminMarkers[r.id].destMarker) {
+                    adminMarkers[r.id].destMarker = L.circleMarker(r.dest, {
+                        radius: 10, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.9, weight: 2,
+                    }).addTo(adminMapInst).bindPopup(destPopupHtml(r));
+                } else {
+                    adminMarkers[r.id].destMarker.setLatLng(r.dest);
+                    adminMarkers[r.id].destMarker.getPopup().setContent(destPopupHtml(r));
+                }
+            } else {
+                if (adminMarkers[r.id].routeLine) {
+                    adminMarkers[r.id].routeLine.setLatLngs([r.pos, r.dest]);
+                } else {
+                    adminMarkers[r.id].routeLine = L.polyline([r.pos, r.dest], { color: r.color, weight: 3, opacity: 0.6, dashArray: '6 4' }).addTo(adminMapInst);
+                }
+                if (!adminMarkers[r.id].destMarker) {
+                    adminMarkers[r.id].destMarker = L.circleMarker(r.dest, {
+                        radius: 10, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.9, weight: 2,
+                    }).addTo(adminMapInst).bindPopup(destPopupHtml(r));
+                }
             }
         } else {
-            // No longer on delivery — remove route line
+            // No longer on delivery — remove route + destination pin
             if (adminMarkers[r.id].routeLine) {
                 adminMarkers[r.id].routeLine.remove();
                 adminMarkers[r.id].routeLine = null;
@@ -607,19 +651,19 @@ async function addOrUpdateAdminRider(r) {
             html: `<div style="background:${r.color};width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 10px ${r.color}88;">&#x1F6F5;</div>`,
             className: '', iconSize: [42, 42], iconAnchor: [21, 21],
         }) }).addTo(adminMapInst);
-        marker.bindPopup(`<b>${r.name}</b><br>${r.order ? '&#x1F7E3; ' + r.order : '&#x1F7E2; Available'}`);
+        marker.bindPopup(riderPopupHtml(r));
         adminMarkers[r.id] = { marker, routeLine: null, destMarker: null };
 
         if (r.status === 'on_delivery' && r.dest) {
             const route = await fetchOSRMAdmin(r.pos, r.dest);
             if (route) {
                 adminMarkers[r.id].routeLine = L.polyline(route, { color: r.color, weight: 5, opacity: 1 }).addTo(adminMapInst);
-                adminMarkers[r.id].destMarker = L.circleMarker(r.dest, {
-                    radius: 8, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.85, weight: 2,
-                }).addTo(adminMapInst).bindPopup(`<b>Customer</b><br>${r.order || ''}`);
             } else {
                 adminMarkers[r.id].routeLine = L.polyline([r.pos, r.dest], { color: r.color, weight: 3, opacity: 0.6, dashArray: '6 4' }).addTo(adminMapInst);
             }
+            adminMarkers[r.id].destMarker = L.circleMarker(r.dest, {
+                radius: 10, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.9, weight: 2,
+            }).addTo(adminMapInst).bindPopup(destPopupHtml(r));
         }
     }
 }
@@ -634,13 +678,15 @@ async function pollAdminMap() {
         for (const r of riders) {
             // Build a compatible object for addOrUpdateAdminRider
             const rd = {
-                id:     r.id,
-                name:   r.name,
-                pos:    [parseFloat(r.lat), parseFloat(r.lng)],
-                dest:   r.dest_lat && r.dest_lng ? [parseFloat(r.dest_lat), parseFloat(r.dest_lng)] : null,
-                status: r.status === 'On Delivery' ? 'on_delivery' : 'online',
-                order:  r.order ? '#' + r.order : null,
-                color:  r.status === 'On Delivery' ? '#8b5cf6' : '#10b981',
+                id:       r.id,
+                name:     r.name,
+                pos:      [parseFloat(r.lat), parseFloat(r.lng)],
+                dest:     r.dest_lat && r.dest_lng ? [parseFloat(r.dest_lat), parseFloat(r.dest_lng)] : null,
+                status:   r.status === 'On Delivery' ? 'on_delivery' : 'online',
+                order:    r.order ? '#' + r.order : null,
+                customer: r.customer || null,
+                address:  r.address  || null,
+                color:    r.status === 'On Delivery' ? '#8b5cf6' : '#10b981',
             };
             await addOrUpdateAdminRider(rd);
         }

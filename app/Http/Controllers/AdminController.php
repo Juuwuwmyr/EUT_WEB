@@ -618,22 +618,31 @@ class AdminController extends Controller
 
     public function riderLocations()
     {
+        // Include ALL riders who have a GPS position — both available AND actively delivering
         $riders = \App\Models\Rider::with(['user', 'activeOrder'])
-            ->where('is_available', true)
+            ->where(function ($q) {
+                // Available riders (idle, ready for orders)
+                $q->where('is_available', true)
+                  // OR riders currently on an active delivery (even if marked unavailable)
+                  ->orWhereHas('activeOrder', fn($oq) => $oq->whereIn('status', ['rider_assigned', 'out_for_delivery']));
+            })
             ->whereNotNull('current_lat')
             ->get()
             ->map(function ($r) {
                 $order = $r->activeOrder();
                 $isOnDelivery = $order && in_array($order->status, ['rider_assigned', 'out_for_delivery']);
                 return [
-                    'id'       => $r->id,
-                    'name'     => $r->user->name,
-                    'lat'      => $r->current_lat,
-                    'lng'      => $r->current_lng,
-                    'status'   => $isOnDelivery ? 'On Delivery' : 'Online',
-                    'order'    => $order?->order_number,
-                    'dest_lat' => ($isOnDelivery && $order->delivery_lat)  ? $order->delivery_lat  : null,
-                    'dest_lng' => ($isOnDelivery && $order->delivery_lng)  ? $order->delivery_lng  : null,
+                    'id'          => $r->id,
+                    'name'        => $r->user->name,
+                    'lat'         => $r->current_lat,
+                    'lng'         => $r->current_lng,
+                    'status'      => $isOnDelivery ? 'On Delivery' : 'Online',
+                    'order'       => $order?->order_number,
+                    'order_id'    => $order?->id,
+                    'customer'    => $order?->user?->name,
+                    'address'     => $order?->delivery_address,
+                    'dest_lat'    => ($isOnDelivery && $order->delivery_lat)  ? $order->delivery_lat  : null,
+                    'dest_lng'    => ($isOnDelivery && $order->delivery_lng)  ? $order->delivery_lng  : null,
                 ];
             });
 

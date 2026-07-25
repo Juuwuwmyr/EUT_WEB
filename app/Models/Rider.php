@@ -62,8 +62,10 @@ class Rider extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        if (!$this->is_available) return 'offline';
+        // Always check active order first — a rider on delivery is "on_delivery"
+        // regardless of their is_available flag
         if ($this->activeOrder()) return 'on_delivery';
+        if (!$this->is_available) return 'offline';
         return 'online';
     }
 }
