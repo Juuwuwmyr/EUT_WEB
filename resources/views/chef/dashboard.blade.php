@@ -753,7 +753,12 @@ function renderOrderCard(order, column) {
             ${deliveryBanner}
             <div class="k-card-top">
                 <div>
-                    <div class="k-order-num">${escapeHtml(order.order_number)}</div>
+                    <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.15rem;">
+                        <div class="k-order-num">${escapeHtml(order.order_number)}</div>
+                        <span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;">
+                            ${order.order_type_icon} ${order.order_type_label}
+                        </span>
+                    </div>
                     <div class="k-customer">${escapeHtml(order.customer)} · ${order.placed_at}</div>
                 </div>
                 ${elapsed}
@@ -787,7 +792,10 @@ function openOrderModal(orderId) {
     const order = orderDataMap[orderId];
     if (!order) return;
 
-    document.getElementById('modalOrderNum').textContent = order.order_number;
+    document.getElementById('modalOrderNum').innerHTML = 
+        order.order_number + 
+        ` <span style="font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.08);color:var(--text-muted);border:1px solid rgba(255,255,255,.12);margin-left:.5rem;vertical-align:middle;font-family:sans-serif;font-weight:600;">` + 
+        order.order_type_icon + ' ' + order.order_type_label + '</span>';
     document.getElementById('modalCustomer').textContent = order.customer + ' · ' + order.placed_at;
 
     const statusColors = { pending:'#f59e0b', accepted:'#3b82f6', preparing:'#ef4444', rider_assigned:'#8b5cf6', out_for_delivery:'#8b5cf6', delivered:'#22c55e' };
@@ -1125,6 +1133,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 'order_number' => $o->order_number,
                 'customer'     => $o->user?->name ?? 'Guest',
                 'status'       => $o->status,
+                'order_type'   => $o->order_type,
+                'order_type_label' => $o->order_type_label,
+                'order_type_icon' => $o->order_type_icon,
                 'placed_at'    => $o->created_at->format('g:i A'),
                 'elapsed_mins' => (int) $o->created_at->diffInMinutes(now()),
                 'notes'        => $o->notes,

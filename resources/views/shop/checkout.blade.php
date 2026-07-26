@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -172,7 +172,7 @@
       <div>
 
         <!-- Delivery Address Card -->
-        <div class="card">
+        <div class="card" id="addressCard">
             <div class="card-header">
                 <div class="card-icon" style="background:rgba(239,68,68,.1);">
                     <svg width="15" height="15" fill="none" stroke="#f87171" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -212,6 +212,33 @@
                 <a href="{{ route('restaurant') }}" class="btn-add-addr">Log in</a>
             </div>
             @endguest
+        </div>
+
+        <!-- Order Type -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(250,204,21,.1);">
+                    <svg width="15" height="15" fill="none" stroke="#facc15" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                </div>
+                <span class="card-title">Order Type</span>
+            </div>
+            <div class="card-body" style="padding-bottom:6px; display: flex; gap: 8px;">
+                <label class="pay-option selected" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center;" onclick="selectOrderType(this, 'delivery')">
+                    <input type="radio" name="order_type" value="delivery" checked style="display:none;">
+                    <span style="font-size:20px;">🛵</span>
+                    <span style="font-size:12px; font-weight:700;">Delivery</span>
+                </label>
+                <label class="pay-option" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center;" onclick="selectOrderType(this, 'pickup')">
+                    <input type="radio" name="order_type" value="pickup" style="display:none;">
+                    <span style="font-size:20px;">🥡</span>
+                    <span style="font-size:12px; font-weight:700;">Pickup</span>
+                </label>
+                <label class="pay-option" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center;" onclick="selectOrderType(this, 'dine_in')">
+                    <input type="radio" name="order_type" value="dine_in" style="display:none;">
+                    <span style="font-size:20px;">🍽️</span>
+                    <span style="font-size:12px; font-weight:700;">Dine-in</span>
+                </label>
+            </div>
         </div>
 
         <!-- Payment Method -->
@@ -431,7 +458,7 @@ function renderSummary(){
         el.appendChild(row);sub+=item.price*item.quantity;
     });
     const qty=cart.reduce((s,i)=>s+i.quantity,0);
-    const fee=sub>=FREE_MIN?0:50;
+    const fee=(sub>=FREE_MIN || currentOrderType !== 'delivery') ? 0 : 50;
     document.getElementById('itemCountBadge').textContent=qty+(qty===1?' item':' items');
     document.getElementById('coSubtotal').textContent='₱'+sub.toLocaleString();
     document.getElementById('coDelivery').innerHTML=fee===0?'<span style="color:#4ade80;font-weight:700;">FREE</span>':'₱50';
@@ -446,6 +473,25 @@ function renderSummary(){
 
 /* ── Payment highlight ── */
 function selectPay(el){document.querySelectorAll('.pay-option').forEach(l=>l.classList.remove('selected'));el.classList.add('selected');}
+
+/* ── Order Type highlight ── */
+let currentOrderType = 'delivery';
+function selectOrderType(el, type){
+    const container = el.closest('.card-body');
+    container.querySelectorAll('.pay-option').forEach(l=>l.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input').checked = true;
+    currentOrderType = type;
+
+    // Hide/Show address card based on type
+    const addrCard = document.getElementById('addressCard');
+    if(type === 'delivery') {
+        addrCard.style.display = 'block';
+    } else {
+        addrCard.style.display = 'none';
+    }
+    renderSummary();
+}
 
 /* ═══════════════════════════════════
    ADDRESS SYSTEM
@@ -697,8 +743,14 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     const cart = JSON.parse(localStorage.getItem('eutCart') || '[]');
     if (!cart.length) { alert('Your cart is empty.'); return; }
 
+    const orderType = document.querySelector('input[name=order_type]:checked')?.value || 'delivery';
     const addr = addresses.find(a => a.id === selectedAddressId);
-    if (!addr) { alert('Please add a delivery address first.'); openAddForm(); return; }
+    
+    if (orderType === 'delivery' && !addr) { 
+        alert('Please add a delivery address first.'); 
+        openAddForm(); 
+        return; 
+    }
 
     const btn = document.getElementById('placeOrderBtn');
     btn.disabled = true; btn.textContent = '⏳ Placing order…';
@@ -706,7 +758,27 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     const payRaw  = document.querySelector('input[name=payment]:checked')?.value || 'cod';
     const payment = payRaw === 'cod' ? 'cash' : payRaw;
     const notes   = document.getElementById('orderNotes')?.value?.trim() || '';
-    const deliveryAddress = `${addr.recipient_name}, ${addr.full_address}`;
+    
+    let deliveryAddress = 'Store Pickup / Dine-in';
+    let deliveryBarangay = '';
+    let lat = null;
+    let lng = null;
+
+    if (orderType === 'delivery') {
+        deliveryAddress = `${addr.recipient_name}, ${addr.full_address}`;
+        deliveryBarangay = addr.barangay || addr.city || '';
+        
+        /* If GPS not yet captured, do one last blocking attempt (5s max) */
+        if (!_gpsLat && navigator.geolocation) {
+            await new Promise(res => navigator.geolocation.getCurrentPosition(
+                p => { _gpsLat = p.coords.latitude; _gpsLng = p.coords.longitude; res(); },
+                () => res(),
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            ));
+        }
+        lat = _gpsLat || addr.lat || null;
+        lng = _gpsLng || addr.lng || null;
+    }
 
     const items = cart.map(i => ({
         id: i.id, qty: i.quantity,
@@ -720,23 +792,15 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
             })),
     }));
 
-    /* If GPS not yet captured, do one last blocking attempt (5s max) */
-    if (!_gpsLat && navigator.geolocation) {
-        await new Promise(res => navigator.geolocation.getCurrentPosition(
-            p => { _gpsLat = p.coords.latitude; _gpsLng = p.coords.longitude; res(); },
-            () => res(),
-            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-        ));
-    }
-
     const payload = {
-        items, delivery_address: deliveryAddress,
-        delivery_barangay: addr.barangay || addr.city || '',
-        payment_method: payment, notes,
-        // Prefer live device GPS (most accurate for current location),
-        // fall back to saved address coords, then null
-        delivery_lat: _gpsLat || addr.lat || null,
-        delivery_lng: _gpsLng || addr.lng || null,
+        items, 
+        order_type: orderType,
+        delivery_address: deliveryAddress,
+        delivery_barangay: deliveryBarangay,
+        payment_method: payment, 
+        notes,
+        delivery_lat: lat,
+        delivery_lng: lng,
     };
 
     try {

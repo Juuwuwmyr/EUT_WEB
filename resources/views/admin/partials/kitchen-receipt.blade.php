@@ -132,6 +132,10 @@ body {
 <div class="order-num">{{ $order->order_number }}</div>
 
 <div class="meta-row small">
+    <span>Type:</span>
+    <span class="bold">{{ $order->order_type_icon }} {{ $order->order_type_label }}</span>
+</div>
+<div class="meta-row small">
     <span>Date:</span>
     <span>{{ $order->created_at->format('M d, Y g:i A') }}</span>
 </div>
@@ -196,7 +200,7 @@ body {
 </div>
 
 {{-- ── DELIVERY ADDRESS ── --}}
-@if($order->delivery_address)
+@if($order->order_type === 'delivery' && $order->delivery_address)
 <hr class="divider" style="margin:5px 0;">
 <div class="small">
     <div class="bold" style="margin-bottom:1px;">📍 Deliver to:</div>

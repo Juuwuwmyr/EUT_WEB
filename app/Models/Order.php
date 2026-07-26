@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     protected $fillable = [
-        'user_id', 'rider_id', 'status',
+        'user_id', 'rider_id', 'status', 'order_type',
         'subtotal', 'delivery_fee', 'total',
         'payment_method', 'payment_status',
         'delivery_address', 'delivery_barangay', 'delivery_lat', 'delivery_lng',
@@ -115,6 +115,26 @@ class Order extends Model
             'delivered'        => 'Delivered',
             'cancelled'        => 'Cancelled',
             default            => ucfirst($this->status),
+        };
+    }
+
+    public function getOrderTypeLabelAttribute(): string
+    {
+        return match($this->order_type) {
+            'delivery' => 'Delivery',
+            'pickup'   => 'Pickup',
+            'dine_in'  => 'Dine-in',
+            default    => ucfirst($this->order_type),
+        };
+    }
+
+    public function getOrderTypeIconAttribute(): string
+    {
+        return match($this->order_type) {
+            'delivery' => '🛵',
+            'pickup'   => '🥡',
+            'dine_in'  => '🍽️',
+            default    => '📦',
         };
     }
 }

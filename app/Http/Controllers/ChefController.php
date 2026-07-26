@@ -190,6 +190,9 @@ class ChefController extends Controller
             'id'              => $order->id,
             'order_number'    => $order->order_number,
             'status'          => $order->status,
+            'order_type'      => $order->order_type,
+            'order_type_label'=> $order->order_type_label,
+            'order_type_icon' => $order->order_type_icon,
             'customer'        => $order->user?->name ?? 'Guest',
             'notes'           => $order->notes,
             'placed_at'       => $order->created_at->format('g:i A'),
@@ -228,6 +231,18 @@ class ChefController extends Controller
      */
     private function kitchenDeliveryMeta(Order $order): array
     {
+        if ($order->order_type !== 'delivery') {
+            return [
+                'status' => 'ready_pickup',
+                'label'  => $order->order_type === 'pickup' ? 'Ready for Pickup' : 'Ready for Dine-in',
+                'detail' => $order->prepared_at
+                    ? 'Marked ready at ' . $order->prepared_at->format('g:i A')
+                    : 'Food is ready',
+                'color'  => '#10b981',
+                'bg'     => 'rgba(16,185,129,.14)',
+            ];
+        }
+
         if ($order->status === 'out_for_delivery') {
             return [
                 'status' => 'picked_up',

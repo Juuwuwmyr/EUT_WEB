@@ -116,7 +116,12 @@ $statusConfig = [
                             {{ strtoupper(substr($customerName,0,1)) }}
                         </div>
                         <div>
-                            <p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">{{ $customerName }}</p>
+                            <div style="display:flex;align-items:center;gap:.3rem;margin-bottom:.1rem;">
+                                <p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">{{ $customerName }}</p>
+                                <span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;" title="{{ $order->order_type_label }}">
+                                    {{ $order->order_type_icon }} {{ $order->order_type_label }}
+                                </span>
+                            </div>
                             <p style="font-size:.68rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">{{ $order->delivery_address }}</p>
                         </div>
                     </div>
@@ -189,6 +194,9 @@ foreach($orders as $o) {
         'id'           => $o->id,
         'order_number' => $o->order_number,
         'status'       => $o->status,
+        'order_type'   => $o->order_type,
+        'order_type_label' => $o->order_type_label,
+        'order_type_icon' => $o->order_type_icon,
         'status_label' => $o->status_label,
         'customer'     => $o->user?->name ?? 'Guest',
         'email'        => $o->user?->email ?? '',
@@ -246,19 +254,34 @@ var STATUS_TIMELINE = [
 function openManageModal(id) {
     var o = ORDERS_MAP[id];
     if (!o) return;
-    var sp = STATUS_PIPELINE[o.status] || {};
+
+    // Adjust pipeline for non-delivery orders
+    var sp = JSON.parse(JSON.stringify(STATUS_PIPELINE[o.status] || {}));
+    if (o.order_type !== 'delivery') {
+        if (o.status === 'preparing') {
+            sp.next = 'delivered';
+            sp.nextLabel = o.order_type === 'pickup' ? '🥡 Mark as Picked Up' : '🍽️ Mark as Completed';
+            sp.btnClass = 'btn-success';
+        }
+    }
 
     document.getElementById('mmTitle').textContent = 'Manage Order ' + o.order_number;
 
     // -- Timeline
-    var statusOrder = ['pending','accepted','preparing','out_for_delivery','delivered'];
+    var isDelivery = o.order_type === 'delivery';
+    var statusOrder = isDelivery 
+        ? ['pending','accepted','preparing','out_for_delivery','delivered']
+        : ['pending','accepted','preparing','delivered'];
+    
     var curIdx = statusOrder.indexOf(o.status);
-    if (o.status === 'rider_assigned') curIdx = 2;
+    if (isDelivery && o.status === 'rider_assigned') curIdx = 2;
+
+    var timelineSteps = isDelivery ? STATUS_TIMELINE : STATUS_TIMELINE.filter(s => s.key !== 'out_for_delivery');
 
     var tlHtml = '<div style="display:flex;align-items:center;gap:0;margin-bottom:.25rem;overflow-x:auto;padding-bottom:.25rem;">';
-    STATUS_TIMELINE.forEach(function(step, i) {
-        var done     = i < (o.status === 'rider_assigned' ? 3 : curIdx);
-        var current  = (i === curIdx) || (o.status === 'rider_assigned' && i === 2);
+    timelineSteps.forEach(function(step, i) {
+        var done     = i < (isDelivery && o.status === 'rider_assigned' ? 3 : curIdx);
+        var current  = (i === curIdx) || (isDelivery && o.status === 'rider_assigned' && i === 2);
         var cancelled = o.status === 'cancelled';
         var dotColor  = done || current ? (cancelled ? '#ef4444' : step.key === 'delivered' ? '#10b981' : '#3b82f6') : 'var(--border-card)';
         var textColor = done || current ? 'var(--text-strong)' : 'var(--text-muted)';
@@ -269,9 +292,9 @@ function openManageModal(id) {
                 (current ? 'box-shadow:0 0 0 4px ' + dotColor + '33;' : '') + '">' +
                     step.icon +
                 '</div>' +
-                '<span style="font-size:.6rem;font-weight:' + fw + ';color:' + textColor + ';text-align:center;margin-top:.3rem;line-height:1.2;">' + step.label + '</span>' +
+                '<span style="font-size:.6rem;font-weight:' + fw + ';color:' + textColor + ';text-align:center;margin-top:.3rem;line-height:1.2;">' + (step.key === 'delivered' && !isDelivery ? (o.order_type === 'pickup' ? 'Picked Up' : 'Completed') : step.label) + '</span>' +
             '</div>';
-        if (i < STATUS_TIMELINE.length - 1) {
+        if (i < timelineSteps.length - 1) {
             tlHtml += '<div style="height:2px;flex:1;background:' + (done ? '#3b82f6' : 'var(--border-card)') + ';margin-top:1rem;min-width:16px;"></div>';
         }
     });
@@ -404,6 +427,13 @@ function openManageModal(id) {
         (actionsHtml ? '<div><p style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .5rem;font-weight:600;">Actions</p>' + actionsHtml + '</div>' : '');
 
     document.getElementById('mmBody').innerHTML = html;
+    
+    // Add Order Type badge to modal header
+    var mmTitle = document.getElementById('mmTitle');
+    mmTitle.innerHTML = 'Manage Order ' + o.order_number + 
+        ' <span style="font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.08);color:var(--text-muted);border:1px solid rgba(255,255,255,.12);margin-left:.5rem;vertical-align:middle;">' + 
+        o.order_type_icon + ' ' + o.order_type_label + '</span>';
+
     openModal('manageModal');
     if (typeof lucide !== 'undefined') setTimeout(function(){ lucide.createIcons(); }, 0);
 

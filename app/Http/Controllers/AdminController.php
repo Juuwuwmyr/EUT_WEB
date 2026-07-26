@@ -595,12 +595,17 @@ class AdminController extends Controller
 
     public function updateOrderStatus(Request $request, \App\Models\Order $order)
     {
-        // Admin can only transition up to out_for_delivery — "delivered" is rider-only
-        $request->validate(['status' => 'required|in:preparing,rider_assigned,out_for_delivery,cancelled']);
+        // Admin can only transition to delivered for non-delivery orders
+        $allowed = ['preparing', 'rider_assigned', 'out_for_delivery', 'cancelled'];
+        if ($order->order_type !== 'delivery') {
+            $allowed[] = 'delivered';
+        }
+
+        $request->validate(['status' => ['required', Rule::in($allowed)]]);
 
         // Prevent downgrading a delivered order
         if ($order->status === 'delivered') {
-            return back()->with('error', 'Delivered orders cannot be changed. Only the rider can mark an order as delivered.');
+            return back()->with('error', 'Delivered orders cannot be changed.');
         }
 
         $data = ['status' => $request->status];

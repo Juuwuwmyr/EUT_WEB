@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -261,7 +261,12 @@ function buildOrderCard(o) {
     <div class="ocard" onclick="openDetail(${o.id})">
         <div class="ocard-top">
             <div>
-                <p class="ocard-num">#${escHtml(o.order_number)}</p>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <p class="ocard-num">#${escHtml(o.order_number)}</p>
+                    <span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;">
+                        ${o.order_type_icon} ${o.order_type_label}
+                    </span>
+                </div>
                 <p class="ocard-date">${escHtml(o.placed_at)}</p>
             </div>
             <span class="badge ${cfg.badge}">${isLive?'<span class="badge-pulse"></span> ':''} ${escHtml(cfg.label)}</span>
@@ -368,21 +373,28 @@ function buildDetailBody(o) {
             <div class="progress-steps">
                 <span class="step-label ${isPlaced?'now':!isPlaced?'done':''}">Placed</span>
                 <span class="step-label ${isPreparing?'now':(isOnWay||isDelivered)?'done':''}">Preparing</span>
-                <span class="step-label ${isOnWay?'now':isDelivered?'done':''}">On the way</span>
-                <span class="step-label ${isDelivered?'done':''}">Delivered</span>
+                ${isDelivery ? `<span class="step-label ${isOnWay?'now':isDelivered?'done':''}">On the way</span>` : ''}
+                <span class="step-label ${isDelivered?'done':''}">${!isDelivery ? (o.order_type === 'pickup' ? 'Picked Up' : 'Completed') : 'Delivered'}</span>
             </div>
         </div>
         <div class="sheet-divider" style="margin-top:14px;"></div>` : '';
 
     // ── Timeline ──
+    const isDelivery = o.order_type === 'delivery';
+    const timelineSteps = isDelivery 
+        ? ['pending','accepted','preparing','rider_assigned','out_for_delivery','delivered']
+        : ['pending','accepted','preparing','delivered'];
+
     const stepsArr = o.status === 'cancelled'
         ? [{key:'placed',label:'Order Placed',time:o.placed_at,done:true},{key:'cancelled',label:'Cancelled',time:o.cancelled_at||'',done:true,is_cancel:true}]
-        : TIMELINE_STEPS.map((s,i) => {
-            const currentIdx = TIMELINE_STEPS.indexOf(o.status);
+        : timelineSteps.map((s,i) => {
+            const currentIdx = timelineSteps.indexOf(o.status);
             const isDone = i < currentIdx || o.status === 'delivered';
             const isNow  = s === o.status;
             const timeMap = {pending:o.placed_at,accepted:o.accepted_at,preparing:o.accepted_at,rider_assigned:o.assigned_at,out_for_delivery:o.picked_up_at,delivered:o.delivered_at};
-            return {key:s,label:STATUS_CFG[s]?.label||s,time:timeMap[s]||'',done:isDone,isNow,future:!isDone&&!isNow};
+            let label = STATUS_CFG[s]?.label||s;
+            if(s === 'delivered' && !isDelivery) label = o.order_type === 'pickup' ? 'Picked Up' : 'Completed';
+            return {key:s,label:label,time:timeMap[s]||'',done:isDone,isNow,future:!isDone&&!isNow};
         });
 
     const timelineHtml = `
@@ -430,9 +442,15 @@ function buildDetailBody(o) {
     // ── Delivery info ──
     const infoHtml = `
         <div class="irow">
-            <div class="irow-icon" style="background:rgba(239,68,68,.1);"><svg width="14" height="14" fill="none" stroke="#f87171" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
-            <div><p class="irow-label">Address</p><p class="irow-val">${escHtml(o.delivery_address)}</p></div>
+            <div class="irow-icon" style="background:rgba(250,204,21,.1);"><svg width="14" height="14" fill="none" stroke="#facc15" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></div>
+            <div><p class="irow-label">Order Type</p><p class="irow-val">${o.order_type_icon} ${o.order_type_label}</p></div>
         </div>
+        ${o.order_type === 'delivery' ? `
+        <div class="irow">
+            <div class="irow-icon" style="background:rgba(239,68,68,.1);"><svg width="14" height="14" fill="none" stroke="#f87171" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+            <div><p class="irow-label">Delivery Address</p><p class="irow-val">${escHtml(o.delivery_address)}</p></div>
+        </div>
+        ` : ''}
         <div class="irow">
             <div class="irow-icon" style="background:rgba(96,165,250,.1);"><svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></div>
             <div><p class="irow-label">Payment</p><p class="irow-val" style="text-transform:capitalize;">${escHtml(o.payment_method)}</p></div>
@@ -442,8 +460,8 @@ function buildDetailBody(o) {
             <div><p class="irow-label">Rider</p><p class="irow-val">${escHtml(o.rider.name)}</p><p class="irow-sub">⭐ ${o.rider.rating} · ${escHtml(o.rider.phone)}</p></div>
         </div>`:''}`;
 
-    // ── Map (active only) ──
-    const mapHtml = isActive ? `
+    // ── Map (active delivery only) ──
+    const mapHtml = (isActive && o.order_type === 'delivery') ? `
         <div class="sheet-divider" style="margin-top:4px;"></div>
         <div style="padding:12px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
             <p style="font-size:13px;font-weight:700;color:#fff;">${isOnWay?'🛵 Live Rider Tracking':'📍 Order Location'}</p>

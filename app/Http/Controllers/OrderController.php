@@ -18,6 +18,7 @@ class OrderController extends Controller
             'items.*.id'       => 'required',
             'items.*.qty'      => 'required|integer|min:1|max:99',
             'items.*.modifiers'=> 'nullable|array',
+            'order_type'       => 'required|in:delivery,pickup,dine_in',
             'delivery_address' => 'required|string|max:255',
             'delivery_barangay'=> 'nullable|string|max:100',
             'delivery_lat'     => 'nullable|numeric|between:-90,90',
@@ -76,13 +77,14 @@ class OrderController extends Controller
                 ];
             }
 
-            // Delivery fee: free if subtotal ≥ ₱500, otherwise ₱50
-            $deliveryFee = $subtotal >= 500 ? 0 : 50;
+            // Delivery fee: free if subtotal ≥ ₱500, otherwise ₱50. No fee for pickup/dine-in.
+            $deliveryFee = ($subtotal >= 500 || $request->order_type !== 'delivery') ? 0 : 50;
             $total       = round($subtotal + $deliveryFee, 2);
 
             $order = Order::create([
                 'user_id'          => auth()->id(),
                 'status'           => 'pending',
+                'order_type'       => $request->order_type,
                 'subtotal'         => $subtotal,
                 'delivery_fee'     => $deliveryFee,
                 'total'            => $total,
@@ -128,6 +130,9 @@ class OrderController extends Controller
             'id'               => $order->id,
             'order_number'     => $order->order_number,
             'status'           => $order->status,
+            'order_type'       => $order->order_type,
+            'order_type_label' => $order->order_type_label,
+            'order_type_icon'  => $order->order_type_icon,
             'status_label'     => $order->status_label,
             'total'            => $order->total,
             'delivery_address' => $order->delivery_address,
@@ -219,6 +224,9 @@ class OrderController extends Controller
                 'id'               => $order->id,
                 'order_number'     => $order->order_number,
                 'status'           => $order->status,
+                'order_type'       => $order->order_type,
+                'order_type_label' => $order->order_type_label,
+                'order_type_icon'  => $order->order_type_icon,
                 'status_label'     => $order->status_label,
                 'subtotal'         => $order->subtotal,
                 'delivery_fee'     => $order->delivery_fee,
