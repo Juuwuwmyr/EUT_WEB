@@ -23,6 +23,7 @@ Route::get('/', function () {
         $user = auth()->user();
         if ($user->isAdmin()) return redirect()->route('admin.dashboard');
         if ($user->isRider()) return redirect()->route('rider.dashboard');
+        if ($user->isChef())  return redirect()->route('chef.dashboard');
         return redirect()->route('shop.home');
     }
     return view('landing');
@@ -55,6 +56,19 @@ Route::prefix('rider')->name('rider.')->middleware(['auth', 'rider'])->group(fun
     Route::post('/orders/{order}/picked-up',        [\App\Http\Controllers\RiderController::class, 'pickedUp'])->name('orders.picked-up');
     Route::post('/orders/{order}/delivered',        [\App\Http\Controllers\RiderController::class, 'delivered'])->name('orders.delivered');
     Route::get('/earnings',                         [\App\Http\Controllers\RiderController::class, 'earnings'])->name('earnings');
+});
+
+// -------------------------------------------------------
+// Chef / Kitchen panel
+// -------------------------------------------------------
+Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(function () {
+    Route::get('/dashboard',                        [\App\Http\Controllers\ChefController::class, 'dashboard'])->name('dashboard');
+    Route::get('/orders',                           [\App\Http\Controllers\ChefController::class, 'getOrders'])->name('orders');
+    Route::post('/orders/{order}/accept',           [\App\Http\Controllers\ChefController::class, 'acceptOrder'])->name('orders.accept');
+    Route::post('/orders/{order}/start',            [\App\Http\Controllers\ChefController::class, 'startCooking'])->name('orders.start');
+    Route::post('/orders/{order}/ready',            [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.ready');
+    Route::post('/orders/{order}/assign-rider',     [\App\Http\Controllers\ChefController::class, 'assignRider'])->name('orders.assign-rider');
+    Route::get('/orders/{order}/receipt',           [\App\Http\Controllers\ChefController::class, 'receipt'])->name('orders.receipt');
 });
 
 // -------------------------------------------------------
@@ -130,13 +144,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/orders/{order}/assign-rider',     [AdminController::class, 'assignRider'])->name('orders.assign-rider');
     Route::patch('/orders/{order}/status',          [AdminController::class, 'updateOrderStatus'])->name('orders.status');
     Route::get('/riders/locations',                 [AdminController::class, 'riderLocations'])->name('riders.locations');
-
-    // ── Kitchen ────────────────────────────────────────────
-    Route::get('/kitchen',                          [AdminController::class, 'kitchen'])->name('kitchen');
-    Route::get('/kitchen/orders',                   [AdminController::class, 'kitchenOrders'])->name('kitchen.orders');
-    Route::post('/kitchen/orders/{order}/start',    [AdminController::class, 'kitchenStartCooking'])->name('kitchen.start');
-    Route::post('/kitchen/orders/{order}/ready',    [AdminController::class, 'kitchenMarkReady'])->name('kitchen.ready');
-    Route::get('/kitchen/orders/{order}/receipt',   [AdminController::class, 'kitchenReceipt'])->name('kitchen.receipt');
 
     // ── Riders ─────────────────────────────────────────────
     Route::get('/riders',                           [AdminController::class, 'riders'])->name('riders');

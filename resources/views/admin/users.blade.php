@@ -28,6 +28,8 @@
             <option value="">All Roles</option>
             <option value="user"     {{ request('role')==='user'     ? 'selected':'' }}>User</option>
             <option value="admin"    {{ request('role')==='admin'    ? 'selected':'' }}>Admin</option>
+            <option value="chef"     {{ request('role')==='chef'     ? 'selected':'' }}>Chef</option>
+            <option value="rider"    {{ request('role')==='rider'    ? 'selected':'' }}>Rider</option>
             <option value="archived" {{ request('role')==='archived' ? 'selected':'' }}>Archived</option>
         </select>
         <button type="submit" class="btn-primary" style="display:inline-flex;align-items:center;gap:.35rem;">
@@ -79,7 +81,7 @@
                     @endif
                 </td>
                 <td>
-                    <span class="badge {{ $user->role==='admin' ? 'badge-admin' : ($user->role==='archived' ? 'badge-cancelled' : 'badge-user') }}">
+                    <span class="badge {{ $user->role==='admin' ? 'badge-admin' : ($user->role==='chef' ? 'badge-preparing' : ($user->role==='rider' ? 'badge-out' : ($user->role==='archived' ? 'badge-cancelled' : 'badge-user'))) }}">
                         {{ ucfirst($user->role ?? 'user') }}
                     </span>
                 </td>
@@ -170,6 +172,7 @@
                         <select name="role" class="admin-input" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
+                            <option value="chef">Chef / Kitchen</option>
                         </select>
                     </div>
                 </div>
@@ -217,6 +220,7 @@
                         <select name="role" id="editUserRole" class="admin-input" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
+                            <option value="chef">Chef / Kitchen</option>
                         </select>
                     </div>
                 </div>

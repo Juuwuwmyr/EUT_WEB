@@ -37,7 +37,9 @@ class AuthController extends Controller
 
             $redirect = Auth::user()->isAdmin()
                 ? route('admin.dashboard')
-                : (Auth::user()->isRider() ? route('rider.dashboard') : route('shop.home'));
+                : (Auth::user()->isRider()
+                    ? route('rider.dashboard')
+                    : (Auth::user()->isChef() ? route('chef.dashboard') : route('shop.home')));
 
             return response()->json([
                 'success'  => true,
@@ -184,7 +186,9 @@ class AuthController extends Controller
 
         $redirect = $user->isAdmin()
             ? route('admin.dashboard')
-            : ($user->isRider() ? route('rider.dashboard') : route('shop.home'));
+            : ($user->isRider()
+                ? route('rider.dashboard')
+                : ($user->isChef() ? route('chef.dashboard') : route('shop.home')));
 
         return redirect($redirect)->with('success', 'Welcome, ' . $user->name . '!');
     }

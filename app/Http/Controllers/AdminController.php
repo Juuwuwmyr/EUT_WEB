@@ -23,6 +23,8 @@ class AdminController extends Controller
         $stats = [
             'total_users'      => User::count(),
             'admin_users'      => User::where('role', 'admin')->count(),
+            'chef_users'       => User::where('role', 'chef')->count(),
+            'rider_users'      => User::where('role', 'rider')->count(),
             'total_items'      => MenuItem::active()->count(),
             'total_categories' => Category::active()->count(),
             'featured_items'   => MenuItem::featured()->count(),
@@ -67,7 +69,7 @@ class AdminController extends Controller
             'name'     => 'required|string|max:100',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role'     => ['required', Rule::in(['admin','user'])],
+            'role'     => ['required', Rule::in(['admin', 'user', 'chef'])],
         ]);
 
         User::create([
@@ -86,7 +88,7 @@ class AdminController extends Controller
         $request->validate([
             'name'  => 'required|string|max:100',
             'email' => ['required','email', Rule::unique('users','email')->ignore($user->id)],
-            'role'  => ['required', Rule::in(['admin','user'])],
+            'role'  => ['required', Rule::in(['admin', 'user', 'chef'])],
         ]);
 
         if ($user->id === auth()->id() && $request->role !== 'admin') {
@@ -105,7 +107,7 @@ class AdminController extends Controller
 
     public function updateUserRole(Request $request, User $user)
     {
-        $request->validate(['role' => ['required', Rule::in(['admin','user'])]]);
+        $request->validate(['role' => ['required', Rule::in(['admin', 'user', 'chef'])]]);
 
         if ($user->id === auth()->id() && $request->role !== 'admin') {
             return back()->with('error', 'You cannot remove your own admin role.');
@@ -551,7 +553,7 @@ class AdminController extends Controller
     public function acceptOrder(\App\Models\Order $order)
     {
         if ($order->status !== 'pending') {
-            return $this->kitchenActionResponse(false, 'Order cannot be accepted.');
+            return back()->with('error', 'Order cannot be accepted.');
         }
         $order->update(['status' => 'accepted', 'accepted_at' => now()]);
 
@@ -559,7 +561,7 @@ class AdminController extends Controller
             return response()->json([
                 'success'     => true,
                 'message'     => "Order #{$order->order_number} accepted.",
-                'receipt_url' => route('admin.kitchen.receipt', $order->id),
+                'receipt_url' => route('chef.orders.receipt', $order->id),
             ]);
         }
 
@@ -660,200 +662,6 @@ class AdminController extends Controller
             });
 
         return response()->json($riders);
-    }
-
-    // ════════════════════════════════════════════════════════
-    // KITCHEN
-    // ════════════════════════════════════════════════════════
-
-    public function kitchen()
-    {
-        $orders = $this->getKitchenOrders();
-
-        $availableRiders = \App\Models\Rider::with('user')
-            ->where('is_available', true)
-            ->get()
-            ->map(fn($r) => ['id' => $r->id, 'name' => $r->user->name, 'phone' => $r->phone]);
-
-        return view('admin.kitchen', [
-            'newOrders'      => $orders['new'],
-            'queuedOrders'   => $orders['queued'],
-            'cookingOrders'  => $orders['cooking'],
-            'readyOrders'    => $orders['ready'],
-            'availableRiders'=> $availableRiders,
-        ]);
-    }
-
-    public function kitchenOrders()
-    {
-        $orders = $this->getKitchenOrders();
-
-        return response()->json([
-            'new'     => $this->formatKitchenOrders($orders['new']),
-            'queued'  => $this->formatKitchenOrders($orders['queued']),
-            'cooking' => $this->formatKitchenOrders($orders['cooking']),
-            'ready'   => $this->formatKitchenOrders($orders['ready']),
-        ]);
-    }
-
-    public function kitchenStartCooking(\App\Models\Order $order)
-    {
-        if ($order->status !== 'accepted') {
-            return $this->kitchenActionResponse(false, 'Only accepted orders can start cooking.');
-        }
-
-        $order->update([
-            'status'      => 'preparing',
-            'prepared_at' => null,
-        ]);
-
-        return $this->kitchenActionResponse(true, "Order #{$order->order_number} is now cooking.");
-    }
-
-    public function kitchenMarkReady(\App\Models\Order $order)
-    {
-        if ($order->status !== 'preparing') {
-            return $this->kitchenActionResponse(false, 'Only orders being cooked can be marked ready.');
-        }
-
-        if ($order->prepared_at) {
-            return $this->kitchenActionResponse(false, 'Order is already marked ready.');
-        }
-
-        $order->update(['prepared_at' => now()]);
-
-        return $this->kitchenActionResponse(true, "Order #{$order->order_number} is ready for pickup.");
-    }
-
-    public function kitchenReceipt(\App\Models\Order $order)
-    {
-        $order->load(['items', 'user']);
-        return view('admin.partials.kitchen-receipt', compact('order'));
-    }
-
-    private function getKitchenOrders(): array
-    {
-        $active = \App\Models\Order::with(['user', 'items'])
-            ->whereIn('status', ['pending', 'accepted', 'preparing'])
-            ->oldest()
-            ->get();
-
-        $readyForDelivery = \App\Models\Order::with(['user', 'items', 'rider.user'])
-            ->where(function ($q) {
-                $q->where(function ($q2) {
-                    $q2->where('status', 'preparing')->whereNotNull('prepared_at');
-                })->orWhereIn('status', ['rider_assigned', 'out_for_delivery']);
-            })
-            ->orderByRaw("CASE
-                WHEN status = 'preparing' THEN 1
-                WHEN status = 'rider_assigned' THEN 2
-                WHEN status = 'out_for_delivery' THEN 3
-                ELSE 4 END")
-            ->oldest('prepared_at')
-            ->get();
-
-        return [
-            'new'     => $active->where('status', 'pending')->values(),
-            'queued'  => $active->where('status', 'accepted')->values(),
-            'cooking' => $active->where('status', 'preparing')->whereNull('prepared_at')->values(),
-            'ready'   => $readyForDelivery->values(),
-        ];
-    }
-
-    private function formatKitchenOrders($orders): array
-    {
-        return collect($orders)->map(fn ($o) => $this->formatKitchenOrder($o))->values()->all();
-    }
-
-    private function formatKitchenOrder(\App\Models\Order $order): array
-    {
-        $delivery = $this->kitchenDeliveryMeta($order);
-
-        return [
-            'id'              => $order->id,
-            'order_number'    => $order->order_number,
-            'status'          => $order->status,
-            'customer'        => $order->user?->name ?? 'Guest',
-            'notes'           => $order->notes,
-            'placed_at'       => $order->created_at->format('g:i A'),
-            'elapsed_mins'    => (int) $order->created_at->diffInMinutes(now()),
-            'accepted_at'     => $order->accepted_at?->format('g:i A'),
-            'prepared_at'     => $order->prepared_at?->format('g:i A'),
-            'assigned_at'     => $order->assigned_at?->format('g:i A'),
-            'picked_up_at'    => $order->picked_up_at?->format('g:i A'),
-            'rider_name'      => $order->rider?->user?->name,
-            'rider_id'        => $order->rider_id,
-            'subtotal'        => (float) $order->subtotal,
-            'delivery_fee'    => (float) $order->delivery_fee,
-            'total'           => (float) $order->total,
-            'payment_method'  => $order->payment_method,
-            'delivery_status' => $delivery['status'],
-            'delivery_label'  => $delivery['label'],
-            'delivery_detail' => $delivery['detail'],
-            'delivery_color'  => $delivery['color'],
-            'delivery_bg'     => $delivery['bg'],
-            'items'           => $order->items->map(fn ($i) => [
-                'name'      => $i->item_name,
-                'qty'       => $i->quantity,
-                'price'     => (float) $i->unit_price,
-                'subtotal'  => (float) $i->subtotal,
-                'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.jpg'),
-                'modifiers' => collect($i->modifiers ?? [])
-                    ->filter(fn ($m) => !empty($m['name']) && !preg_match('/^no\s/i', $m['name']))
-                    ->values()
-                    ->all(),
-            ])->all(),
-        ];
-    }
-
-    private function kitchenDeliveryMeta(\App\Models\Order $order): array
-    {
-        if ($order->status === 'out_for_delivery') {
-            return [
-                'status' => 'picked_up',
-                'label'  => 'Picked Up — On the Way',
-                'detail' => $order->picked_up_at
-                    ? 'Left kitchen at ' . $order->picked_up_at->format('g:i A')
-                    : 'Out for delivery',
-                'color'  => '#8b5cf6',
-                'bg'     => 'rgba(139,92,246,.14)',
-            ];
-        }
-
-        if ($order->status === 'rider_assigned') {
-            $rider = $order->rider?->user?->name ?? 'Rider';
-
-            return [
-                'status' => 'rider_assigned',
-                'label'  => "Hand to Rider: {$rider}",
-                'detail' => $order->assigned_at
-                    ? 'Rider assigned at ' . $order->assigned_at->format('g:i A')
-                    : 'Waiting for rider pickup',
-                'color'  => '#2563eb',
-                'bg'     => 'rgba(37,99,235,.14)',
-            ];
-        }
-
-        return [
-            'status' => 'waiting_rider',
-            'label'  => 'Ready — Waiting for Rider',
-            'detail' => $order->prepared_at
-                ? 'Food ready at ' . $order->prepared_at->format('g:i A')
-                : 'Ready for delivery',
-            'color'  => '#10b981',
-            'bg'     => 'rgba(16,185,129,.14)',
-        ];
-    }
-
-    private function kitchenActionResponse(bool $success, string $message)
-    {
-        if (request()->expectsJson()) {
-            return response()->json(['success' => $success, 'message' => $message]);
-        }
-
-        return $success
-            ? back()->with('success', $message)
-            : back()->with('error', $message);
     }
 
     // ════════════════════════════════════════════════════════

@@ -77,7 +77,11 @@
 
     <div class="k-actions">
         @if($column === 'new')
-            <button type="button" class="k-btn k-btn-accept" onclick="event.stopPropagation();kitchenAction('accept', {{ $order->id }}, this)">✓ Accept</button>
+            @if(auth()->user()->isAdmin())
+                <button type="button" class="k-btn k-btn-accept" onclick="event.stopPropagation();kitchenAction('accept', {{ $order->id }}, this)">✓ Accept</button>
+            @else
+                <div style="text-align:center;width:100%;font-size:.72rem;color:var(--text-muted);padding:.4rem;">Waiting for Admin to accept...</div>
+            @endif
         @elseif($column === 'queued')
             <button type="button" class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', {{ $order->id }}, this)">🍳 Start Cooking</button>
         @elseif($column === 'cooking')

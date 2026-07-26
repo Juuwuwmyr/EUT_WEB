@@ -1,5 +1,5 @@
-@extends('admin.layout')
-@section('title', 'Kitchen')
+@extends('chef.layout')
+@section('title', 'Kitchen Dashboard')
 
 @push('head')
 <style>
@@ -660,10 +660,11 @@
 @push('scripts')
 <script>
 const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
-const KITCHEN_URL = '{{ route('admin.kitchen.orders') }}';
-const ACCEPT_URL  = id => `/admin/orders/${id}/accept`;
-const START_URL   = id => `/admin/kitchen/orders/${id}/start`;
-const READY_URL   = id => `/admin/kitchen/orders/${id}/ready`;
+const IS_ADMIN   = {{ auth()->user()->isAdmin() ? 'true' : 'false' }};
+const KITCHEN_URL = '{{ route('chef.orders') }}';
+const ACCEPT_URL  = id => `/chef/orders/${id}/accept`;
+const START_URL   = id => `/chef/orders/${id}/start`;
+const READY_URL   = id => `/chef/orders/${id}/ready`;
 
 let refreshTimer = 15;
 let countdownTimer = null;
@@ -711,18 +712,25 @@ function renderItems(items) {
 }
 
 function renderActions(order, column) {
+    let printBtn = '';
+    if (column !== 'new') {
+        const receiptUrl = `/chef/orders/${order.id}/receipt`;
+        printBtn = `<button class="k-btn" style="flex:0 0 auto;width:2.5rem;background:rgba(255,255,255,.06);color:var(--text-muted);" onclick="event.stopPropagation();printReceipt('${receiptUrl}')" title="Print Receipt"><i data-lucide="printer" style="width:14px;height:14px;"></i></button>`;
+    }
+
     if (column === 'new') {
+        if (!IS_ADMIN) return `<div style="text-align:center;width:100%;font-size:.72rem;color:var(--text-muted);padding:.4rem;">Waiting for Admin to accept...</div>`;
         return `<button class="k-btn k-btn-accept" onclick="event.stopPropagation();kitchenAction('accept', ${order.id}, this)">✓ Accept</button>`;
     }
     if (column === 'queued') {
-        return `<button class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', ${order.id}, this)">🍳 Start Cooking</button>`;
+        return printBtn + `<button class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', ${order.id}, this)">🍳 Start Cooking</button>`;
     }
     if (column === 'cooking') {
-        return `<button class="k-btn k-btn-ready" onclick="event.stopPropagation();kitchenAction('ready', ${order.id}, this)">✅ Mark Ready</button>`;
+        return printBtn + `<button class="k-btn k-btn-ready" onclick="event.stopPropagation();kitchenAction('ready', ${order.id}, this)">✅ Mark Ready</button>`;
     }
     const detail = order.delivery_detail || 'Ready for delivery';
     const color = order.delivery_color || '#10b981';
-    return `<div style="text-align:center;width:100%;font-size:.72rem;color:${color};font-weight:700;padding:.4rem;line-height:1.45;">${escapeHtml(detail)}</div>`;
+    return printBtn + `<div style="text-align:center;width:100%;font-size:.72rem;color:${color};font-weight:700;padding:.4rem;line-height:1.45;">${escapeHtml(detail)}</div>`;
 }
 
 function renderOrderCard(order, column) {
@@ -847,14 +855,18 @@ function openOrderModal(orderId) {
 
     const col = order.column;
     let btn = '';
-    if (col === 'new')     btn = `<button class="k-btn k-btn-accept" style="flex:1;" onclick="modalAction('accept',${order.id})">✓ Accept Order</button>`;
+    let printBtn = `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);flex:0 0 auto;width:3rem;" onclick="printReceipt('/chef/orders/${order.id}/receipt')" title="Print Receipt"><i data-lucide="printer" style="width:16px;height:16px;"></i></button>`;
+
+    if (col === 'new' && IS_ADMIN) btn = `<button class="k-btn k-btn-accept" style="flex:1;" onclick="modalAction('accept',${order.id})">✓ Accept Order</button>`;
     if (col === 'queued')  btn = `<button class="k-btn k-btn-cook" style="flex:1;" onclick="modalAction('start',${order.id})">🍳 Start Cooking</button>`;
     if (col === 'cooking') btn = `<button class="k-btn k-btn-ready" style="flex:1;" onclick="modalAction('ready',${order.id})">✅ Mark Ready</button>`;
+
     document.getElementById('modalActions').innerHTML =
+        (col !== 'new' ? printBtn : '') +
         btn + `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);flex:0 0 auto;padding:.6rem 1.2rem;" onclick="closeOrderModal()">Close</button>`;
 
-    // ── Rider assign section (visible on cooking + ready columns) ──────────
-    const canAssign = (col === 'cooking' || col === 'ready');
+    // ── Rider assign section (visible on cooking + ready columns, ADMIN ONLY) ──────────
+    const canAssign = (col === 'cooking' || col === 'ready') && IS_ADMIN;
     const riderSection = document.getElementById('riderAssignSection');
     if (canAssign) {
         if (order.rider_id && order.rider_name) {
@@ -916,7 +928,7 @@ async function assignRiderAction(orderId) {
     btn.textContent = '…';
 
     try {
-        const res = await fetch(`/admin/orders/${orderId}/assign-rider`, {
+        const res = await fetch(`/chef/orders/${orderId}/assign-rider`, {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
             body: JSON.stringify({ rider_id: riderId }),
@@ -958,6 +970,11 @@ async function modalAction(action, orderId) {
         const res = await fetch(urls[action], { method:'POST', headers:{ 'X-CSRF-TOKEN':CSRF_TOKEN, 'Accept':'application/json', 'Content-Type':'application/json' } });
         const data = await res.json();
         if (!data.success) { alert(data.message || 'Action failed.'); if (btn) btn.disabled = false; return; }
+
+        if (data.receipt_url) {
+            printReceipt(data.receipt_url);
+        }
+
         closeOrderModal();
         await refreshKitchen(true);
     } catch(e) { alert('Network error.'); if (btn) btn.disabled = false; }
@@ -974,7 +991,19 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
-// ── RECEIPT PRINTING (REMOVED: Now on Orders Page) ───────────────────────
+// ── RECEIPT PRINTING ────────────────────────────────────────────────────────
+function printReceipt(receiptUrl) {
+    const existing = document.getElementById('receiptFrame');
+    if (existing) existing.remove();
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'receiptFrame';
+    iframe.src = receiptUrl;
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;';
+    document.body.appendChild(iframe);
+
+    iframe.onerror = () => window.open(receiptUrl, '_blank');
+}
 
 async function kitchenAction(action, orderId, btn) {
     const urls = {
@@ -1001,6 +1030,11 @@ async function kitchenAction(action, orderId, btn) {
             btn.disabled = false;
             return;
         }
+
+        if (data.receipt_url) {
+            printReceipt(data.receipt_url);
+        }
+
         await refreshKitchen(true);
     } catch (e) {
         alert('Network error. Please try again.');

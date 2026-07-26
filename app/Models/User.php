@@ -44,6 +44,11 @@ class User extends Authenticatable
         return $this->role === 'rider';
     }
 
+    public function isChef(): bool
+    {
+        return $this->role === 'chef';
+    }
+
     public function isGoogleUser(): bool
     {
         return $this->provider === 'google';

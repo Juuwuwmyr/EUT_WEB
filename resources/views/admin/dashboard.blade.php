@@ -8,7 +8,7 @@
 </div>
 
 {{-- ── STAT CARDS ── --}}
-<div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-8">
     @php
         $statCards = [
             [
@@ -26,6 +26,22 @@
                 'icon'   => 'shield-check',
                 'color'  => '#dc2626',   /* red — always */
                 'bg'     => 'rgba(220,38,38,0.10)',
+            ],
+            [
+                'label'  => 'Chefs',
+                'value'  => $stats['chef_users'],
+                'sub'    => 'Kitchen staff',
+                'icon'   => 'chef-hat',
+                'color'  => '#d97706',   /* amber */
+                'bg'     => 'rgba(217,119,6,0.12)',
+            ],
+            [
+                'label'  => 'Riders',
+                'value'  => $stats['rider_users'],
+                'sub'    => 'Delivery crew',
+                'icon'   => 'bike',
+                'color'  => '#2563eb',   /* blue */
+                'bg'     => 'rgba(37,99,235,0.12)',
             ],
             [
                 'label'  => 'Menu Items',

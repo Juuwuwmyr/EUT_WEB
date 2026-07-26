@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'rider' => \App\Http\Middleware\RiderMiddleware::class,
+            'chef'  => \App\Http\Middleware\ChefMiddleware::class,
         ]);
 
         // This project uses a modal-based login on the home page,
