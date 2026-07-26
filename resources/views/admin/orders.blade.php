@@ -148,12 +148,10 @@ $statusConfig = [
 
                         {{-- Quick Accept for pending --}}
                         @if($s === 'pending')
-                            <form method="POST" action="{{ route('admin.orders.accept', $order) }}" style="display:inline;">
-                                @csrf
-                                <button type="submit" class="btn-success" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .65rem;">
-                                    <i data-lucide="check" style="width:.75rem;height:.75rem;stroke-width:2.5;"></i> Accept
-                                </button>
-                            </form>
+                            <button type="button" class="btn-success" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .65rem;"
+                                    onclick="quickAccept({{ $order->id }}, this)">
+                                <i data-lucide="check" style="width:.75rem;height:.75rem;stroke-width:2.5;"></i> Accept
+                            </button>
                         @endif
                     </div>
                 </td>
@@ -311,14 +309,23 @@ function openManageModal(id) {
         var actionRoute = o.status === 'pending'
             ? '{{ route("admin.orders.accept", ":id") }}'.replace(':id', o.id)
             : '{{ route("admin.orders.status", ":id") }}'.replace(':id', o.id);
-        actionsHtml +=
-            '<form method="POST" action="' + actionRoute + '" style="display:inline;" id="nextStepForm_' + o.id + '">' +
-                '<input type="hidden" name="_token" value="' + CSRF_TOKEN + '">' +
-                (o.status !== 'pending' ? '<input type="hidden" name="_method" value="PATCH"><input type="hidden" name="status" value="' + sp.next + '">' : '') +
-                '<button type="submit" class="' + sp.btnClass + '" style="font-size:.875rem;width:100%;justify-content:center;gap:.4rem;display:inline-flex;align-items:center;">' +
+
+        if (o.status === 'pending') {
+            actionsHtml +=
+                '<button type="button" class="' + sp.btnClass + '" style="font-size:.875rem;width:100%;justify-content:center;gap:.4rem;display:inline-flex;align-items:center;" ' +
+                'onclick="handleModalAccept(' + o.id + ', this)">' +
                     sp.nextLabel +
-                '</button>' +
-            '</form>';
+                '</button>';
+        } else {
+            actionsHtml +=
+                '<form method="POST" action="' + actionRoute + '" style="display:inline;" id="nextStepForm_' + o.id + '">' +
+                    '<input type="hidden" name="_token" value="' + CSRF_TOKEN + '">' +
+                    '<input type="hidden" name="_method" value="PATCH"><input type="hidden" name="status" value="' + sp.next + '">' +
+                    '<button type="submit" class="' + sp.btnClass + '" style="font-size:.875rem;width:100%;justify-content:center;gap:.4rem;display:inline-flex;align-items:center;">' +
+                        sp.nextLabel +
+                    '</button>' +
+                '</form>';
+        }
     }
 
     if (o.status === 'preparing' && RIDERS.length > 0) {
@@ -472,6 +479,74 @@ async function initAdminRiderMap(o) {
     } else {
         L.polyline([riderPos, dest], { color:'#8b5cf6', weight:3, opacity:.7, dashArray:'8 5' }).addTo(adminMapInstance);
     }
+}
+
+// -- Quick Accept from Table
+async function quickAccept(orderId, btn) {
+    if (!confirm('Accept this order?')) return;
+    await processAccept(orderId, btn, false);
+}
+
+// -- Accept from Modal
+async function handleModalAccept(orderId, btn) {
+    await processAccept(orderId, btn, true);
+}
+
+async function processAccept(orderId, btn, isModal) {
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="refresh-cw" class="spin" style="width:.8rem;height:.8rem;"></i> Processing...';
+    if (window.lucide) lucide.createIcons();
+
+    try {
+        const response = await fetch('{{ route("admin.orders.accept", ":id") }}'.replace(':id', orderId), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+             // Trigger auto-print
+             if (data.receipt_url) {
+                 printReceipt(data.receipt_url);
+                 // Delay reload to allow printing to trigger before the page refreshes
+                 setTimeout(() => {
+                     location.reload();
+                 }, 1500);
+             } else {
+                 location.reload();
+             }
+         } else {
+            alert(data.message || 'Failed to accept order.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            if (window.lucide) lucide.createIcons();
+        }
+    } catch (error) {
+        console.error('Accept error:', error);
+        alert('An error occurred. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+function printReceipt(receiptUrl) {
+    const existing = document.getElementById('receiptFrame');
+    if (existing) existing.remove();
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'receiptFrame';
+    iframe.src = receiptUrl;
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;';
+    document.body.appendChild(iframe);
+
+    iframe.onerror = () => window.open(receiptUrl, '_blank');
 }
 
 </script>

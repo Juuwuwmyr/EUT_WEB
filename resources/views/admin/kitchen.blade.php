@@ -958,10 +958,6 @@ async function modalAction(action, orderId) {
         const res = await fetch(urls[action], { method:'POST', headers:{ 'X-CSRF-TOKEN':CSRF_TOKEN, 'Accept':'application/json', 'Content-Type':'application/json' } });
         const data = await res.json();
         if (!data.success) { alert(data.message || 'Action failed.'); if (btn) btn.disabled = false; return; }
-        // Auto-print receipt on accept
-        if (action === 'accept' && data.receipt_url) {
-            printReceipt(data.receipt_url);
-        }
         closeOrderModal();
         await refreshKitchen(true);
     } catch(e) { alert('Network error.'); if (btn) btn.disabled = false; }
@@ -978,21 +974,7 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
-// ── RECEIPT PRINTING ─────────────────────────────────────────────────────
-function printReceipt(receiptUrl) {
-    // Open in a hidden iframe — browser prints it automatically via window.onload
-    const existing = document.getElementById('receiptFrame');
-    if (existing) existing.remove();
-
-    const iframe = document.createElement('iframe');
-    iframe.id = 'receiptFrame';
-    iframe.src = receiptUrl;
-    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;';
-    document.body.appendChild(iframe);
-
-    // Fallback: if iframe print fails (some browsers block it), open in new tab
-    iframe.onerror = () => window.open(receiptUrl, '_blank');
-}
+// ── RECEIPT PRINTING (REMOVED: Now on Orders Page) ───────────────────────
 
 async function kitchenAction(action, orderId, btn) {
     const urls = {
@@ -1018,10 +1000,6 @@ async function kitchenAction(action, orderId, btn) {
             alert(data.message || 'Action failed.');
             btn.disabled = false;
             return;
-        }
-        // Auto-print receipt on accept
-        if (action === 'accept' && data.receipt_url) {
-            printReceipt(data.receipt_url);
         }
         await refreshKitchen(true);
     } catch (e) {
