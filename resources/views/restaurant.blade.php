@@ -481,7 +481,7 @@ img { display: block; }
 .feat-title { font-size: 16px; font-weight: 700; color: #f3f4f6; margin-bottom: 10px; }
 .feat-desc { font-size: 13px; color: #6b7280; line-height: 1.7; margin-bottom: 16px; }
 .feat-list { list-style: none; font-size: 13px; color: #9ca3af; line-height: 2; }
-.feat-list li::before { content: '? '; color: #22c55e; font-weight: 700; }
+.feat-list li::before { content: '\2713  '; color: #22c55e; font-weight: 700; }
 
 /* ------------------------------------------------------
    HOW IT WORKS
@@ -892,10 +892,10 @@ img { display: block; }
     </ul>
     <div class="nav-actions">
         @auth
-            <a href="{{ route('shop.home') }}" class="btn-primary" style="padding:8px 20px;font-size:13px;">Dashboard ?</a>
+            <a href="{{ route('shop.home') }}" class="btn-primary" style="padding:8px 20px;font-size:13px;">Dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
         @else
             <button onclick="openModal('login')" class="btn-outline-white">Login</button>
-            <button onclick="openModal('login')" class="btn-primary" style="padding:8px 20px;font-size:13px;">Order Now ?</button>
+            <button onclick="openModal('login')" class="btn-primary" style="padding:8px 20px;font-size:13px;">Order Now <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
         @endauth
         <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
             <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -910,7 +910,7 @@ img { display: block; }
     <a href="#about">About</a>
     <a href="#why">Why EUT</a>
     @auth
-        <a href="{{ route('shop.home') }}">Dashboard ?</a>
+        <a href="{{ route('shop.home') }}">Dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
     @else
         <a href="#" onclick="openModal('login'); closeMobileMenu();">Login</a>
         <a href="#" onclick="openModal('signup'); closeMobileMenu();">Sign Up</a>
@@ -939,9 +939,9 @@ img { display: block; }
             </p>
             <div class="hero-btns">
                 @auth
-                    <a href="{{ route('shop.home') }}" class="btn-primary">Order Now ?</a>
+                    <a href="{{ route('shop.home') }}" class="btn-primary">Order Now <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
                 @else
-                    <button onclick="openModal('login')" class="btn-primary">Start Ordering ?</button>
+                    <button onclick="openModal('login')" class="btn-primary">Start Ordering <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
                 @endauth
                 <a href="#menu" class="btn-secondary">Browse Menu</a>
             </div>
@@ -968,7 +968,7 @@ img { display: block; }
                         <span class="hero-sales-dot"></span> Orders Today
                     </div>
                     <div class="hero-sales-amount">1,248</div>
-                    <div class="hero-sales-growth">? +18% from yesterday</div>
+                    <div class="hero-sales-growth">&#9650; +18% from yesterday</div>
                 </div>
             </div>
         </div>
@@ -1029,7 +1029,7 @@ img { display: block; }
                     <div class="menu-card-cat">Healthy</div>
                     <div class="menu-card-name">Greek Salad</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">?149</span>
+                        <span class="menu-card-price">&#8369;149</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
                     </div>
                 </div>
@@ -1045,7 +1045,7 @@ img { display: block; }
                     <div class="menu-card-cat">Desserts</div>
                     <div class="menu-card-name">Freshly Baked Cake</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">?199</span>
+                        <span class="menu-card-price">&#8369;199</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.9</span>
                     </div>
                 </div>
@@ -1061,7 +1061,7 @@ img { display: block; }
                     <div class="menu-card-cat">Fast Food</div>
                     <div class="menu-card-name">Crispy Burger Combo</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">?179</span>
+                        <span class="menu-card-price">&#8369;179</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.7</span>
                     </div>
                 </div>
@@ -1077,7 +1077,7 @@ img { display: block; }
                     <div class="menu-card-cat">Main Course</div>
                     <div class="menu-card-name">Pasta Carbonara</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">?220</span>
+                        <span class="menu-card-price">&#8369;220</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
                     </div>
                 </div>
@@ -1093,7 +1093,7 @@ img { display: block; }
                     <div class="menu-card-cat">Main Course</div>
                     <div class="menu-card-name">Grilled Chicken Rice</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">?195</span>
+                        <span class="menu-card-price">&#8369;195</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.6</span>
                     </div>
                 </div>
@@ -1109,7 +1109,7 @@ img { display: block; }
                     <div class="menu-card-cat">Drinks</div>
                     <div class="menu-card-name">Mango Shake</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">?89</span>
+                        <span class="menu-card-price">&#8369;89</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
                     </div>
                 </div>
@@ -1125,7 +1125,7 @@ img { display: block; }
                     <div class="menu-card-cat">Main Course</div>
                     <div class="menu-card-name">Beef Sinigang</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">?235</span>
+                        <span class="menu-card-price">&#8369;235</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.9</span>
                     </div>
                 </div>
@@ -1141,7 +1141,7 @@ img { display: block; }
                     <div class="menu-card-cat">Desserts</div>
                     <div class="menu-card-name">Chocolate Lava Cake</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">?169</span>
+                        <span class="menu-card-price">&#8369;169</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 5.0</span>
                     </div>
                 </div>
@@ -1149,7 +1149,7 @@ img { display: block; }
 
         </div>
         <div style="text-align:center;margin-top:44px;">
-            <a href="{{ route('shop.home') }}" class="btn-primary" style="font-size:15px;padding:14px 36px;">View Full Menu ?</a>
+            <a href="{{ route('shop.home') }}" class="btn-primary" style="font-size:15px;padding:14px 36px;">View Full Menu <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
         </div>
     </div>
 </section>
@@ -1639,9 +1639,9 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                 </div>
             </div>
             @auth
-                <a href="{{ route('shop.home') }}" class="btn-cta">Join Now ?</a>
+                <a href="{{ route('shop.home') }}" class="btn-cta">Join Now <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
             @else
-                <button onclick="openModal('signup')" class="btn-cta">Join Now ?</button>
+                <button onclick="openModal('signup')" class="btn-cta">Join Now <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
             @endauth
         </div>
     </div>
@@ -1678,7 +1678,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
     <div class="footer-bottom">
         <div class="footer-copy">&copy; 2026 EUT-Delivery (Eat &middot; Unwind &middot; Tea). All rights reserved.</div>
         <div class="footer-badge">
-            <span style="color:#dc2626;">?</span> EUT Snack House &mdash; Naujan, Oriental Mindoro
+            <svg width="13" height="13" fill="#dc2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> EUT Snack House &mdash; Naujan, Oriental Mindoro
         </div>
     </div>
 </footer>
@@ -1715,7 +1715,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <label class="auth-label">Password</label>
                     <input type="password" class="auth-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
                 </div>
-                <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In ?</button>
+                <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
             </div>
 
             <!-- SIGNUP PANEL -->
@@ -1739,7 +1739,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <label class="auth-label">Password</label>
                     <input type="password" class="auth-input" id="signupPassword" placeholder="Min. 6 characters" autocomplete="new-password">
                 </div>
-                <button class="btn-signup" id="signupBtn" onclick="doSignup()">Create Account ?</button>
+                <button class="btn-signup" id="signupBtn" onclick="doSignup()">Create Account <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
             </div>
         </div>
     </div>
@@ -1948,7 +1948,7 @@ async function doLogin() {
     }
 
     btn.disabled    = false;
-    btn.textContent = 'Sign In ?';
+    btn.textContent = 'Sign In';
 }
 
 /* ------------------------------------------------------
@@ -1989,7 +1989,7 @@ async function doSignup() {
     }
 
     btn.disabled    = false;
-    btn.textContent = 'Create Account ?';
+    btn.textContent = 'Create Account';
 }
 
 /* ------------------------------------------------------
