@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -313,7 +313,7 @@
             <span style="color:#f97316;">E</span><span style="color:#38bdf8;">U</span><span style="color:#ef4444;">T</span>
         </a>
         <div class="search-wrap" style="max-width:100%;">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search burgers, fries, drinks�">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search burgers, fries, drinks...">
             <button class="search-btn">
                 <svg width="14" height="14" fill="none" stroke="#000" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -350,9 +350,9 @@
         <div class="hero-text">
             <div class="hero-badge"><span class="hero-badge-dot"></span> Open Now</div>
             <h1 class="hero-title">E.U.T Snack House</h1>
-            <p class="hero-sub">Eat � Unwind � Tea � Delivered Fast</p>
+            <p class="hero-sub">Eat &middot; Unwind &middot; Tea &middot; Delivered Fast</p>
             <div class="hero-pills">
-                <span class="hero-pill">?? 30�45 min</span>
+                <span class="hero-pill">?? 30&ndash;45 min</span>
                 <span class="hero-pill">? 4.9 Rating</span>
                 <span class="hero-pill">?? Metro Manila</span>
             </div>
@@ -365,20 +365,20 @@
 <div class="cats-wrap">
     <div style="max-width:1200px; margin:0 auto; padding:14px 0 14px 16px; display:flex; gap:10px; overflow-x:scroll; overflow-y:visible; -webkit-overflow-scrolling:touch; scrollbar-width:none; flex-wrap:nowrap; -ms-overflow-style:none;" id="catsRow">
         <button class="cat-pill active" data-category="all" style="flex-shrink:0;">
-            <span style="font-size:17px; line-height:1;">???</span> All
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg> All
         </button>
         @php
             $iconMap = [
-                'beef'    => '??',
-                'flame'   => '??',
-                'coffee'  => '??',
-                'package' => '??',
-                'tag'     => '???',
+                'beef'    => 'beef',
+                'flame'   => 'flame',
+                'coffee'  => 'coffee',
+                'package' => 'package',
+                'tag'     => 'tag',
             ];
         @endphp
         @foreach($categories as $cat)
         <button class="cat-pill" data-category="{{ $cat->slug }}" style="flex-shrink:0;">
-            <span style="font-size:17px; line-height:1;">{{ $iconMap[$cat->icon] ?? '???' }}</span> {{ $cat->name }}
+            {{ $cat->name }}
         </button>
         @endforeach
         <span style="flex-shrink:0; width:20px; display:inline-block;"></span>

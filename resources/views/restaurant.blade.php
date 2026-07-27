@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.U.T Snack House � Eat � Unwind � Tea</title>
+    <title>E.U.T Snack House &middot; Eat &middot; Unwind &middot; Tea</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-head')
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Black+Ops+One&display=swap" rel="stylesheet">
@@ -927,7 +927,7 @@ img { display: block; }
     <div class="hero-inner">
         <div class="hero-left">
             <div class="hero-badge">
-                <span class="hero-badge-dot"></span> Open Now � Accepting Orders
+                <span class="hero-badge-dot"></span> Open Now &mdash; Accepting Orders
             </div>
             <h1 class="hero-title">
                 Good food, delivered<br>
@@ -935,7 +935,7 @@ img { display: block; }
             </h1>
             <p class="hero-desc">
                 Browse our handcrafted menu, place your order in seconds, and get
-                fresh, delicious food delivered fast � right to your door.
+                fresh, delicious food delivered fast &mdash; right to your door.
             </p>
             <div class="hero-btns">
                 @auth
@@ -952,7 +952,7 @@ img { display: block; }
                 </div>
                 <div class="hero-stat-chip">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    30�45 min
+                    30&ndash;45 min
                 </div>
                 <div class="hero-stat-chip">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -1007,7 +1007,7 @@ img { display: block; }
         <div style="text-align:center;margin-bottom:48px;">
             <span class="eyebrow">Our Menu</span>
             <h2 class="section-title">What We <span class="gold">Serve</span></h2>
-            <p class="section-subtitle">Handcrafted by EUT and delivered fresh � every dish is made with intention and care.</p>
+            <p class="section-subtitle">Handcrafted by EUT and delivered fresh &mdash; every dish is made with intention and care.</p>
         </div>
         <div class="menu-cats" id="menuCats">
             <button class="menu-cat active" data-cat="all">All</button>
@@ -1162,7 +1162,7 @@ img { display: block; }
         <div style="text-align:center;margin-bottom:48px;">
             <span class="eyebrow">Our Space</span>
             <h2 class="section-title">Inside <span class="gold">EUT Snack House</span></h2>
-            <p class="section-subtitle">A glimpse of where the magic happens � our place in Naujan, Oriental Mindoro.</p>
+            <p class="section-subtitle">A glimpse of where the magic happens &mdash; our place in Naujan, Oriental Mindoro.</p>
         </div>
 
         <!-- Browsable Photo Grid -->
@@ -1247,7 +1247,7 @@ img { display: block; }
 
 <script>
 const lbImages = [
-    { src: '{{ asset("images/restaurant-interior.webp") }}', caption: 'Our Place � EUT Snack House' },
+    { src: '{{ asset("images/restaurant-interior.webp") }}', caption: 'Our Place &mdash; EUT Snack House' },
     { src: '{{ asset("images/gourmet-burger.webp") }}',      caption: 'Signature Burger' },
     { src: '{{ asset("images/combo-meal.webp") }}',          caption: 'Combo Meal' },
     { src: '{{ asset("images/delicious-burger-fries.webp") }}', caption: 'Burger & Fries' },
@@ -1314,7 +1314,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
         <div style="text-align:center; margin-bottom:48px;">
             <span class="eyebrow">Find Us</span>
             <h2 class="section-title">Where to <span class="gold">Find Us</span></h2>
-            <p class="section-subtitle">Visit us at Apostol St, Naujan, Oriental Mindoro � or order online and we'll come to you.</p>
+            <p class="section-subtitle">Visit us at Apostol St, Naujan, Oriental Mindoro &mdash; or order online and we'll come to you.</p>
         </div>
         <div id="loc-map-row" style="display:flex; gap:40px; align-items:stretch; flex-wrap:wrap;">
             <!-- Map Embed -->
@@ -1389,7 +1389,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <svg width="24" height="24" fill="none" stroke="#facc15" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 </div>
                 <div class="feat-title">Live Order Tracking</div>
-                <p class="feat-desc">Know exactly where your food is at every step � from the kitchen to your front door in real time.</p>
+                <p class="feat-desc">Know exactly where your food is at every step &mdash; from the kitchen to your front door in real time.</p>
                 <ul class="feat-list">
                     <li>Real-time delivery updates</li>
                     <li>Estimated arrival time</li>
@@ -1401,7 +1401,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <svg width="24" height="24" fill="none" stroke="#ef4444" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
                 </div>
                 <div class="feat-title">Easy Ordering</div>
-                <p class="feat-desc">Browse the full menu, customize your meal, and place your order in just a few taps � no hassle.</p>
+                <p class="feat-desc">Browse the full menu, customize your meal, and place your order in just a few taps &mdash; no hassle.</p>
                 <ul class="feat-list">
                     <li>Simple, intuitive menu</li>
                     <li>Meal customization options</li>
@@ -1437,7 +1437,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <svg width="24" height="24" fill="none" stroke="#ec4899" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
                 </div>
                 <div class="feat-title">Fresh, Quality Food</div>
-                <p class="feat-desc">Every dish is handcrafted by EUT's kitchen with fresh ingredients � cooked to order, never reheated.</p>
+                <p class="feat-desc">Every dish is handcrafted by EUT's kitchen with fresh ingredients &mdash; cooked to order, never reheated.</p>
                 <ul class="feat-list">
                     <li>Made-to-order meals</li>
                     <li>Quality-checked ingredients</li>
@@ -1449,7 +1449,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <svg width="24" height="24" fill="none" stroke="#f97316" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                 </div>
                 <div class="feat-title">Secure & Easy Payment</div>
-                <p class="feat-desc">Pay with confidence using multiple secure payment options � quick checkout, no hidden fees.</p>
+                <p class="feat-desc">Pay with confidence using multiple secure payment options &mdash; quick checkout, no hidden fees.</p>
                 <ul class="feat-list">
                     <li>Multiple payment methods</li>
                     <li>Secure transactions</li>
@@ -1519,8 +1519,8 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
         </div>
         <div class="testi-grid">
             <div class="testi-card">
-                <div class="testi-stars">?????</div>
-                <p class="testi-quote">"The food arrived hot and fresh, exactly as described. Ordering was super easy and the delivery was faster than expected � I'm hooked!"</p>
+                <div style="display:flex;gap:2px;margin-bottom:16px;"><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg></div>
+                <p class="testi-quote">"The food arrived hot and fresh, exactly as described. Ordering was super easy and the delivery was faster than expected &mdash; I'm hooked!"</p>
                 <div class="testi-author">
                     <div class="testi-avatar">
                         <svg width="22" height="22" fill="none" stroke="rgba(220,38,38,0.8)" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -1532,7 +1532,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                 </div>
             </div>
             <div class="testi-card">
-                <div class="testi-stars">?????</div>
+                <div style="display:flex;gap:2px;margin-bottom:16px;"><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg></div>
                 <p class="testi-quote">"I love how easy it is to customize my order. The burgers are incredible and I can track exactly when they'll arrive. Best food app I've used!"</p>
                 <div class="testi-author">
                     <div class="testi-avatar">
@@ -1545,7 +1545,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                 </div>
             </div>
             <div class="testi-card">
-                <div class="testi-stars">?????</div>
+                <div style="display:flex;gap:2px;margin-bottom:16px;"><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg><svg width="14" height="14" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg></div>
                 <p class="testi-quote">"Ordered for our whole office and everyone was impressed. Delivery was on time, portions were generous, and the taste was amazing. Will order again!"</p>
                 <div class="testi-author">
                     <div class="testi-avatar">
@@ -1575,35 +1575,35 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">How do I place an order?</div>
-                    <div class="faq-chevron">�</div>
+                    <div class="faq-chevron">&#8250;</div>
                 </div>
                 <div class="faq-answer">Simply create a free account, browse our menu, add your favorite items to the cart, and check out. It only takes a few minutes!</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">How long does delivery take?</div>
-                    <div class="faq-chevron">�</div>
+                    <div class="faq-chevron">&#8250;</div>
                 </div>
                 <div class="faq-answer">Our average delivery time is under 30 minutes within Naujan, Oriental Mindoro. You can track your order in real time from the moment it leaves our kitchen.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">What areas do you deliver to?</div>
-                    <div class="faq-chevron">�</div>
+                    <div class="faq-chevron">&#8250;</div>
                 </div>
                 <div class="faq-answer">We currently deliver within Naujan and nearby areas in Oriental Mindoro. Enter your address at checkout and we'll confirm if you're within our delivery zone.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">Can I customize my order?</div>
-                    <div class="faq-chevron">�</div>
+                    <div class="faq-chevron">&#8250;</div>
                 </div>
                 <div class="faq-answer">Yes! Many of our menu items let you choose add-ons, remove ingredients, or adjust portion sizes. Just select your preferences when adding items to your cart.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">What payment methods do you accept?</div>
-                    <div class="faq-chevron">�</div>
+                    <div class="faq-chevron">&#8250;</div>
                 </div>
                 <div class="faq-answer">We accept cash on delivery, GCash, credit/debit cards, and other major e-wallets. All online payments are secured and encrypted.</div>
             </div>
@@ -1619,7 +1619,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
     <div class="cta-inner">
         <div class="cta-left">
             <h2 class="cta-title">Why Choose EUT?</h2>
-            <p class="cta-sub">Order now and get fast, reliable delivery straight to your door � anytime, anywhere in Naujan, Oriental Mindoro.</p>
+            <p class="cta-sub">Order now and get fast, reliable delivery straight to your door &mdash; anytime, anywhere in Naujan, Oriental Mindoro.</p>
             <div class="cta-points">
                 <div class="cta-point">
                     <svg class="cta-check" fill="none" stroke="#22c55e" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1676,9 +1676,9 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
         </div>
     </div>
     <div class="footer-bottom">
-        <div class="footer-copy">� 2026 EUT-Delivery (Eat � Unwind � Tea). All rights reserved.</div>
+        <div class="footer-copy">&copy; 2026 EUT-Delivery (Eat &middot; Unwind &middot; Tea). All rights reserved.</div>
         <div class="footer-badge">
-            <span style="color:#dc2626;">?</span> EUT Snack House � Naujan, Oriental Mindoro
+            <span style="color:#dc2626;">?</span> EUT Snack House &mdash; Naujan, Oriental Mindoro
         </div>
     </div>
 </footer>
@@ -1713,7 +1713,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                 </div>
                 <div class="auth-field">
                     <label class="auth-label">Password</label>
-                    <input type="password" class="auth-input" id="loginPassword" placeholder="��������" autocomplete="current-password">
+                    <input type="password" class="auth-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
                 </div>
                 <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In ?</button>
             </div>
@@ -1924,7 +1924,7 @@ async function doLogin() {
     clearAlert();
 
     btn.disabled    = true;
-    btn.textContent = 'Signing in�';
+    btn.textContent = 'Signing in...';
 
     try {
         const res  = await fetch('{{ route("auth.login") }}', {
@@ -1965,7 +1965,7 @@ async function doSignup() {
     clearAlert();
 
     btn.disabled    = true;
-    btn.textContent = 'Creating account�';
+    btn.textContent = 'Creating account...';
 
     try {
         const res  = await fetch('{{ route("auth.signup") }}', {
