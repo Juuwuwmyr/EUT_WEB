@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Cart - E.U.T Snack House</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.pwa-head')
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
@@ -76,7 +77,7 @@
         .cart-item:last-child { border-bottom: none; }
         .cart-item:hover { background: rgba(255,255,255,0.015); }
 
-        /* Clickable link wrapping image + info — removed, kept for reference */
+        /* Clickable link wrapping image + info ï¿½ removed, kept for reference */
         .item-edit-hint { display: none; }
 
         .item-img {
@@ -559,7 +560,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showCartToast(`?? "${badItem.name.split('(')[0].trim()}" needs a flavor selected! Tap the item to fix it.`, badItem.item_id);
                 return;
             }
-            // All good – let the link navigate to checkout normally
+            // All good ï¿½ let the link navigate to checkout normally
         });
     }
 
@@ -774,5 +775,6 @@ function showCartToast(msg, itemId) {
     setTimeout(() => t.remove(), 4000);
 }
 </script>
+@include('partials.pwa-register')
 </body>
 </html>

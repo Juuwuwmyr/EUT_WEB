@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E.U.T Snack House - Menu</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.pwa-head')
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
@@ -312,7 +313,7 @@
             <span style="color:#f97316;">E</span><span style="color:#38bdf8;">U</span><span style="color:#ef4444;">T</span>
         </a>
         <div class="search-wrap" style="max-width:100%;">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search burgers, fries, drinks…">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search burgers, fries, drinksï¿½">
             <button class="search-btn">
                 <svg width="14" height="14" fill="none" stroke="#000" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -349,9 +350,9 @@
         <div class="hero-text">
             <div class="hero-badge"><span class="hero-badge-dot"></span> Open Now</div>
             <h1 class="hero-title">E.U.T Snack House</h1>
-            <p class="hero-sub">Eat • Unwind • Tea — Delivered Fast</p>
+            <p class="hero-sub">Eat ï¿½ Unwind ï¿½ Tea ï¿½ Delivered Fast</p>
             <div class="hero-pills">
-                <span class="hero-pill">?? 30–45 min</span>
+                <span class="hero-pill">?? 30ï¿½45 min</span>
                 <span class="hero-pill">? 4.9 Rating</span>
                 <span class="hero-pill">?? Metro Manila</span>
             </div>
@@ -502,5 +503,18 @@ function updateCount(n) {
     document.getElementById('visibleCount').textContent = count + ' items';
 }
 </script>
+
+{{-- PWA Install Banner --}}
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;width:calc(100% - 32px);max-width:480px;background:linear-gradient(135deg,#12131f,#1a1b2e);border:1px solid rgba(250,204,21,.3);border-radius:16px;padding:14px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);">
+    <img src="/images/icons/icon-72x72.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0;" alt="EUT">
+    <div style="flex:1;min-width:0;">
+        <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 2px;">Install EUT App</p>
+        <p style="font-size:11px;color:#9ca3af;margin:0;">Add to home screen for faster access</p>
+    </div>
+    <button onclick="installPWA()" style="background:#facc15;color:#000;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">Install</button>
+    <button onclick="dismissPWABanner()" style="background:none;border:none;color:#6b7280;cursor:pointer;font-size:18px;padding:4px;flex-shrink:0;">Ã—</button>
+</div>
+
+@include('partials.pwa-register')
 </body>
 </html>
