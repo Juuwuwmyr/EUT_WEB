@@ -27,60 +27,59 @@
     </button>
 </div>
 
-{{-- â”€â”€ STATUS STAT CARDS â”€â”€ --}}
-@php
-$statusConfig = [
-    'pending'          => ['label'=>'Pending',         'sub'=>'Awaiting confirmation',  'icon'=>'clock',         'color'=>'#f59e0b','bg'=>'rgba(245,158,11,.10)'],
-    'preparing'        => ['label'=>'Preparing',       'sub'=>'Being cooked',           'icon'=>'chef-hat',      'color'=>'#3b82f6','bg'=>'rgba(59,130,246,.10)'],
-    'out'              => ['label'=>'On the Way',      'sub'=>'Out for delivery',       'icon'=>'bike',          'color'=>'#8b5cf6','bg'=>'rgba(139,92,246,.10)'],
-    'delivered'        => ['label'=>'Delivered',       'sub'=>'Completed orders',       'icon'=>'circle-check',  'color'=>'#10b981','bg'=>'rgba(16,185,129,.10)'],
-    'cancelled'        => ['label'=>'Cancelled',       'sub'=>'Cancelled orders',       'icon'=>'circle-x',      'color'=>'#ef4444','bg'=>'rgba(239,68,68,.10)'],
-];
-@endphp
-
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;">
-    @foreach($statusCounts as $status => $count)
-    @php $sc = $statusConfig[$status]; @endphp
-    <a href="{{ route('admin.orders',['status'=>$status]) }}"
-       class="stat-card"
-       style="text-decoration:none;position:relative;overflow:hidden;cursor:pointer;
-              border-color:{{ $sc['color'] }}22;
-              {{ request('status')===$status ? 'border-color:'.$sc['color'].'66;box-shadow:0 0 0 3px '.$sc['color'].'18;' : '' }}">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;">
-            <div style="width:2.75rem;height:2.75rem;border-radius:.75rem;background:{{ $sc['bg'] }};display:flex;align-items:center;justify-content:center;">
-                <i data-lucide="{{ $sc['icon'] }}" style="width:1.3rem;height:1.3rem;color:{{ $sc['color'] }};stroke-width:2;"></i>
-            </div>
-            <span style="font-size:2.25rem;font-weight:900;color:{{ $sc['color'] }};line-height:1;">{{ $count }}</span>
-        </div>
-        <h3 style="font-size:.875rem;font-weight:700;color:var(--text-strong);margin:0 0 .15rem;">{{ $sc['label'] }}</h3>
-        <p style="font-size:.7rem;color:var(--text-muted);margin:0;">{{ $sc['sub'] }}</p>
-        <div style="position:absolute;bottom:-1.5rem;right:-1.5rem;width:5rem;height:5rem;border-radius:50%;background:{{ $sc['bg'] }};filter:blur(18px);pointer-events:none;"></div>
-    </a>
-    @endforeach
+{{-- ── STATUS STAT CARDS (JS-rendered, auto-refreshed) ── --}}
+<div id="statCards" style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;">
+    <div class="stat-card" style="grid-column:span 2;text-align:center;color:var(--text-muted);padding:1.5rem;">Loading…</div>
 </div>
 
-{{-- â”€â”€ TABLE CARD â”€â”€ --}}
+{{-- ── ERROR LOG PANEL ── --}}
+<div id="errorLogPanel" style="display:none;margin-bottom:1.25rem;border:1px solid rgba(239,68,68,.35);border-radius:.75rem;background:rgba(239,68,68,.06);overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.08);">
+        <div style="display:flex;align-items:center;gap:.5rem;">
+            <i data-lucide="alert-triangle" style="width:.9rem;height:.9rem;color:#ef4444;stroke-width:2;"></i>
+            <span style="font-size:.78rem;font-weight:700;color:#ef4444;">Error Log</span>
+            <span id="errorCount" style="font-size:.65rem;background:rgba(239,68,68,.2);color:#ef4444;border-radius:99px;padding:1px 7px;font-weight:700;">0</span>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center;">
+            <button onclick="copyErrorLog()" style="font-size:.7rem;padding:.25rem .6rem;border-radius:.375rem;border:1px solid rgba(239,68,68,.3);background:transparent;color:#ef4444;cursor:pointer;display:inline-flex;align-items:center;gap:.3rem;">
+                <i data-lucide="copy" style="width:.7rem;height:.7rem;stroke-width:2;"></i> Copy All
+            </button>
+            <button onclick="clearErrorLog()" style="font-size:.7rem;padding:.25rem .6rem;border-radius:.375rem;border:1px solid rgba(239,68,68,.3);background:transparent;color:#ef4444;cursor:pointer;display:inline-flex;align-items:center;gap:.3rem;">
+                <i data-lucide="trash-2" style="width:.7rem;height:.7rem;stroke-width:2;"></i> Clear
+            </button>
+        </div>
+    </div>
+    <div id="errorLogBody" style="max-height:220px;overflow-y:auto;padding:.5rem .75rem;font-family:monospace;font-size:.72rem;line-height:1.6;"></div>
+</div>
+
+{{-- ── TABLE CARD ── --}}
 <div class="section-card">
     <div class="filter-bar" style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:.5rem;">
             <i data-lucide="filter" style="width:.875rem;height:.875rem;color:var(--text-muted);stroke-width:2;"></i>
-            <select onchange="location='{{ route('admin.orders') }}?status='+this.value" class="admin-input" style="max-width:180px;">
-                <option value="" {{ !request('status') ? 'selected':'' }}>All Statuses</option>
-                <option value="pending"          {{ request('status')==='pending'          ? 'selected':'' }}>Pending</option>
-                <option value="accepted"         {{ request('status')==='accepted'         ? 'selected':'' }}>Accepted</option>
-                <option value="preparing"        {{ request('status')==='preparing'        ? 'selected':'' }}>Preparing</option>
-                <option value="rider_assigned"   {{ request('status')==='rider_assigned'   ? 'selected':'' }}>Rider Assigned</option>
-                <option value="out_for_delivery" {{ request('status')==='out_for_delivery' ? 'selected':'' }}>Out for Delivery</option>
-                <option value="delivered"        {{ request('status')==='delivered'        ? 'selected':'' }}>Delivered</option>
-                <option value="cancelled"        {{ request('status')==='cancelled'        ? 'selected':'' }}>Cancelled</option>
+            <select id="statusFilter" class="admin-input" style="max-width:180px;"
+                    onchange="applyStatusFilter(this.value)">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Accepted</option>
+                <option value="preparing">Preparing</option>
+                <option value="rider_assigned">Rider Assigned</option>
+                <option value="out_for_delivery">Out for Delivery</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
             </select>
         </div>
-        @if(request('status'))
-            <a href="{{ route('admin.orders') }}" class="btn-ghost" style="display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;">
+        <span id="clearFilter" style="display:none;">
+            <a href="#" class="btn-ghost" onclick="applyStatusFilter('');return false;"
+               style="display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;">
                 <i data-lucide="x" style="width:.75rem;height:.75rem;stroke-width:2.5;"></i> Show All
             </a>
-        @endif
-        <span style="margin-left:auto;font-size:.72rem;color:var(--text-muted);">{{ $orders->count() }} order(s)</span>
+        </span>
+        <span id="orderCount" style="margin-left:auto;font-size:.72rem;color:var(--text-muted);"></span>
+        <span style="font-size:.68rem;color:var(--text-muted);display:flex;align-items:center;gap:.3rem;">
+            <span id="pollDot" style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;transition:background .3s;"></span>
+            <span id="pollLabel">Live</span>
+        </span>
     </div>
 
     <table class="admin-table">
@@ -90,80 +89,8 @@ $statusConfig = [
                 <th>Total</th><th>Status</th><th>Placed</th><th>Actions</th>
             </tr>
         </thead>
-        <tbody>
-            @forelse($orders as $order)
-            @php
-                $s = $order->status;
-                $statusColorMap = [
-                    'pending'          => ['bg'=>'rgba(245,158,11,.12)', 'color'=>'#d97706',  'label'=>'Pending'],
-                    'accepted'         => ['bg'=>'rgba(59,130,246,.12)', 'color'=>'#2563eb',  'label'=>'Accepted'],
-                    'preparing'        => ['bg'=>'rgba(59,130,246,.12)', 'color'=>'#2563eb',  'label'=>'Preparing'],
-                    'rider_assigned'   => ['bg'=>'rgba(139,92,246,.12)','color'=>'#7c3aed',  'label'=>'Rider Assigned'],
-                    'out_for_delivery' => ['bg'=>'rgba(139,92,246,.12)','color'=>'#7c3aed',  'label'=>'On the Way'],
-                    'delivered'        => ['bg'=>'rgba(16,185,129,.12)', 'color'=>'#16a34a',  'label'=>'Delivered'],
-                    'cancelled'        => ['bg'=>'rgba(239,68,68,.12)',  'color'=>'#dc2626',  'label'=>'Cancelled'],
-                ];
-                $sc = $statusColorMap[$s] ?? $statusColorMap['pending'];
-                $customerName = $order->user?->name ?? 'Guest';
-            @endphp
-            <tr>
-                <td>
-                    <span style="font-family:monospace;font-weight:700;color:var(--accent);font-size:.875rem;">{{ $order->order_number }}</span>
-                </td>
-                <td>
-                    <div style="display:flex;align-items:center;gap:.5rem;">
-                        <div style="width:1.875rem;height:1.875rem;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;font-size:.7rem;flex-shrink:0;">
-                            {{ strtoupper(substr($customerName,0,1)) }}
-                        </div>
-                        <div>
-                            <div style="display:flex;align-items:center;gap:.3rem;margin-bottom:.1rem;">
-                                <p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">{{ $customerName }}</p>
-                                <span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;" title="{{ $order->order_type_label }}">
-                                    {{ $order->order_type_icon }} {{ $order->order_type_label }}
-                                </span>
-                            </div>
-                            <p style="font-size:.68rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">{{ $order->delivery_address }}</p>
-                        </div>
-                    </div>
-                </td>
-                <td style="max-width:180px;">
-                    @foreach($order->items->take(2) as $item)
-                        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
-                            <span style="font-size:.72rem;font-weight:700;color:var(--accent);background:rgba(250,204,21,.1);border-radius:4px;padding:1px 5px;flex-shrink:0;">x{{ $item->quantity }}</span>
-                            <span style="font-size:.75rem;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;" title="{{ $item->item_name }}">{{ $item->item_name }}</span>
-                        </div>
-                    @endforeach
-                    @if($order->items->count() > 2)
-                        <span style="font-size:.68rem;color:var(--text-muted);">+{{ $order->items->count() - 2 }} more</span>
-                    @endif
-                </td>
-                <td style="font-weight:700;color:var(--accent);">&#x20B1;{{ number_format($order->total) }}</td>
-                <td>
-                    <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:9999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:{{ $sc['bg'] }};color:{{ $sc['color'] }};">
-                        {{ $sc['label'] }}
-                    </span>
-                </td>
-                <td style="color:var(--text-muted);font-size:.72rem;white-space:nowrap;">{{ $order->created_at->format('M d g:i A') }}</td>
-                <td>
-                    <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
-                        <button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .65rem;"
-                                onclick="openManageModal({{ $order->id }})">
-                            <i data-lucide="settings-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Manage
-                        </button>
-
-                        {{-- Quick Accept for pending --}}
-                        @if($s === 'pending')
-                            <button type="button" class="btn-success" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .65rem;"
-                                    onclick="quickAccept({{ $order->id }}, this)">
-                                <i data-lucide="check" style="width:.75rem;height:.75rem;stroke-width:2.5;"></i> Accept
-                            </button>
-                        @endif
-                    </div>
-                </td>
-            </tr>
-            @empty
-            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:3rem;">No orders found.</td></tr>
-            @endforelse
+        <tbody id="ordersTableBody">
+            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:3rem;">Loading…</td></tr>
         </tbody>
     </table>
 </div>
@@ -185,62 +112,95 @@ $statusConfig = [
         </div>
     </div>
 </div>
-
-{{-- â•â•â•â•â•â•â•â•â•â• ORDER DATA MAP â•â•â•â•â•â•â•â•â•â• --}}
-@php
-$ordersMap = [];
-foreach($orders as $o) {
-    $ordersMap[$o->id] = [
-        'id'           => $o->id,
-        'order_number' => $o->order_number,
-        'status'       => $o->status,
-        'order_type'   => $o->order_type,
-        'order_type_label' => $o->order_type_label,
-        'order_type_icon' => $o->order_type_icon,
-        'status_label' => $o->status_label,
-        'customer'     => $o->user?->name ?? 'Guest',
-        'email'        => $o->user?->email ?? '',
-        'address'      => $o->delivery_address,
-        'delivery_lat' => $o->delivery_lat,
-        'delivery_lng' => $o->delivery_lng,
-        'payment'      => $o->payment_method,
-        'subtotal'     => $o->subtotal,
-        'delivery_fee' => $o->delivery_fee,
-        'total'        => $o->total,
-        'notes'        => $o->notes,
-        'date'         => $o->created_at->format('M d, Y g:i A'),
-        'accepted_at'  => $o->accepted_at?->format('g:i A'),
-        'picked_up_at' => $o->picked_up_at?->format('g:i A'),
-        'delivered_at' => $o->delivered_at?->format('g:i A'),
-        'rider'        => ($o->rider && $o->rider->user) ? $o->rider->user->name : null,
-        'rider_lat'    => $o->rider?->current_lat,
-        'rider_lng'    => $o->rider?->current_lng,
-        'items'        => $o->items->map(fn($i) => [
-            'name'      => $i->item_name,
-            'qty'       => $i->quantity,
-            'price'     => $i->unit_price,
-            'subtotal'  => $i->subtotal,
-            'modifiers' => $i->modifiers ?? [],
-        ])->toArray(),
-    ];
-}
-$ridersMap = $availableRiders->map(fn($r) => ['id'=>$r->id,'name'=>$r->user->name,'phone'=>$r->phone])->values();
-@endphp
-
 <script>
-var ORDERS_MAP   = @json($ordersMap);
-var RIDERS       = @json($ridersMap);
 var CSRF_TOKEN   = '{{ csrf_token() }}';
+var POLL_URL     = '{{ route("admin.orders.poll") }}';
+var ORDERS_MAP   = {};
+var RIDERS       = [];
+var activeFilter = '{{ request("status","") }}';
+var pollTimer    = null;
+var POLL_INTERVAL = 8000; // 8 seconds
 
-// -- Status pipeline
+// ── Error Log ────────────────────────────────────────────
+var errorLogEntries = [];
+
+function logError(context, message, detail) {
+    var ts = new Date().toLocaleTimeString();
+    var entry = { ts: ts, context: context, message: message, detail: detail || '' };
+    errorLogEntries.push(entry);
+
+    var panel = document.getElementById('errorLogPanel');
+    var body  = document.getElementById('errorLogBody');
+    var count = document.getElementById('errorCount');
+
+    if (panel) panel.style.display = 'block';
+    if (count) count.textContent = errorLogEntries.length;
+
+    if (body) {
+        var color = '#ef4444';
+        var row = document.createElement('div');
+        row.style.cssText = 'padding:3px 0;border-bottom:1px solid rgba(239,68,68,.1);display:flex;gap:.5rem;align-items:flex-start;';
+        row.innerHTML =
+            '<span style="color:#6b7280;flex-shrink:0;">' + ts + '</span>' +
+            '<span style="color:#f87171;font-weight:700;flex-shrink:0;">[' + escHtml(context) + ']</span>' +
+            '<span style="color:#fca5a5;word-break:break-all;">' + escHtml(message) +
+                (detail ? '<br><span style="color:#9ca3af;font-size:.68rem;">' + escHtml(String(detail)) + '</span>' : '') +
+            '</span>';
+        body.appendChild(row);
+        body.scrollTop = body.scrollHeight;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+function copyErrorLog() {
+    if (!errorLogEntries.length) return;
+    var text = errorLogEntries.map(function(e) {
+        return '[' + e.ts + '] [' + e.context + '] ' + e.message + (e.detail ? '\n  ' + e.detail : '');
+    }).join('\n');
+    navigator.clipboard.writeText(text).then(function() {
+        var btn = document.querySelector('#errorLogPanel button');
+        if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✓ Copied!'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
+    });
+}
+
+function clearErrorLog() {
+    errorLogEntries = [];
+    var body  = document.getElementById('errorLogBody');
+    var panel = document.getElementById('errorLogPanel');
+    var count = document.getElementById('errorCount');
+    if (body)  body.innerHTML = '';
+    if (panel) panel.style.display = 'none';
+    if (count) count.textContent = '0';
+}
+
+// ── Status config (client-side) ─────────────────────────
+var STATUS_COLOR_MAP = {
+    pending:          { bg:'rgba(245,158,11,.12)',  color:'#d97706',  label:'Pending'        },
+    accepted:         { bg:'rgba(59,130,246,.12)',  color:'#2563eb',  label:'Accepted'       },
+    preparing:        { bg:'rgba(59,130,246,.12)',  color:'#2563eb',  label:'Preparing'      },
+    rider_assigned:   { bg:'rgba(139,92,246,.12)',  color:'#7c3aed',  label:'Rider Assigned' },
+    out_for_delivery: { bg:'rgba(139,92,246,.12)',  color:'#7c3aed',  label:'On the Way'     },
+    delivered:        { bg:'rgba(16,185,129,.12)',  color:'#16a34a',  label:'Delivered'      },
+    cancelled:        { bg:'rgba(239,68,68,.12)',   color:'#dc2626',  label:'Cancelled'      },
+};
+
+var STAT_CONFIG = {
+    pending:   { label:'Pending',    sub:'Awaiting confirmation', icon:'clock',        color:'#f59e0b', bg:'rgba(245,158,11,.10)'  },
+    preparing: { label:'Preparing',  sub:'Being cooked',          icon:'chef-hat',     color:'#3b82f6', bg:'rgba(59,130,246,.10)'  },
+    out:       { label:'On the Way', sub:'Out for delivery',      icon:'bike',         color:'#8b5cf6', bg:'rgba(139,92,246,.10)'  },
+    delivered: { label:'Delivered',  sub:'Completed orders',      icon:'circle-check', color:'#10b981', bg:'rgba(16,185,129,.10)'  },
+    cancelled: { label:'Cancelled',  sub:'Cancelled orders',      icon:'circle-x',     color:'#ef4444', bg:'rgba(239,68,68,.10)'   },
+};
+
+// -- Status pipeline for modal
 var STATUS_PIPELINE = {
-    pending:          { label:'Pending',         color:'#f59e0b', next:'accepted',         nextLabel:'&#x2705; Accept Order',              btnClass:'btn-success'  },
-    accepted:         { label:'Accepted',        color:'#3b82f6', next:'preparing',        nextLabel:'&#x1F373; Start Preparing',          btnClass:'btn-primary'  },
-    preparing:        { label:'Preparing',       color:'#3b82f6', next:'out_for_delivery', nextLabel:'&#x1F6F5; Mark Out for Delivery',    btnClass:'btn-warning'  },
-    rider_assigned:   { label:'Rider Assigned',  color:'#8b5cf6', next:'out_for_delivery', nextLabel:'&#x1F6F5; Mark Out for Delivery',    btnClass:'btn-warning'  },
-    out_for_delivery: { label:'On the Way',      color:'#8b5cf6', next:null,               nextLabel:null,                                 btnClass:''             },
-    delivered:        { label:'Delivered',       color:'#10b981', next:null,               nextLabel:null,                                 btnClass:''             },
-    cancelled:        { label:'Cancelled',       color:'#ef4444', next:null,               nextLabel:null,                                 btnClass:''             },
+    pending:          { label:'Pending',        color:'#f59e0b', next:'accepted',         nextLabel:'&#x2705; Accept Order',           btnClass:'btn-success' },
+    accepted:         { label:'Accepted',       color:'#3b82f6', next:'preparing',        nextLabel:'&#x1F373; Start Preparing',       btnClass:'btn-primary' },
+    preparing:        { label:'Preparing',      color:'#3b82f6', next:'out_for_delivery', nextLabel:'&#x1F6F5; Mark Out for Delivery', btnClass:'btn-warning' },
+    rider_assigned:   { label:'Rider Assigned', color:'#8b5cf6', next:'out_for_delivery', nextLabel:'&#x1F6F5; Mark Out for Delivery', btnClass:'btn-warning' },
+    out_for_delivery: { label:'On the Way',     color:'#8b5cf6', next:null,               nextLabel:null,                              btnClass:''            },
+    delivered:        { label:'Delivered',      color:'#10b981', next:null,               nextLabel:null,                              btnClass:''            },
+    cancelled:        { label:'Cancelled',      color:'#ef4444', next:null,               nextLabel:null,                              btnClass:''            },
 };
 
 var STATUS_TIMELINE = [
@@ -251,9 +211,303 @@ var STATUS_TIMELINE = [
     { key:'delivered',        label:'Delivered',        icon:'&#x1F4E6;' },
 ];
 
+// ── Auto-poll ────────────────────────────────────────────
+function startPolling() {
+    fetchOrders();
+    pollTimer = setInterval(fetchOrders, POLL_INTERVAL);
+}
+
+async function fetchOrders() {
+    var dot   = document.getElementById('pollDot');
+    var label = document.getElementById('pollLabel');
+    if (dot) dot.style.background = '#f59e0b'; // yellow = fetching
+
+    try {
+        var url = POLL_URL + (activeFilter ? '?status=' + activeFilter : '');
+        var res = await fetch(url, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN } });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        var data = await res.json();
+
+        ORDERS_MAP = {};
+        data.orders.forEach(function(o) { ORDERS_MAP[o.id] = o; });
+        RIDERS = data.riders || [];
+
+        renderStats(data.statusCounts);
+        renderTable(data.orders);
+
+        if (dot)   dot.style.background   = '#10b981'; // green = ok
+        if (label) label.textContent = 'Live';
+    } catch (e) {
+        console.warn('Poll error:', e);
+        logError('Poll', 'Failed to fetch orders', e.message);
+        if (dot)   dot.style.background   = '#ef4444'; // red = error
+        if (label) label.textContent = 'Offline';
+    }
+}
+
+function applyStatusFilter(val) {
+    activeFilter = val;
+    var sel = document.getElementById('statusFilter');
+    if (sel) sel.value = val;
+    var clr = document.getElementById('clearFilter');
+    if (clr) clr.style.display = val ? 'inline' : 'none';
+    fetchOrders();
+}
+
+// ── Render stat cards ────────────────────────────────────
+function renderStats(counts) {
+    var html = '';
+    Object.keys(STAT_CONFIG).forEach(function(key) {
+        var sc    = STAT_CONFIG[key];
+        var count = counts[key] || 0;
+        var active = activeFilter === key;
+        html +=
+            '<a href="#" onclick="applyStatusFilter(\'' + key + '\');return false;" class="stat-card"' +
+            ' style="text-decoration:none;position:relative;overflow:hidden;cursor:pointer;' +
+            'border-color:' + sc.color + '22;' +
+            (active ? 'border-color:' + sc.color + '66;box-shadow:0 0 0 3px ' + sc.color + '18;' : '') + '">' +
+            '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;">' +
+                '<div style="width:2.75rem;height:2.75rem;border-radius:.75rem;background:' + sc.bg + ';display:flex;align-items:center;justify-content:center;">' +
+                    '<i data-lucide="' + sc.icon + '" style="width:1.3rem;height:1.3rem;color:' + sc.color + ';stroke-width:2;"></i>' +
+                '</div>' +
+                '<span style="font-size:2.25rem;font-weight:900;color:' + sc.color + ';line-height:1;">' + count + '</span>' +
+            '</div>' +
+            '<h3 style="font-size:.875rem;font-weight:700;color:var(--text-strong);margin:0 0 .15rem;">' + sc.label + '</h3>' +
+            '<p style="font-size:.7rem;color:var(--text-muted);margin:0;">' + sc.sub + '</p>' +
+            '<div style="position:absolute;bottom:-1.5rem;right:-1.5rem;width:5rem;height:5rem;border-radius:50%;background:' + sc.bg + ';filter:blur(18px);pointer-events:none;"></div>' +
+            '</a>';
+    });
+    var el = document.getElementById('statCards');
+    if (el) { el.innerHTML = html; if (typeof lucide !== 'undefined') lucide.createIcons(); }
+}
+
+// ── Render table rows ────────────────────────────────────
+var INLINE_ACTIONS = {
+    pending:          { label:'✅ Accept',       btnClass:'btn-success', type:'accept'                                    },
+    accepted:         { label:'🍳 Prepare',      btnClass:'btn-primary', type:'status',      next:'preparing'            },
+    preparing:        { label:'🛵 Dispatch',     btnClass:'btn-warning', type:'auto-assign'                               },
+    rider_assigned:   { label:'🛵 Out',          btnClass:'btn-warning', type:'status',      next:'out_for_delivery'      },
+};
+
+function renderTable(orders) {
+    var tbody = document.getElementById('ordersTableBody');
+    if (!tbody) return;
+
+    var countEl = document.getElementById('orderCount');
+    if (countEl) countEl.textContent = orders.length + ' order(s)';
+
+    if (!orders.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:3rem;">No orders found.</td></tr>';
+        return;
+    }
+
+    var html = '';
+    orders.forEach(function(o) {
+        var sc = STATUS_COLOR_MAP[o.status] || STATUS_COLOR_MAP['pending'];
+        var initial = (o.customer || 'G').charAt(0).toUpperCase();
+
+        // Items preview
+        var itemsHtml = '';
+        var preview = o.items.slice(0, 2);
+        preview.forEach(function(item) {
+            itemsHtml +=
+                '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">' +
+                '<span style="font-size:.72rem;font-weight:700;color:var(--accent);background:rgba(250,204,21,.1);border-radius:4px;padding:1px 5px;flex-shrink:0;">x' + item.qty + '</span>' +
+                '<span style="font-size:.75rem;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;" title="' + escHtml(item.name) + '">' + escHtml(item.name) + '</span>' +
+                '</div>';
+        });
+        if (o.items.length > 2) {
+            itemsHtml += '<span style="font-size:.68rem;color:var(--text-muted);">+' + (o.items.length - 2) + ' more</span>';
+        }
+
+        // Inline action button — replaces "Manage" for actionable statuses
+        var actionBtn = '';
+        var act = INLINE_ACTIONS[o.status];
+
+        // For non-delivery orders, preparing goes straight to delivered
+        if (o.status === 'preparing' && o.order_type !== 'delivery') {
+            act = { label: o.order_type === 'pickup' ? '🥡 Picked Up' : '✅ Complete', btnClass:'btn-success', type:'status', next:'delivered' };
+        }
+
+        if (act) {
+            actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;" ' +
+                'onclick="quickAction(' + o.id + ',\'' + act.type + '\',\'' + (act.next || '') + '\',this)">' +
+                act.label +
+                '</button>';
+        }
+
+        html +=
+            '<tr id="order-row-' + o.id + '">' +
+            '<td><span style="font-family:monospace;font-weight:700;color:var(--accent);font-size:.875rem;">' + escHtml(o.order_number) + '</span></td>' +
+            '<td>' +
+                '<div style="display:flex;align-items:center;gap:.5rem;">' +
+                '<div style="width:1.875rem;height:1.875rem;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;font-size:.7rem;flex-shrink:0;">' + initial + '</div>' +
+                '<div>' +
+                    '<div style="display:flex;align-items:center;gap:.3rem;margin-bottom:.1rem;">' +
+                    '<p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">' + escHtml(o.customer) + '</p>' +
+                    '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;">' + escHtml(o.order_type_icon) + ' ' + escHtml(o.order_type_label) + '</span>' +
+                    '</div>' +
+                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">' + escHtml(o.address || '') + '</p>' +
+                '</div>' +
+                '</div>' +
+            '</td>' +
+            '<td style="max-width:180px;">' + itemsHtml + '</td>' +
+            '<td style="font-weight:700;color:var(--accent);">&#x20B1;' + Number(o.total).toLocaleString() + '</td>' +
+            '<td><span style="display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:9999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:' + sc.bg + ';color:' + sc.color + ';">' + sc.label + '</span></td>' +
+            '<td style="color:var(--text-muted);font-size:.72rem;white-space:nowrap;">' + escHtml(o.date_short || o.date) + '</td>' +
+            '<td>' +
+                '<div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;">' +
+                actionBtn +
+                '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;" onclick="openManageModal(' + o.id + ')" title="Details">' +
+                    '<i data-lucide="settings-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+                '</button>' +
+                '</div>' +
+            '</td>' +
+            '</tr>';
+    });
+
+    tbody.innerHTML = html;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Rider card selection ──────────────────────────────────
+function selectRiderCard(el, riderId) {
+    // Find the order id from the cards container
+    var container = el.closest('[id^="riderCards_"]');
+    if (!container) return;
+    var orderId = container.id.replace('riderCards_', '');
+
+    // Deselect all cards in this group
+    container.querySelectorAll('.rider-card').forEach(function(card) {
+        card.style.borderColor = 'var(--border-card)';
+        card.style.background  = 'var(--bg-filter)';
+        card.querySelector('.rider-radio').style.background   = 'transparent';
+        card.querySelector('.rider-radio').style.borderColor  = 'var(--border-card)';
+    });
+
+    // Select this card
+    el.style.borderColor = '#f59e0b';
+    el.style.background  = 'rgba(245,158,11,.08)';
+    el.querySelector('.rider-radio').style.background  = '#f59e0b';
+    el.querySelector('.rider-radio').style.borderColor = '#f59e0b';
+
+    // Store selected rider and enable button
+    var input = document.getElementById('selectedRider_' + orderId);
+    var btn   = document.getElementById('assignBtn_' + orderId);
+    if (input) input.value = riderId;
+    if (btn)   btn.disabled = false;
+}
+
+async function assignRider(orderId, btn) {
+    var input    = document.getElementById('selectedRider_' + orderId);
+    var riderId  = input ? input.value : '';
+    if (!riderId) return;
+
+    var orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Assigning…';
+
+    try {
+        var url = '{{ route("admin.orders.assign-rider", ":id") }}'.replace(':id', orderId);
+        var res = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rider_id: riderId }),
+        });
+        var data = await res.json();
+        if (data.success || res.ok) {
+            closeModal('manageModal');
+            await fetchOrders();
+        } else {
+            var msg = data.message || 'Failed to assign rider.';
+            logError('AssignRider', '[Order #' + orderId + '] ' + msg);
+            alert(msg);
+            btn.disabled = false;
+            btn.innerHTML = orig;
+        }
+    } catch(e) {
+        logError('AssignRider', '[Order #' + orderId + '] ' + e.message);
+        alert('An error occurred.');
+        btn.disabled = false;
+        btn.innerHTML = orig;
+    }
+}
+
+// ── Inline quick action (replaces quickAccept for all statuses) ──────────────
+async function quickAction(orderId, type, nextStatus, btn) {
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳';
+
+    try {
+        let url, method = 'POST', body = null;
+
+        if (type === 'accept') {
+            url = '{{ route("admin.orders.accept", ":id") }}'.replace(':id', orderId);
+
+        } else if (type === 'auto-assign') {
+            if (!RIDERS.length) {
+                logError('AutoAssign', '[Order #' + orderId + '] No riders in the system.');
+                alert('No riders available. Please add a rider first.');
+                btn.disabled = false; btn.innerHTML = originalHtml;
+                return;
+            }
+            var rider = RIDERS[0]; // first free rider, or least-busy if all occupied
+            url    = '{{ route("admin.orders.assign-rider", ":id") }}'.replace(':id', orderId);
+            method = 'POST';
+            body   = JSON.stringify({ rider_id: rider.id });
+
+        } else {
+            url    = '{{ route("admin.orders.status", ":id") }}'.replace(':id', orderId);
+            method = 'PATCH';
+            body   = JSON.stringify({ status: nextStatus });
+        }
+
+        const res  = await fetch(url, {
+            method: method,
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: body,
+        });
+        const data = await res.json();
+
+        if (data.success || res.ok) {
+            if (data.receipt_url) printReceipt(data.receipt_url);
+            await fetchOrders();
+        } else {
+            var msg = data.message || 'Action failed.';
+            logError('QuickAction', '[Order #' + orderId + '] ' + msg, 'Status: ' + res.status);
+            alert(msg);
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            if (window.lucide) lucide.createIcons();
+        }
+    } catch(e) {
+        console.error(e);
+        logError('QuickAction', '[Order #' + orderId + '] Network or JS error', e.message);
+        alert('An error occurred. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+// Keep old quickAccept/handleModalAccept wired to quickAction for modal use
+async function quickAccept(orderId, btn) {
+    if (!confirm('Accept this order?')) return;
+    await quickAction(orderId, 'accept', '', btn);
+}
+async function handleModalAccept(orderId, btn) {
+    await quickAction(orderId, 'accept', '', btn);
+}
+
 function openManageModal(id) {
     var o = ORDERS_MAP[id];
-    if (!o) return;
+    if (!o) { fetchOrders().then(function(){ openManageModal(id); }); return; }
 
     // Adjust pipeline for non-delivery orders
     var sp = JSON.parse(JSON.stringify(STATUS_PIPELINE[o.status] || {}));
@@ -269,21 +523,20 @@ function openManageModal(id) {
 
     // -- Timeline
     var isDelivery = o.order_type === 'delivery';
-    var statusOrder = isDelivery 
+    var statusOrder = isDelivery
         ? ['pending','accepted','preparing','out_for_delivery','delivered']
         : ['pending','accepted','preparing','delivered'];
-    
+
     var curIdx = statusOrder.indexOf(o.status);
     if (isDelivery && o.status === 'rider_assigned') curIdx = 2;
 
-    var timelineSteps = isDelivery ? STATUS_TIMELINE : STATUS_TIMELINE.filter(s => s.key !== 'out_for_delivery');
+    var timelineSteps = isDelivery ? STATUS_TIMELINE : STATUS_TIMELINE.filter(function(s){ return s.key !== 'out_for_delivery'; });
 
     var tlHtml = '<div style="display:flex;align-items:center;gap:0;margin-bottom:.25rem;overflow-x:auto;padding-bottom:.25rem;">';
     timelineSteps.forEach(function(step, i) {
         var done     = i < (isDelivery && o.status === 'rider_assigned' ? 3 : curIdx);
         var current  = (i === curIdx) || (isDelivery && o.status === 'rider_assigned' && i === 2);
-        var cancelled = o.status === 'cancelled';
-        var dotColor  = done || current ? (cancelled ? '#ef4444' : step.key === 'delivered' ? '#10b981' : '#3b82f6') : 'var(--border-card)';
+        var dotColor  = done || current ? (step.key === 'delivered' ? '#10b981' : '#3b82f6') : 'var(--border-card)';
         var textColor = done || current ? 'var(--text-strong)' : 'var(--text-muted)';
         var fw        = current ? '700' : '500';
         tlHtml +=
@@ -292,7 +545,9 @@ function openManageModal(id) {
                 (current ? 'box-shadow:0 0 0 4px ' + dotColor + '33;' : '') + '">' +
                     step.icon +
                 '</div>' +
-                '<span style="font-size:.6rem;font-weight:' + fw + ';color:' + textColor + ';text-align:center;margin-top:.3rem;line-height:1.2;">' + (step.key === 'delivered' && !isDelivery ? (o.order_type === 'pickup' ? 'Picked Up' : 'Completed') : step.label) + '</span>' +
+                '<span style="font-size:.6rem;font-weight:' + fw + ';color:' + textColor + ';text-align:center;margin-top:.3rem;line-height:1.2;">' +
+                    (step.key === 'delivered' && !isDelivery ? (o.order_type === 'pickup' ? 'Picked Up' : 'Completed') : step.label) +
+                '</span>' +
             '</div>';
         if (i < timelineSteps.length - 1) {
             tlHtml += '<div style="height:2px;flex:1;background:' + (done ? '#3b82f6' : 'var(--border-card)') + ';margin-top:1rem;min-width:16px;"></div>';
@@ -313,13 +568,13 @@ function openManageModal(id) {
                 if (!m || !m.name || /^no\s/i.test(m.name)) return;
                 var colors = { flavor:'#3b82f6', modifier:'#8b5cf6', addon:'#d97706' };
                 var c = colors[m.type] || '#8b5cf6';
-                modTags += '<span style="padding:.1rem .45rem;border-radius:99px;font-size:.6rem;background:' + c + '18;color:' + c + ';font-weight:600;">' + m.name + '</span>';
+                modTags += '<span style="padding:.1rem .45rem;border-radius:99px;font-size:.6rem;background:' + c + '18;color:' + c + ';font-weight:600;">' + escHtml(m.name) + '</span>';
             });
         }
         itemsHtml +=
             '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:.45rem 0;border-bottom:1px solid var(--border-divider);">' +
                 '<div>' +
-                    '<span style="font-weight:600;color:var(--text-strong);font-size:.8rem;">x' + item.qty + ' ' + item.name + '</span>' +
+                    '<span style="font-weight:600;color:var(--text-strong);font-size:.8rem;">x' + item.qty + ' ' + escHtml(item.name) + '</span>' +
                     (modTags ? '<div style="display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.25rem;">' + modTags + '</div>' : '') +
                 '</div>' +
                 '<span style="font-size:.8rem;color:var(--text-body);font-weight:600;flex-shrink:0;margin-left:.5rem;">&#x20B1;' + Number(item.subtotal).toLocaleString() + '</span>' +
@@ -328,10 +583,14 @@ function openManageModal(id) {
 
     // -- Action buttons
     var actionsHtml = '';
+    var acceptRoute  = '{{ route("admin.orders.accept", ":id") }}';
+    var statusRoute  = '{{ route("admin.orders.status", ":id") }}';
+    var assignRoute  = '{{ route("admin.orders.assign-rider", ":id") }}';
+
     if (sp.next && o.status !== 'delivered' && o.status !== 'cancelled') {
         var actionRoute = o.status === 'pending'
-            ? '{{ route("admin.orders.accept", ":id") }}'.replace(':id', o.id)
-            : '{{ route("admin.orders.status", ":id") }}'.replace(':id', o.id);
+            ? acceptRoute.replace(':id', o.id)
+            : statusRoute.replace(':id', o.id);
 
         if (o.status === 'pending') {
             actionsHtml +=
@@ -352,21 +611,37 @@ function openManageModal(id) {
     }
 
     if (o.status === 'preparing' && RIDERS.length > 0) {
-        var riderOptions = '<option value="">-- Select a rider --</option>';
-        RIDERS.forEach(function(r) { riderOptions += '<option value="' + r.id + '">' + r.name + (r.phone ? ' · ' + r.phone : '') + '</option>'; });
+        var riderCards = '';
+        RIDERS.forEach(function(r) {
+            var initials = r.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0,2).toUpperCase();
+            riderCards +=
+                '<div class="rider-card" data-rider-id="' + r.id + '" onclick="selectRiderCard(this,' + r.id + ')" ' +
+                'style="display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;border-radius:.5rem;border:2px solid var(--border-card);cursor:pointer;transition:all .15s;background:var(--bg-filter);">' +
+                    '<div style="width:2rem;height:2rem;border-radius:50%;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.65rem;color:#f59e0b;flex-shrink:0;">' + escHtml(initials) + '</div>' +
+                    '<div style="flex:1;min-width:0;">' +
+                        '<div style="font-size:.8rem;font-weight:600;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(r.name) + '</div>' +
+                        (r.phone ? '<div style="font-size:.68rem;color:var(--text-muted);">' + escHtml(r.phone) + '</div>' : '') +
+                    '</div>' +
+                    '<div style="width:.875rem;height:.875rem;border-radius:50%;border:2px solid var(--border-card);flex-shrink:0;" class="rider-radio"></div>' +
+                '</div>';
+        });
+
         actionsHtml +=
-            '<form method="POST" action="{{ route("admin.orders.assign-rider", ":id") }}'.replace(':id', o.id) + '" style="display:flex;gap:.5rem;margin-top:.5rem;" id="assignForm_' + o.id + '">' +
-                '<input type="hidden" name="_token" value="' + CSRF_TOKEN + '">' +
-                '<select name="rider_id" class="admin-input" style="flex:1;">' + riderOptions + '</select>' +
-                '<button type="submit" class="btn-primary" style="white-space:nowrap;font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;">' +
+            '<div style="margin-top:.5rem;">' +
+                '<p style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .4rem;font-weight:600;">Assign Rider</p>' +
+                '<div id="riderCards_' + o.id + '" style="display:flex;flex-direction:column;gap:.35rem;margin-bottom:.5rem;">' +
+                    riderCards +
+                '</div>' +
+                '<input type="hidden" id="selectedRider_' + o.id + '" value="">' +
+                '<button type="button" onclick="assignRider(' + o.id + ',this)" class="btn-primary" style="width:100%;justify-content:center;font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;" disabled id="assignBtn_' + o.id + '">' +
                     '<i data-lucide="bike" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Assign Rider' +
                 '</button>' +
-            '</form>';
+            '</div>';
     }
 
     if (['pending','accepted','preparing'].includes(o.status)) {
         actionsHtml +=
-            '<form method="POST" action="{{ route("admin.orders.status", ":id") }}'.replace(':id', o.id) + '" style="margin-top:.25rem;" onsubmit="return confirm(\'Cancel this order?\')">' +
+            '<form method="POST" action="' + statusRoute.replace(':id', o.id) + '" style="margin-top:.25rem;" onsubmit="return confirm(\'Cancel this order?\')">' +
                 '<input type="hidden" name="_token" value="' + CSRF_TOKEN + '">' +
                 '<input type="hidden" name="_method" value="PATCH">' +
                 '<input type="hidden" name="status" value="cancelled">' +
@@ -385,17 +660,17 @@ function openManageModal(id) {
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.625rem;">' +
             '<div style="background:var(--bg-filter);border-radius:.625rem;padding:.75rem;">' +
                 '<p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .25rem;">Customer</p>' +
-                '<p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">' + o.customer + '</p>' +
-                '<p style="color:var(--text-muted);font-size:.7rem;margin:.1rem 0 0;">' + o.email + '</p>' +
+                '<p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">' + escHtml(o.customer) + '</p>' +
+                '<p style="color:var(--text-muted);font-size:.7rem;margin:.1rem 0 0;">' + escHtml(o.email) + '</p>' +
             '</div>' +
             '<div style="background:var(--bg-filter);border-radius:.625rem;padding:.75rem;">' +
                 '<p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .25rem;">Payment &middot; Total</p>' +
                 '<p style="font-weight:700;color:var(--accent);font-size:1rem;margin:0;">&#x20B1;' + Number(o.total).toLocaleString() + '</p>' +
-                '<p style="color:var(--text-muted);font-size:.7rem;margin:.1rem 0 0;text-transform:capitalize;">' + o.payment + '</p>' +
+                '<p style="color:var(--text-muted);font-size:.7rem;margin:.1rem 0 0;text-transform:capitalize;">' + escHtml(o.payment) + '</p>' +
             '</div>' +
             '<div style="background:var(--bg-filter);border-radius:.625rem;padding:.75rem;grid-column:span 2;">' +
                 '<p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .25rem;">Delivery Address</p>' +
-                '<p style="font-size:.8rem;color:var(--text-body);margin:0;">' + o.address + '</p>' +
+                '<p style="font-size:.8rem;color:var(--text-body);margin:0;">' + escHtml(o.address || '') + '</p>' +
             '</div>' +
         '</div>' +
         '<div>' +
@@ -411,15 +686,13 @@ function openManageModal(id) {
                 '</div>' +
             '</div>' +
         '</div>' +
-        (o.notes ? '<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:.625rem;padding:.75rem 1rem;"><p style="font-size:.68rem;color:#d97706;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .3rem;font-weight:700;">&#x1F4DD; Customer Note</p><p style="font-size:.8rem;color:var(--text-body);margin:0;">' + o.notes + '</p></div>' : '') +
+        (o.notes ? '<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:.625rem;padding:.75rem 1rem;"><p style="font-size:.68rem;color:#d97706;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .3rem;font-weight:700;">&#x1F4DD; Customer Note</p><p style="font-size:.8rem;color:var(--text-body);margin:0;">' + escHtml(o.notes) + '</p></div>' : '') +
         (o.status === 'out_for_delivery'
             ? '<div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.2);border-radius:.625rem;padding:.75rem 1rem;">' +
                 '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.625rem;">' +
                     '<span style="font-size:1.1rem;">&#x1F6F5;</span>' +
-                    '<div>' +
-                        '<p style="font-size:.75rem;font-weight:700;color:#a78bfa;margin:0 0 .1rem;">Rider En Route to Customer</p>' +
-                        '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">Live tracking — only the rider can mark as delivered.</p>' +
-                    '</div>' +
+                    '<div><p style="font-size:.75rem;font-weight:700;color:#a78bfa;margin:0 0 .1rem;">Rider En Route to Customer</p>' +
+                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">Live tracking — only the rider can mark as delivered.</p></div>' +
                 '</div>' +
                 '<div id="adminOrderMap-' + o.id + '" style="height:220px;width:100%;border-radius:.5rem;overflow:hidden;background:#0a0a14;"></div>' +
               '</div>'
@@ -427,17 +700,15 @@ function openManageModal(id) {
         (actionsHtml ? '<div><p style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .5rem;font-weight:600;">Actions</p>' + actionsHtml + '</div>' : '');
 
     document.getElementById('mmBody').innerHTML = html;
-    
-    // Add Order Type badge to modal header
+
     var mmTitle = document.getElementById('mmTitle');
-    mmTitle.innerHTML = 'Manage Order ' + o.order_number + 
-        ' <span style="font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.08);color:var(--text-muted);border:1px solid rgba(255,255,255,.12);margin-left:.5rem;vertical-align:middle;">' + 
-        o.order_type_icon + ' ' + o.order_type_label + '</span>';
+    mmTitle.innerHTML = 'Manage Order ' + escHtml(o.order_number) +
+        ' <span style="font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.08);color:var(--text-muted);border:1px solid rgba(255,255,255,.12);margin-left:.5rem;vertical-align:middle;">' +
+        escHtml(o.order_type_icon) + ' ' + escHtml(o.order_type_label) + '</span>';
 
     openModal('manageModal');
     if (typeof lucide !== 'undefined') setTimeout(function(){ lucide.createIcons(); }, 0);
 
-    // Init live rider map for out_for_delivery orders
     if (o.status === 'out_for_delivery' && o.rider_lat && o.rider_lng) {
         setTimeout(function() { initAdminRiderMap(o); }, 250);
     }
@@ -463,7 +734,6 @@ async function initAdminRiderMap(o) {
     var mapEl = document.getElementById('adminOrderMap-' + o.id);
     if (!mapEl) return;
 
-    // Destroy previous map if exists
     if (adminMapInstance) {
         try { adminMapInstance.remove(); } catch(e) {}
         adminMapInstance = null;
@@ -478,30 +748,26 @@ async function initAdminRiderMap(o) {
     L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(adminMapInstance);
     L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', { maxZoom: 20, opacity: 0.85 }).addTo(adminMapInstance);
 
-    // Restaurant marker
     L.marker(ADMIN_RESTAURANT, { icon: L.divIcon({
         html: '<div style="background:#facc15;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:14px;">&#x1F354;</span></div>',
         className: '', iconSize: [34,34], iconAnchor: [17,34]
     })}).addTo(adminMapInstance).bindPopup('<b>E.U.T Snack House</b>');
 
-    // Rider marker
     L.marker(riderPos, { icon: L.divIcon({
         html: '<div style="background:#8b5cf6;width:40px;height:40px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 12px rgba(139,92,246,.7);">&#x1F6F5;</div>',
         className: '', iconSize: [40,40], iconAnchor: [20,20]
-    })}).addTo(adminMapInstance).bindPopup('<b>Rider: ' + (o.rider || 'Rider') + '</b>');
+    })}).addTo(adminMapInstance).bindPopup('<b>Rider: ' + escHtml(o.rider || 'Rider') + '</b>');
 
-    // Customer marker
     if (custPos) {
         L.marker(custPos, { icon: L.divIcon({
             html: '<div style="background:#ef4444;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:14px;">&#x1F3E0;</span></div>',
             className: '', iconSize: [34,34], iconAnchor: [17,34]
-        })}).addTo(adminMapInstance).bindPopup('<b>' + o.customer + '</b>');
+        })}).addTo(adminMapInstance).bindPopup('<b>' + escHtml(o.customer) + '</b>');
     }
 
     var dest = custPos || [ADMIN_RESTAURANT[0]+.005, ADMIN_RESTAURANT[1]+.005];
     adminMapInstance.fitBounds([riderPos, dest], { padding: [40,40] });
 
-    // Draw route: rider -> customer
     var route = await fetchAdminRoute(riderPos, dest);
     if (route && route.length) {
         var line = L.polyline(route, { color:'#8b5cf6', weight:5, opacity:1 }).addTo(adminMapInstance);
@@ -511,73 +777,36 @@ async function initAdminRiderMap(o) {
     }
 }
 
-// -- Quick Accept from Table
-async function quickAccept(orderId, btn) {
-    if (!confirm('Accept this order?')) return;
-    await processAccept(orderId, btn, false);
-}
+function printReceipt(receiptUrl) {
+    const w    = 220; // 200px content + padding buffer
+    const h    = 800;
+    const left = Math.round((screen.width  - w) / 2);
+    const top  = Math.round((screen.height - h) / 2);
 
-// -- Accept from Modal
-async function handleModalAccept(orderId, btn) {
-    await processAccept(orderId, btn, true);
-}
-
-async function processAccept(orderId, btn, isModal) {
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="refresh-cw" class="spin" style="width:.8rem;height:.8rem;"></i> Processing...';
-    if (window.lucide) lucide.createIcons();
-
-    try {
-        const response = await fetch('{{ route("admin.orders.accept", ":id") }}'.replace(':id', orderId), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': CSRF_TOKEN,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-             // Trigger auto-print
-             if (data.receipt_url) {
-                 printReceipt(data.receipt_url);
-                 // Delay reload to allow printing to trigger before the page refreshes
-                 setTimeout(() => {
-                     location.reload();
-                 }, 1500);
-             } else {
-                 location.reload();
-             }
-         } else {
-            alert(data.message || 'Failed to accept order.');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            if (window.lucide) lucide.createIcons();
-        }
-    } catch (error) {
-        console.error('Accept error:', error);
-        alert('An error occurred. Please try again.');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        if (window.lucide) lucide.createIcons();
+    const win = window.open(
+        receiptUrl,
+        'receipt_print',
+        `width=${w},height=${h},left=${left},top=${top},toolbar=0,scrollbars=0,status=0,menubar=0,location=0`
+    );
+    if (!win) {
+        window.open(receiptUrl, '_blank');
     }
 }
 
-function printReceipt(receiptUrl) {
-    const existing = document.getElementById('receiptFrame');
-    if (existing) existing.remove();
-
-    const iframe = document.createElement('iframe');
-    iframe.id = 'receiptFrame';
-    iframe.src = receiptUrl;
-    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;';
-    document.body.appendChild(iframe);
-
-    iframe.onerror = () => window.open(receiptUrl, '_blank');
-}
+// ── Boot ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial filter from URL if present
+    var urlParams = new URLSearchParams(window.location.search);
+    var urlStatus = urlParams.get('status') || '';
+    if (urlStatus) {
+        activeFilter = urlStatus;
+        var sel = document.getElementById('statusFilter');
+        if (sel) sel.value = urlStatus;
+        var clr = document.getElementById('clearFilter');
+        if (clr) clr.style.display = 'inline';
+    }
+    startPolling();
+});
 
 </script>
 

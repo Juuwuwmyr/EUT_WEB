@@ -2,232 +2,180 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=185, initial-scale=1.0, maximum-scale=1.0">
 <title>Receipt {{ $order->order_number }}</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-body {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+html, body {
+    width: 185px;
+    max-width: 185px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 8.5px;
     color: #000;
     background: #fff;
-    width: 80mm;
-    margin: 0 auto;
-    padding: 4mm 4mm 10mm;
+}
+
+body {
+    padding: 4px 8px 20px 4px;
 }
 
 .center  { text-align: center; }
-.right   { text-align: right; }
 .bold    { font-weight: bold; }
-.small   { font-size: 10px; }
-.lg      { font-size: 15px; }
-.xl      { font-size: 18px; font-weight: bold; }
 
-.divider {
+hr {
     border: none;
     border-top: 1px dashed #000;
-    margin: 4px 0;
+    margin: 3px 0;
+    width: 100%;
 }
-.divider-solid {
-    border: none;
+hr.solid {
     border-top: 1px solid #000;
-    margin: 4px 0;
 }
 
-/* Header */
-.header { text-align: center; margin-bottom: 4px; }
-.shop-name { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
-.tagline { font-size: 10px; letter-spacing: 2px; margin-top: 1px; }
+.header { text-align: center; margin-bottom: 3px; }
+.shop-name { font-size: 14px; font-weight: bold; letter-spacing: 1px; }
+.tagline { font-size: 8px; letter-spacing: 1px; margin-top: 1px; }
 
-/* Order meta */
-.meta-row { display: flex; justify-content: space-between; margin: 1px 0; }
-.order-num { font-size: 15px; font-weight: bold; text-align: center; margin: 4px 0; }
+.order-num { font-size: 12px; font-weight: bold; text-align: center; margin: 3px 0; }
 
-/* Items */
-.item-block { margin: 3px 0; }
+.row {
+    display: block;
+    margin: 1px 0;
+    font-size: 9px;
+    width: 100%;
+    word-break: break-word;
+}
+.row span:first-child { font-weight: normal; }
+.row span:last-child  { margin-left: 4px; }
+
 .item-row {
+    display: block;
+    width: 100%;
+    margin: 2px 0;
+}
+.item-header {
+    display: block;
+    width: 100%;
+}
+.item-qty   { flex-shrink: 0; font-size: 10px; margin-right: 2px; }
+.item-name  { flex: 1; font-weight: bold; font-size: 10px; word-break: break-word; padding-right: 4px; }
+.item-price { flex-shrink: 0; font-size: 10px; }
+
+.spec-list { padding-left: 8px; }
+.spec-row  { font-size: 8.5px; color: #000; font-weight: bold; line-height: 1.4; }
+
+.total-row {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    gap: 4px;
-}
-.item-name { flex: 1; font-weight: bold; font-size: 12px; }
-.item-price { font-size: 12px; white-space: nowrap; }
-.item-qty { font-size: 11px; margin-right: 2px; }
-
-.spec-list { padding-left: 10px; margin-top: 1px; }
-.spec-row {
-    font-size: 10px;
-    color: #333;
-    line-height: 1.4;
-}
-.spec-type {
+    margin: 1px 0;
     font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    opacity: 0.6;
+    width: 100%;
 }
-
-/* Totals */
-.totals { margin-top: 4px; }
-.total-row { display: flex; justify-content: space-between; margin: 1px 0; }
 .total-row.grand {
-    font-size: 15px;
+    font-size: 11px;
     font-weight: bold;
-    margin-top: 4px;
-    padding-top: 4px;
+    margin-top: 3px;
+    padding-top: 3px;
     border-top: 1px solid #000;
 }
 
-/* Payment */
-.payment-badge {
-    display: inline-block;
-    border: 1px solid #000;
-    padding: 1px 6px;
-    font-size: 10px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-/* Notes */
-.notes-box {
-    border: 1px dashed #000;
-    padding: 3px 5px;
-    font-size: 11px;
-    margin: 4px 0;
-}
-
-/* Footer */
-.footer { text-align: center; margin-top: 8px; font-size: 10px; line-height: 1.6; }
+.address-box { font-size: 9px; line-height: 1.4; word-break: break-word; }
+.notes-box   { border: 1px dashed #000; padding: 2px 3px; font-size: 9px; margin: 3px 0; word-break: break-word; }
+.footer      { text-align: center; margin-top: 5px; font-size: 8px; line-height: 1.6; }
 
 @media print {
     @page {
-        size: 80mm auto;
+        size: 58mm auto;
         margin: 0;
     }
-    body {
-        width: 80mm;
-        padding: 3mm 3mm 8mm;
+    html, body {
+        width: 185px !important;
+        max-width: 185px !important;
+        padding: 4px 8px 20px 4px !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
-    /* Hide everything except the receipt when printing from a full page */
-    body > * { display: block; }
+    script, noscript { display: none !important; visibility: hidden !important; }
 }
 </style>
 </head>
 <body>
 
-{{-- ── HEADER ── --}}
 <div class="header">
     <div class="shop-name">E.U.T</div>
-    <div class="tagline">EAT • UNWIND • TEA</div>
-    <div class="small" style="margin-top:2px;">Snack House</div>
+    <div class="tagline">EAT &middot; UNWIND &middot; TEA</div>
+    <div style="font-size:8px;margin-top:1px;">Snack House</div>
 </div>
 
-<hr class="divider-solid" style="margin:5px 0;">
+<hr class="solid">
 
-{{-- ── ORDER INFO ── --}}
 <div class="order-num">{{ $order->order_number }}</div>
 
-<div class="meta-row small">
-    <span>Type:</span>
-    <span class="bold">{{ $order->order_type_icon }} {{ $order->order_type_label }}</span>
-</div>
-<div class="meta-row small">
-    <span>Date:</span>
-    <span>{{ $order->created_at->format('M d, Y g:i A') }}</span>
-</div>
-<div class="meta-row small">
-    <span>Customer:</span>
-    <span>{{ $order->user?->name ?? 'Guest' }}</span>
-</div>
-<div class="meta-row small">
-    <span>Payment:</span>
-    <span class="bold" style="text-transform:uppercase;">
-        {{ $order->payment_method === 'cash' ? 'Cash on Delivery' : strtoupper($order->payment_method) }}
-    </span>
+<div class="row"><span>Type: </span><span class="bold">{{ $order->order_type_label }}</span></div>
+<div class="row"><span>Date: {{ $order->created_at->format('M d, Y g:i A') }}</span></div>
+<div class="row"><span>Customer: {{ $order->user?->name ?? 'Guest' }}</span></div>
+<div class="row"><span>Payment: <strong>{{ $order->payment_method === 'cash' ? 'CASH ON DELIVERY' : strtoupper($order->payment_method) }}</strong></span></div>
+
+<hr>
+
+<div style="display:flex;justify-content:space-between;font-size:9px;font-weight:bold;border-bottom:1px solid #000;padding-bottom:2px;margin-bottom:2px;">
+    <span>QTY &nbsp;ITEM</span>
+    <span>PRICE</span>
 </div>
 
-<hr class="divider" style="margin:5px 0;">
-
-{{-- ── ORDER ITEMS ── --}}
 @foreach($order->items as $item)
-    <div class="item-block">
-        <div class="item-row">
-            <span class="item-qty">{{ $item->quantity }}x</span>
-            <span class="item-name">{{ $item->item_name }}</span>
-            <span class="item-price">₱{{ number_format($item->subtotal, 2) }}</span>
-        </div>
-
-        @php
-            $specs = collect($item->modifiers ?? [])
-                ->filter(fn($m) => !empty($m['name']) && !preg_match('/^no\s/i', $m['name']))
-                ->values();
-        @endphp
-
-        @if($specs->count())
-            <div class="spec-list">
-                @foreach($specs as $spec)
-                    <div class="spec-row">
-                        <span class="spec-type">{{ ucfirst($spec['type'] ?? 'option') }}:</span>
-                        {{ $spec['name'] }}@if(($spec['price_type'] ?? '') === 'add' && ($spec['price_adjustment'] ?? 0) > 0)
-                            <span style="font-size:9px;"> +₱{{ number_format($spec['price_adjustment'], 2) }}</span>@endif
-                    </div>
-                @endforeach
-            </div>
-        @endif
+<div class="item-row">
+    <div style="display:flex;justify-content:space-between;width:100%;">
+        <span style="flex:1;word-break:break-word;"><span class="item-qty">{{ $item->quantity }}x</span> <span class="item-name">{{ $item->item_name }}</span></span>
+        <span class="item-price" style="flex-shrink:0;margin-left:4px;">P{{ number_format($item->subtotal, 2) }}</span>
     </div>
+@php
+    $specs = collect($item->modifiers ?? [])
+        ->filter(fn($m) => !empty($m['name']) && !preg_match('/^no\s/i', $m['name']))
+        ->values();
+@endphp
+@if($specs->count())
+<div class="spec-list">
+    @foreach($specs as $spec)
+    <div class="spec-row">- {{ $spec['name'] }}@if(($spec['price_type'] ?? '') === 'add' && ($spec['price_adjustment'] ?? 0) > 0) +P{{ number_format($spec['price_adjustment'], 2) }}@endif</div>
+    @endforeach
+</div>
+@endif
+</div>
 @endforeach
 
-<hr class="divider" style="margin:5px 0;">
+<hr>
 
-{{-- ── TOTALS ── --}}
-<div class="totals">
-    <div class="total-row small">
-        <span>Subtotal</span>
-        <span>₱{{ number_format($order->subtotal, 2) }}</span>
-    </div>
-    <div class="total-row small">
-        <span>Delivery fee</span>
-        <span>{{ $order->delivery_fee == 0 ? 'FREE' : '₱' . number_format($order->delivery_fee, 2) }}</span>
-    </div>
-    <div class="total-row grand">
-        <span>TOTAL</span>
-        <span>₱{{ number_format($order->total, 2) }}</span>
-    </div>
-</div>
+<div class="total-row"><span>Subtotal</span><span>P{{ number_format($order->subtotal, 2) }}</span></div>
+<div class="total-row"><span>Delivery</span><span>{{ $order->delivery_fee == 0 ? 'FREE' : 'P'.number_format($order->delivery_fee, 2) }}</span></div>
+<div class="total-row grand"><span>TOTAL</span><span>P{{ number_format($order->total, 2) }}</span></div>
 
-{{-- ── DELIVERY ADDRESS ── --}}
 @if($order->order_type === 'delivery' && $order->delivery_address)
-<hr class="divider" style="margin:5px 0;">
-<div class="small">
-    <div class="bold" style="margin-bottom:1px;">📍 Deliver to:</div>
-    <div style="line-height:1.4;">{{ $order->delivery_address }}</div>
+<hr>
+<div class="address-box">
+    <div class="bold" style="margin-bottom:1px;">Deliver to:</div>
+    <div>{{ $order->delivery_address }}</div>
 </div>
 @endif
 
-{{-- ── NOTES ── --}}
 @if($order->notes)
-<div class="notes-box">
-    <span class="bold">📝 Note:</span> {{ $order->notes }}
-</div>
+<div class="notes-box"><span class="bold">Note:</span> {{ $order->notes }}</div>
 @endif
 
-{{-- ── FOOTER ── --}}
-<hr class="divider-solid" style="margin:6px 0 4px;">
+<hr class="solid" style="margin-top:5px;">
 <div class="footer">
     <div>Thank you for your order!</div>
-    <div class="small" style="margin-top:2px;">Accepted at {{ now()->format('g:i A') }}</div>
-    <div class="small" style="margin-top:4px; letter-spacing:1px;">*** EAT • UNWIND • TEA ***</div>
+    <div style="margin-top:1px;">Accepted at {{ now()->format('g:i A') }}</div>
+    <div style="margin-top:2px;">*** EAT * UNWIND * TEA ***</div>
 </div>
 
 <script>
-    // Auto-print and close when loaded in the print iframe
-    window.onload = function () {
-        window.print();
-    };
+window.onload = function () {
+    document.body.style.width = '185px';
+    document.body.style.maxWidth = '185px';
+    setTimeout(function() { window.print(); }, 300);
+};
 </script>
 </body>
 </html>

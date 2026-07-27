@@ -37,7 +37,7 @@ $riderStats = [
     ['label'=>'Deliveries Today','value'=>$deliveriesToday,  'sub'=>'Completed orders',    'icon'=>'package-check','color'=>'#3b82f6','bg'=>'rgba(59,130,246,.10)'],
 ];
 @endphp
-<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 mb-6">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;">
     @foreach($riderStats as $s)
     <div class="stat-card" style="position:relative;overflow:hidden;border-color:{{ $s['color'] }}22;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.875rem;">

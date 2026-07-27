@@ -140,6 +140,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // ── Orders ─────────────────────────────────────────────
     Route::get('/orders',                           [AdminController::class, 'orders'])->name('orders');
+    Route::get('/orders/poll',                      [AdminController::class, 'ordersPoll'])->name('orders.poll');
     Route::post('/orders/{order}/accept',           [AdminController::class, 'acceptOrder'])->name('orders.accept');
     Route::post('/orders/{order}/assign-rider',     [AdminController::class, 'assignRider'])->name('orders.assign-rider');
     Route::patch('/orders/{order}/status',          [AdminController::class, 'updateOrderStatus'])->name('orders.status');

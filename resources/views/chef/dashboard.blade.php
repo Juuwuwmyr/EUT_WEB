@@ -999,18 +999,20 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
-// ── RECEIPT PRINTING ────────────────────────────────────────────────────────
 function printReceipt(receiptUrl) {
-    const existing = document.getElementById('receiptFrame');
-    if (existing) existing.remove();
+    const w    = 220; // 200px content + padding buffer
+    const h    = 800;
+    const left = Math.round((screen.width  - w) / 2);
+    const top  = Math.round((screen.height - h) / 2);
 
-    const iframe = document.createElement('iframe');
-    iframe.id = 'receiptFrame';
-    iframe.src = receiptUrl;
-    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;';
-    document.body.appendChild(iframe);
-
-    iframe.onerror = () => window.open(receiptUrl, '_blank');
+    const win = window.open(
+        receiptUrl,
+        'receipt_print',
+        `width=${w},height=${h},left=${left},top=${top},toolbar=0,scrollbars=0,status=0,menubar=0,location=0`
+    );
+    if (!win) {
+        window.open(receiptUrl, '_blank');
+    }
 }
 
 async function kitchenAction(action, orderId, btn) {

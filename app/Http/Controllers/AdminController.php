@@ -545,15 +545,115 @@ class AdminController extends Controller
 
         $availableRiders = \App\Models\Rider::with('user')
             ->where('is_available', true)
+            ->whereDoesntHave('orders', function ($q) {
+                $q->whereIn('status', ['rider_assigned', 'out_for_delivery']);
+            })
             ->get();
 
         return view('admin.orders', compact('orders', 'statusCounts', 'availableRiders'));
     }
 
+    // ── GET /admin/orders/poll — JSON snapshot for auto-refresh ──────────────
+    public function ordersPoll(Request $request)
+    {
+        $query = \App\Models\Order::with(['user', 'rider.user', 'items']);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query->latest()->get();
+
+        $statusCounts = [
+            'pending'  => \App\Models\Order::where('status', 'pending')->count(),
+            'preparing'=> \App\Models\Order::whereIn('status', ['accepted','preparing'])->count(),
+            'out'      => \App\Models\Order::whereIn('status', ['rider_assigned','out_for_delivery'])->count(),
+            'delivered'=> \App\Models\Order::where('status', 'delivered')->count(),
+            'cancelled'=> \App\Models\Order::where('status', 'cancelled')->count(),
+        ];
+
+        // Priority 1: free riders (available + not on active delivery)
+        $availableRiders = \App\Models\Rider::with('user')
+            ->where('is_available', true)
+            ->whereDoesntHave('orders', function ($q) {
+                $q->whereIn('status', ['rider_assigned', 'out_for_delivery']);
+            })
+            ->get()
+            ->map(fn($r) => ['id' => $r->id, 'name' => $r->user->name, 'phone' => $r->phone, 'busy' => false]);
+
+        // Priority 2: available riders who are busy (on delivery)
+        if ($availableRiders->isEmpty()) {
+            $availableRiders = \App\Models\Rider::with('user')
+                ->where('is_available', true)
+                ->withCount(['orders as active_orders' => function ($q) {
+                    $q->whereIn('status', ['rider_assigned', 'out_for_delivery']);
+                }])
+                ->orderBy('active_orders')
+                ->get()
+                ->map(fn($r) => ['id' => $r->id, 'name' => $r->user->name, 'phone' => $r->phone, 'busy' => true]);
+        }
+
+        // Priority 3: ANY rider regardless of is_available flag
+        if ($availableRiders->isEmpty()) {
+            $availableRiders = \App\Models\Rider::with('user')
+                ->withCount(['orders as active_orders' => function ($q) {
+                    $q->whereIn('status', ['rider_assigned', 'out_for_delivery']);
+                }])
+                ->orderBy('active_orders')
+                ->get()
+                ->map(fn($r) => ['id' => $r->id, 'name' => $r->user->name, 'phone' => $r->phone, 'busy' => true]);
+        }
+
+        $ordersData = $orders->map(function ($o) {
+            return [
+                'id'               => $o->id,
+                'order_number'     => $o->order_number,
+                'status'           => $o->status,
+                'order_type'       => $o->order_type,
+                'order_type_label' => $o->order_type_label,
+                'order_type_icon'  => $o->order_type_icon,
+                'status_label'     => $o->status_label,
+                'customer'         => $o->user?->name ?? 'Guest',
+                'email'            => $o->user?->email ?? '',
+                'address'          => $o->delivery_address,
+                'delivery_lat'     => $o->delivery_lat,
+                'delivery_lng'     => $o->delivery_lng,
+                'payment'          => $o->payment_method,
+                'subtotal'         => $o->subtotal,
+                'delivery_fee'     => $o->delivery_fee,
+                'total'            => $o->total,
+                'notes'            => $o->notes,
+                'date'             => $o->created_at->format('M d, Y g:i A'),
+                'date_short'       => $o->created_at->format('M d g:i A'),
+                'accepted_at'      => $o->accepted_at?->format('g:i A'),
+                'picked_up_at'     => $o->picked_up_at?->format('g:i A'),
+                'delivered_at'     => $o->delivered_at?->format('g:i A'),
+                'rider'            => ($o->rider && $o->rider->user) ? $o->rider->user->name : null,
+                'rider_lat'        => $o->rider?->current_lat,
+                'rider_lng'        => $o->rider?->current_lng,
+                'items'            => $o->items->map(fn($i) => [
+                    'name'      => $i->item_name,
+                    'qty'       => $i->quantity,
+                    'price'     => $i->unit_price,
+                    'subtotal'  => $i->subtotal,
+                    'modifiers' => $i->modifiers ?? [],
+                ])->toArray(),
+            ];
+        });
+
+        return response()->json([
+            'orders'        => $ordersData,
+            'statusCounts'  => $statusCounts,
+            'riders'        => $availableRiders,
+        ]);
+    }
+
     public function acceptOrder(\App\Models\Order $order)
     {
         if ($order->status !== 'pending') {
-            return back()->with('error', 'Order cannot be accepted.');
+            return request()->expectsJson()
+                ? response()->json(['success' => false, 'message' => 'Order cannot be accepted.'], 422)
+                : back()->with('error', 'Order cannot be accepted.');
         }
         $order->update(['status' => 'accepted', 'accepted_at' => now()]);
 
@@ -605,7 +705,9 @@ class AdminController extends Controller
 
         // Prevent downgrading a delivered order
         if ($order->status === 'delivered') {
-            return back()->with('error', 'Delivered orders cannot be changed.');
+            return request()->expectsJson()
+                ? response()->json(['success' => false, 'message' => 'Delivered orders cannot be changed.'], 422)
+                : back()->with('error', 'Delivered orders cannot be changed.');
         }
 
         $data = ['status' => $request->status];
@@ -620,6 +722,14 @@ class AdminController extends Controller
         };
 
         $order->update($data);
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Order #{$order->order_number} updated to \"{$request->status}\".",
+            ]);
+        }
+
         return back()->with('success', "Order #{$order->order_number} updated to \"{$request->status}\".");
     }
 
