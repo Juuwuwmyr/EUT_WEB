@@ -717,8 +717,25 @@ async function pollAdminMap() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await initAdminMap();
-    // Poll rider positions every 8 seconds without rebuilding the map
-    setInterval(pollAdminMap, 8000);
+
+    // Echo: real-time rider location updates
+    if (window.Echo) {
+        window.Echo.private('admin.riders')
+            .listen('.rider.location', async (data) => {
+                if (!data.lat || !data.lng) return;
+                const rd = {
+                    id:     data.id,
+                    name:   data.name,
+                    pos:    [parseFloat(data.lat), parseFloat(data.lng)],
+                    status: data.status === 'on_delivery' ? 'on_delivery' : 'online',
+                    color:  data.status === 'on_delivery' ? '#8b5cf6' : '#10b981',
+                };
+                await addOrUpdateAdminRider(rd);
+            });
+    } else {
+        // Fallback: poll every 8 seconds
+        setInterval(pollAdminMap, 8000);
+    }
 });
 </script>
 

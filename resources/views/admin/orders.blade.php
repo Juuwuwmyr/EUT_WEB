@@ -28,7 +28,7 @@
 </div>
 
 {{-- ── STATUS STAT CARDS (JS-rendered, auto-refreshed) ── --}}
-<div id="statCards" style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;">
+<div id="statCards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;">
     <div class="stat-card" style="grid-column:span 2;text-align:center;color:var(--text-muted);padding:1.5rem;">Loading…</div>
 </div>
 
@@ -185,22 +185,24 @@ var STATUS_COLOR_MAP = {
 };
 
 var STAT_CONFIG = {
-    pending:   { label:'Pending',    sub:'Awaiting confirmation', icon:'clock',        color:'#f59e0b', bg:'rgba(245,158,11,.10)'  },
-    preparing: { label:'Preparing',  sub:'Being cooked',          icon:'chef-hat',     color:'#3b82f6', bg:'rgba(59,130,246,.10)'  },
-    out:       { label:'On the Way', sub:'Out for delivery',      icon:'bike',         color:'#8b5cf6', bg:'rgba(139,92,246,.10)'  },
-    delivered: { label:'Delivered',  sub:'Completed orders',      icon:'circle-check', color:'#10b981', bg:'rgba(16,185,129,.10)'  },
-    cancelled: { label:'Cancelled',  sub:'Cancelled orders',      icon:'circle-x',     color:'#ef4444', bg:'rgba(239,68,68,.10)'   },
+    pending:       { label:'Pending',        sub:'Awaiting confirmation',  icon:'clock',        color:'#f59e0b', bg:'rgba(245,158,11,.10)'  },
+    preparing:     { label:'Preparing',      sub:'Being cooked',           icon:'chef-hat',     color:'#3b82f6', bg:'rgba(59,130,246,.10)'  },
+    out:           { label:'On the Way',     sub:'Out for delivery',       icon:'bike',         color:'#8b5cf6', bg:'rgba(139,92,246,.10)'  },
+    delivered:     { label:'Delivered',      sub:'Completed orders',       icon:'circle-check', color:'#10b981', bg:'rgba(16,185,129,.10)'  },
+    cancelled:     { label:'Cancelled',      sub:'Cancelled orders',       icon:'circle-x',     color:'#ef4444', bg:'rgba(239,68,68,.10)'   },
+    today:         { label:'Today\'s Orders',sub:'Placed today',           icon:'calendar',     color:'#6366f1', bg:'rgba(99,102,241,.10)'  },
+    revenue_today: { label:'Today\'s Revenue',sub:'From delivered orders', icon:'trending-up',  color:'#22c55e', bg:'rgba(34,197,94,.10)',  isCurrency:true },
 };
 
 // -- Status pipeline for modal
 var STATUS_PIPELINE = {
-    pending:          { label:'Pending',        color:'#f59e0b', next:'accepted',         nextLabel:'&#x2705; Accept Order',           btnClass:'btn-success' },
-    accepted:         { label:'Accepted',       color:'#3b82f6', next:'preparing',        nextLabel:'&#x1F373; Start Preparing',       btnClass:'btn-primary' },
-    preparing:        { label:'Preparing',      color:'#3b82f6', next:'out_for_delivery', nextLabel:'&#x1F6F5; Mark Out for Delivery', btnClass:'btn-warning' },
-    rider_assigned:   { label:'Rider Assigned', color:'#8b5cf6', next:'out_for_delivery', nextLabel:'&#x1F6F5; Mark Out for Delivery', btnClass:'btn-warning' },
-    out_for_delivery: { label:'On the Way',     color:'#8b5cf6', next:null,               nextLabel:null,                              btnClass:''            },
-    delivered:        { label:'Delivered',      color:'#10b981', next:null,               nextLabel:null,                              btnClass:''            },
-    cancelled:        { label:'Cancelled',      color:'#ef4444', next:null,               nextLabel:null,                              btnClass:''            },
+    pending:          { label:'Pending',        color:'#f59e0b', next:'accepted',         nextLabel:'Accept Order',           btnClass:'btn-success' },
+    accepted:         { label:'Accepted',       color:'#3b82f6', next:'preparing',        nextLabel:'Start Preparing',        btnClass:'btn-primary' },
+    preparing:        { label:'Preparing',      color:'#3b82f6', next:'out_for_delivery', nextLabel:'Mark Out for Delivery',  btnClass:'btn-warning' },
+    rider_assigned:   { label:'Rider Assigned', color:'#8b5cf6', next:'out_for_delivery', nextLabel:'Mark Out for Delivery',  btnClass:'btn-warning' },
+    out_for_delivery: { label:'On the Way',     color:'#8b5cf6', next:null,               nextLabel:null,                     btnClass:''            },
+    delivered:        { label:'Delivered',      color:'#10b981', next:null,               nextLabel:null,                     btnClass:''            },
+    cancelled:        { label:'Cancelled',      color:'#ef4444', next:null,               nextLabel:null,                     btnClass:''            },
 };
 
 var STATUS_TIMELINE = [
@@ -261,21 +263,23 @@ function renderStats(counts) {
         var sc    = STAT_CONFIG[key];
         var count = counts[key] || 0;
         var active = activeFilter === key;
+        var isClickable = ['pending','preparing','out','delivered','cancelled'].includes(key);
+        var displayVal = sc.isCurrency ? '₱' + Number(count).toLocaleString() : count;
         html +=
-            '<a href="#" onclick="applyStatusFilter(\'' + key + '\');return false;" class="stat-card"' +
-            ' style="text-decoration:none;position:relative;overflow:hidden;cursor:pointer;' +
+            '<' + (isClickable ? 'a href="#" onclick="applyStatusFilter(\'' + key + '\');return false;"' : 'div') + ' class="stat-card"' +
+            ' style="text-decoration:none;position:relative;overflow:hidden;' + (isClickable ? 'cursor:pointer;' : '') +
             'border-color:' + sc.color + '22;' +
             (active ? 'border-color:' + sc.color + '66;box-shadow:0 0 0 3px ' + sc.color + '18;' : '') + '">' +
             '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;">' +
                 '<div style="width:2.75rem;height:2.75rem;border-radius:.75rem;background:' + sc.bg + ';display:flex;align-items:center;justify-content:center;">' +
                     '<i data-lucide="' + sc.icon + '" style="width:1.3rem;height:1.3rem;color:' + sc.color + ';stroke-width:2;"></i>' +
                 '</div>' +
-                '<span style="font-size:2.25rem;font-weight:900;color:' + sc.color + ';line-height:1;">' + count + '</span>' +
+                '<span style="font-size:' + (sc.isCurrency ? '1.4rem' : '2.25rem') + ';font-weight:900;color:' + sc.color + ';line-height:1;">' + displayVal + '</span>' +
             '</div>' +
             '<h3 style="font-size:.875rem;font-weight:700;color:var(--text-strong);margin:0 0 .15rem;">' + sc.label + '</h3>' +
             '<p style="font-size:.7rem;color:var(--text-muted);margin:0;">' + sc.sub + '</p>' +
             '<div style="position:absolute;bottom:-1.5rem;right:-1.5rem;width:5rem;height:5rem;border-radius:50%;background:' + sc.bg + ';filter:blur(18px);pointer-events:none;"></div>' +
-            '</a>';
+            '</' + (isClickable ? 'a' : 'div') + '>';
     });
     var el = document.getElementById('statCards');
     if (el) { el.innerHTML = html; if (typeof lucide !== 'undefined') lucide.createIcons(); }
@@ -283,10 +287,10 @@ function renderStats(counts) {
 
 // ── Render table rows ────────────────────────────────────
 var INLINE_ACTIONS = {
-    pending:          { label:'✅ Accept',       btnClass:'btn-success', type:'accept'                                    },
-    accepted:         { label:'🍳 Prepare',      btnClass:'btn-primary', type:'status',      next:'preparing'            },
-    preparing:        { label:'🛵 Dispatch',     btnClass:'btn-warning', type:'auto-assign'                               },
-    rider_assigned:   { label:'🛵 Out',          btnClass:'btn-warning', type:'status',      next:'out_for_delivery'      },
+    pending:        { label:'Accept',   icon:'check',          btnClass:'btn-success', type:'accept'                         },
+    accepted:       { label:'Prepare',  icon:'chef-hat',       btnClass:'btn-primary', type:'status', next:'preparing'       },
+    preparing:      { label:'Dispatch', icon:'bike',           btnClass:'btn-warning', type:'dispatch'                       },
+    rider_assigned: { label:'Out',      icon:'navigation',     btnClass:'btn-warning', type:'status', next:'out_for_delivery' },
 };
 
 function renderTable(orders) {
@@ -326,12 +330,13 @@ function renderTable(orders) {
 
         // For non-delivery orders, preparing goes straight to delivered
         if (o.status === 'preparing' && o.order_type !== 'delivery') {
-            act = { label: o.order_type === 'pickup' ? '🥡 Picked Up' : '✅ Complete', btnClass:'btn-success', type:'status', next:'delivered' };
+            act = { label: o.order_type === 'pickup' ? 'Picked Up' : 'Complete', icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
         }
 
         if (act) {
-            actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;" ' +
+            actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;white-space:nowrap;" ' +
                 'onclick="quickAction(' + o.id + ',\'' + act.type + '\',\'' + (act.next || '') + '\',this)">' +
+                '<i data-lucide="' + act.icon + '" style="width:.75rem;height:.75rem;stroke-width:2.5;flex-shrink:0;"></i>' +
                 act.label +
                 '</button>';
         }
@@ -449,6 +454,13 @@ async function quickAction(orderId, type, nextStatus, btn) {
 
         if (type === 'accept') {
             url = '{{ route("admin.orders.accept", ":id") }}'.replace(':id', orderId);
+
+        } else if (type === 'dispatch') {
+            // Open the manage modal so the admin can pick a rider
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            openManageModal(orderId);
+            return;
 
         } else if (type === 'auto-assign') {
             if (!RIDERS.length) {
@@ -610,33 +622,43 @@ function openManageModal(id) {
         }
     }
 
-    if (o.status === 'preparing' && RIDERS.length > 0) {
+    if (o.status === 'preparing') {
         var riderCards = '';
-        RIDERS.forEach(function(r) {
-            var initials = r.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0,2).toUpperCase();
-            riderCards +=
-                '<div class="rider-card" data-rider-id="' + r.id + '" onclick="selectRiderCard(this,' + r.id + ')" ' +
-                'style="display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;border-radius:.5rem;border:2px solid var(--border-card);cursor:pointer;transition:all .15s;background:var(--bg-filter);">' +
-                    '<div style="width:2rem;height:2rem;border-radius:50%;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.65rem;color:#f59e0b;flex-shrink:0;">' + escHtml(initials) + '</div>' +
-                    '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-size:.8rem;font-weight:600;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escHtml(r.name) + '</div>' +
-                        (r.phone ? '<div style="font-size:.68rem;color:var(--text-muted);">' + escHtml(r.phone) + '</div>' : '') +
-                    '</div>' +
-                    '<div style="width:.875rem;height:.875rem;border-radius:50%;border:2px solid var(--border-card);flex-shrink:0;" class="rider-radio"></div>' +
-                '</div>';
-        });
+        var ridersToShow = RIDERS.length > 0 ? RIDERS : [];
 
-        actionsHtml +=
-            '<div style="margin-top:.5rem;">' +
-                '<p style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .4rem;font-weight:600;">Assign Rider</p>' +
-                '<div id="riderCards_' + o.id + '" style="display:flex;flex-direction:column;gap:.35rem;margin-bottom:.5rem;">' +
-                    riderCards +
-                '</div>' +
-                '<input type="hidden" id="selectedRider_' + o.id + '" value="">' +
-                '<button type="button" onclick="assignRider(' + o.id + ',this)" class="btn-primary" style="width:100%;justify-content:center;font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;" disabled id="assignBtn_' + o.id + '">' +
-                    '<i data-lucide="bike" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Assign Rider' +
-                '</button>' +
-            '</div>';
+        if (ridersToShow.length > 0) {
+            ridersToShow.forEach(function(r) {
+                var initials = r.name.split(' ').map(function(w){ return w[0]; }).join('').substring(0,2).toUpperCase();
+                var busyTag  = r.busy ? '<span style="font-size:.6rem;background:rgba(239,68,68,.15);color:#ef4444;border-radius:4px;padding:1px 5px;margin-left:4px;">On Delivery</span>' : '';
+                riderCards +=
+                    '<div class="rider-card" data-rider-id="' + r.id + '" onclick="selectRiderCard(this,' + r.id + ')" ' +
+                    'style="display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;border-radius:.5rem;border:2px solid var(--border-card);cursor:pointer;transition:all .15s;background:var(--bg-filter);">' +
+                        '<div style="width:2rem;height:2rem;border-radius:50%;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.65rem;color:#f59e0b;flex-shrink:0;">' + escHtml(initials) + '</div>' +
+                        '<div style="flex:1;min-width:0;">' +
+                            '<div style="font-size:.8rem;font-weight:600;color:var(--text-strong);display:flex;align-items:center;">' + escHtml(r.name) + busyTag + '</div>' +
+                            (r.phone ? '<div style="font-size:.68rem;color:var(--text-muted);">' + escHtml(r.phone) + '</div>' : '') +
+                        '</div>' +
+                        '<div style="width:.875rem;height:.875rem;border-radius:50%;border:2px solid var(--border-card);flex-shrink:0;" class="rider-radio"></div>' +
+                    '</div>';
+            });
+
+            actionsHtml +=
+                '<div style="margin-top:.5rem;">' +
+                    '<p style="font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .4rem;font-weight:600;">Assign Rider</p>' +
+                    '<div id="riderCards_' + o.id + '" style="display:flex;flex-direction:column;gap:.35rem;margin-bottom:.5rem;">' +
+                        riderCards +
+                    '</div>' +
+                    '<input type="hidden" id="selectedRider_' + o.id + '" value="">' +
+                    '<button type="button" onclick="assignRider(' + o.id + ',this)" class="btn-primary" style="width:100%;justify-content:center;font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;" disabled id="assignBtn_' + o.id + '">' +
+                        '<i data-lucide="bike" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Assign Rider' +
+                    '</button>' +
+                '</div>';
+        } else {
+            actionsHtml +=
+                '<div style="margin-top:.5rem;padding:.6rem .75rem;border-radius:.5rem;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);font-size:.78rem;color:#ef4444;">' +
+                    '⚠️ No riders found. Add a rider first.' +
+                '</div>';
+        }
     }
 
     if (['pending','accepted','preparing'].includes(o.status)) {
@@ -805,8 +827,47 @@ document.addEventListener('DOMContentLoaded', function() {
         var clr = document.getElementById('clearFilter');
         if (clr) clr.style.display = 'inline';
     }
-    startPolling();
+
+    // Initial load
+    fetchOrders();
+
+    // Echo: real-time order updates on the admin private channel
+    if (window.Echo) {
+        var dot   = document.getElementById('pollDot');
+        var label = document.getElementById('pollLabel');
+        if (dot)   dot.style.background = '#10b981';
+        if (label) label.textContent    = 'Live';
+
+        window.Echo.private('admin.orders')
+            .listen('.order.updated', function(order) {
+                ORDERS_MAP[order.id] = order;
+                // Rebuild the order list — reuse existing render
+                var orders = Object.values(ORDERS_MAP);
+                renderStats(computeStatusCounts(orders));
+                renderTable(orders);
+            });
+    } else {
+        // Fallback polling
+        startPolling();
+    }
 });
+
+function computeStatusCounts(orders) {
+    var counts = { pending: 0, preparing: 0, out: 0, delivered: 0, cancelled: 0, today: 0, revenue_today: 0 };
+    var todayStr = new Date().toDateString();
+    orders.forEach(function(o) {
+        if (o.status === 'pending') counts.pending++;
+        else if (o.status === 'accepted' || o.status === 'preparing') counts.preparing++;
+        else if (o.status === 'rider_assigned' || o.status === 'out_for_delivery') counts.out++;
+        else if (o.status === 'delivered') {
+            counts.delivered++;
+            if (o.delivered_at && new Date(o.delivered_at).toDateString() === todayStr) counts.revenue_today += (o.total || 0);
+        }
+        else if (o.status === 'cancelled') counts.cancelled++;
+        if (o.date && new Date(o.date).toDateString() === todayStr) counts.today++;
+    });
+    return counts;
+}
 
 </script>
 

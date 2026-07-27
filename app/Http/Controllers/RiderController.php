@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderStatusUpdated;
+use App\Events\RiderLocationUpdated;
 use App\Models\Order;
 use App\Models\Rider;
 use Illuminate\Http\Request;
@@ -29,7 +31,12 @@ class RiderController extends Controller
         $todayDeliveries = $history->count();
         $todayEarnings   = $todayDeliveries * 120; // ₱120 per delivery (configurable)
 
-        return view('rider.dashboard', compact('rider', 'active', 'history', 'todayDeliveries', 'todayEarnings'));
+        $weekDeliveries  = Order::where('rider_id', $rider->id)
+            ->where('status', 'delivered')
+            ->whereBetween('delivered_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->count();
+
+        return view('rider.dashboard', compact('rider', 'active', 'history', 'todayDeliveries', 'todayEarnings', 'weekDeliveries'));
     }
 
     // ── PATCH /rider/status — go online/offline ────────────
@@ -54,6 +61,8 @@ class RiderController extends Controller
             'current_lng' => $request->lng,
         ]);
 
+        broadcast(new RiderLocationUpdated(auth()->user()->rider));
+
         return response()->json(['success' => true]);
     }
 
@@ -75,6 +84,8 @@ class RiderController extends Controller
             'picked_up_at' => now(),
         ]);
 
+        broadcast(new OrderStatusUpdated($order));
+
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'status' => 'out_for_delivery']);
         }
@@ -95,7 +106,7 @@ class RiderController extends Controller
         $photoPath = null;
         if ($request->hasFile('proof_photo')) {
             $photoPath = $request->file('proof_photo')
-                ->store('proof_photos/' . $order->id, 'public');
+                ->store('proof_photos/' . $order->id, config('filesystems.default', 'public'));
         }
 
         $order->update([
@@ -105,6 +116,8 @@ class RiderController extends Controller
             // 'present' (direct handover) maps to DB enum value 'handover'
             'delivery_type' => $request->input('delivery_type') === 'photo' ? 'photo' : 'handover',
         ]);
+
+        broadcast(new OrderStatusUpdated($order));
 
         // Increment rider stats
         $rider->increment('total_deliveries');

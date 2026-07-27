@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderStatusUpdated;
 use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\ModifierGroup;
@@ -22,12 +23,19 @@ class AdminController extends Controller
     {
         $stats = [
             'total_users'      => User::count(),
+            'total_customers'  => User::where('role', 'user')->count(),
             'admin_users'      => User::where('role', 'admin')->count(),
             'chef_users'       => User::where('role', 'chef')->count(),
             'rider_users'      => User::where('role', 'rider')->count(),
+            'active_riders'    => \App\Models\Rider::where('is_available', true)->count(),
             'total_items'      => MenuItem::active()->count(),
             'total_categories' => Category::active()->count(),
             'featured_items'   => MenuItem::featured()->count(),
+            'total_orders'     => \App\Models\Order::count(),
+            'today_orders'     => \App\Models\Order::whereDate('created_at', today())->count(),
+            'pending_orders'   => \App\Models\Order::where('status', 'pending')->count(),
+            'today_revenue'    => \App\Models\Order::where('status', 'delivered')->whereDate('delivered_at', today())->sum('total'),
+            'total_revenue'    => \App\Models\Order::where('status', 'delivered')->sum('total'),
         ];
 
         $recent_users = User::latest()->take(5)->get();
@@ -265,7 +273,7 @@ class AdminController extends Controller
             'category_id' => $request->category_id,
             'price'       => $request->price,
             'description' => $request->description,
-            'image'       => $request->image ?: '/images/hero-burger.jpg',
+            'image'       => $request->image ?: '/images/hero-burger.webp',
             'featured'    => $request->boolean('featured'),
             'is_archived' => $request->input('is_archived_flag', '0') === '1',
             'sort_order'  => MenuItem::where('category_id', $request->category_id)->max('sort_order') + 1,
@@ -565,11 +573,13 @@ class AdminController extends Controller
         $orders = $query->latest()->get();
 
         $statusCounts = [
-            'pending'  => \App\Models\Order::where('status', 'pending')->count(),
-            'preparing'=> \App\Models\Order::whereIn('status', ['accepted','preparing'])->count(),
-            'out'      => \App\Models\Order::whereIn('status', ['rider_assigned','out_for_delivery'])->count(),
-            'delivered'=> \App\Models\Order::where('status', 'delivered')->count(),
-            'cancelled'=> \App\Models\Order::where('status', 'cancelled')->count(),
+            'pending'      => \App\Models\Order::where('status', 'pending')->count(),
+            'preparing'    => \App\Models\Order::whereIn('status', ['accepted','preparing'])->count(),
+            'out'          => \App\Models\Order::whereIn('status', ['rider_assigned','out_for_delivery'])->count(),
+            'delivered'    => \App\Models\Order::where('status', 'delivered')->count(),
+            'cancelled'    => \App\Models\Order::where('status', 'cancelled')->count(),
+            'today'        => \App\Models\Order::whereDate('created_at', today())->count(),
+            'revenue_today'=> \App\Models\Order::where('status','delivered')->whereDate('delivered_at', today())->sum('total'),
         ];
 
         // Priority 1: free riders (available + not on active delivery)
@@ -657,6 +667,8 @@ class AdminController extends Controller
         }
         $order->update(['status' => 'accepted', 'accepted_at' => now()]);
 
+        broadcast(new OrderStatusUpdated($order));
+
         if (request()->expectsJson()) {
             return response()->json([
                 'success'     => true,
@@ -685,6 +697,8 @@ class AdminController extends Controller
             'assigned_at' => now(),
             'prepared_at' => $order->prepared_at ?? now(),
         ]);
+
+        broadcast(new OrderStatusUpdated($order));
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => "Rider assigned to order #{$order->order_number}."]);
@@ -722,6 +736,8 @@ class AdminController extends Controller
         };
 
         $order->update($data);
+
+        broadcast(new OrderStatusUpdated($order));
 
         if (request()->expectsJson()) {
             return response()->json([

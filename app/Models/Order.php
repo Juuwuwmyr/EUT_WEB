@@ -131,10 +131,10 @@ class Order extends Model
     public function getOrderTypeIconAttribute(): string
     {
         return match($this->order_type) {
-            'delivery' => '🛵',
-            'pickup'   => '🥡',
-            'dine_in'  => '🍽️',
-            default    => '📦',
+            'delivery' => '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3M5 8c0 1.657 3.134 3 7 3s7-1.343 7-3"/><circle cx="17" cy="17" r="2"/><path stroke-linecap="round" d="M3 11h3l1.5 5h9l1.5-5h3"/></svg>',
+            'pickup'   => '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>',
+            'dine_in'  => '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6M17 13l1.5 6M9 19h6"/></svg>',
+            default    => '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>',
         };
     }
 }

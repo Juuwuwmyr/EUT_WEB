@@ -25,6 +25,12 @@ body{background:#080810;color:#fff;min-height:100vh;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .page-body{max-width:540px;margin:0 auto;padding:130px 16px 110px;}
 
+/* ── SUMMARY STAT CARDS ── */
+.summary-stat-card{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:10px 6px 8px;text-align:center;transition:border-color .2s;}
+.ssc-icon{font-size:18px;display:block;margin-bottom:4px;}
+.ssc-val{font-size:15px;font-weight:900;color:#facc15;margin:0 0 2px;line-height:1;}
+.ssc-lbl{font-size:10px;color:#4b5563;margin:0;text-transform:uppercase;letter-spacing:.04em;}
+
 /* ── ORDER CARD (compact) ── */
 .ocard{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,.4);cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent;}
 .ocard:hover{border-color:rgba(250,204,21,.25);transform:translateY(-1px);}
@@ -160,8 +166,39 @@ body{background:#080810;color:#fff;min-height:100vh;}
 
 <!-- PAGE BODY -->
 <div class="page-body">
+    <!-- Summary Stats Banner (JS-rendered) -->
+    <div id="orderSummaryBanner" style="display:none;margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+            <div class="summary-stat-card" id="ssc-active">
+                <span class="ssc-icon"><svg width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg></span>
+                <p class="ssc-val" id="ssc-val-active">0</p>
+                <p class="ssc-lbl">Active</p>
+            </div>
+            <div class="summary-stat-card" id="ssc-total">
+                <span class="ssc-icon"><svg width="16" height="16" fill="none" stroke="#6366f1" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></span>
+                <p class="ssc-val" id="ssc-val-total">0</p>
+                <p class="ssc-lbl">Total</p>
+            </div>
+            <div class="summary-stat-card" id="ssc-delivered">
+                <span class="ssc-icon"><svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                <p class="ssc-val" id="ssc-val-delivered">0</p>
+                <p class="ssc-lbl">Delivered</p>
+            </div>
+            <div class="summary-stat-card" id="ssc-cancelled">
+                <span class="ssc-icon"><svg width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                <p class="ssc-val" id="ssc-val-cancelled">0</p>
+                <p class="ssc-lbl">Cancelled</p>
+            </div>
+            <div class="summary-stat-card" id="ssc-spent">
+                <span class="ssc-icon"><svg width="16" height="16" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                <p class="ssc-val" id="ssc-val-spent" style="font-size:12px;">₱0</p>
+                <p class="ssc-lbl">Spent</p>
+            </div>
+        </div>
+    </div>
+
     <div id="view-all">
-        <div class="empty-state"><div class="empty-icon">⏳</div><p class="empty-title">Loading…</p></div>
+        <div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg></div><p class="empty-title">Loading…</p></div>
     </div>
     <div id="view-past"      style="display:none;"></div>
     <div id="view-cancelled" style="display:none;"></div>
@@ -237,13 +274,13 @@ function modifierTagsHtml(modifiers) {
 }
 
 const STATUS_CFG = {
-    pending:          {label:'Order Placed',   badge:'badge-pending', icon:'🕐', progress:10},
-    accepted:         {label:'Accepted',        badge:'badge-active',  icon:'✅', progress:25},
-    preparing:        {label:'Preparing',       badge:'badge-active',  icon:'👨‍🍳', progress:45},
-    rider_assigned:   {label:'Rider Assigned',  badge:'badge-active',  icon:'🛵', progress:65},
-    out_for_delivery: {label:'Out for Delivery',badge:'badge-active',  icon:'🚀', progress:82},
-    delivered:        {label:'Delivered',       badge:'badge-done',    icon:'✔',  progress:100},
-    cancelled:        {label:'Cancelled',       badge:'badge-cancelled',icon:'✕', progress:0},
+    pending:          {label:'Order Placed',   badge:'badge-pending',  icon:'<svg width="13" height="13" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>', progress:10},
+    accepted:         {label:'Accepted',        badge:'badge-active',   icon:'<svg width="13" height="13" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>', progress:25},
+    preparing:        {label:'Preparing',       badge:'badge-active',   icon:'<svg width="13" height="13" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z"/></svg>', progress:45},
+    rider_assigned:   {label:'Rider Assigned',  badge:'badge-active',   icon:'<svg width="13" height="13" fill="none" stroke="#8b5cf6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>', progress:65},
+    out_for_delivery: {label:'Out for Delivery',badge:'badge-active',   icon:'<svg width="13" height="13" fill="none" stroke="#8b5cf6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg>', progress:82},
+    delivered:        {label:'Delivered',       badge:'badge-done',     icon:'<svg width="13" height="13" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>', progress:100},
+    cancelled:        {label:'Cancelled',       badge:'badge-cancelled',icon:'<svg width="13" height="13" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>', progress:0},
 };
 const TIMELINE_STEPS = ['pending','accepted','preparing','rider_assigned','out_for_delivery','delivered'];
 
@@ -253,7 +290,7 @@ const TIMELINE_STEPS = ['pending','accepted','preparing','rider_assigned','out_f
 function buildOrderCard(o) {
     const cfg = STATUS_CFG[o.status] || STATUS_CFG.pending;
     const imgs = o.items.slice(0,3).map(i=>
-        `<img src="${escHtml(i.image)}" class="ocard-img" alt="${escHtml(i.name)}" onerror="this.src='{{ asset('images/hero-burger.jpg') }}'">`)
+        `<img src="${escHtml(i.image)}" class="ocard-img" alt="${escHtml(i.name)}" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">`)
         .join('');
     const extra = o.items.length > 3 ? `<div class="ocard-more">+${o.items.length-3}</div>` : '';
     const isLive = !['delivered','cancelled'].includes(o.status);
@@ -301,23 +338,37 @@ function renderAll() {
     const past      = allOrders.filter(o=>o.status==='delivered');
     const cancelled = allOrders.filter(o=>o.status==='cancelled');
 
+    // ── Update summary stats banner ──
+    const banner = document.getElementById('orderSummaryBanner');
+    if (allOrders.length > 0 && banner) {
+        banner.style.display = 'block';
+        const totalSpent = past.reduce((s,o) => s + (parseFloat(o.total)||0), 0);
+        document.getElementById('ssc-val-active').textContent    = active.length;
+        document.getElementById('ssc-val-total').textContent     = allOrders.length;
+        document.getElementById('ssc-val-delivered').textContent = past.length;
+        document.getElementById('ssc-val-cancelled').textContent = cancelled.length;
+        document.getElementById('ssc-val-spent').textContent     = '₱' + totalSpent.toLocaleString();
+        // Highlight active card if there are active orders
+        document.getElementById('ssc-active').style.borderColor = active.length > 0 ? 'rgba(250,204,21,.35)' : '';
+    }
+
     // Tab dot on All tab — blink when there are active orders
     document.getElementById('allDot').style.display = active.length ? 'inline-block' : 'none';
 
     // All tab — shows active/in-progress orders only
     document.getElementById('view-all').innerHTML = active.length
         ? active.map(o=>buildOrderCard(o)).join('')
-        : emptyState('⏳','No active orders','Place an order and track it here.',true);
+        : emptyState('<svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>','No active orders','Place an order and track it here.',true);
 
     // Past tab
     document.getElementById('view-past').innerHTML = past.length
         ? past.map(o=>buildOrderCard(o)).join('')
-        : emptyState('📦','No completed orders','Your delivered orders will show here.',false);
+        : emptyState('<svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>','No completed orders','Your delivered orders will show here.',false);
 
     // Cancelled tab
     document.getElementById('view-cancelled').innerHTML = cancelled.length
         ? cancelled.map(o=>buildOrderCard(o)).join('')
-        : emptyState('✅','No cancelled orders','Great — you haven&#39;t cancelled anything.',false);
+        : emptyState('<svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>','No cancelled orders','Great — you haven&#39;t cancelled anything.',false);
 }
 
 /* ────────────────────────────────
@@ -356,6 +407,7 @@ function buildDetailBody(o) {
     const cfg = STATUS_CFG[o.status] || STATUS_CFG.pending;
     const isActive = !['delivered','cancelled'].includes(o.status);
     const cancellable = ['pending','accepted','preparing'].includes(o.status);
+    const isDelivery = o.order_type === 'delivery';
 
     // ── Progress bar (active only) ──
     const isPlaced    = o.status==='pending';
@@ -380,7 +432,6 @@ function buildDetailBody(o) {
         <div class="sheet-divider" style="margin-top:14px;"></div>` : '';
 
     // ── Timeline ──
-    const isDelivery = o.order_type === 'delivery';
     const timelineSteps = isDelivery 
         ? ['pending','accepted','preparing','rider_assigned','out_for_delivery','delivered']
         : ['pending','accepted','preparing','delivered'];
@@ -417,7 +468,7 @@ function buildDetailBody(o) {
             <p class="sheet-section-title">Items (${o.items.length})</p>
             ${o.items.map(i=>`
             <div class="sitem">
-                <img src="${escHtml(i.image)}" class="sitem-img" alt="${escHtml(i.name)}" onerror="this.src='{{ asset('images/hero-burger.jpg') }}'">
+                <img src="${escHtml(i.image)}" class="sitem-img" alt="${escHtml(i.name)}" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">
                 <div style="flex:1;min-width:0;">
                     <p class="sitem-name">${escHtml(i.name)}</p>
                     <p class="sitem-meta">× ${i.qty}</p>
@@ -457,14 +508,14 @@ function buildDetailBody(o) {
         </div>
         ${o.rider?`<div class="irow">
             <div class="irow-icon" style="background:rgba(167,139,250,.1);"><svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
-            <div><p class="irow-label">Rider</p><p class="irow-val">${escHtml(o.rider.name)}</p><p class="irow-sub">⭐ ${o.rider.rating} · ${escHtml(o.rider.phone)}</p></div>
+            <div><p class="irow-label">Rider</p><p class="irow-val">${escHtml(o.rider.name)}</p><p class="irow-sub"><svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> ${o.rider.rating} · ${escHtml(o.rider.phone)}</p></div>
         </div>`:''}`;
 
     // ── Map (active delivery only) ──
     const mapHtml = (isActive && o.order_type === 'delivery') ? `
         <div class="sheet-divider" style="margin-top:4px;"></div>
         <div style="padding:12px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
-            <p style="font-size:13px;font-weight:700;color:#fff;">${isOnWay?'🛵 Live Rider Tracking':'📍 Order Location'}</p>
+            <p style="font-size:13px;font-weight:700;color:#fff;">${isOnWay?'<svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg> Live Rider Tracking':'<svg width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg> Order Location'}</p>
             <p style="font-size:11px;color:#4b5563;" id="riderEtaText-${o.id}">${isOnWay?'Fetching route…':'Locating…'}</p>
         </div>
         <div id="trackingMap-${o.id}" style="height:220px;width:100%;background:#0a0a14;"></div>` : '';
@@ -578,7 +629,7 @@ async function submitCancel(){
     try{
         const r=await fetch(`/orders/${currentCancelOrderId}/cancel`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({reason:sel.value})});
         const d=await r.json();
-        if(d.success){closeCancelModal();closeDetail();await loadAllOrders();showToast('✅ Order cancelled.');}
+        if(d.success){closeCancelModal();closeDetail();await loadAllOrders();showToast('Order cancelled.');}
         else{errEl.textContent=d.message||'Failed.';errEl.style.display='block';}
     }catch(e){errEl.textContent='Network error.';errEl.style.display='block';}
     btn.textContent='Yes, Cancel My Order';btn.disabled=false;
@@ -597,8 +648,39 @@ document.addEventListener('DOMContentLoaded',()=>{
         const t=(localStorage.getItem('eutTheme')||'dark')==='dark'?'light':'dark';
         localStorage.setItem('eutTheme',t);applyTheme(t);
     });
+
+    // Initial load
     loadAllOrders();
-    setInterval(loadAllOrders,6000);
+
+    // Echo: listen for real-time order updates on the customer's private channel
+    if (window.Echo) {
+        window.Echo.private('orders.{{ auth()->id() }}')
+            .listen('.order.updated', (order) => {
+                // Update or insert the order in allOrders
+                const idx = allOrders.findIndex(o => o.id === order.id);
+                if (idx !== -1) {
+                    allOrders[idx] = order;
+                } else {
+                    allOrders.unshift(order);
+                }
+
+                renderAll();
+
+                // If detail sheet is open for this order, refresh it
+                if (detailOrderId === order.id) {
+                    const detailBody = document.getElementById('detailBody');
+                    if (detailBody) {
+                        detailBody.innerHTML = buildDetailBody(order);
+                        if (!['delivered','cancelled'].includes(order.status)) {
+                            setTimeout(() => { if(typeof initOrderMap==='function') initOrderMap(order); }, 300);
+                        }
+                    }
+                }
+            });
+    } else {
+        // Fallback: poll every 15s if Echo isn't available
+        setInterval(loadAllOrders, 15000);
+    }
 });
 </script>
 
@@ -716,10 +798,10 @@ async function initOrderMap(order) {
 
     // Rider marker
     const rM = L.marker(riderPos, { icon: L.divIcon({
-        html: '<div style="background:#10b981;width:44px;height:44px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 14px rgba(16,185,129,.7);">🛵</div>',
+        html: '<div style="background:#10b981;width:44px;height:44px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(16,185,129,.7);"><svg width="22" height="22" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg></div>',
         className: '', iconSize: [44, 44], iconAnchor: [22, 22],
     }) }).addTo(map);
-    if (order.rider) rM.bindPopup('<b>' + order.rider.name + '</b><br>⭐ ' + order.rider.rating);
+    if (order.rider) rM.bindPopup('<b>' + order.rider.name + '</b><br><svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> ' + order.rider.rating);
     activeMaps[order.id].riderMarker = rM;
 
     if (isOut) {

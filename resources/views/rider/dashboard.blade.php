@@ -350,13 +350,14 @@
             <div class="profile-avatar">{{ $rider->initials }}</div>
             <div>
                 <p class="profile-name">{{ $rider->user->name }}</p>
-                <p class="profile-sub">&#x1F3CD;&#xFE0F; {{ ucfirst($rider->vehicle_type) }} &middot; ID: RIDER-{{ str_pad($rider->id, 3, '0', STR_PAD_LEFT) }}</p>
+                <p class="profile-sub"><svg width="12" height="12" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:3px"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg> {{ ucfirst($rider->vehicle_type) }} &middot; ID: RIDER-{{ str_pad($rider->id, 3, '0', STR_PAD_LEFT) }}</p>
             </div>
         </div>
         <div class="profile-stats">
             <div class="pstat"><p class="pstat-val">{{ $todayDeliveries }}</p><p class="pstat-label">Today</p></div>
+            <div class="pstat"><p class="pstat-val" style="color:#a78bfa;">{{ $weekDeliveries }}</p><p class="pstat-label">This Week</p></div>
             <div class="pstat"><p class="pstat-val" style="color:#10b981;">{{ $rider->total_deliveries }}</p><p class="pstat-label">All Time</p></div>
-            <div class="pstat"><p class="pstat-val">&#11088; {{ number_format($rider->rating, 1) }}</p><p class="pstat-label">Rating</p></div>
+            <div class="pstat"><p class="pstat-val"><svg width="14" height="14" fill="#facc15" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> {{ number_format($rider->rating, 1) }}</p><p class="pstat-label">Rating</p></div>
             <div class="pstat"><p class="pstat-val" style="color:#10b981;">&#8369;{{ number_format($todayEarnings) }}</p><p class="pstat-label">Today's Pay</p></div>
         </div>
     </div>
@@ -372,7 +373,7 @@
     <!-- -->
     <div id="view-active">
         <!-- Live Map -->
-        <p class="section-label">&#x1F7E3; Currently Delivering</p>
+        <p class="section-label"><svg width="10" height="10" fill="#8b5cf6" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/></svg> Currently Delivering</p>
         <div style="background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(139,92,246,.3);border-radius:18px;overflow:hidden;margin-bottom:12px;">
             <div style="padding:12px 16px 8px;display:flex;align-items:center;justify-content:space-between;">
                 <div style="display:flex;align-items:center;gap:8px;">
@@ -523,7 +524,7 @@
             </div>
             <div style="text-align:right;flex-shrink:0;">
                 <p style="font-size:16px;font-weight:900;color:#facc15;margin:0 0 3px;">&#8369;{{ number_format($order->total, 2) }}</p>
-                <p style="font-size:12px;color:#facc15;">⭐</p>
+                <p style="font-size:12px;color:#facc15;"><svg width="12" height="12" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg></p>
             </div>
         </div>
         @endforeach
@@ -592,7 +593,7 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;">
                 <p style="font-size:10px;color:#4b5563;text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;">Vehicle</p>
-                <p style="font-size:14px;font-weight:700;color:#fff;margin:0;">&#x1F3CD; {{ ucfirst($rider->vehicle_type) }}</p>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin:0;"><svg width="13" height="13" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:3px"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg> {{ ucfirst($rider->vehicle_type) }}</p>
             </div>
             <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;">
                 <p style="font-size:10px;color:#4b5563;text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;">Plate / ID</p>
@@ -604,7 +605,7 @@
             </div>
             <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;">
                 <p style="font-size:10px;color:#4b5563;text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;">Rating</p>
-                <p style="font-size:14px;font-weight:700;color:#facc15;margin:0;">&#11088; {{ number_format($rider->rating, 1) }}</p>
+                <p style="font-size:14px;font-weight:700;color:#facc15;margin:0;"><svg width="13" height="13" fill="#facc15" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:3px"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> {{ number_format($rider->rating, 1) }}</p>
             </div>
         </div>
     </div>
@@ -622,7 +623,7 @@
                 <p style="font-size:10px;color:#4b5563;margin:0;">Total Earned</p>
             </div>
             <div style="flex:1;text-align:center;padding:14px 8px;">
-                <p style="font-size:22px;font-weight:900;color:#f59e0b;margin:0 0 3px;">&#11088; {{ number_format($rider->rating,1) }}</p>
+                <p style="font-size:22px;font-weight:900;color:#f59e0b;margin:0 0 3px;"><svg width="18" height="18" fill="#f59e0b" viewBox="0 0 24 24" style="vertical-align:middle"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> {{ number_format($rider->rating,1) }}</p>
                 <p style="font-size:10px;color:#4b5563;margin:0;">Rating</p>
             </div>
         </div>
@@ -701,14 +702,14 @@
         <div class="sheet-step active" id="sheet-step-1">
             <p style="font-size:12px;color:#6b7280;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;">Is the customer present?</p>
             <button class="handover-btn present" onclick="sheetStep(2,'present')">
-                <div class="handover-icon" style="background:rgba(16,185,129,.12);">&#x1F91D;</div>
+                <div class="handover-icon" style="background:rgba(16,185,129,.12);"><svg width="22" height="22" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
                 <div>
                     <p class="handover-label">Yes &#x2014; Direct Handover</p>
                     <p class="handover-desc">Customer is here. Hand over the order and confirm.</p>
                 </div>
             </button>
             <button class="handover-btn no-contact" onclick="sheetStep(2,'photo')">
-                <div class="handover-icon" style="background:rgba(245,158,11,.12);">&#x1F4F7;</div>
+                <div class="handover-icon" style="background:rgba(245,158,11,.12);"><svg width="22" height="22" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg></div>
                 <div>
                     <p class="handover-label">No &#x2014; Take Proof Photo</p>
                     <p class="handover-desc">No one answered. Take a photo of the delivered order as proof.</p>
@@ -741,7 +742,7 @@
             <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('photoInput').click()">
                 <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="handlePhoto(this)">
                 <div id="uploadPlaceholder">
-                    <div class="upload-icon">&#x1F4F7;</div>
+                    <div class="upload-icon"><svg width="32" height="32" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg></div>
                     <p class="upload-label">Tap to take photo</p>
                     <p class="upload-sub">Photo of the order at the delivery location</p>
                 </div>
@@ -768,7 +769,7 @@
         </svg>
     </div>
     <img id="successPhotoThumb" class="success-photo-thumb" alt="Proof">
-    <p class="success-title">Delivered! &#x1F389;</p>
+    <p class="success-title">Delivered!</p>
     <p class="success-order" id="successOrderId">#EUT-00512</p>
     <p class="success-sub" id="successSubText">Order handed directly to customer.</p>
     <p style="font-size:12px;color:#374151;margin-bottom:28px;">
@@ -948,7 +949,7 @@ async function confirmDelivered(type) {
             _activeCard.style.opacity = '.55';
             _activeCard.style.pointerEvents = 'none';
             const actionDiv = _activeCard.querySelector('.oc-footer div:last-child');
-            if (actionDiv) actionDiv.innerHTML = '<span style="font-size:13px;color:#4ade80;font-weight:700;">&#x1F389; Completed!</span>';
+            if (actionDiv) actionDiv.innerHTML = '<span style="font-size:13px;color:#4ade80;font-weight:700;display:flex;align-items:center;gap:4px;"><svg width="14" height="14" fill="none" stroke="#4ade80" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Completed!</span>';
         }
 
         const orderId = _activeCard ? _activeCard.querySelector('.oc-id').textContent : '';
@@ -1099,7 +1100,7 @@ async function drawRoute() {
     // Add customer marker if not yet on map
     if (!customerMarker) {
         customerMarker = L.marker(dest, { icon: L.divIcon({
-            html: `<div style="background:#ef4444;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:16px;line-height:1;">&#x1F3E0;</span></div>`,
+            html: `<div style="background:#ef4444;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><svg style="transform:rotate(45deg)" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg></div>`,
             className: '', iconSize: [38, 38], iconAnchor: [19, 38],
         }) }).addTo(riderMapL).bindPopup(`<b>${CUSTOMER_NAME}</b>`);
     }
@@ -1157,13 +1158,13 @@ async function initRiderMap() {
 
     // Restaurant pin
     L.marker(RESTAURANT_R, { icon: L.divIcon({
-        html: `<div style="background:#facc15;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:16px;line-height:1;">&#x1F354;</span></div>`,
+        html: `<div style="background:#facc15;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><svg style="transform:rotate(45deg)" width="18" height="18" fill="none" stroke="#000" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></div>`,
         className: '', iconSize: [38, 38], iconAnchor: [19, 38],
     }) }).addTo(riderMapL).bindPopup('<b>E.U.T Snack House</b>');
 
     // Rider marker
     myMarker = L.marker(myPos, { icon: L.divIcon({
-        html: `<div style="background:#8b5cf6;width:46px;height:46px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 14px rgba(139,92,246,0.7);">&#x1F6F5;</div>`,
+        html: `<div style="background:#8b5cf6;width:46px;height:46px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(139,92,246,0.7);"><svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3M5 8c0 1.657 3.134 3 7 3s7-1.343 7-3"/></svg></div>`,
         className: '', iconSize: [46, 46], iconAnchor: [23, 23],
     }) }).addTo(riderMapL).bindPopup('<b>You (Rider)</b>');
 

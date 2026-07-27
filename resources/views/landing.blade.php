@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.U.T Snack House — Food Delivery</title>
+    <title>E.U.T Snack House � Food Delivery</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -16,7 +16,7 @@
             background: #fff;
         }
 
-        /* ── LEFT PANEL ── */
+        /* -- LEFT PANEL -- */
         .left-panel {
             width: 50%;
             background: linear-gradient(160deg, #7f1d1d 0%, #dc2626 40%, #b45309 80%, #f59e0b 100%);
@@ -45,7 +45,7 @@
             filter: drop-shadow(0 30px 60px rgba(0,0,0,0.4));
         }
 
-        /* ── RIGHT PANEL ── */
+        /* -- RIGHT PANEL -- */
         .right-panel {
             width: 50%;
             display: flex;
@@ -79,7 +79,7 @@
             max-width: 320px;
         }
 
-        /* ── BUTTONS ── */
+        /* -- BUTTONS -- */
         .btn-group {
             display: flex;
             flex-direction: column;
@@ -141,7 +141,7 @@
             box-shadow: 0 6px 20px rgba(220,38,38,0.35);
         }
 
-        /* ── MOBILE ── */
+        /* -- MOBILE -- */
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .left-panel {
@@ -168,13 +168,13 @@
 
     <!-- LEFT: gradient + phone -->
     <div class="left-panel">
-        <img src="{{ asset('images/phone.png') }}" alt="EUT App" class="phone-img">
+        <img src="{{ asset('images/phone.webp') }}" alt="EUT App" class="phone-img">
     </div>
 
     <!-- RIGHT: content -->
     <div class="right-panel">
 
-        <img src="{{ asset('images/DeliveryPanda.png') }}" alt="Delivery Panda" class="panda-img">
+        <img src="{{ asset('images/DeliveryPanda.webp') }}" alt="Delivery Panda" class="panda-img">
 
         <h1 class="headline">Download Our App</h1>
 

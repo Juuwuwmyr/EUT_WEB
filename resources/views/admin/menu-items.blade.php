@@ -238,7 +238,7 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
         <div class="form-row" style="width:100%;">
           <div class="form-group">
             <label>Image Path</label>
-            <input type="text" name="image" id="iImage" class="admin-input" placeholder="/images/hero-burger.jpg">
+            <input type="text" name="image" id="iImage" class="admin-input" placeholder="/images/hero-burger.webp">
           </div>
           <div class="form-group" style="justify-content:flex-end;">
             <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none;margin-top:auto;">

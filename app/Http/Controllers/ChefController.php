@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderStatusUpdated;
 use App\Models\Order;
 use App\Models\Rider;
 use Illuminate\Http\Request;
@@ -22,6 +23,8 @@ class ChefController extends Controller
         }
 
         $order->update(['status' => 'accepted', 'accepted_at' => now()]);
+
+        broadcast(new OrderStatusUpdated($order));
 
         if (request()->expectsJson()) {
             return response()->json([
@@ -46,12 +49,22 @@ class ChefController extends Controller
             ->get()
             ->map(fn($r) => ['id' => $r->id, 'name' => $r->user->name, 'phone' => $r->phone]);
 
+        $todayOrders    = \App\Models\Order::whereDate('created_at', today())->count();
+        $deliveredToday = \App\Models\Order::where('status', 'delivered')->whereDate('delivered_at', today())->count();
+        $revenueToday   = \App\Models\Order::where('status', 'delivered')->whereDate('delivered_at', today())->sum('total');
+        $pendingCount   = \App\Models\Order::where('status', 'pending')->count();
+
         return view('chef.dashboard', [
-            'newOrders'      => $orders['new'],
-            'queuedOrders'   => $orders['queued'],
-            'cookingOrders'  => $orders['cooking'],
-            'readyOrders'    => $orders['ready'],
-            'availableRiders'=> $availableRiders,
+            'newOrders'          => $orders['new'],
+            'queuedOrders'       => $orders['queued'],
+            'cookingOrders'      => $orders['cooking'],
+            'readyOrders'        => $orders['ready'],
+            'availableRiders'    => $availableRiders,
+            'todayOrders'        => $todayOrders,
+            'deliveredToday'     => $deliveredToday,
+            'revenueToday'       => $revenueToday,
+            'pendingCount'       => $pendingCount,
+            'availableRiderCount'=> $availableRiders->count(),
         ]);
     }
 
@@ -84,6 +97,8 @@ class ChefController extends Controller
             'prepared_at' => null,
         ]);
 
+        broadcast(new OrderStatusUpdated($order));
+
         return $this->kitchenActionResponse(true, "Order #{$order->order_number} is now cooking.");
     }
 
@@ -101,6 +116,8 @@ class ChefController extends Controller
         }
 
         $order->update(['prepared_at' => now()]);
+
+        broadcast(new OrderStatusUpdated($order));
 
         return $this->kitchenActionResponse(true, "Order #{$order->order_number} is ready for pickup.");
     }
@@ -126,6 +143,8 @@ class ChefController extends Controller
             'assigned_at' => now(),
             'prepared_at' => $order->prepared_at ?? now(),
         ]);
+
+        broadcast(new OrderStatusUpdated($order));
 
         return $this->kitchenActionResponse(true, "Rider assigned to order #{$order->order_number}.");
     }
@@ -217,7 +236,7 @@ class ChefController extends Controller
                 'qty'       => $i->quantity,
                 'price'     => (float) $i->unit_price,
                 'subtotal'  => (float) $i->subtotal,
-                'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.jpg'),
+                'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.webp'),
                 'modifiers' => collect($i->modifiers ?? [])
                     ->filter(fn ($m) => !empty($m['name']) && !preg_match('/^no\s/i', $m['name']))
                     ->values()

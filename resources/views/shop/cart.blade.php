@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,7 +10,7 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: #080810; color: #fff; min-height: 100vh; }
 
-        /* ── NAVBAR ── */
+        /* -- NAVBAR -- */
         .topnav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
             background: rgba(8,8,16,0.94);
@@ -46,10 +46,10 @@
         }
         .theme-btn:hover { background: rgba(255,255,255,0.12); }
 
-        /* ── PAGE ── */
+        /* -- PAGE -- */
         .page-body { max-width: 560px; margin: 0 auto; padding: 82px 16px 120px; }
 
-        /* ── CARDS ── */
+        /* -- CARDS -- */
         .card {
             background: linear-gradient(145deg, #12131f, #0e0f1a);
             border: 1px solid rgba(255,255,255,0.07);
@@ -65,7 +65,7 @@
         .card-title { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.01em; }
         .card-sub { font-size: 11px; color: #4b5563; margin-top: 2px; }
 
-        /* ── CART ITEMS ── */
+        /* -- CART ITEMS -- */
         .cart-item {
             display: flex; align-items: center; gap: 13px;
             padding: 14px 18px;
@@ -76,7 +76,7 @@
         .cart-item:last-child { border-bottom: none; }
         .cart-item:hover { background: rgba(255,255,255,0.015); }
 
-        /* Clickable link wrapping image + info — removed, kept for reference */
+        /* Clickable link wrapping image + info � removed, kept for reference */
         .item-edit-hint { display: none; }
 
         .item-img {
@@ -136,7 +136,7 @@
             padding: 1px 6px; margin-top: 4px;
         }
 
-        /* ── PROMO CODE ── */
+        /* -- PROMO CODE -- */
         .promo-wrap {
             display: flex; gap: 8px; padding: 14px 18px;
         }
@@ -158,7 +158,7 @@
         }
         .promo-btn:hover { background: rgba(250,204,21,0.18); }
 
-        /* ── ORDER SUMMARY ── */
+        /* -- ORDER SUMMARY -- */
         .summary-row {
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 18px;
@@ -175,7 +175,7 @@
             padding: 2px 8px; border-radius: 99px;
         }
 
-        /* ── FREE DELIVERY BANNER ── */
+        /* -- FREE DELIVERY BANNER -- */
         .free-delivery-bar {
             margin: 0 18px 14px;
             background: rgba(34,197,94,0.06);
@@ -193,7 +193,7 @@
             transition: width 0.6s ease;
         }
 
-        /* ── BUY NOW BAR (sticky) ── */
+        /* -- BUY NOW BAR (sticky) -- */
         .buy-now-bar {
             display: flex; align-items: center; justify-content: space-between;
             background: linear-gradient(135deg, #f59e0b, #facc15);
@@ -228,7 +228,7 @@
         .continue-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
 
 
-        /* ── TRUST BADGES ── */
+        /* -- TRUST BADGES -- */
         .trust-row {
             display: flex; justify-content: center; gap: 20px;
             padding: 14px 18px;
@@ -240,7 +240,7 @@
         }
         .trust-icon { font-size: 18px; }
 
-        /* ── EMPTY STATE ── */
+        /* -- EMPTY STATE -- */
         .empty-state {
             text-align: center; padding: 80px 24px 40px;
         }
@@ -263,7 +263,7 @@
         }
         .suggestion-chip:hover { border-color: rgba(250,204,21,0.3); color: #facc15; }
 
-        /* ── UPSELL ROW ── */
+        /* -- UPSELL ROW -- */
         .upsell-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 4px 18px 16px; scrollbar-width: none; }
         .upsell-scroll::-webkit-scrollbar { display: none; }
         .upsell-chip {
@@ -278,7 +278,7 @@
         .upsell-name { font-size: 11px; color: #d1d5db; font-weight: 500; white-space: nowrap; }
         .upsell-price { font-size: 11px; color: #facc15; font-weight: 700; }
 
-        /* ── LIGHT MODE ── */
+        /* -- LIGHT MODE -- */
         .light-mode body { background: #f0f0f8 !important; }
         .light-mode .card { background: #fff !important; border-color: rgba(0,0,0,0.07) !important; box-shadow: 0 2px 16px rgba(0,0,0,0.06) !important; }
         .light-mode .topnav { background: rgba(255,255,255,0.96) !important; border-color: rgba(0,0,0,0.07) !important; }
@@ -301,7 +301,7 @@
         }
 
 
-        /* ── BOTTOM NAV ── */
+        /* -- BOTTOM NAV -- */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(8,8,16,0.97);
@@ -325,7 +325,7 @@
 </head>
 <body>
 
-<!-- ══════════ NAVBAR ══════════ -->
+<!-- ---------- NAVBAR ---------- -->
 <nav class="topnav">
     <div class="topnav-inner">
         <a href="{{ route('shop.home') }}" class="back-btn">
@@ -346,20 +346,20 @@
     </div>
 </nav>
 
-<!-- ══════════ PAGE BODY ══════════ -->
+<!-- ---------- PAGE BODY ---------- -->
 <div class="page-body">
 
-    <!-- ── EMPTY STATE ── -->
+    <!-- -- EMPTY STATE -- -->
     <div id="emptyCart" style="display:none;">
         <div class="empty-state">
-            <div class="empty-bag">🛒</div>
+            <div class="empty-bag">??</div>
             <p class="empty-title">Your cart is empty</p>
             <p class="empty-sub">Looks like you haven't added anything yet.<br>Browse our menu and find something delicious!</p>
             <div class="empty-suggestions">
-                <a href="{{ route('shop.home') }}" class="suggestion-chip">🍔 Burgers</a>
-                <a href="{{ route('shop.home') }}" class="suggestion-chip">🍟 Fries</a>
-                <a href="{{ route('shop.home') }}" class="suggestion-chip">🥤 Beverages</a>
-                <a href="{{ route('shop.home') }}" class="suggestion-chip">🍱 Combos</a>
+                <a href="{{ route('shop.home') }}" class="suggestion-chip">?? Burgers</a>
+                <a href="{{ route('shop.home') }}" class="suggestion-chip">?? Fries</a>
+                <a href="{{ route('shop.home') }}" class="suggestion-chip">?? Beverages</a>
+                <a href="{{ route('shop.home') }}" class="suggestion-chip">?? Combos</a>
             </div>
             <a href="{{ route('shop.home') }}" class="checkout-btn" style="max-width:280px; margin:0 auto;">
                 Browse Menu
@@ -367,14 +367,14 @@
         </div>
     </div>
 
-    <!-- ── CART CONTENT ── -->
+    <!-- -- CART CONTENT -- -->
     <div id="cartContent" style="display:none;">
 
         <!-- Free delivery progress -->
         <div id="freeDeliveryBar" class="free-delivery-bar" style="display:none;">
-            <span style="font-size:16px;">🚀</span>
+            <span style="font-size:16px;">??</span>
             <div style="flex:1;">
-                <p style="font-size:11px; color:#4b5563; margin-bottom:5px;" id="freeDeliveryText">Add ₱X more for free delivery</p>
+                <p style="font-size:11px; color:#4b5563; margin-bottom:5px;" id="freeDeliveryText">Add ?X more for free delivery</p>
                 <div class="free-delivery-fill">
                     <div class="free-delivery-fill-inner" id="freeDeliveryFill" style="width:0%"></div>
                 </div>
@@ -399,20 +399,20 @@
                 <p style="font-size:11px; color:#4b5563; font-weight:600; padding:0 18px 10px; letter-spacing:0.04em; text-transform:uppercase;">You might also like</p>
                 <div class="upsell-scroll">
                     <a href="{{ route('shop.home') }}" class="upsell-chip">
-                        <img src="{{ asset('images/french-fries.jpg') }}" class="upsell-img" alt="Fries">
-                        <div><p class="upsell-name">Crispy Fries</p><p class="upsell-price">₱120</p></div>
+                        <img src="{{ asset('images/french-fries.webp') }}" class="upsell-img" alt="Fries">
+                        <div><p class="upsell-name">Crispy Fries</p><p class="upsell-price">?120</p></div>
                     </a>
                     <a href="{{ route('shop.home') }}" class="upsell-chip">
-                        <img src="{{ asset('images/combo-meal.jpg') }}" class="upsell-img" alt="Combo">
-                        <div><p class="upsell-name">Combo Meal</p><p class="upsell-price">₱390</p></div>
+                        <img src="{{ asset('images/combo-meal.webp') }}" class="upsell-img" alt="Combo">
+                        <div><p class="upsell-name">Combo Meal</p><p class="upsell-price">?390</p></div>
                     </a>
                     <a href="{{ route('shop.home') }}" class="upsell-chip">
-                        <img src="{{ asset('images/gourmet-burger.jpg') }}" class="upsell-img" alt="Burger">
-                        <div><p class="upsell-name">Gourmet Burger</p><p class="upsell-price">₱420</p></div>
+                        <img src="{{ asset('images/gourmet-burger.webp') }}" class="upsell-img" alt="Burger">
+                        <div><p class="upsell-name">Gourmet Burger</p><p class="upsell-price">?420</p></div>
                     </a>
                     <a href="{{ route('shop.home') }}" class="upsell-chip">
-                        <img src="{{ asset('images/hero-burger.jpg') }}" class="upsell-img" alt="Classic">
-                        <div><p class="upsell-name">Classic Burger</p><p class="upsell-price">₱350</p></div>
+                        <img src="{{ asset('images/hero-burger.webp') }}" class="upsell-img" alt="Classic">
+                        <div><p class="upsell-name">Classic Burger</p><p class="upsell-price">?350</p></div>
                     </a>
                 </div>
             </div>
@@ -443,50 +443,50 @@
             </div>
             <div class="summary-row">
                 <span class="summary-label">Subtotal (<span id="totalItems">0</span> items)</span>
-                <span class="summary-value" id="subtotal">₱0</span>
+                <span class="summary-value" id="subtotal">?0</span>
             </div>
             <div class="summary-row">
                 <span class="summary-label">Delivery fee</span>
-                <span class="summary-value" id="deliveryFeeDisplay">₱50</span>
+                <span class="summary-value" id="deliveryFeeDisplay">?50</span>
             </div>
             <div class="summary-row" id="discountRow" style="display:none;">
                 <span class="summary-label" style="color:#4ade80;">Promo discount</span>
-                <span class="summary-value" id="discountDisplay" style="color:#4ade80;">-₱0</span>
+                <span class="summary-value" id="discountDisplay" style="color:#4ade80;">-?0</span>
             </div>
             <div class="summary-row" style="padding-top:14px; padding-bottom:14px;">
                 <span class="summary-label-bold">Total</span>
-                <span class="summary-value-bold" id="grandTotal">₱0</span>
+                <span class="summary-value-bold" id="grandTotal">?0</span>
             </div>
 
             <!-- Trust badges -->
             <div class="trust-row">
-                <div class="trust-item"><span class="trust-icon">🔒</span>Secure<br>Payment</div>
-                <div class="trust-item"><span class="trust-icon">🚀</span>Fast<br>Delivery</div>
-                <div class="trust-item"><span class="trust-icon">♻️</span>Easy<br>Returns</div>
-                <div class="trust-item"><span class="trust-icon">⭐</span>Top<br>Quality</div>
+                <div class="trust-item"><span class="trust-icon">??</span>Secure<br>Payment</div>
+                <div class="trust-item"><span class="trust-icon">??</span>Fast<br>Delivery</div>
+                <div class="trust-item"><span class="trust-icon">??</span>Easy<br>Returns</div>
+                <div class="trust-item"><span class="trust-icon">?</span>Top<br>Quality</div>
             </div>
         </div>
 
         <!-- Sticky Buy Now Bar -->
         <a href="{{ route('shop.checkout') }}" class="buy-now-bar" id="buyNowBar">
             <div class="buy-now-left">
-                <span class="buy-now-icon">🛒</span>
+                <span class="buy-now-icon">??</span>
                 <div>
                     <p class="buy-now-label">Place Order</p>
-                    <p class="buy-now-total" id="buyBarTotal">₱0</p>
+                    <p class="buy-now-total" id="buyBarTotal">?0</p>
                 </div>
             </div>
-            <span class="buy-now-cta">Buy Now →</span>
+            <span class="buy-now-cta">Buy Now ?</span>
         </a>
         <a href="{{ route('shop.home') }}" class="continue-btn">
-            ← Continue Shopping
+            ? Continue Shopping
         </a>
 
     </div><!-- /cartContent -->
 
 </div><!-- /page-body -->
 
-<!-- ══════════ BOTTOM NAV ══════════ -->
+<!-- ---------- BOTTOM NAV ---------- -->
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
         <a href="{{ route('shop.home') }}" class="bnav-item">
@@ -517,7 +517,7 @@
 </nav>
 
 <script>
-/* ── Theme ── */
+/* -- Theme -- */
 function applyTheme(t) {
     document.documentElement.classList.toggle('light-mode', t === 'light');
     document.getElementById('shopSunIcon').style.display  = t === 'dark'  ? 'block' : 'none';
@@ -539,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ── BUY NOW: validate required flavors before proceeding to checkout ──
+    // -- BUY NOW: validate required flavors before proceeding to checkout --
     const buyNowBar = document.getElementById('buyNowBar');
     if (buyNowBar) {
         buyNowBar.addEventListener('click', e => {
@@ -556,10 +556,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     el.style.transition = 'outline 0.2s';
                     setTimeout(() => el.style.outline = '', 2500);
                 }
-                showCartToast(`⚠️ "${badItem.name.split('(')[0].trim()}" needs a flavor selected! Tap the item to fix it.`, badItem.item_id);
+                showCartToast(`?? "${badItem.name.split('(')[0].trim()}" needs a flavor selected! Tap the item to fix it.`, badItem.item_id);
                 return;
             }
-            // All good – let the link navigate to checkout normally
+            // All good � let the link navigate to checkout normally
         });
     }
 
@@ -572,7 +572,7 @@ const FREE_DELIVERY_THRESHOLD = 500;
 const PROMOS = {
     'EUTFREE': { type: 'delivery', label: 'Free delivery applied!' },
     'EUT10':   { type: 'percent', value: 10, label: '10% discount applied!' },
-    'SAVE50':  { type: 'fixed',   value: 50, label: '₱50 off applied!' },
+    'SAVE50':  { type: 'fixed',   value: 50, label: '?50 off applied!' },
 };
 
 function saveCart() {
@@ -603,7 +603,7 @@ function renderCart() {
     if (subtotalRaw < FREE_DELIVERY_THRESHOLD) {
         const needed = FREE_DELIVERY_THRESHOLD - subtotalRaw;
         const pct = Math.min((subtotalRaw / FREE_DELIVERY_THRESHOLD) * 100, 100);
-        document.getElementById('freeDeliveryText').textContent = `Add ₱${needed.toLocaleString()} more for free delivery`;
+        document.getElementById('freeDeliveryText').textContent = `Add ?${needed.toLocaleString()} more for free delivery`;
         document.getElementById('freeDeliveryFill').style.width = pct + '%';
         barEl.style.display = 'flex';
     } else {
@@ -628,7 +628,7 @@ function renderCart() {
                 const c = colors[m.type] || '#8b5cf6';
                 const adj = parseFloat(m.price_adjustment || 0);
                 const extra = (m.price_type === 'add' && adj > 0)
-                    ? ` <span style="color:#4ade80;font-size:.6rem;">+₱${adj.toLocaleString()}</span>` : '';
+                    ? ` <span style="color:#4ade80;font-size:.6rem;">+?${adj.toLocaleString()}</span>` : '';
                 return `<span style="display:inline-flex;align-items:center;gap:.2rem;padding:.15rem .5rem;border-radius:999px;font-size:.65rem;font-weight:600;background:${c}18;color:${c};border:1px solid ${c}30;">${m.name}${extra}</span>`;
             }).join('');
 
@@ -636,14 +636,14 @@ function renderCart() {
             <img src="${item.image}" alt="${item.name}" class="item-img">
             <div class="item-info">
                 <p class="item-name">${item.name}</p>
-                <p class="item-unit-price">₱${item.price.toLocaleString()} each</p>
+                <p class="item-unit-price">?${item.price.toLocaleString()} each</p>
                 <span class="item-category-tag">${item.category || 'Food'}</span>
                 ${modChipsHtml ? `<div style="display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.4rem;">${modChipsHtml}</div>` : ''}
             </div>
             <div class="item-right">
-                <p class="item-total-price">₱${(item.price * item.quantity).toLocaleString()}</p>
+                <p class="item-total-price">?${(item.price * item.quantity).toLocaleString()}</p>
                 <div class="qty-wrap">
-                    <button class="qty-btn qty-dec">−</button>
+                    <button class="qty-btn qty-dec">-</button>
                     <input type="number" class="qty-value" value="${item.quantity}" min="1">
                     <button class="qty-btn qty-inc">+</button>
                 </div>
@@ -667,7 +667,7 @@ function renderCart() {
             const ci = cart.find(c => c.id === id);
             if (ci) ci.quantity = q;
             saveCart();
-            totalEl.textContent = '₱' + (price * q).toLocaleString();
+            totalEl.textContent = '?' + (price * q).toLocaleString();
             updateTotals();
             // refresh nav count
             const tq = cart.reduce((s,i) => s + i.quantity, 0);
@@ -711,24 +711,24 @@ function updateTotals() {
     if (subtotal >= FREE_DELIVERY_THRESHOLD) delivery = 0;
 
     const grand = subtotal + delivery - discount;
-    document.getElementById('subtotal').textContent      = '₱' + subtotal.toLocaleString();
+    document.getElementById('subtotal').textContent      = '?' + subtotal.toLocaleString();
     document.getElementById('totalItems').textContent    = totalQty;
     document.getElementById('deliveryFeeDisplay').textContent = delivery === 0
         ? '<span class="free-badge">FREE</span>'
-        : '₱' + delivery;
+        : '?' + delivery;
     document.getElementById('deliveryFeeDisplay').innerHTML = delivery === 0
         ? '<span class="free-badge">FREE</span>'
-        : '₱' + delivery;
-    document.getElementById('grandTotal').textContent    = '₱' + grand.toLocaleString();
+        : '?' + delivery;
+    document.getElementById('grandTotal').textContent    = '?' + grand.toLocaleString();
     document.getElementById('itemSubCount').textContent  = totalQty + (totalQty === 1 ? ' item' : ' items') + ' in your order';
 
     // Sync Buy Now bar total
     const buyBarTotal = document.getElementById('buyBarTotal');
-    if (buyBarTotal) buyBarTotal.textContent = '₱' + grand.toLocaleString();
+    if (buyBarTotal) buyBarTotal.textContent = '?' + grand.toLocaleString();
 
     if (discount > 0) {
         document.getElementById('discountRow').style.display   = 'flex';
-        document.getElementById('discountDisplay').textContent = '-₱' + discount.toLocaleString();
+        document.getElementById('discountDisplay').textContent = '-?' + discount.toLocaleString();
     } else {
         document.getElementById('discountRow').style.display   = 'none';
     }
@@ -740,10 +740,10 @@ function applyPromo() {
     const promo = PROMOS[code];
     msgEl.style.display = 'block';
     if (promo) {
-        msgEl.innerHTML = `<span style="color:#4ade80;">✓ ${promo.label}</span>`;
+        msgEl.innerHTML = `<span style="color:#4ade80;">? ${promo.label}</span>`;
         updateTotals();
     } else {
-        msgEl.innerHTML = `<span style="color:#f87171;">✕ Invalid promo code</span>`;
+        msgEl.innerHTML = `<span style="color:#f87171;">? Invalid promo code</span>`;
     }
 }
 
@@ -756,7 +756,7 @@ function showCartToast(msg, itemId) {
     t.id = 'cartToast';
     t.innerHTML = `
         <span>${msg}</span>
-        ${itemId ? `<a href="/shop/product/${itemId}" style="color:#facc15;font-weight:700;white-space:nowrap;margin-left:10px;">Fix it →</a>` : ''}
+        ${itemId ? `<a href="/shop/product/${itemId}" style="color:#facc15;font-weight:700;white-space:nowrap;margin-left:10px;">Fix it ?</a>` : ''}
     `;
     Object.assign(t.style, {
         position: 'fixed', bottom: '100px', left: '50%',

@@ -8,78 +8,100 @@
 </div>
 
 {{-- ── STAT CARDS ── --}}
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-8">
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
     @php
         $statCards = [
             [
-                'label'  => 'Total Users',
-                'value'  => $stats['total_users'],
-                'sub'    => 'Registered accounts',
-                'icon'   => 'users',
-                'color'  => '#6366f1',   /* indigo */
-                'bg'     => 'rgba(99,102,241,0.12)',
+                'label' => 'Total Orders',
+                'value' => number_format($stats['total_orders']),
+                'sub'   => 'All time',
+                'icon'  => 'shopping-bag',
+                'color' => '#10b981',
+                'bg'    => 'rgba(16,185,129,0.12)',
             ],
             [
-                'label'  => 'Admins',
-                'value'  => $stats['admin_users'],
-                'sub'    => 'Admin accounts',
-                'icon'   => 'shield-check',
-                'color'  => '#dc2626',   /* red — always */
-                'bg'     => 'rgba(220,38,38,0.10)',
+                'label' => 'Today\'s Orders',
+                'value' => $stats['today_orders'],
+                'sub'   => 'Placed today',
+                'icon'  => 'clock',
+                'color' => '#6366f1',
+                'bg'    => 'rgba(99,102,241,0.12)',
             ],
             [
-                'label'  => 'Chefs',
-                'value'  => $stats['chef_users'],
-                'sub'    => 'Kitchen staff',
-                'icon'   => 'chef-hat',
-                'color'  => '#d97706',   /* amber */
-                'bg'     => 'rgba(217,119,6,0.12)',
+                'label' => 'Pending',
+                'value' => $stats['pending_orders'],
+                'sub'   => 'Awaiting action',
+                'icon'  => 'hourglass',
+                'color' => '#f59e0b',
+                'bg'    => 'rgba(245,158,11,0.12)',
             ],
             [
-                'label'  => 'Riders',
-                'value'  => $stats['rider_users'],
-                'sub'    => 'Delivery crew',
-                'icon'   => 'bike',
-                'color'  => '#2563eb',   /* blue */
-                'bg'     => 'rgba(37,99,235,0.12)',
+                'label' => 'Today\'s Revenue',
+                'value' => '₱' . number_format($stats['today_revenue']),
+                'sub'   => 'From delivered orders',
+                'icon'  => 'trending-up',
+                'color' => '#22c55e',
+                'bg'    => 'rgba(34,197,94,0.12)',
             ],
             [
-                'label'  => 'Menu Items',
-                'value'  => $stats['total_items'],
-                'sub'    => 'Across all categories',
-                'icon'   => 'utensils',
-                'color'  => '#f59e0b',   /* amber */
-                'bg'     => 'rgba(245,158,11,0.12)',
+                'label' => 'Total Revenue',
+                'value' => '₱' . number_format($stats['total_revenue']),
+                'sub'   => 'All delivered orders',
+                'icon'  => 'banknote',
+                'color' => '#facc15',
+                'bg'    => 'rgba(250,204,21,0.12)',
             ],
             [
-                'label'  => 'Categories',
-                'value'  => $stats['total_categories'],
-                'sub'    => 'Active categories',
-                'icon'   => 'layout-grid',
-                'color'  => '#10b981',   /* emerald */
-                'bg'     => 'rgba(16,185,129,0.12)',
+                'label' => 'Customers',
+                'value' => $stats['total_customers'],
+                'sub'   => 'Registered users',
+                'icon'  => 'users',
+                'color' => '#a78bfa',
+                'bg'    => 'rgba(167,139,250,0.12)',
             ],
             [
-                'label'  => 'Featured',
-                'value'  => $stats['featured_items'],
-                'sub'    => 'Highlighted items',
-                'icon'   => 'star',
-                'color'  => '#f59e0b',   /* amber */
-                'bg'     => 'rgba(245,158,11,0.12)',
+                'label' => 'Active Riders',
+                'value' => $stats['active_riders'] . ' / ' . $stats['rider_users'],
+                'sub'   => 'Online right now',
+                'icon'  => 'bike',
+                'color' => '#2563eb',
+                'bg'    => 'rgba(37,99,235,0.12)',
+            ],
+            [
+                'label' => 'Menu Items',
+                'value' => $stats['total_items'],
+                'sub'   => $stats['total_categories'] . ' categories',
+                'icon'  => 'utensils',
+                'color' => '#f97316',
+                'bg'    => 'rgba(249,115,22,0.12)',
+            ],
+            [
+                'label' => 'Featured Items',
+                'value' => $stats['featured_items'],
+                'sub'   => 'Highlighted on menu',
+                'icon'  => 'star',
+                'color' => '#eab308',
+                'bg'    => 'rgba(234,179,8,0.12)',
+            ],
+            [
+                'label' => 'Staff',
+                'value' => $stats['admin_users'] + $stats['chef_users'] + $stats['rider_users'],
+                'sub'   => $stats['chef_users'] . ' chefs · ' . $stats['rider_users'] . ' riders',
+                'icon'  => 'shield-check',
+                'color' => '#dc2626',
+                'bg'    => 'rgba(220,38,38,0.10)',
             ],
         ];
     @endphp
 
     @foreach($statCards as $s)
     <div class="stat-card" style="position:relative;overflow:hidden;">
-        {{-- icon badge --}}
         <div style="width:2.5rem;height:2.5rem;border-radius:.75rem;background:{{ $s['bg'] }};display:flex;align-items:center;justify-content:center;margin-bottom:.875rem;">
             <i data-lucide="{{ $s['icon'] }}" style="width:1.25rem;height:1.25rem;color:{{ $s['color'] }};stroke-width:2;"></i>
         </div>
         <p style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin:0 0 .3rem;font-weight:600;">{{ $s['label'] }}</p>
-        <p style="font-size:2rem;font-weight:800;color:{{ $s['color'] }};margin:0 0 .2rem;line-height:1;">{{ $s['value'] }}</p>
+        <p style="font-size:1.75rem;font-weight:800;color:{{ $s['color'] }};margin:0 0 .2rem;line-height:1;">{{ $s['value'] }}</p>
         <p style="font-size:.7rem;color:var(--text-muted);margin:0;">{{ $s['sub'] }}</p>
-        {{-- decorative corner glow --}}
         <div style="position:absolute;bottom:-1rem;right:-1rem;width:4rem;height:4rem;border-radius:50%;background:{{ $s['bg'] }};filter:blur(12px);pointer-events:none;"></div>
     </div>
     @endforeach

@@ -250,7 +250,7 @@ $lucideIcons = ['beef','flame','coffee','package','tag','utensils','pizza','soup
                 <div class="form-row">
                     <div class="form-group">
                         <label>Image Path</label>
-                        <input type="text" name="image" id="editItemImage" class="admin-input" placeholder="/images/hero-burger.jpg">
+                        <input type="text" name="image" id="editItemImage" class="admin-input" placeholder="/images/hero-burger.webp">
                     </div>
                     <div class="form-group" style="justify-content:flex-end;padding-bottom:.25rem;">
                         <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none;margin-top:auto;">

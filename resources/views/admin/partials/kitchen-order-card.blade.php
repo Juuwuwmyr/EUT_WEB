@@ -51,7 +51,7 @@
     <div class="k-items">
         @foreach($order->items as $item)
             <div class="k-item">
-                <img class="k-item-img" src="{{ $item->image ? asset($item->image) : asset('images/hero-burger.jpg') }}" alt="">
+                <img class="k-item-img" src="{{ $item->image ? asset($item->image) : asset('images/hero-burger.webp') }}" alt="">
                 <div style="flex:1;min-width:0;">
                     <div style="display:flex;align-items:baseline;gap:.4rem;">
                         <span class="k-item-qty">{{ $item->quantity }}×</span>

@@ -225,24 +225,24 @@
             <div class="card-body" style="padding-bottom:6px; display: flex; gap: 8px;">
                 <label class="pay-option selected" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center;" onclick="selectOrderType(this, 'delivery')">
                     <input type="radio" name="order_type" value="delivery" checked style="display:none;">
-                    <span style="font-size:20px;">🛵</span>
+                    <span style="display:flex;justify-content:center;"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3M5 8c0 1.657 3.134 3 7 3s7-1.343 7-3"/><circle cx="17" cy="17" r="2"/><path stroke-linecap="round" d="M3 11h3l1.5 5h9l1.5-5h3"/></svg></span>
                     <span style="font-size:12px; font-weight:700;">Delivery</span>
                 </label>
                 <label class="pay-option" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center;" onclick="selectOrderType(this, 'pickup')">
                     <input type="radio" name="order_type" value="pickup" style="display:none;">
-                    <span style="font-size:20px;">🥡</span>
+                    <span style="display:flex;justify-content:center;"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></span>
                     <span style="font-size:12px; font-weight:700;">Pickup</span>
                 </label>
                 <label class="pay-option" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center;" onclick="selectOrderType(this, 'dine_in')">
                     <input type="radio" name="order_type" value="dine_in" style="display:none;">
-                    <span style="font-size:20px;">🍽️</span>
+                    <span style="display:flex;justify-content:center;"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6M17 13l1.5 6M9 19h6"/></svg></span>
                     <span style="font-size:12px; font-weight:700;">Dine-in</span>
                 </label>
             </div>
         </div>
 
         <!-- Payment Method -->
-        <div class="card">
+        <div class="card" id="paymentMethodCard">
             <div class="card-header">
                 <div class="card-icon" style="background:rgba(96,165,250,.1);">
                     <svg width="15" height="15" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
@@ -252,12 +252,12 @@
             <div class="card-body" style="padding-bottom:6px;">
                 <label class="pay-option selected" onclick="selectPay(this)">
                     <input type="radio" name="payment" value="cod" checked>
-                    <span class="pay-emoji">💵</span>
+                    <span class="pay-emoji"><svg width="18" height="18" fill="none" stroke="#4ade80" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg></span>
                     <div><p class="pay-label">Cash on Delivery</p><p class="pay-sub">Pay when order arrives</p></div>
                 </label>
                 <label class="pay-option" onclick="selectPay(this)">
                     <input type="radio" name="payment" value="gcash">
-                    <span class="pay-emoji">📱</span>
+                    <span class="pay-emoji"><svg width="18" height="18" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path stroke-linecap="round" d="M12 18h.01"/></svg></span>
                     <div><p class="pay-label">GCash</p><p class="pay-sub">Pay via GCash e-wallet</p></div>
                 </label>
                 <label class="pay-option" onclick="selectPay(this)">
@@ -296,7 +296,7 @@
 
             <!-- Free delivery bar -->
             <div id="freeBar" class="free-bar-wrap" style="display:none;">
-                <span style="font-size:14px;">🚀</span>
+                <span style="font-size:14px;display:flex;align-items:center;"><svg width="14" height="14" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg></span>
                 <div style="flex:1;">
                     <p style="font-size:11px;color:#4b5563;margin-bottom:4px;" id="freeBarText"></p>
                     <div class="free-bar-track"><div class="free-bar-fill" id="freeBarFill" style="width:0%"></div></div>
@@ -318,7 +318,7 @@
             <div class="guest-notice">⚠️ Please <a href="{{ route('restaurant') }}">log in</a> to place your order.</div>
             @endguest
             @auth
-            <button type="submit" class="place-btn" id="placeOrderBtn">🛒 Place Order</button>
+            <button type="submit" class="place-btn" id="placeOrderBtn">Place Order</button>
             @endauth
         </div>
       </div><!-- /right -->
@@ -452,7 +452,7 @@ function renderSummary(){
     cart.forEach(item=>{
         const row=document.createElement('div');
         row.className='sum-item';
-        row.innerHTML=`<img src="${esc(item.image||'')}" class="sum-img" alt="${esc(item.name)}" onerror="this.src='{{ asset('images/hero-burger.jpg') }}'">
+        row.innerHTML=`<img src="${esc(item.image||'')}" class="sum-img" alt="${esc(item.name)}" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">
             <div style="flex:1;min-width:0;"><p class="sum-name">${esc(item.name)}</p><p class="sum-meta">× ${item.quantity} · ₱${Number(item.price).toLocaleString()} each</p>${modChips(item.modifiers)}</div>
             <span class="sum-price">₱${(item.price*item.quantity).toLocaleString()}</span>`;
         el.appendChild(row);sub+=item.price*item.quantity;
@@ -489,6 +489,12 @@ function selectOrderType(el, type){
         addrCard.style.display = 'block';
     } else {
         addrCard.style.display = 'none';
+    }
+
+    // Hide/Show payment method card — only visible for delivery
+    const paymentCard = document.getElementById('paymentMethodCard');
+    if(paymentCard) {
+        paymentCard.style.display = type === 'delivery' ? 'block' : 'none';
     }
     renderSummary();
 }
@@ -753,7 +759,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     }
 
     const btn = document.getElementById('placeOrderBtn');
-    btn.disabled = true; btn.textContent = '⏳ Placing order…';
+    btn.disabled = true; btn.textContent = 'Placing order…';
 
     const payRaw  = document.querySelector('input[name=payment]:checked')?.value || 'cod';
     const payment = payRaw === 'cod' ? 'cash' : payRaw;
@@ -815,11 +821,11 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
             window.location.href = '{{ route("shop.tracking") }}';
         } else {
             alert(d.message || 'Order failed.');
-            btn.disabled = false; btn.textContent = '🛒 Place Order';
+            btn.disabled = false; btn.textContent = 'Place Order';
         }
     } catch (err) {
         console.error(err); alert('Network error.');
-        btn.disabled = false; btn.textContent = '🛒 Place Order';
+        btn.disabled = false; btn.textContent = 'Place Order';
     }
 });
 </script>

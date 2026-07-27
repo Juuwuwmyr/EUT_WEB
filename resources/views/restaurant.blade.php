@@ -1,15 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.U.T Snack House — Eat • Unwind • Tea</title>
+    <title>E.U.T Snack House � Eat � Unwind � Tea</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Black+Ops+One&display=swap" rel="stylesheet">
     <style>
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    RESET & BASE
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; background: #04040a; }
 body {
@@ -25,18 +25,18 @@ body {
 a { text-decoration: none; }
 img { display: block; }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    NOISE FILTER
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .noise-layer {
     position: fixed; inset: 0; pointer-events: none; z-index: 0;
     opacity: 0.025;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    BUTTONS
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .btn-primary {
     background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
     color: #fff; padding: 13px 28px; border-radius: 10px;
@@ -74,9 +74,9 @@ img { display: block; }
     color: #facc15;
 }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    NAV
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .nav {
     position: sticky; top: 0; z-index: 200;
     height: 60px;
@@ -98,7 +98,7 @@ img { display: block; }
     font-weight: 700; font-style: italic; font-size: 17px;
     letter-spacing: -0.01em; text-decoration: none; flex-shrink: 0;
 }
-/* ── EUT tri-color solid logo ── */
+/* -- EUT tri-color solid logo -- */
 .eut-logo-letter {
     font-family: 'Black Ops One', 'Arial Black', sans-serif;
     font-size: 22px;
@@ -149,9 +149,9 @@ img { display: block; }
 }
 .mobile-menu a:hover { color: #facc15; }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    HERO
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .hero {
     position: relative; overflow: hidden;
     min-height: 92vh;
@@ -270,9 +270,9 @@ img { display: block; }
     display: flex; align-items: center; gap: 4px;
 }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    STATS BAR
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .stats-bar {
     background: #0c0c18;
     border-top: 1px solid rgba(255,255,255,0.05);
@@ -300,9 +300,9 @@ img { display: block; }
     font-size: 13px; color: #4b5563; font-weight: 500; letter-spacing: 0.02em;
 }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    SECTION HEADERS
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .eyebrow {
     font-size: 11px; font-weight: 800; color: #ef4444;
     letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 14px;
@@ -319,9 +319,9 @@ img { display: block; }
     line-height: 1.75; font-weight: 400;
 }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    MENU SECTION
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .menu-section {
     background: #080810;
     padding: 90px 48px;
@@ -395,9 +395,9 @@ img { display: block; }
 .menu-card-price { font-size: 18px; font-weight: 900; color: #facc15; letter-spacing: -0.01em; }
 .menu-card-stars { font-size: 12px; color: #9ca3af; font-weight: 600; display: flex; align-items: center; gap: 4px; }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    GALLERY
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .gallery-section {
     background: #0c0c18;
     border-top: 1px solid rgba(255,255,255,0.05);
@@ -441,9 +441,9 @@ img { display: block; }
 .gallery-card:hover .gallery-title-text { transform: translateY(0); opacity: 1; }
 .gallery-card:hover .gallery-sub-text { transform: translateY(0); opacity: 1; }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    FEATURES
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .features-section {
     background: #080810;
     padding: 90px 48px;
@@ -480,11 +480,11 @@ img { display: block; }
 .feat-title { font-size: 16px; font-weight: 700; color: #f3f4f6; margin-bottom: 10px; }
 .feat-desc { font-size: 13px; color: #6b7280; line-height: 1.7; margin-bottom: 16px; }
 .feat-list { list-style: none; font-size: 13px; color: #9ca3af; line-height: 2; }
-.feat-list li::before { content: '✓ '; color: #22c55e; font-weight: 700; }
+.feat-list li::before { content: '? '; color: #22c55e; font-weight: 700; }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    HOW IT WORKS
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .how-section {
     background: #0c0c18;
     border-top: 1px solid rgba(255,255,255,0.05);
@@ -522,9 +522,9 @@ img { display: block; }
 .step-title { font-size: 14px; font-weight: 700; color: #f3f4f6; margin-bottom: 8px; }
 .step-desc { font-size: 13px; color: #6b7280; line-height: 1.65; }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    TESTIMONIALS
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .testi-section { background: #080810; padding: 90px 48px; }
 .testi-grid {
     display: grid; grid-template-columns: repeat(3,1fr); gap: 20px;
@@ -557,9 +557,9 @@ img { display: block; }
 .testi-name { font-size: 14px; font-weight: 700; color: #f9fafb; margin-bottom: 2px; }
 .testi-role { font-size: 12px; color: #6b7280; }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    FAQ
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .faq-section {
     background: #0c0c18;
     border-top: 1px solid rgba(255,255,255,0.05);
@@ -598,9 +598,9 @@ img { display: block; }
 }
 .faq-item.open .faq-answer { max-height: 240px; margin-top: 14px; }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    CTA BANNER
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .cta-section {
     background: radial-gradient(ellipse at 30% 50%, rgba(127,29,29,0.7) 0%, transparent 60%),
                 radial-gradient(ellipse at 80% 60%, rgba(180,83,9,0.5) 0%, transparent 55%),
@@ -646,9 +646,9 @@ img { display: block; }
 }
 .btn-cta:hover { background: #fff0f0; transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,0,0,0.5); }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    FOOTER
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .footer {
     background: #05050c;
     border-top: 1px solid rgba(220,38,38,0.2);
@@ -687,9 +687,9 @@ img { display: block; }
 .footer-copy { font-size: 12px; color: #4b5563; }
 .footer-badge { font-size: 12px; color: #4b5563; display: flex; align-items: center; gap: 6px; }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    AUTH MODAL
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 .auth-modal-backdrop {
     display: none; position: fixed; inset: 0; z-index: 9999;
     align-items: center; justify-content: center;
@@ -776,9 +776,9 @@ img { display: block; }
 }
 .auth-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    RESPONSIVE
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 @media (max-width: 1100px) {
     .menu-grid { grid-template-columns: repeat(3,1fr); }
 }
@@ -874,9 +874,9 @@ img { display: block; }
 <body>
 <div class="noise-layer"></div>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      NAV
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <nav class="nav" id="mainNav">
     <a href="{{ route('restaurant') }}" class="nav-brand" style="gap:2px;">
         <span style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;color:#f97316;text-decoration:none;letter-spacing:.05em;line-height:1;">E</span><span style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;color:#38bdf8;letter-spacing:.05em;line-height:1;">U</span><span style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;color:#ef4444;letter-spacing:.05em;line-height:1;">T</span>
@@ -891,10 +891,10 @@ img { display: block; }
     </ul>
     <div class="nav-actions">
         @auth
-            <a href="{{ route('shop.home') }}" class="btn-primary" style="padding:8px 20px;font-size:13px;">Dashboard →</a>
+            <a href="{{ route('shop.home') }}" class="btn-primary" style="padding:8px 20px;font-size:13px;">Dashboard ?</a>
         @else
             <button onclick="openModal('login')" class="btn-outline-white">Login</button>
-            <button onclick="openModal('login')" class="btn-primary" style="padding:8px 20px;font-size:13px;">Order Now →</button>
+            <button onclick="openModal('login')" class="btn-primary" style="padding:8px 20px;font-size:13px;">Order Now ?</button>
         @endauth
         <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
             <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -909,16 +909,16 @@ img { display: block; }
     <a href="#about">About</a>
     <a href="#why">Why EUT</a>
     @auth
-        <a href="{{ route('shop.home') }}">Dashboard →</a>
+        <a href="{{ route('shop.home') }}">Dashboard ?</a>
     @else
         <a href="#" onclick="openModal('login'); closeMobileMenu();">Login</a>
         <a href="#" onclick="openModal('signup'); closeMobileMenu();">Sign Up</a>
     @endauth
 </div>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      HERO
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <section class="hero" id="hero">
     <div class="hero-glow-red"></div>
     <div class="hero-glow-amber"></div>
@@ -926,7 +926,7 @@ img { display: block; }
     <div class="hero-inner">
         <div class="hero-left">
             <div class="hero-badge">
-                <span class="hero-badge-dot"></span> Open Now · Accepting Orders
+                <span class="hero-badge-dot"></span> Open Now � Accepting Orders
             </div>
             <h1 class="hero-title">
                 Good food, delivered<br>
@@ -934,13 +934,13 @@ img { display: block; }
             </h1>
             <p class="hero-desc">
                 Browse our handcrafted menu, place your order in seconds, and get
-                fresh, delicious food delivered fast — right to your door.
+                fresh, delicious food delivered fast � right to your door.
             </p>
             <div class="hero-btns">
                 @auth
-                    <a href="{{ route('shop.home') }}" class="btn-primary">Order Now →</a>
+                    <a href="{{ route('shop.home') }}" class="btn-primary">Order Now ?</a>
                 @else
-                    <button onclick="openModal('login')" class="btn-primary">Start Ordering →</button>
+                    <button onclick="openModal('login')" class="btn-primary">Start Ordering ?</button>
                 @endauth
                 <a href="#menu" class="btn-secondary">Browse Menu</a>
             </div>
@@ -951,7 +951,7 @@ img { display: block; }
                 </div>
                 <div class="hero-stat-chip">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    30–45 min
+                    30�45 min
                 </div>
                 <div class="hero-stat-chip">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -961,22 +961,22 @@ img { display: block; }
         </div>
         <div class="hero-right">
             <div class="hero-panda-wrap">
-                <img src="{{ asset('images/DeliveryPanda1.png') }}" alt="EUT Delivery Mascot" class="hero-panda">
+                <img src="{{ asset('images/DeliveryPanda1.webp') }}" alt="EUT Delivery Mascot" class="hero-panda">
                 <div class="hero-sales-card">
                     <div class="hero-sales-label">
                         <span class="hero-sales-dot"></span> Orders Today
                     </div>
                     <div class="hero-sales-amount">1,248</div>
-                    <div class="hero-sales-growth">↑ +18% from yesterday</div>
+                    <div class="hero-sales-growth">? +18% from yesterday</div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      STATS BAR
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <div class="stats-bar" id="statsBar">
     <div class="stats-inner">
         <div class="stat-item">
@@ -998,15 +998,15 @@ img { display: block; }
     </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      MENU
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <section class="menu-section" id="menu">
     <div style="max-width:1160px;margin:0 auto;">
         <div style="text-align:center;margin-bottom:48px;">
             <span class="eyebrow">Our Menu</span>
             <h2 class="section-title">What We <span class="gold">Serve</span></h2>
-            <p class="section-subtitle">Handcrafted by EUT and delivered fresh — every dish is made with intention and care.</p>
+            <p class="section-subtitle">Handcrafted by EUT and delivered fresh � every dish is made with intention and care.</p>
         </div>
         <div class="menu-cats" id="menuCats">
             <button class="menu-cat active" data-cat="all">All</button>
@@ -1021,14 +1021,14 @@ img { display: block; }
             <!-- Greek Salad -->
             <div class="menu-card" data-cat="healthy">
                 <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/combo-meal.jpg') }}" alt="Greek Salad" class="menu-card-img">
+                    <img src="{{ asset('images/combo-meal.webp') }}" alt="Greek Salad" class="menu-card-img">
                     <span class="menu-badge badge-green"><svg width="9" height="9" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Best Seller</span>
                 </div>
                 <div class="menu-card-body">
                     <div class="menu-card-cat">Healthy</div>
                     <div class="menu-card-name">Greek Salad</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">₱149</span>
+                        <span class="menu-card-price">?149</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
                     </div>
                 </div>
@@ -1037,14 +1037,14 @@ img { display: block; }
             <!-- Freshly Baked Cake -->
             <div class="menu-card" data-cat="desserts">
                 <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/delicious-burger-fries.jpg') }}" alt="Freshly Baked Cake" class="menu-card-img">
+                    <img src="{{ asset('images/delicious-burger-fries.webp') }}" alt="Freshly Baked Cake" class="menu-card-img">
                     <span class="menu-badge badge-pink"><svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M12 2a5 5 0 015 5v1h1a3 3 0 013 3v8a3 3 0 01-3 3H6a3 3 0 01-3-3v-8a3 3 0 013-3h1V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v1h6V7a3 3 0 00-3-3z"/></svg> Fan Fave</span>
                 </div>
                 <div class="menu-card-body">
                     <div class="menu-card-cat">Desserts</div>
                     <div class="menu-card-name">Freshly Baked Cake</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">₱199</span>
+                        <span class="menu-card-price">?199</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.9</span>
                     </div>
                 </div>
@@ -1053,14 +1053,14 @@ img { display: block; }
             <!-- Crispy Burger Combo -->
             <div class="menu-card" data-cat="fastfood">
                 <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/gourmet-burger.jpg') }}" alt="Crispy Burger Combo" class="menu-card-img">
+                    <img src="{{ asset('images/gourmet-burger.webp') }}" alt="Crispy Burger Combo" class="menu-card-img">
                     <span class="menu-badge badge-red"><svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Hot</span>
                 </div>
                 <div class="menu-card-body">
                     <div class="menu-card-cat">Fast Food</div>
                     <div class="menu-card-name">Crispy Burger Combo</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">₱179</span>
+                        <span class="menu-card-price">?179</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.7</span>
                     </div>
                 </div>
@@ -1069,14 +1069,14 @@ img { display: block; }
             <!-- Pasta Carbonara -->
             <div class="menu-card" data-cat="main">
                 <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/hero-burger.jpg') }}" alt="Pasta Carbonara" class="menu-card-img">
+                    <img src="{{ asset('images/hero-burger.webp') }}" alt="Pasta Carbonara" class="menu-card-img">
                     <span class="menu-badge badge-yellow"><svg width="9" height="9" fill="#000" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> New</span>
                 </div>
                 <div class="menu-card-body">
                     <div class="menu-card-cat">Main Course</div>
                     <div class="menu-card-name">Pasta Carbonara</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">₱220</span>
+                        <span class="menu-card-price">?220</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
                     </div>
                 </div>
@@ -1085,14 +1085,14 @@ img { display: block; }
             <!-- Grilled Chicken Rice -->
             <div class="menu-card" data-cat="main">
                 <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/combo-meal.jpg') }}" alt="Grilled Chicken Rice" class="menu-card-img">
+                    <img src="{{ asset('images/combo-meal.webp') }}" alt="Grilled Chicken Rice" class="menu-card-img">
                     <span class="menu-badge badge-green"><svg width="9" height="9" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Best Seller</span>
                 </div>
                 <div class="menu-card-body">
                     <div class="menu-card-cat">Main Course</div>
                     <div class="menu-card-name">Grilled Chicken Rice</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">₱195</span>
+                        <span class="menu-card-price">?195</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.6</span>
                     </div>
                 </div>
@@ -1101,14 +1101,14 @@ img { display: block; }
             <!-- Mango Shake -->
             <div class="menu-card" data-cat="drinks">
                 <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/french-fries.jpg') }}" alt="Mango Shake" class="menu-card-img">
+                    <img src="{{ asset('images/french-fries.webp') }}" alt="Mango Shake" class="menu-card-img">
                     <span class="menu-badge badge-teal"><svg width="9" height="9" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Refreshing</span>
                 </div>
                 <div class="menu-card-body">
                     <div class="menu-card-cat">Drinks</div>
                     <div class="menu-card-name">Mango Shake</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">₱89</span>
+                        <span class="menu-card-price">?89</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
                     </div>
                 </div>
@@ -1117,14 +1117,14 @@ img { display: block; }
             <!-- Beef Sinigang -->
             <div class="menu-card" data-cat="main">
                 <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/restaurant-interior.jpg') }}" alt="Beef Sinigang" class="menu-card-img">
+                    <img src="{{ asset('images/restaurant-interior.webp') }}" alt="Beef Sinigang" class="menu-card-img">
                     <span class="menu-badge badge-purple"><svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Signature</span>
                 </div>
                 <div class="menu-card-body">
                     <div class="menu-card-cat">Main Course</div>
                     <div class="menu-card-name">Beef Sinigang</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">₱235</span>
+                        <span class="menu-card-price">?235</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.9</span>
                     </div>
                 </div>
@@ -1133,14 +1133,14 @@ img { display: block; }
             <!-- Chocolate Lava Cake -->
             <div class="menu-card" data-cat="desserts">
                 <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/hero-bg.jpg') }}" alt="Chocolate Lava Cake" class="menu-card-img">
+                    <img src="{{ asset('images/hero-bg.webp') }}" alt="Chocolate Lava Cake" class="menu-card-img">
                     <span class="menu-badge badge-amber"><svg width="9" height="9" fill="#000" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Top Rated</span>
                 </div>
                 <div class="menu-card-body">
                     <div class="menu-card-cat">Desserts</div>
                     <div class="menu-card-name">Chocolate Lava Cake</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">₱169</span>
+                        <span class="menu-card-price">?169</span>
                         <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 5.0</span>
                     </div>
                 </div>
@@ -1148,20 +1148,20 @@ img { display: block; }
 
         </div>
         <div style="text-align:center;margin-top:44px;">
-            <a href="{{ route('shop.home') }}" class="btn-primary" style="font-size:15px;padding:14px 36px;">View Full Menu →</a>
+            <a href="{{ route('shop.home') }}" class="btn-primary" style="font-size:15px;padding:14px 36px;">View Full Menu ?</a>
         </div>
     </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      GALLERY
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <section class="gallery-section" id="about">
     <div style="max-width:1160px;margin:0 auto;">
         <div style="text-align:center;margin-bottom:48px;">
             <span class="eyebrow">Our Space</span>
             <h2 class="section-title">Inside <span class="gold">EUT Snack House</span></h2>
-            <p class="section-subtitle">A glimpse of where the magic happens — our place in Naujan, Oriental Mindoro.</p>
+            <p class="section-subtitle">A glimpse of where the magic happens � our place in Naujan, Oriental Mindoro.</p>
         </div>
 
         <!-- Browsable Photo Grid -->
@@ -1173,7 +1173,7 @@ img { display: block; }
         ">
             <!-- Large hero tile -->
             <div class="loc-thumb" onclick="openLightbox(0)" style="grid-column:span 2; grid-row:span 2;">
-                <img src="{{ asset('images/restaurant-interior.jpg') }}" alt="EUT Interior" style="width:100%;height:100%;object-fit:cover;">
+                <img src="{{ asset('images/restaurant-interior.webp') }}" alt="EUT Interior" style="width:100%;height:100%;object-fit:cover;">
                 <div class="loc-thumb-overlay">
                     <div style="text-align:center;">
                         <svg width="28" height="28" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -1183,26 +1183,26 @@ img { display: block; }
             </div>
             <!-- Small tiles -->
             <div class="loc-thumb" onclick="openLightbox(1)">
-                <img src="{{ asset('images/gourmet-burger.jpg') }}" alt="Gourmet Burger" style="width:100%;height:100%;object-fit:cover;">
+                <img src="{{ asset('images/gourmet-burger.webp') }}" alt="Gourmet Burger" style="width:100%;height:100%;object-fit:cover;">
                 <div class="loc-thumb-overlay">
                     <div style="font-size:12px;font-weight:700;color:#fff;text-align:center;">Signature Burger</div>
                 </div>
             </div>
             <div class="loc-thumb" onclick="openLightbox(2)">
-                <img src="{{ asset('images/combo-meal.jpg') }}" alt="Combo Meal" style="width:100%;height:100%;object-fit:cover;">
+                <img src="{{ asset('images/combo-meal.webp') }}" alt="Combo Meal" style="width:100%;height:100%;object-fit:cover;">
                 <div class="loc-thumb-overlay">
                     <div style="font-size:12px;font-weight:700;color:#fff;text-align:center;">Combo Meal</div>
                 </div>
             </div>
             <div class="loc-thumb" onclick="openLightbox(3)">
-                <img src="{{ asset('images/delicious-burger-fries.jpg') }}" alt="Burger & Fries" style="width:100%;height:100%;object-fit:cover;">
+                <img src="{{ asset('images/delicious-burger-fries.webp') }}" alt="Burger & Fries" style="width:100%;height:100%;object-fit:cover;">
                 <div class="loc-thumb-overlay">
                     <div style="font-size:12px;font-weight:700;color:#fff;text-align:center;">Burger &amp; Fries</div>
                 </div>
             </div>
             <!-- Last tile with "View All" overlay -->
             <div class="loc-thumb" onclick="openLightbox(4)" style="position:relative;">
-                <img src="{{ asset('images/french-fries.jpg') }}" alt="More Photos" style="width:100%;height:100%;object-fit:cover;">
+                <img src="{{ asset('images/french-fries.webp') }}" alt="More Photos" style="width:100%;height:100%;object-fit:cover;">
                 <div class="loc-thumb-overlay" style="background:rgba(0,0,0,0.6);">
                     <div style="text-align:center;">
                         <div style="font-size:22px;font-weight:900;color:#facc15;">+{{ 3 }}</div>
@@ -1214,9 +1214,9 @@ img { display: block; }
     </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      LIGHTBOX
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <div id="lightbox" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);backdrop-filter:blur(10px);align-items:center;justify-content:center;flex-direction:column;">
     <button onclick="closeLightbox()" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:10px;color:#fff;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;z-index:2;" aria-label="Close">&times;</button>
     <div id="lbCounter" style="position:absolute;top:22px;left:50%;transform:translateX(-50%);font-size:13px;font-weight:600;color:rgba(255,255,255,0.5);"></div>
@@ -1246,13 +1246,13 @@ img { display: block; }
 
 <script>
 const lbImages = [
-    { src: '{{ asset("images/restaurant-interior.jpg") }}', caption: 'Our Place — EUT Snack House' },
-    { src: '{{ asset("images/gourmet-burger.jpg") }}',      caption: 'Signature Burger' },
-    { src: '{{ asset("images/combo-meal.jpg") }}',          caption: 'Combo Meal' },
-    { src: '{{ asset("images/delicious-burger-fries.jpg") }}', caption: 'Burger & Fries' },
-    { src: '{{ asset("images/french-fries.jpg") }}',        caption: 'Crispy French Fries' },
-    { src: '{{ asset("images/hero-burger.jpg") }}',         caption: 'Fresh Burger' },
-    { src: '{{ asset("images/hero-bg.jpg") }}',             caption: 'EUT Snack House Vibes' },
+    { src: '{{ asset("images/restaurant-interior.webp") }}', caption: 'Our Place � EUT Snack House' },
+    { src: '{{ asset("images/gourmet-burger.webp") }}',      caption: 'Signature Burger' },
+    { src: '{{ asset("images/combo-meal.webp") }}',          caption: 'Combo Meal' },
+    { src: '{{ asset("images/delicious-burger-fries.webp") }}', caption: 'Burger & Fries' },
+    { src: '{{ asset("images/french-fries.webp") }}',        caption: 'Crispy French Fries' },
+    { src: '{{ asset("images/hero-burger.webp") }}',         caption: 'Fresh Burger' },
+    { src: '{{ asset("images/hero-bg.webp") }}',             caption: 'EUT Snack House Vibes' },
 ];
 let lbCurrent = 0;
 
@@ -1305,15 +1305,15 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
 });
 </script>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      LOCATION / MAP
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <section class="loc-section" style="background:#080810; padding:90px 48px; border-top:1px solid rgba(255,255,255,0.05);" id="location">
     <div style="max-width:1160px; margin:0 auto;">
         <div style="text-align:center; margin-bottom:48px;">
             <span class="eyebrow">Find Us</span>
             <h2 class="section-title">Where to <span class="gold">Find Us</span></h2>
-            <p class="section-subtitle">Visit us at Apostol St, Naujan, Oriental Mindoro — or order online and we'll come to you.</p>
+            <p class="section-subtitle">Visit us at Apostol St, Naujan, Oriental Mindoro � or order online and we'll come to you.</p>
         </div>
         <div id="loc-map-row" style="display:flex; gap:40px; align-items:stretch; flex-wrap:wrap;">
             <!-- Map Embed -->
@@ -1372,9 +1372,9 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
         </div>
     </div>
 </section>
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      FEATURES
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <section class="features-section" id="vendors">
     <div style="max-width:1160px;margin:0 auto;">
         <div style="text-align:center;margin-bottom:56px;">
@@ -1388,7 +1388,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <svg width="24" height="24" fill="none" stroke="#facc15" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 </div>
                 <div class="feat-title">Live Order Tracking</div>
-                <p class="feat-desc">Know exactly where your food is at every step — from the kitchen to your front door in real time.</p>
+                <p class="feat-desc">Know exactly where your food is at every step � from the kitchen to your front door in real time.</p>
                 <ul class="feat-list">
                     <li>Real-time delivery updates</li>
                     <li>Estimated arrival time</li>
@@ -1400,7 +1400,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <svg width="24" height="24" fill="none" stroke="#ef4444" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
                 </div>
                 <div class="feat-title">Easy Ordering</div>
-                <p class="feat-desc">Browse the full menu, customize your meal, and place your order in just a few taps — no hassle.</p>
+                <p class="feat-desc">Browse the full menu, customize your meal, and place your order in just a few taps � no hassle.</p>
                 <ul class="feat-list">
                     <li>Simple, intuitive menu</li>
                     <li>Meal customization options</li>
@@ -1436,7 +1436,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <svg width="24" height="24" fill="none" stroke="#ec4899" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
                 </div>
                 <div class="feat-title">Fresh, Quality Food</div>
-                <p class="feat-desc">Every dish is handcrafted by EUT's kitchen with fresh ingredients — cooked to order, never reheated.</p>
+                <p class="feat-desc">Every dish is handcrafted by EUT's kitchen with fresh ingredients � cooked to order, never reheated.</p>
                 <ul class="feat-list">
                     <li>Made-to-order meals</li>
                     <li>Quality-checked ingredients</li>
@@ -1448,7 +1448,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <svg width="24" height="24" fill="none" stroke="#f97316" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
                 </div>
                 <div class="feat-title">Secure & Easy Payment</div>
-                <p class="feat-desc">Pay with confidence using multiple secure payment options — quick checkout, no hidden fees.</p>
+                <p class="feat-desc">Pay with confidence using multiple secure payment options � quick checkout, no hidden fees.</p>
                 <ul class="feat-list">
                     <li>Multiple payment methods</li>
                     <li>Secure transactions</li>
@@ -1459,9 +1459,9 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
     </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      HOW IT WORKS
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <section class="how-section">
     <div style="max-width:1160px;margin:0 auto;text-align:center;">
         <span class="eyebrow">Simple Process</span>
@@ -1506,9 +1506,9 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
     </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      TESTIMONIALS
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <section class="testi-section">
     <div style="max-width:1160px;margin:0 auto;">
         <div style="text-align:center;margin-bottom:48px;">
@@ -1518,8 +1518,8 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
         </div>
         <div class="testi-grid">
             <div class="testi-card">
-                <div class="testi-stars">★★★★★</div>
-                <p class="testi-quote">"The food arrived hot and fresh, exactly as described. Ordering was super easy and the delivery was faster than expected — I'm hooked!"</p>
+                <div class="testi-stars">?????</div>
+                <p class="testi-quote">"The food arrived hot and fresh, exactly as described. Ordering was super easy and the delivery was faster than expected � I'm hooked!"</p>
                 <div class="testi-author">
                     <div class="testi-avatar">
                         <svg width="22" height="22" fill="none" stroke="rgba(220,38,38,0.8)" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -1531,7 +1531,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                 </div>
             </div>
             <div class="testi-card">
-                <div class="testi-stars">★★★★★</div>
+                <div class="testi-stars">?????</div>
                 <p class="testi-quote">"I love how easy it is to customize my order. The burgers are incredible and I can track exactly when they'll arrive. Best food app I've used!"</p>
                 <div class="testi-author">
                     <div class="testi-avatar">
@@ -1544,7 +1544,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                 </div>
             </div>
             <div class="testi-card">
-                <div class="testi-stars">★★★★★</div>
+                <div class="testi-stars">?????</div>
                 <p class="testi-quote">"Ordered for our whole office and everyone was impressed. Delivery was on time, portions were generous, and the taste was amazing. Will order again!"</p>
                 <div class="testi-author">
                     <div class="testi-avatar">
@@ -1560,9 +1560,9 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
     </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      FAQ
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <section class="faq-section">
     <div style="max-width:1160px;margin:0 auto;">
         <div style="text-align:center;margin-bottom:52px;">
@@ -1574,35 +1574,35 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">How do I place an order?</div>
-                    <div class="faq-chevron">›</div>
+                    <div class="faq-chevron">�</div>
                 </div>
                 <div class="faq-answer">Simply create a free account, browse our menu, add your favorite items to the cart, and check out. It only takes a few minutes!</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">How long does delivery take?</div>
-                    <div class="faq-chevron">›</div>
+                    <div class="faq-chevron">�</div>
                 </div>
                 <div class="faq-answer">Our average delivery time is under 30 minutes within Naujan, Oriental Mindoro. You can track your order in real time from the moment it leaves our kitchen.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">What areas do you deliver to?</div>
-                    <div class="faq-chevron">›</div>
+                    <div class="faq-chevron">�</div>
                 </div>
                 <div class="faq-answer">We currently deliver within Naujan and nearby areas in Oriental Mindoro. Enter your address at checkout and we'll confirm if you're within our delivery zone.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">Can I customize my order?</div>
-                    <div class="faq-chevron">›</div>
+                    <div class="faq-chevron">�</div>
                 </div>
                 <div class="faq-answer">Yes! Many of our menu items let you choose add-ons, remove ingredients, or adjust portion sizes. Just select your preferences when adding items to your cart.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-header">
                     <div class="faq-question">What payment methods do you accept?</div>
-                    <div class="faq-chevron">›</div>
+                    <div class="faq-chevron">�</div>
                 </div>
                 <div class="faq-answer">We accept cash on delivery, GCash, credit/debit cards, and other major e-wallets. All online payments are secured and encrypted.</div>
             </div>
@@ -1610,15 +1610,15 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
     </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      CTA BANNER
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <section class="cta-section">
-    <img src="{{ asset('images/DeliveryPanda.png') }}" alt="" class="cta-deco-panda">
+    <img src="{{ asset('images/DeliveryPanda.webp') }}" alt="" class="cta-deco-panda">
     <div class="cta-inner">
         <div class="cta-left">
             <h2 class="cta-title">Why Choose EUT?</h2>
-            <p class="cta-sub">Order now and get fast, reliable delivery straight to your door — anytime, anywhere in Naujan, Oriental Mindoro.</p>
+            <p class="cta-sub">Order now and get fast, reliable delivery straight to your door � anytime, anywhere in Naujan, Oriental Mindoro.</p>
             <div class="cta-points">
                 <div class="cta-point">
                     <svg class="cta-check" fill="none" stroke="#22c55e" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1638,17 +1638,17 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                 </div>
             </div>
             @auth
-                <a href="{{ route('shop.home') }}" class="btn-cta">Join Now →</a>
+                <a href="{{ route('shop.home') }}" class="btn-cta">Join Now ?</a>
             @else
-                <button onclick="openModal('signup')" class="btn-cta">Join Now →</button>
+                <button onclick="openModal('signup')" class="btn-cta">Join Now ?</button>
             @endauth
         </div>
     </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      FOOTER
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <footer class="footer">
     <div class="footer-top">
         <a href="{{ route('restaurant') }}" class="footer-brand" style="gap:2px;">
@@ -1675,16 +1675,16 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
         </div>
     </div>
     <div class="footer-bottom">
-        <div class="footer-copy">© 2026 EUT-Delivery (Eat • Unwind • Tea). All rights reserved.</div>
+        <div class="footer-copy">� 2026 EUT-Delivery (Eat � Unwind � Tea). All rights reserved.</div>
         <div class="footer-badge">
-            <span style="color:#dc2626;">●</span> EUT Snack House — Naujan, Oriental Mindoro
+            <span style="color:#dc2626;">?</span> EUT Snack House � Naujan, Oriental Mindoro
         </div>
     </div>
 </footer>
 
-<!-- ══════════════════════════════════════════════════
+<!-- --------------------------------------------------
      AUTH MODAL
-══════════════════════════════════════════════════ -->
+-------------------------------------------------- -->
 <div class="auth-modal-backdrop" id="authModal">
     <div class="auth-modal">
         <button class="auth-close" onclick="closeModal()" aria-label="Close">
@@ -1712,9 +1712,9 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                 </div>
                 <div class="auth-field">
                     <label class="auth-label">Password</label>
-                    <input type="password" class="auth-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+                    <input type="password" class="auth-input" id="loginPassword" placeholder="��������" autocomplete="current-password">
                 </div>
-                <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In →</button>
+                <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In ?</button>
             </div>
 
             <!-- SIGNUP PANEL -->
@@ -1738,16 +1738,16 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <label class="auth-label">Password</label>
                     <input type="password" class="auth-input" id="signupPassword" placeholder="Min. 6 characters" autocomplete="new-password">
                 </div>
-                <button class="btn-signup" id="signupBtn" onclick="doSignup()">Create Account →</button>
+                <button class="btn-signup" id="signupBtn" onclick="doSignup()">Create Account ?</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    NAV SCROLL EFFECT
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 window.addEventListener('scroll', function() {
     const nav = document.getElementById('mainNav');
     if (window.scrollY > 40) {
@@ -1757,9 +1757,9 @@ window.addEventListener('scroll', function() {
     }
 }, { passive: true });
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    MOBILE MENU
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 function toggleMobileMenu() {
     document.getElementById('mobileMenu').classList.toggle('open');
 }
@@ -1767,9 +1767,9 @@ function closeMobileMenu() {
     document.getElementById('mobileMenu').classList.remove('open');
 }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    MENU CATEGORY FILTER
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 document.getElementById('menuCats').addEventListener('click', function(e) {
     const btn = e.target.closest('.menu-cat');
     if (!btn) return;
@@ -1788,9 +1788,9 @@ document.getElementById('menuCats').addEventListener('click', function(e) {
     });
 });
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    STATS COUNT-UP
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 function formatNum(n, format) {
     if (format === 'abbr') {
         if (n >= 1000000) return (n / 1000000).toFixed(0) + 'M';
@@ -1828,9 +1828,9 @@ const statsObserver = new IntersectionObserver((entries) => {
 const statsBar = document.getElementById('statsBar');
 if (statsBar) statsObserver.observe(statsBar);
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    FEATURES STAGGER ANIMATION
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 const featObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -1846,18 +1846,18 @@ const featObserver = new IntersectionObserver((entries) => {
 const featGrid = document.getElementById('featGrid');
 if (featGrid) featObserver.observe(featGrid);
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    FAQ ACCORDION
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 function toggleFaq(item) {
     const isOpen = item.classList.contains('open');
     document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
     if (!isOpen) item.classList.add('open');
 }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    AUTH MODAL
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 function openModal(tab) {
     const modal = document.getElementById('authModal');
     modal.classList.add('open');
@@ -1911,9 +1911,9 @@ function clearAlert() {
     el.textContent = '';
 }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    LOGIN FETCH
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 async function doLogin() {
     const email    = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
@@ -1923,7 +1923,7 @@ async function doLogin() {
     clearAlert();
 
     btn.disabled    = true;
-    btn.textContent = 'Signing in…';
+    btn.textContent = 'Signing in�';
 
     try {
         const res  = await fetch('{{ route("auth.login") }}', {
@@ -1947,12 +1947,12 @@ async function doLogin() {
     }
 
     btn.disabled    = false;
-    btn.textContent = 'Sign In →';
+    btn.textContent = 'Sign In ?';
 }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    SIGNUP FETCH
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 async function doSignup() {
     const name     = document.getElementById('signupName').value.trim();
     const email    = document.getElementById('signupEmail').value.trim();
@@ -1964,7 +1964,7 @@ async function doSignup() {
     clearAlert();
 
     btn.disabled    = true;
-    btn.textContent = 'Creating account…';
+    btn.textContent = 'Creating account�';
 
     try {
         const res  = await fetch('{{ route("auth.signup") }}', {
@@ -1988,12 +1988,12 @@ async function doSignup() {
     }
 
     btn.disabled    = false;
-    btn.textContent = 'Create Account →';
+    btn.textContent = 'Create Account ?';
 }
 
-/* ══════════════════════════════════════════════════════
+/* ------------------------------------------------------
    ENTER KEY SUPPORT
-══════════════════════════════════════════════════════ */
+------------------------------------------------------ */
 document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('signupPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doSignup(); });
 </script>

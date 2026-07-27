@@ -37,6 +37,11 @@ Route::get('/restaurant', function () {
     return view('restaurant');
 })->name('restaurant');
 
+// Health check for AWS ALB/ELB
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok', 'app' => config('app.name')], 200);
+})->name('health');
+
 Route::get('/example', function () {
     return view('example');
 });

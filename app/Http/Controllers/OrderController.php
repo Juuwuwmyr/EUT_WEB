@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Events\OrderStatusUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -103,6 +104,8 @@ class OrderController extends Controller
 
             DB::commit();
 
+            broadcast(new OrderStatusUpdated($order))->toOthers();
+
             return response()->json([
                 'success'      => true,
                 'order_id'     => $order->id,
@@ -156,7 +159,7 @@ class OrderController extends Controller
                 'qty'       => $i->quantity,
                 'price'     => $i->unit_price,
                 'subtotal'  => $i->subtotal,
-                'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.jpg'),
+                'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.webp'),
                 'modifiers' => $i->modifiers ?? [],
             ]),
         ]);
@@ -175,6 +178,8 @@ class OrderController extends Controller
             'cancel_reason'=> $request->input('reason', 'Cancelled by customer'),
             'cancelled_at' => now(),
         ]);
+
+        broadcast(new OrderStatusUpdated($order));
 
         return response()->json(['success' => true]);
     }
@@ -256,7 +261,7 @@ class OrderController extends Controller
                         'qty'       => $i->quantity,
                         'price'     => $i->unit_price,
                         'subtotal'  => $i->subtotal,
-                        'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.jpg'),
+                        'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.webp'),
                         'modifiers' => $i->modifiers ?? [],
                     ];
                 }),

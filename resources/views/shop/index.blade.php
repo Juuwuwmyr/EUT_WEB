@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,7 +11,7 @@
         html { scroll-behavior: smooth; }
         body { background: #080810; color: #fff; min-height: 100vh; }
 
-        /* ── TOP PROMO BANNER ── */
+        /* -- TOP PROMO BANNER -- */
         .promo-banner {
             background: linear-gradient(90deg, #dc2626, #b45309, #facc15);
             text-align: center; padding: 9px 16px;
@@ -25,7 +25,7 @@
         }
         @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
 
-        /* ── NAVBAR ── */
+        /* -- NAVBAR -- */
         .topnav {
             position: sticky; top: 0; z-index: 100;
             background: rgba(8,8,16,0.96);
@@ -79,7 +79,7 @@
             padding: 0 4px;
         }
 
-        /* ── HERO ── */
+        /* -- HERO -- */
         .hero {
             max-width: 1200px; margin: 0 auto;
             padding: 24px 16px 0;
@@ -134,7 +134,7 @@
             filter: drop-shadow(-8px 0 20px rgba(0,0,0,0.5));
         }
 
-        /* ── CATEGORIES ── */
+        /* -- CATEGORIES -- */
         .cats-wrap {
             position: sticky; top: 62px; z-index: 90;
             background: rgba(8,8,16,0.96);
@@ -171,7 +171,7 @@
         }
         .cat-emoji { font-size: 15px; line-height: 1; }
 
-        /* ── SECTION HEADER ── */
+        /* -- SECTION HEADER -- */
         .section-head {
             max-width: 1200px; margin: 0 auto;
             padding: 24px 16px 12px;
@@ -180,7 +180,7 @@
         .section-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; }
         .section-count { font-size: 12px; color: #4b5563; }
 
-        /* ── PRODUCT GRID ── */
+        /* -- PRODUCT GRID -- */
         .products-grid {
             max-width: 1200px; margin: 0 auto;
             padding: 0 16px 24px;
@@ -192,7 +192,7 @@
         @media (min-width: 900px) { .products-grid { grid-template-columns: repeat(4, 1fr); } }
         @media (min-width: 1100px) { .products-grid { grid-template-columns: repeat(5, 1fr); } }
 
-        /* ── PRODUCT CARD ── */
+        /* -- PRODUCT CARD -- */
         .p-card {
             background: linear-gradient(145deg, #12131f, #0e0f1a);
             border: 1px solid rgba(255,255,255,0.07);
@@ -256,7 +256,7 @@
             box-shadow: 0 2px 8px rgba(250,204,21,0.2);
         }
 
-        /* ── EMPTY STATE ── */
+        /* -- EMPTY STATE -- */
         .empty-state {
             text-align: center; padding: 60px 24px;
             grid-column: 1 / -1;
@@ -264,7 +264,7 @@
         .empty-state-icon { font-size: 52px; margin-bottom: 14px; opacity: 0.5; }
         .empty-state-text { font-size: 15px; color: #6b7280; }
 
-        /* ── LIGHT MODE ── */
+        /* -- LIGHT MODE -- */
         .light-mode body { background: #f0f0f8 !important; }
         .light-mode .topnav { background: rgba(255,255,255,0.96) !important; border-color: rgba(0,0,0,0.07) !important; }
         .light-mode .cats-wrap { background: rgba(255,255,255,0.96) !important; border-color: rgba(0,0,0,0.06) !important; }
@@ -281,7 +281,7 @@
         .light-mode .cats-wrap { background: rgba(255,255,255,0.97) !important; border-color: rgba(0,0,0,0.06) !important; }
         .light-mode .section-title { color: #111 !important; }
 
-        /* ── BOTTOM NAV ── */
+        /* -- BOTTOM NAV -- */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(8,8,16,0.97);
@@ -305,14 +305,14 @@
 </head>
 <body>
 
-<!-- ── NAVBAR ── -->
+<!-- -- NAVBAR -- -->
 <nav class="topnav">
     <div class="topnav-inner">
         <a href="{{ route('shop.home') }}" class="nav-brand" style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;text-decoration:none;flex-shrink:0;white-space:nowrap;letter-spacing:.05em;line-height:1;">
             <span style="color:#f97316;">E</span><span style="color:#38bdf8;">U</span><span style="color:#ef4444;">T</span>
         </a>
         <div class="search-wrap" style="max-width:100%;">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search burgers, fries, drinks…">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search burgers, fries, drinks�">
             <button class="search-btn">
                 <svg width="14" height="14" fill="none" stroke="#000" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -343,48 +343,48 @@
     </div>
 </nav>
 
-<!-- ── HERO ── -->
+<!-- -- HERO -- -->
 <div class="hero">
     <div class="hero-card">
         <div class="hero-text">
             <div class="hero-badge"><span class="hero-badge-dot"></span> Open Now</div>
             <h1 class="hero-title">E.U.T Snack House</h1>
-            <p class="hero-sub">Eat • Unwind • Tea — Delivered Fast</p>
+            <p class="hero-sub">Eat � Unwind � Tea � Delivered Fast</p>
             <div class="hero-pills">
-                <span class="hero-pill">🚀 30–45 min</span>
-                <span class="hero-pill">⭐ 4.9 Rating</span>
-                <span class="hero-pill">📍 Metro Manila</span>
+                <span class="hero-pill">?? 30�45 min</span>
+                <span class="hero-pill">? 4.9 Rating</span>
+                <span class="hero-pill">?? Metro Manila</span>
             </div>
         </div>
-        <img src="{{ asset('images/DeliveryPanda.png') }}" alt="Delivery Panda" class="hero-img">
+        <img src="{{ asset('images/DeliveryPanda.webp') }}" alt="Delivery Panda" class="hero-img">
     </div>
 </div>
 
-<!-- ── CATEGORIES ── -->
+<!-- -- CATEGORIES -- -->
 <div class="cats-wrap">
     <div style="max-width:1200px; margin:0 auto; padding:14px 0 14px 16px; display:flex; gap:10px; overflow-x:scroll; overflow-y:visible; -webkit-overflow-scrolling:touch; scrollbar-width:none; flex-wrap:nowrap; -ms-overflow-style:none;" id="catsRow">
         <button class="cat-pill active" data-category="all" style="flex-shrink:0;">
-            <span style="font-size:17px; line-height:1;">🍽️</span> All
+            <span style="font-size:17px; line-height:1;">???</span> All
         </button>
         @php
             $iconMap = [
-                'beef'    => '🍔',
-                'flame'   => '🍟',
-                'coffee'  => '🥤',
-                'package' => '🍱',
-                'tag'     => '🏷️',
+                'beef'    => '??',
+                'flame'   => '??',
+                'coffee'  => '??',
+                'package' => '??',
+                'tag'     => '???',
             ];
         @endphp
         @foreach($categories as $cat)
         <button class="cat-pill" data-category="{{ $cat->slug }}" style="flex-shrink:0;">
-            <span style="font-size:17px; line-height:1;">{{ $iconMap[$cat->icon] ?? '🍽️' }}</span> {{ $cat->name }}
+            <span style="font-size:17px; line-height:1;">{{ $iconMap[$cat->icon] ?? '???' }}</span> {{ $cat->name }}
         </button>
         @endforeach
         <span style="flex-shrink:0; width:20px; display:inline-block;"></span>
     </div>
 </div>
 
-<!-- ── PRODUCTS ── -->
+<!-- -- PRODUCTS -- -->
 <div class="section-head">
     <h2 class="section-title">Our Menu</h2>
     <span class="section-count" id="visibleCount"></span>
@@ -398,7 +398,7 @@
                 <img src="{{ $item->image ? asset($item->image) : 'https://placehold.co/400x300/1a1a2e/facc15?text=' . urlencode($item->name) }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy">
                 <div class="p-card-img-overlay"></div>
                 @if($item->featured)
-                    <span class="badge-hot">🔥 Hot</span>
+                    <span class="badge-hot">?? Hot</span>
                 @endif
                 <span class="badge-rating">
                     <svg width="9" height="9" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
@@ -409,7 +409,7 @@
                 <p class="p-card-name">{{ $item->name }}</p>
                 <p class="p-card-desc">{{ $item->description }}</p>
                 <div class="p-card-price-row">
-                    <span class="p-card-price">₱{{ number_format($item->price, 0) }}</span>
+                    <span class="p-card-price">?{{ number_format($item->price, 0) }}</span>
                     <span class="p-card-sold">{{ rand(200,4800) }}+ sold</span>
                 </div>
             </div>
@@ -418,7 +418,7 @@
     @endforeach
 </div>
 
-<!-- ── BOTTOM NAV ── -->
+<!-- -- BOTTOM NAV -- -->
 <div style="height:80px;" class="lg:hidden"></div>
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
@@ -442,7 +442,7 @@
 </nav>
 
 <script>
-/* ── Theme ── */
+/* -- Theme -- */
 function applyTheme(t) {
     document.documentElement.classList.toggle('light-mode', t === 'light');
     document.getElementById('shopSunIcon').style.display  = t === 'dark'  ? 'block' : 'none';
@@ -459,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCount();
 });
 
-/* ── Cart badge ── */
+/* -- Cart badge -- */
 let cart = JSON.parse(localStorage.getItem('eutCart') || '[]');
 function updateCartBadge() {
     const total = cart.reduce((s, i) => s + i.quantity, 0);
@@ -470,7 +470,7 @@ function updateCartBadge() {
 
 
 
-/* ── Category filter ── */
+/* -- Category filter -- */
 document.querySelectorAll('.cat-pill').forEach(pill => {
     pill.addEventListener('click', () => {
         document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
@@ -479,7 +479,7 @@ document.querySelectorAll('.cat-pill').forEach(pill => {
     });
 });
 
-/* ── Search ── */
+/* -- Search -- */
 document.getElementById('searchInput').addEventListener('input', filterProducts);
 
 function filterProducts() {
