@@ -1,20 +1,19 @@
 #!/bin/bash
-# ═══════════════════════════════════════════════════════════════
-#  EUT Snack House — Update Script (run after initial deploy)
-#  Usage: ./deploy-update.sh
-# ═══════════════════════════════════════════════════════════════
+# =================================================================
+#  EUT Snack House - Update Script (run after initial deploy)
+#  Usage: cd /var/www/html && ./deploy-update.sh
+# =================================================================
 
 set -e
-APP_DIR="/var/www/eut"
+APP_DIR="/var/www/html"
 cd $APP_DIR
 
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "================================================"
 echo " Pulling latest code..."
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
+echo "================================================"
 git pull origin main
 
-echo "[1/5] Installing dependencies..."
+echo "[1/5] Installing PHP dependencies..."
 composer install --no-dev --optimize-autoloader --no-interaction
 
 echo "[2/5] Building frontend assets..."
@@ -25,7 +24,7 @@ rm -rf node_modules
 echo "[3/5] Running migrations..."
 php artisan migrate --force
 
-echo "[4/5] Clearing & warming cache..."
+echo "[4/5] Clearing and warming cache..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -37,5 +36,5 @@ sudo systemctl restart eut-reverb
 sudo systemctl reload nginx
 
 echo ""
-echo "✓ Update complete!"
-echo "  Logs: tail -f $APP_DIR/storage/logs/laravel.log"
+echo " Update complete!"
+echo " tail -f /var/www/html/storage/logs/laravel.log"
