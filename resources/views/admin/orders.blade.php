@@ -206,11 +206,11 @@ var STATUS_PIPELINE = {
 };
 
 var STATUS_TIMELINE = [
-    { key:'pending',          label:'Order Placed',     icon:'&#x1F4CB;' },
-    { key:'accepted',         label:'Order Accepted',   icon:'&#x2705;'  },
-    { key:'preparing',        label:'Being Prepared',   icon:'&#x1F373;' },
-    { key:'out_for_delivery', label:'Out for Delivery', icon:'&#x1F6F5;' },
-    { key:'delivered',        label:'Delivered',        icon:'&#x1F4E6;' },
+    { key:'pending',          label:'Order Placed',     icon:'<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>' },
+    { key:'accepted',         label:'Order Accepted',   icon:'<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'  },
+    { key:'preparing',        label:'Being Prepared',   icon:'<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2z"/></svg>' },
+    { key:'out_for_delivery', label:'Out for Delivery', icon:'<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg>' },
+    { key:'delivered',        label:'Delivered',        icon:'<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' },
 ];
 
 // ── Auto-poll ────────────────────────────────────────────
@@ -350,7 +350,7 @@ function renderTable(orders) {
                 '<div>' +
                     '<div style="display:flex;align-items:center;gap:.3rem;margin-bottom:.1rem;">' +
                     '<p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">' + escHtml(o.customer) + '</p>' +
-                    '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;">' + escHtml(o.order_type_icon) + ' ' + escHtml(o.order_type_label) + '</span>' +
+                    '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;">' + (o.order_type_icon || '') + ' ' + escHtml(o.order_type_label) + '</span>' +
                     '</div>' +
                     '<p style="font-size:.68rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">' + escHtml(o.address || '') + '</p>' +
                 '</div>' +
@@ -526,7 +526,7 @@ function openManageModal(id) {
     if (o.order_type !== 'delivery') {
         if (o.status === 'preparing') {
             sp.next = 'delivered';
-            sp.nextLabel = o.order_type === 'pickup' ? '🥡 Mark as Picked Up' : '🍽️ Mark as Completed';
+            sp.nextLabel = o.order_type === 'pickup' ? 'Mark as Picked Up' : 'Mark as Completed';
             sp.btnClass = 'btn-success';
         }
     }
@@ -568,7 +568,7 @@ function openManageModal(id) {
     tlHtml += '</div>';
 
     if (o.status === 'cancelled') {
-        tlHtml += '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:.5rem;padding:.5rem .875rem;font-size:.75rem;color:#ef4444;font-weight:600;margin-top:.25rem;">&#x274C; This order was cancelled.</div>';
+        tlHtml += '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:.5rem;padding:.5rem .875rem;font-size:.75rem;color:#ef4444;font-weight:600;margin-top:.25rem;display:flex;align-items:center;gap:.4rem;"><svg width="13" height="13" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg> This order was cancelled.</div>';
     }
 
     // -- Items summary
@@ -656,7 +656,7 @@ function openManageModal(id) {
         } else {
             actionsHtml +=
                 '<div style="margin-top:.5rem;padding:.6rem .75rem;border-radius:.5rem;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.2);font-size:.78rem;color:#ef4444;">' +
-                    '⚠️ No riders found. Add a rider first.' +
+                    '<div style="display:flex;align-items:center;gap:.4rem;"><svg width="13" height="13" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg> No riders found. Add a rider first.</div>' +
                 '</div>';
         }
     }
@@ -708,11 +708,11 @@ function openManageModal(id) {
                 '</div>' +
             '</div>' +
         '</div>' +
-        (o.notes ? '<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:.625rem;padding:.75rem 1rem;"><p style="font-size:.68rem;color:#d97706;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .3rem;font-weight:700;">&#x1F4DD; Customer Note</p><p style="font-size:.8rem;color:var(--text-body);margin:0;">' + escHtml(o.notes) + '</p></div>' : '') +
+        (o.notes ? '<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:.625rem;padding:.75rem 1rem;"><p style="font-size:.68rem;color:#d97706;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .3rem;font-weight:700;display:flex;align-items:center;gap:.3rem;"><svg width="12" height="12" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> Customer Note</p><p style="font-size:.8rem;color:var(--text-body);margin:0;">' + escHtml(o.notes) + '</p></div>' : '') +
         (o.status === 'out_for_delivery'
             ? '<div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.2);border-radius:.625rem;padding:.75rem 1rem;">' +
                 '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.625rem;">' +
-                    '<span style="font-size:1.1rem;">&#x1F6F5;</span>' +
+                    '<div style="width:2rem;height:2rem;border-radius:50%;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg></div>' +
                     '<div><p style="font-size:.75rem;font-weight:700;color:#a78bfa;margin:0 0 .1rem;">Rider En Route to Customer</p>' +
                     '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">Live tracking — only the rider can mark as delivered.</p></div>' +
                 '</div>' +
@@ -726,7 +726,7 @@ function openManageModal(id) {
     var mmTitle = document.getElementById('mmTitle');
     mmTitle.innerHTML = 'Manage Order ' + escHtml(o.order_number) +
         ' <span style="font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.08);color:var(--text-muted);border:1px solid rgba(255,255,255,.12);margin-left:.5rem;vertical-align:middle;">' +
-        escHtml(o.order_type_icon) + ' ' + escHtml(o.order_type_label) + '</span>';
+        (o.order_type_icon || '') + ' ' + escHtml(o.order_type_label) + '</span>';
 
     openModal('manageModal');
     if (typeof lucide !== 'undefined') setTimeout(function(){ lucide.createIcons(); }, 0);
@@ -771,18 +771,18 @@ async function initAdminRiderMap(o) {
     L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', { maxZoom: 20, opacity: 0.85 }).addTo(adminMapInstance);
 
     L.marker(ADMIN_RESTAURANT, { icon: L.divIcon({
-        html: '<div style="background:#facc15;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:14px;">&#x1F354;</span></div>',
+        html: '<div style="background:#facc15;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" fill="none" stroke="#000" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6h3.5v7"/></svg></span></div>',
         className: '', iconSize: [34,34], iconAnchor: [17,34]
     })}).addTo(adminMapInstance).bindPopup('<b>E.U.T Snack House</b>');
 
     L.marker(riderPos, { icon: L.divIcon({
-        html: '<div style="background:#8b5cf6;width:40px;height:40px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 12px rgba(139,92,246,.7);">&#x1F6F5;</div>',
+        html: '<div style="background:#8b5cf6;width:40px;height:40px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(139,92,246,.7);"><svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg></div>',
         className: '', iconSize: [40,40], iconAnchor: [20,20]
     })}).addTo(adminMapInstance).bindPopup('<b>Rider: ' + escHtml(o.rider || 'Rider') + '</b>');
 
     if (custPos) {
         L.marker(custPos, { icon: L.divIcon({
-            html: '<div style="background:#ef4444;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;"><span style="transform:rotate(45deg);font-size:14px;">&#x1F3E0;</span></div>',
+            html: '<div style="background:#ef4444;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>',
             className: '', iconSize: [34,34], iconAnchor: [17,34]
         })}).addTo(adminMapInstance).bindPopup('<b>' + escHtml(o.customer) + '</b>');
     }

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -212,7 +212,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
     <div class="sheet-handle"></div>
     <div class="sheet-head">
         <span class="sheet-head-title" id="detailOrderNum">#EUT-00000</span>
-        <button class="sheet-close" onclick="closeDetail()">✕</button>
+        <button class="sheet-close" onclick="closeDetail()">&#x2715;</button>
     </div>
     <div class="sheet-divider"></div>
     <div id="detailBody"></div>
@@ -223,7 +223,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
 <div id="cancelModal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:1001;background:linear-gradient(145deg,#1a0a0a,#120808);border:1px solid rgba(239,68,68,.25);border-radius:24px 24px 0 0;padding:24px 20px 40px;max-width:540px;margin:0 auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
         <div><p style="font-size:17px;font-weight:800;color:#fff;">Cancel Order</p><p style="font-size:12px;color:#6b7280;margin-top:2px;">Tell us why you're cancelling</p></div>
-        <button onclick="closeCancelModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#9ca3af;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+        <button onclick="closeCancelModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#9ca3af;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;">&#x2715;</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;" id="cancelReasons">
         @foreach(['Changed my mind','Ordered by mistake','Found a better option','Taking too long','Other reason'] as $reason)
@@ -266,10 +266,14 @@ function switchTab(tab) {
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function modifierTagsHtml(modifiers) {
     if(!modifiers||!modifiers.length)return'';
-    const tc={flavor:{bg:'rgba(59,130,246,.12)',c:'#3b82f6',i:'🌶'},modifier:{bg:'rgba(139,92,246,.12)',c:'#8b5cf6',i:'⚙'},addon:{bg:'rgba(245,158,11,.12)',c:'#d97706',i:'➕'}};
+    const tc={
+        flavor:  {bg:'rgba(59,130,246,.12)', c:'#3b82f6', i:'<svg width="10" height="10" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>'},
+        modifier:{bg:'rgba(139,92,246,.12)', c:'#8b5cf6', i:'<svg width="10" height="10" fill="none" stroke="#8b5cf6" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>'},
+        addon:   {bg:'rgba(245,158,11,.12)', c:'#d97706', i:'<svg width="10" height="10" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>'},
+    };
     const tags=(modifiers||[]).filter(m=>m&&m.name&&!/^no\s/i.test(m.name)).map(m=>{
         const s=tc[m.type]||tc.modifier;const adj=parseFloat(m.price_adjustment||0);
-        const ex=(m.price_type==='add'&&adj>0)?` <span style="color:#4ade80;font-size:.6rem;">+₱${adj.toLocaleString()}</span>`:'';
+        const ex=(m.price_type==='add'&&adj>0)?` <span style="color:#4ade80;font-size:.6rem;">+&#8369;${adj.toLocaleString()}</span>`:'';
         return`<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .55rem;border-radius:99px;font-size:.68rem;font-weight:600;background:${s.bg};color:${s.c};border:1px solid ${s.c}30;white-space:nowrap;">${s.i} ${escHtml(m.name)}${ex}</span>`;
     });
     return tags.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${tags.join('')}</div>`:'';
@@ -455,7 +459,7 @@ function buildDetailBody(o) {
         <div class="timeline">
             ${stepsArr.map(step=>`
             <div class="tl-step ${step.done?'tl-done':step.isNow?'tl-now':'tl-future'}">
-                <div class="tl-dot">${step.done?'✓':step.isNow?'●':'○'}</div>
+                <div class="tl-dot">${step.done?'<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>':step.isNow?'<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>':'<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'}</div>
                 <div class="tl-body">
                     <p class="tl-title">${escHtml(step.label)}</p>
                     ${step.time?`<p class="tl-time">${escHtml(step.time)}</p>`:''}
@@ -473,7 +477,7 @@ function buildDetailBody(o) {
                 <img src="${escHtml(i.image)}" class="sitem-img" alt="${escHtml(i.name)}" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">
                 <div style="flex:1;min-width:0;">
                     <p class="sitem-name">${escHtml(i.name)}</p>
-                    <p class="sitem-meta">× ${i.qty}</p>
+                    <p class="sitem-meta">x${i.qty}</p>
                     ${modifierTagsHtml(i.modifiers)}
                 </div>
                 <span class="sitem-price">₱${Number(i.subtotal).toLocaleString()}</span>
@@ -533,7 +537,7 @@ function buildDetailBody(o) {
     // ── Reorder (past/cancelled) ──
     const reorderHtml = (o.status==='delivered'||o.status==='cancelled') ? `
         <div style="padding:14px 18px 32px;display:flex;justify-content:center;">
-            <a href="{{ route('shop.home') }}" class="btn-reorder">🔁 Order Again</a>
+            <a href="{{ route('shop.home') }}" class="btn-reorder"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Order Again</a>
         </div>` : '<div style="height:32px;"></div>';
 
     // ── Cancel reason ──
@@ -554,12 +558,12 @@ async function loadAllOrders() {
         const res = await fetch('/orders', {headers:{'Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'}});
         const raw = await res.text();
         if(!res.ok){
-            document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p class="empty-title">Could not load orders</p><p class="empty-sub">HTTP ${res.status} — please try refreshing.</p></div>`;
+            document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><p class="empty-title">Could not load orders</p><p class="empty-sub">HTTP ${res.status} — please try refreshing.</p></div>`;
             return;
         }
         let data;
         try{data=JSON.parse(raw);}catch(e){
-            document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p class="empty-title">Session expired</p><p class="empty-sub">Please log out and log back in.</p></div>`;
+            document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><p class="empty-title">Session expired</p><p class="empty-sub">Please log out and log back in.</p></div>`;
             return;
         }
         allOrders = [...(data.active||[]), ...(data.past||[]), ...(data.cancelled||[])];
@@ -612,7 +616,7 @@ async function loadAllOrders() {
         });
     } catch(e) {
         console.error(e);
-        document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p class="empty-title">Network error</p><p class="empty-sub">Check your connection and try refreshing.</p></div>`;
+        document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><p class="empty-title">Network error</p><p class="empty-sub">Check your connection and try refreshing.</p></div>`;
     }
 }
 
@@ -626,7 +630,7 @@ async function submitCancel(){
     const sel=document.querySelector('input[name="cancelReason"]:checked');
     const errEl=document.getElementById('cancelModalError');
     const btn=document.getElementById('confirmCancelBtn');
-    if(!sel){errEl.textContent='⚠ Please select a reason.';errEl.style.display='block';return;}
+    if(!sel){errEl.textContent='<svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg> Please select a reason.';errEl.style.display='block';return;}
     errEl.style.display='none';btn.textContent='Cancelling…';btn.disabled=true;
     try{
         const r=await fetch(`/orders/${currentCancelOrderId}/cancel`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({reason:sel.value})});
@@ -759,7 +763,7 @@ async function initOrderMap(order) {
 
     // Restaurant pin
     L.marker(RESTAURANT_POS, { icon: L.divIcon({
-        html: '<div style="background:#facc15;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);font-size:15px;">🍔</span></div>',
+        html: '<div style="background:#facc15;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);"><svg width="16" height="16" fill="none" stroke="#000" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6h3.5v7"/></svg></div>',
         className: '', iconSize: [36, 36], iconAnchor: [18, 36],
     }) }).addTo(map).bindPopup('<b>E.U.T Snack House</b>');
 
@@ -780,7 +784,7 @@ async function initOrderMap(order) {
     // Customer / delivery destination pin
     if (customerPos) {
         L.marker(customerPos, { icon: L.divIcon({
-            html: '<div style="background:#ef4444;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);font-size:15px;">🏠</span></div>',
+            html: '<div style="background:#ef4444;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);"><svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22" stroke-linecap="round" stroke-linejoin="round"/></svg></div>',
             className: '', iconSize: [36, 36], iconAnchor: [18, 36],
         }) }).addTo(map).bindPopup('<b>Your Delivery Location</b>');
     }
@@ -882,7 +886,7 @@ async function updateMapRiderPos(orderId, lat, lng) {
             const remaining = s.roadPoints.length - closest;
             if (etaEl) {
                 const mins = Math.max(0, Math.round(30 * remaining / s.roadPoints.length));
-                etaEl.textContent = mins > 0 ? '~' + mins + ' min away' : 'Arriving now! 🎉';
+                etaEl.textContent = mins > 0 ? '~' + mins + ' min away' : 'Arriving now!';
             }
         }
     } else if (s.destLatLng) {

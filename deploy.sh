@@ -43,14 +43,8 @@ cd $APP_DIR
 echo "[6/10] Installing PHP dependencies..."
 composer install --no-dev --optimize-autoloader --no-interaction
 
-# 7. Build frontend assets
-echo "[7/10] Building frontend assets..."
-npm ci --production=false
-npm run build
-rm -rf node_modules
-
-# 8. Laravel setup
-echo "[8/10] Running Laravel setup..."
+# 7. Laravel setup — must happen BEFORE npm build so VITE_ vars are available
+echo "[7/10] Running Laravel setup..."
 
 if [ ! -f .env ]; then
     cp .env.production.example .env
@@ -74,6 +68,12 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan event:cache
+
+# 8. Build frontend assets — AFTER .env is set so VITE_ vars are baked in correctly
+echo "[8/10] Building frontend assets..."
+npm ci --production=false
+npm run build
+rm -rf node_modules
 
 # 9. File permissions
 echo "[9/10] Setting permissions..."
