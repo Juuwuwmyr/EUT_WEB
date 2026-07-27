@@ -27,8 +27,9 @@ body{background:#080810;color:#fff;min-height:100vh;}
 .page-body{max-width:540px;margin:0 auto;padding:130px 16px 110px;}
 
 /* ── SUMMARY STAT CARDS ── */
-.summary-stat-card{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:10px 6px 8px;text-align:center;transition:border-color .2s;}
-.ssc-icon{font-size:18px;display:block;margin-bottom:4px;}
+.summary-stat-card{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:10px 6px 8px;text-align:center;transition:border-color .2s;overflow:hidden;min-width:0;}
+.ssc-icon{display:flex;align-items:center;justify-content:center;height:20px;margin-bottom:4px;overflow:hidden;flex-shrink:0;}
+.ssc-icon svg{width:16px;height:16px;flex-shrink:0;}
 .ssc-val{font-size:15px;font-weight:900;color:#facc15;margin:0 0 2px;line-height:1;}
 .ssc-lbl{font-size:10px;color:#4b5563;margin:0;text-transform:uppercase;letter-spacing:.04em;}
 
@@ -169,7 +170,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
 <div class="page-body">
     <!-- Summary Stats Banner (JS-rendered) -->
     <div id="orderSummaryBanner" style="display:none;margin-bottom:16px;">
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;min-width:0;overflow:hidden;">
             <div class="summary-stat-card" id="ssc-active">
                 <span class="ssc-icon"><svg width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg></span>
                 <p class="ssc-val" id="ssc-val-active">0</p>
