@@ -22,17 +22,17 @@ npm run build
 rm -rf node_modules
 
 echo "[3/5] Running migrations..."
-php artisan migrate --force
+sudo -u www-data php artisan migrate --force
 
 echo "[3.5/5] Fixing storage permissions..."
-sudo chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+sudo chown -R ubuntu:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 sudo chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 echo "[4/5] Clearing and warming cache..."
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
+sudo -u www-data php artisan config:cache
+sudo -u www-data php artisan route:cache
+sudo -u www-data php artisan view:cache
+sudo -u www-data php artisan event:cache
 
 echo "[5/5] Fixing permissions and restarting services..."
 sudo chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
