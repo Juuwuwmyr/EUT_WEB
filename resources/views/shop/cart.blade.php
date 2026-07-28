@@ -722,7 +722,7 @@ function renderCart() {
     if (subtotalRaw < FREE_DELIVERY_THRESHOLD) {
         const needed = FREE_DELIVERY_THRESHOLD - subtotalRaw;
         const pct = Math.min((subtotalRaw / FREE_DELIVERY_THRESHOLD) * 100, 100);
-        document.getElementById('freeDeliveryText').textContent = ``Add &#8369;${needed.toLocaleString()} more for free delivery`;
+        document.getElementById('freeDeliveryText').textContent = `Add ₱${needed.toLocaleString()} more for free delivery`;
         document.getElementById('freeDeliveryFill').style.width = pct + '%';
         barEl.style.display = 'flex';
     } else {
