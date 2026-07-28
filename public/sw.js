@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eut-v3';
+const CACHE_NAME = 'eut-v4';
 const STATIC_ASSETS = [
     '/',
     '/manifest.json',
