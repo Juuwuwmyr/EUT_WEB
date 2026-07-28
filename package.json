@@ -13,6 +13,7 @@
         "concurrently": "^9.0.1",
         "laravel-echo": "^2.4.0",
         "laravel-vite-plugin": "^3.1",
+        "lucide": "^1.27.0",
         "postcss": "^8.5.19",
         "pusher-js": "^8.6.0",
         "tailwindcss": "^4.3.2",

@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Admin') — EUT Admin</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/admin.js'])
     @include('partials.pwa-head')
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@0.441.0/dist/umd/lucide.min.js"></script>
     @stack('head')
     <style>
         /* ── CSS VARIABLES ─────────────────────────────────── */
@@ -393,19 +391,6 @@
 })();
 </script>
 <script>
-// Lucide icons — init after full page load including stacked scripts
-function initLucide() {
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-}
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initLucide);
-} else {
-    initLucide();
-}
-window.addEventListener('load', initLucide);
-// Re-run after any dynamic content is injected
 window._lucideRefresh = function() { if (typeof lucide !== 'undefined') lucide.createIcons(); };
 </script>
 <script>
