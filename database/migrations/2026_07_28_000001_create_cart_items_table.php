@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('cart_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('menu_item_id');
             $table->string('cart_key')->comment('composite key e.g. 5_12-14 for dedup');
             $table->string('item_name');
@@ -21,6 +21,7 @@ return new class extends Migration
             $table->json('modifiers')->nullable();
             $table->timestamps();
             $table->unique(['user_id', 'cart_key']);
+            $table->index('user_id');
         });
     }
 
