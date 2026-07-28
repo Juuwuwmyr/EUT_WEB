@@ -321,9 +321,13 @@
         }
         .bnav-item.active { color: #facc15; }
 
+        /* -- HIDDEN (for JS filtering) -- */
+        .p-card-hidden { display: none !important; }
+
         /* Animations */
         @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
         .p-card { animation: fade-up 0.3s ease both; }
+        .p-card.no-anim { animation: none !important; opacity: 1 !important; transform: none !important; }
         
         /* ── NATIVE SCROLL OPTIMIZATION ── */
         /* Disables heavy hover/paint calculations while the user is swiping */
@@ -429,7 +433,7 @@
 
 <div class="products-grid" id="productsGrid">
     @foreach($menuItems as $index => $item)
-    <div class="p-card" data-category="{{ $item->category->slug ?? '' }}" data-name="{{ strtolower($item->name) }}" style="display: none;">
+    <div class="p-card" data-category="{{ $item->category->slug ?? '' }}" data-name="{{ strtolower($item->name) }}">
         <a href="{{ route('shop.product', $item->id) }}" style="text-decoration:none; display:block;">
             <div class="p-card-img-wrap">
                 <img src="{{ $item->image ? asset($item->image) : 'https://placehold.co/400x300/1a1a2e/facc15?text=' . urlencode($item->name) }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy" decoding="async" fetchpriority="low">
@@ -526,7 +530,6 @@ document.querySelectorAll('.cat-pill').forEach(pill => {
     pill.addEventListener('click', () => {
         document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
-        // Reset infinite scroll state on category change
         visibleItemsCount = 0;
         allFilteredCards = [];
         filterProducts();
@@ -538,11 +541,10 @@ let searchDebounceTimer;
 document.getElementById('searchInput').addEventListener('input', () => {
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(() => {
-        // Reset infinite scroll state on search
         visibleItemsCount = 0;
         allFilteredCards = [];
         filterProducts();
-    }, 300); // 300ms debounce
+    }, 300);
 });
 
 /* -- Infinite Scroll & Cache State -- */
@@ -564,101 +566,76 @@ function filterProducts() {
     const activeCat = document.querySelector('.cat-pill.active');
     const cat = activeCat ? activeCat.dataset.category : 'all';
     const query = domCache.searchInput.value.toLowerCase().trim();
-    
-    // First, find all cards that match the current filter/search
+
+    // Collect matching cards
     allFilteredCards = [];
-    
-    // Use cached array instead of document.querySelectorAll
     domCache.cards.forEach(card => {
         const matchCat = cat === 'all' || card.dataset.category === cat;
         const matchName = !query || card.dataset.name.includes(query);
-        
         if (matchCat && matchName) {
             allFilteredCards.push(card);
-        } else {
-            // Only modify DOM if it needs changing
-            if (card.style.display !== 'none') {
-                card.style.display = 'none';
-            }
         }
+        // Hide everything first; we'll reveal the right slice below
+        card.classList.add('p-card-hidden');
+        card.classList.remove('no-anim');
     });
-    
-    // Reset visible count if this is a fresh filter application
-    if (visibleItemsCount === 0) {
-        visibleItemsCount = Math.min(ITEMS_PER_PAGE, allFilteredCards.length);
-    }
-    
-    // Use a DocumentFragment or fast batch update if we were creating elements, 
-    // but since we are just toggling display, we batch the style changes
-    allFilteredCards.forEach((card, index) => {
-        if (index < visibleItemsCount) {
-            if (card.style.display === 'none' || card.style.display === '') {
-                card.style.display = 'flex';
-                // Only animate the first batch to avoid lag on fast scrolling
-                if (index < ITEMS_PER_PAGE) {
-                    const batchIndex = index % ITEMS_PER_PAGE;
-                    card.style.animationDelay = (batchIndex * 0.04) + 's';
-                } else {
-                    card.style.animation = 'none'; // Disable animation for infinite scroll items to prevent stutter
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }
-            }
-        } else {
-            if (card.style.display !== 'none') {
-                card.style.display = 'none';
-            }
-        }
+
+    // Determine how many to show in this batch
+    visibleItemsCount = Math.min(ITEMS_PER_PAGE, allFilteredCards.length);
+
+    // Show first batch with staggered animation
+    allFilteredCards.slice(0, visibleItemsCount).forEach((card, i) => {
+        card.classList.remove('p-card-hidden');
+        // Force animation replay
+        card.style.animation = 'none';
+        card.style.opacity   = '';
+        card.style.transform = '';
+        // Trigger reflow so the browser notices the animation reset
+        void card.offsetWidth;
+        card.style.animation = '';
+        card.style.animationDelay = (i * 0.04) + 's';
     });
-    
+
     updateCount(allFilteredCards.length);
     checkScrollLoader();
 }
 
 function loadMoreItems() {
     if (visibleItemsCount >= allFilteredCards.length || isLoaderVisible) return;
-    
+
     isLoaderVisible = true;
     if (domCache.loader) {
         domCache.loader.style.display = 'block';
         domCache.loader.style.opacity = '1';
     }
-    
-    // Use requestAnimationFrame to ensure smooth yielding to the main thread
+
     requestAnimationFrame(() => {
         setTimeout(() => {
             const nextLimit = Math.min(visibleItemsCount + ITEMS_PER_PAGE, allFilteredCards.length);
-            
-            // Batch DOM updates
+
             for (let i = visibleItemsCount; i < nextLimit; i++) {
                 const card = allFilteredCards[i];
-                card.style.animation = 'none'; // Disable animation for newly loaded items, just snap them in
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-                card.style.display = 'flex';
+                card.classList.add('no-anim');    // snap in, no animation for infinite-scroll batches
+                card.classList.remove('p-card-hidden');
             }
-            
+
             visibleItemsCount = nextLimit;
-            
-            if (domCache.loader) {
-                domCache.loader.style.display = 'none';
-            }
+
+            if (domCache.loader) domCache.loader.style.display = 'none';
             isLoaderVisible = false;
-            
+
             checkScrollLoader();
-        }, 150); // Very short delay just to let UI breathe
+        }, 150);
     });
 }
 
 function checkScrollLoader() {
     if (!domCache.loader) return;
-    
     if (visibleItemsCount >= allFilteredCards.length) {
         domCache.loader.style.display = 'none';
     } else {
-        // Ensure loader is visible if we have more items to load
         domCache.loader.style.display = 'block';
-        domCache.loader.style.opacity = '0'; // Hide visually but keep it in DOM for observer
+        domCache.loader.style.opacity = '0'; // visible to IntersectionObserver, invisible to user
     }
 }
 
