@@ -12,8 +12,8 @@
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"></noscript>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        html { scroll-behavior: smooth; }
-        body { background: #080810; color: #fff; min-height: 100vh; }
+        html { scroll-behavior: smooth; overscroll-behavior-y: none; }
+        body { background: #080810; color: #fff; min-height: 100vh; overscroll-behavior-y: none; }
 
         /* -- TOP PROMO BANNER -- */
         .promo-banner {
@@ -203,7 +203,7 @@
         .p-card {
             background: linear-gradient(145deg, #12131f, #0e0f1a);
             border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 18px; overflow: hidden;
+            border-radius: 18px;
             transition: transform 0.22s ease, border-color 0.22s, box-shadow 0.22s;
             box-shadow: 0 4px 16px rgba(0,0,0,0.4);
             display: flex; flex-direction: column;
@@ -211,18 +211,28 @@
             contain-intrinsic-size: 0 340px;
             contain: content;
             will-change: transform, opacity;
-            transform: translateZ(0);
+            transform: translate3d(0,0,0);
+            backface-visibility: hidden;
+            perspective: 1000px;
         }
         .p-card:hover {
             transform: translateY(-4px);
             border-color: rgba(250,204,21,0.3);
             box-shadow: 0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px rgba(250,204,21,0.15);
         }
-        .p-card-img-wrap { position: relative; overflow: hidden; }
+        .p-card-img-wrap { 
+            position: relative; overflow: hidden; 
+            border-radius: 18px 18px 0 0;
+            transform: translate3d(0,0,0);
+            backface-visibility: hidden;
+        }
         .p-card-img {
             width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
             transition: transform 0.4s ease;
             display: block;
+            transform: translate3d(0,0,0);
+            backface-visibility: hidden;
+            will-change: transform;
         }
         .p-card:hover .p-card-img { transform: scale(1.06); }
         .p-card-img-overlay {
@@ -317,10 +327,9 @@
         
         /* ── NATIVE SCROLL OPTIMIZATION ── */
         /* Disables heavy hover/paint calculations while the user is swiping */
-        body.is-scrolling .p-card,
-        body.is-scrolling a,
-        body.is-scrolling button {
+        body.is-scrolling * {
             pointer-events: none !important;
+            transition: none !important;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -422,7 +431,7 @@
     <div class="p-card" data-category="{{ $item->category->slug ?? '' }}" data-name="{{ strtolower($item->name) }}" style="display: none;">
         <a href="{{ route('shop.product', $item->id) }}" style="text-decoration:none; display:block;">
             <div class="p-card-img-wrap">
-                <img src="{{ $item->image ? asset($item->image) : 'https://placehold.co/400x300/1a1a2e/facc15?text=' . urlencode($item->name) }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy" decoding="async">
+                <img src="{{ $item->image ? asset($item->image) : 'https://placehold.co/400x300/1a1a2e/facc15?text=' . urlencode($item->name) }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy" decoding="async" fetchpriority="low">
                 <div class="p-card-img-overlay"></div>
                 @if($item->featured)
                     <span class="badge-hot" style="display:inline-flex;align-items:center;gap:3px;"><svg width="10" height="10" fill="#fff" viewBox="0 0 24 24"><path d="M17.66 11.2C17.43 10.9 17.15 10.64 16.89 10.38C16.22 9.78 15.46 9.35 14.82 8.72C13.33 7.26 13 4.85 13.95 3C13 3.23 12.17 3.75 11.46 4.32C8.87 6.4 7.85 10.07 9.07 13.22C9.11 13.32 9.15 13.42 9.15 13.55C9.15 13.77 9 13.97 8.8 14.05C8.57 14.15 8.33 14.09 8.14 13.93C8.08 13.88 8.04 13.83 8 13.76C6.87 12.33 6.69 10.28 7.45 8.64C5.78 10 4.87 12.3 5 14.47C5.06 14.97 5.12 15.47 5.29 15.97C5.43 16.57 5.7 17.17 6 17.7C7.08 19.43 8.95 20.67 10.96 20.92C13.1 21.19 15.39 20.8 17.03 19.32C18.86 17.66 19.5 15 18.56 12.72L18.43 12.46C18.22 12 17.66 11.2 17.66 11.2Z"/></svg> Hot</span>
@@ -535,26 +544,41 @@ document.getElementById('searchInput').addEventListener('input', () => {
     }, 300); // 300ms debounce
 });
 
-/* -- Infinite Scroll State -- */
+/* -- Infinite Scroll & Cache State -- */
 const ITEMS_PER_PAGE = 8;
 let visibleItemsCount = 0;
 let allFilteredCards = [];
 let isLoaderVisible = false;
 
+// DOM Cache to prevent querying the DOM constantly
+const domCache = {
+    loader: document.getElementById('infiniteScrollLoader'),
+    grid: document.getElementById('productsGrid'),
+    searchInput: document.getElementById('searchInput'),
+    visibleCount: document.getElementById('visibleCount'),
+    cards: Array.from(document.querySelectorAll('.p-card'))
+};
+
 function filterProducts() {
-    const cat    = document.querySelector('.cat-pill.active')?.dataset.category || 'all';
-    const query  = document.getElementById('searchInput').value.toLowerCase().trim();
+    const activeCat = document.querySelector('.cat-pill.active');
+    const cat = activeCat ? activeCat.dataset.category : 'all';
+    const query = domCache.searchInput.value.toLowerCase().trim();
     
     // First, find all cards that match the current filter/search
     allFilteredCards = [];
-    document.querySelectorAll('.p-card').forEach(card => {
-        const matchCat  = cat === 'all' || card.dataset.category === cat;
+    
+    // Use cached array instead of document.querySelectorAll
+    domCache.cards.forEach(card => {
+        const matchCat = cat === 'all' || card.dataset.category === cat;
         const matchName = !query || card.dataset.name.includes(query);
         
         if (matchCat && matchName) {
             allFilteredCards.push(card);
         } else {
-            card.style.display = 'none'; // Hide non-matching immediately
+            // Only modify DOM if it needs changing
+            if (card.style.display !== 'none') {
+                card.style.display = 'none';
+            }
         }
     });
     
@@ -563,16 +587,26 @@ function filterProducts() {
         visibleItemsCount = Math.min(ITEMS_PER_PAGE, allFilteredCards.length);
     }
     
-    // Show only up to the visibleItemsCount
+    // Use a DocumentFragment or fast batch update if we were creating elements, 
+    // but since we are just toggling display, we batch the style changes
     allFilteredCards.forEach((card, index) => {
         if (index < visibleItemsCount) {
             if (card.style.display === 'none' || card.style.display === '') {
                 card.style.display = 'flex';
-                const batchIndex = index % ITEMS_PER_PAGE;
-                card.style.animationDelay = (batchIndex * 0.04) + 's';
+                // Only animate the first batch to avoid lag on fast scrolling
+                if (index < ITEMS_PER_PAGE) {
+                    const batchIndex = index % ITEMS_PER_PAGE;
+                    card.style.animationDelay = (batchIndex * 0.04) + 's';
+                } else {
+                    card.style.animation = 'none'; // Disable animation for infinite scroll items to prevent stutter
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }
             }
         } else {
-            card.style.display = 'none';
+            if (card.style.display !== 'none') {
+                card.style.display = 'none';
+            }
         }
     });
     
@@ -584,50 +618,62 @@ function loadMoreItems() {
     if (visibleItemsCount >= allFilteredCards.length || isLoaderVisible) return;
     
     isLoaderVisible = true;
-    const loader = document.getElementById('infiniteScrollLoader');
-    loader.style.display = 'block';
-    loader.style.opacity = '1';
+    if (domCache.loader) {
+        domCache.loader.style.display = 'block';
+        domCache.loader.style.opacity = '1';
+    }
     
-    // Simulate network delay for effect
-    setTimeout(() => {
-        const nextLimit = Math.min(visibleItemsCount + ITEMS_PER_PAGE, allFilteredCards.length);
-        
-        for (let i = visibleItemsCount; i < nextLimit; i++) {
-            const card = allFilteredCards[i];
-            card.style.display = 'flex';
-            card.style.animationDelay = ((i - visibleItemsCount) * 0.06) + 's';
-        }
-        
-        visibleItemsCount = nextLimit;
-        loader.style.display = 'none';
-        isLoaderVisible = false;
-        
-        checkScrollLoader();
-    }, 400); // Reduced delay slightly for snappier feel
+    // Use requestAnimationFrame to ensure smooth yielding to the main thread
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            const nextLimit = Math.min(visibleItemsCount + ITEMS_PER_PAGE, allFilteredCards.length);
+            
+            // Batch DOM updates
+            for (let i = visibleItemsCount; i < nextLimit; i++) {
+                const card = allFilteredCards[i];
+                card.style.animation = 'none'; // Disable animation for newly loaded items, just snap them in
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+                card.style.display = 'flex';
+            }
+            
+            visibleItemsCount = nextLimit;
+            
+            if (domCache.loader) {
+                domCache.loader.style.display = 'none';
+            }
+            isLoaderVisible = false;
+            
+            checkScrollLoader();
+        }, 150); // Very short delay just to let UI breathe
+    });
 }
 
 function checkScrollLoader() {
-    const loader = document.getElementById('infiniteScrollLoader');
+    if (!domCache.loader) return;
+    
     if (visibleItemsCount >= allFilteredCards.length) {
-        loader.style.display = 'none';
+        domCache.loader.style.display = 'none';
     } else {
         // Ensure loader is visible if we have more items to load
-        loader.style.display = 'block';
-        loader.style.opacity = '0'; // Hide visually but keep it in DOM for observer
+        domCache.loader.style.display = 'block';
+        domCache.loader.style.opacity = '0'; // Hide visually but keep it in DOM for observer
     }
 }
 
-// Infinite Scroll Observer - using a more reliable configuration
+// Infinite Scroll Observer - Highly optimized
 const scrollObserver = new IntersectionObserver((entries) => {
-    const entry = entries[0];
-    if (entry.isIntersecting && !isLoaderVisible && visibleItemsCount > 0 && visibleItemsCount < allFilteredCards.length) {
-        // Make sure it's fully visible when actually loading
-        entry.target.style.opacity = '1';
-        loadMoreItems();
+    // Check if the loader is intersecting
+    if (entries[0].isIntersecting && !isLoaderVisible && visibleItemsCount > 0 && visibleItemsCount < allFilteredCards.length) {
+        entries[0].target.style.opacity = '1';
+        // Use requestIdleCallback or setTimeout to not block scrolling thread
+        (window.requestIdleCallback || setTimeout)(() => {
+            loadMoreItems();
+        }, 10);
     }
 }, { 
     root: null,
-    rootMargin: "0px 0px 600px 0px", // Increased margin to trigger even earlier
+    rootMargin: "0px 0px 800px 0px", // Huge margin so it loads way before user sees it
     threshold: 0 
 });
 
@@ -637,14 +683,17 @@ const scrollObserver = new IntersectionObserver((entries) => {
 // Native app-like scroll smoothness trick:
 // Disable pointer events (hovers, clicks) while actively scrolling so the GPU doesn't waste resources.
 let isScrollingTimer;
+let isActivelyScrolling = false;
 window.addEventListener('scroll', () => {
-    if (!document.body.classList.contains('is-scrolling')) {
+    if (!isActivelyScrolling) {
+        isActivelyScrolling = true;
         document.body.classList.add('is-scrolling');
     }
     clearTimeout(isScrollingTimer);
     isScrollingTimer = setTimeout(() => {
+        isActivelyScrolling = false;
         document.body.classList.remove('is-scrolling');
-    }, 120); // Quick reset after finger stops
+    }, 150); // Quick reset after finger stops
 }, { passive: true });
 
 // Initialize
