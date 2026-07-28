@@ -53,6 +53,9 @@ class ChefController extends Controller
         $deliveredToday = \App\Models\Order::where('status', 'delivered')->whereDate('delivered_at', today())->count();
         $revenueToday   = \App\Models\Order::where('status', 'delivered')->whereDate('delivered_at', today())->sum('total');
         $pendingCount   = \App\Models\Order::where('status', 'pending')->count();
+        $todayDelivery  = \App\Models\Order::whereDate('created_at', today())->where('order_type', 'delivery')->count();
+        $todayDineIn    = \App\Models\Order::whereDate('created_at', today())->where('order_type', 'dine_in')->count();
+        $todayPickup    = \App\Models\Order::whereDate('created_at', today())->where('order_type', 'pickup')->count();
 
         return view('chef.dashboard', [
             'newOrders'          => $orders['new'],
@@ -65,6 +68,9 @@ class ChefController extends Controller
             'revenueToday'       => $revenueToday,
             'pendingCount'       => $pendingCount,
             'availableRiderCount'=> $availableRiders->count(),
+            'todayDelivery'      => $todayDelivery,
+            'todayDineIn'        => $todayDineIn,
+            'todayPickup'        => $todayPickup,
         ]);
     }
 

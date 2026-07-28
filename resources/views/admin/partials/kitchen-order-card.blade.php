@@ -5,25 +5,27 @@
     $elapsedColor = $elapsed >= 20 ? '#ef4444' : ($elapsed >= 10 ? '#f59e0b' : 'var(--text-muted)');
     $elapsedLabel = $elapsed >= 20 ? "{$elapsed}m — URGENT" : "{$elapsed}m ago";
 
+    $isChef = request()->routeIs('chef.*');
+
     $deliveryMeta = match (true) {
         $order->status === 'out_for_delivery' => [
-            'label' => 'Picked Up — On the Way',
-            'color' => '#8b5cf6',
-            'bg'    => 'rgba(139,92,246,.14)',
+            'label'  => $isChef ? '✓ Out for Delivery' : 'Picked Up — On the Way',
+            'color'  => '#8b5cf6',
+            'bg'     => 'rgba(139,92,246,.14)',
             'detail' => $order->picked_up_at ? 'Left kitchen at ' . $order->picked_up_at->format('g:i A') : null,
             'picked' => true,
         ],
         $order->status === 'rider_assigned' => [
-            'label' => 'Hand to Rider: ' . ($order->rider?->user?->name ?? 'Assigned'),
-            'color' => '#2563eb',
-            'bg'    => 'rgba(37,99,235,.14)',
-            'detail' => $order->assigned_at ? 'Rider assigned at ' . $order->assigned_at->format('g:i A') : null,
+            'label'  => $isChef ? '✓ Food Ready' : 'Hand to Rider: ' . ($order->rider?->user?->name ?? 'Assigned'),
+            'color'  => $isChef ? '#10b981' : '#2563eb',
+            'bg'     => $isChef ? 'rgba(16,185,129,.14)' : 'rgba(37,99,235,.14)',
+            'detail' => $order->prepared_at ? 'Food ready at ' . $order->prepared_at->format('g:i A') : null,
             'picked' => false,
         ],
         default => [
-            'label' => 'Ready — Waiting for Rider',
-            'color' => '#10b981',
-            'bg'    => 'rgba(16,185,129,.14)',
+            'label'  => '✓ Food Ready',
+            'color'  => '#10b981',
+            'bg'     => 'rgba(16,185,129,.14)',
             'detail' => $order->prepared_at ? 'Food ready at ' . $order->prepared_at->format('g:i A') : null,
             'picked' => false,
         ],

@@ -5,7 +5,7 @@
 <style>
     .kitchen-board {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 1rem;
         min-height: calc(100vh - 220px);
     }
@@ -15,6 +15,16 @@
     @media (max-width: 640px) {
         .kitchen-board { grid-template-columns: 1fr; }
     }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    @media (max-width: 1280px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px)  { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px)  { .stats-grid { grid-template-columns: 1fr; } }
 
     .kitchen-col {
         background: var(--bg-section);
@@ -78,17 +88,6 @@
     }
     .k-order-card:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,.25); }
     .k-order-card.is-urgent { border-color: rgba(239,68,68,.45); box-shadow: 0 0 0 1px rgba(239,68,68,.15); }
-    .k-order-card.is-picked-up { opacity: .75; border-color: rgba(139,92,246,.35); }
-
-    .k-delivery-banner {
-        margin: 0;
-        padding: .55rem 1rem;
-        font-size: .72rem;
-        font-weight: 800;
-        letter-spacing: .03em;
-        text-transform: uppercase;
-        border-bottom: 1px solid var(--border-divider);
-    }
 
     @keyframes kSlideIn {
         from { opacity: 0; transform: translateY(8px); }
@@ -476,91 +475,90 @@
         gap: .6rem;
         flex-wrap: wrap;
     }
-
-    /* ── Rider assign section inside modal ── */
-    .k-rider-assign {
-        padding: .75rem 1.25rem .85rem;
-        border-top: 1px solid var(--border-divider);
-        background: rgba(59,130,246,.04);
-    }
-    .k-rider-assign-label {
-        font-size: .65rem;
-        font-weight: 800;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        margin-bottom: .5rem;
-    }
-    .k-rider-row {
-        display: flex;
-        gap: .5rem;
-        align-items: center;
-    }
-    .k-rider-select {
-        flex: 1;
-        background: var(--bg-card);
-        border: 1px solid var(--border-divider);
-        border-radius: .55rem;
-        padding: .55rem .75rem;
-        font-size: .8rem;
-        color: var(--text-strong);
-        cursor: pointer;
-        outline: none;
-        transition: border-color .15s;
-    }
-    .k-rider-select:focus { border-color: rgba(59,130,246,.5); }
-    .k-btn-assign {
-        background: #2563eb;
-        color: #fff;
-        border: none;
-        border-radius: .55rem;
-        padding: .55rem 1rem;
-        font-size: .78rem;
-        font-weight: 700;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: background .15s;
-        flex-shrink: 0;
-    }
-    .k-btn-assign:hover:not(:disabled) { background: #1d4ed8; }
-    .k-btn-assign:disabled { opacity: .55; cursor: not-allowed; }
-    .k-rider-assigned-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: .35rem;
-        font-size: .75rem;
-        font-weight: 700;
-        color: #60a5fa;
-        background: rgba(59,130,246,.1);
-        border: 1px solid rgba(59,130,246,.25);
-        border-radius: .5rem;
-        padding: .3rem .7rem;
-    }
 </style>
 @endpush
 
 @section('content')
 
 {{-- ── KITCHEN OVERVIEW STATS ── --}}
-<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem;">
+<div class="stats-grid">
     @php
+        $cookingNow = $cookingOrders->count() + $queuedOrders->count();
         $chefStats = [
-            ['label'=>'Today\'s Orders', 'value'=>$todayOrders,        'sub'=>'Placed today',       'icon'=>'calendar',     'color'=>'#6366f1','bg'=>'rgba(99,102,241,.12)'],
-            ['label'=>'Pending',         'value'=>$pendingCount,        'sub'=>'Need acceptance',    'icon'=>'clock',        'color'=>'#f59e0b','bg'=>'rgba(245,158,11,.12)'],
-            ['label'=>'Delivered Today', 'value'=>$deliveredToday,      'sub'=>'Completed orders',   'icon'=>'circle-check', 'color'=>'#10b981','bg'=>'rgba(16,185,129,.12)'],
-            ['label'=>'Revenue Today',   'value'=>'₱'.number_format($revenueToday),'sub'=>'From delivered', 'icon'=>'trending-up', 'color'=>'#22c55e','bg'=>'rgba(34,197,94,.12)'],
-            ['label'=>'Free Riders',     'value'=>$availableRiderCount, 'sub'=>'Ready for dispatch', 'icon'=>'bike',         'color'=>'#2563eb','bg'=>'rgba(37,99,235,.12)'],
+            [
+                'label' => 'Delivery',
+                'value' => $todayDelivery,
+                'sub'   => 'Today',
+                'icon'  => 'truck',
+                'color' => '#3b82f6',
+                'bg'    => 'rgba(59,130,246,.12)',
+                'border'=> 'rgba(59,130,246,.18)',
+            ],
+            [
+                'label' => 'Dine-in',
+                'value' => $todayDineIn,
+                'sub'   => 'Today',
+                'icon'  => 'utensils',
+                'color' => '#f59e0b',
+                'bg'    => 'rgba(245,158,11,.12)',
+                'border'=> 'rgba(245,158,11,.18)',
+            ],
+            [
+                'label' => 'Pickup',
+                'value' => $todayPickup,
+                'sub'   => 'Today',
+                'icon'  => 'shopping-bag',
+                'color' => '#8b5cf6',
+                'bg'    => 'rgba(139,92,246,.12)',
+                'border'=> 'rgba(139,92,246,.18)',
+            ],
+            [
+                'label' => 'Pending',
+                'value' => $pendingCount,
+                'sub'   => 'Need acceptance',
+                'icon'  => 'clock',
+                'color' => '#f97316',
+                'bg'    => 'rgba(249,115,22,.12)',
+                'border'=> 'rgba(249,115,22,.18)',
+            ],
+            [
+                'label' => 'In Kitchen',
+                'value' => $cookingNow,
+                'sub'   => 'Queued & cooking',
+                'icon'  => 'flame',
+                'color' => '#dc2626',
+                'bg'    => 'rgba(220,38,38,.12)',
+                'border'=> 'rgba(220,38,38,.18)',
+            ],
+            [
+                'label' => 'Completed',
+                'value' => $deliveredToday,
+                'sub'   => '₱'.number_format($revenueToday).' revenue',
+                'icon'  => 'circle-check',
+                'color' => '#10b981',
+                'bg'    => 'rgba(16,185,129,.12)',
+                'border'=> 'rgba(16,185,129,.18)',
+            ],
         ];
     @endphp
     @foreach($chefStats as $s)
-    <div class="stat-card" style="position:relative;overflow:hidden;">
-        <div style="width:2.5rem;height:2.5rem;border-radius:.75rem;background:{{ $s['bg'] }};display:flex;align-items:center;justify-content:center;margin-bottom:.75rem;">
-            <i data-lucide="{{ $s['icon'] }}" style="width:1.2rem;height:1.2rem;color:{{ $s['color'] }};stroke-width:2;"></i>
+    <div style="
+        position: relative;
+        overflow: hidden;
+        background: var(--bg-card);
+        border: 1px solid {{ $s['border'] }};
+        border-radius: 1rem;
+        padding: 1.1rem 1.2rem 1rem;
+    ">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem;">
+            <p style="font-size:.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin:0;font-weight:700;">{{ $s['label'] }}</p>
+            <div style="width:1.9rem;height:1.9rem;border-radius:.5rem;background:{{ $s['bg'] }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="{{ $s['icon'] }}" style="width:.9rem;height:.9rem;color:{{ $s['color'] }};stroke-width:2.5;"></i>
+            </div>
         </div>
-        <p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;margin:0 0 .25rem;font-weight:600;">{{ $s['label'] }}</p>
-        <p style="font-size:1.75rem;font-weight:900;color:{{ $s['color'] }};margin:0 0 .15rem;line-height:1;">{{ $s['value'] }}</p>
-        <p style="font-size:.65rem;color:var(--text-muted);margin:0;">{{ $s['sub'] }}</p>
-        <div style="position:absolute;bottom:-1rem;right:-1rem;width:4rem;height:4rem;border-radius:50%;background:{{ $s['bg'] }};filter:blur(14px);pointer-events:none;"></div>
+        <p style="font-size:2rem;font-weight:900;color:{{ $s['color'] }};margin:0;line-height:1;letter-spacing:-.02em;">{{ $s['value'] }}</p>
+        <p style="font-size:.65rem;color:var(--text-muted);margin:.35rem 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $s['sub'] }}</p>
+        <div style="position:absolute;bottom:-1.25rem;right:-1.25rem;width:4.5rem;height:4.5rem;border-radius:50%;background:{{ $s['bg'] }};filter:blur(16px);pointer-events:none;"></div>
     </div>
     @endforeach
 </div>
@@ -572,7 +570,7 @@
         </div>
         <div>
             <h1 style="margin:0 0 .15rem;font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--text-heading);">Kitchen Display</h1>
-            <p style="margin:0;font-size:.875rem;color:var(--text-muted);">Track orders from cooking through ready for delivery and rider pickup.</p>
+            <p style="margin:0;font-size:.875rem;color:var(--text-muted);">Track and manage orders from new through cooking.</p>
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;">
@@ -641,23 +639,6 @@
         </div>
     </div>
 
-    {{-- Ready for Delivery --}}
-    <div class="kitchen-col" data-col="ready">
-        <div class="kitchen-col-header" style="background:rgba(16,185,129,.06);">
-            <h2 class="kitchen-col-title">
-                <i data-lucide="package-check" style="width:1rem;height:1rem;color:#10b981;stroke-width:2;"></i>
-                Ready for Delivery
-            </h2>
-            <span class="kitchen-col-count" style="background:rgba(16,185,129,.15);color:#10b981;" id="count-ready">{{ $readyOrders->count() }}</span>
-        </div>
-        <div class="kitchen-col-body" id="col-ready">
-            @forelse($readyOrders as $order)
-                @include('admin.partials.kitchen-order-card', ['order' => $order, 'column' => 'ready'])
-            @empty
-                <div class="k-empty"><div class="k-empty-icon"><svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg></div>No orders ready for delivery</div>
-            @endforelse
-        </div>
-    </div>
 </div>
 
 {{-- ── Order Detail Modal ── --}}
@@ -674,7 +655,6 @@
         <div class="k-modal-items" id="modalItems"></div>
         <div id="modalNotes"></div>
         <div class="k-modal-footer" id="modalFooter"></div>
-        <div id="riderAssignSection"></div>
         <div class="k-modal-action-bar" id="modalActions"></div>
     </div>
 </div>
@@ -694,8 +674,6 @@ let refreshTimer = 15;
 let countdownTimer = null;
 let lastNewCount = {{ $newOrders->count() }};
 let orderDataMap = {};
-
-const AVAILABLE_RIDERS = @json($availableRiders ?? []);
 
 function elapsedBadge(mins) {
     let bg, color, label;
@@ -752,29 +730,19 @@ function renderActions(order, column) {
     if (column === 'cooking') {
         return printBtn + `<button class="k-btn k-btn-ready" onclick="event.stopPropagation();kitchenAction('ready', ${order.id}, this)">Mark Ready</button>`;
     }
-    const detail = order.delivery_detail || 'Ready for delivery';
-    const color = order.delivery_color || '#10b981';
-    return printBtn + `<div style="text-align:center;width:100%;font-size:.72rem;color:${color};font-weight:700;padding:.4rem;line-height:1.45;">${escapeHtml(detail)}</div>`;
+    return printBtn;
 }
 
 function renderOrderCard(order, column) {
-    const urgent = order.elapsed_mins >= 20 && column !== 'ready' ? ' is-urgent' : '';
-    const pickedUp = column === 'ready' && order.delivery_status === 'picked_up' ? ' is-picked-up' : '';
+    const urgent = order.elapsed_mins >= 20 ? ' is-urgent' : '';
     const notes = order.notes
         ? `<div class="k-notes">📝 ${escapeHtml(order.notes)}</div>`
         : '';
 
-    const deliveryBanner = column === 'ready'
-        ? `<div class="k-delivery-banner" style="background:${order.delivery_bg || 'rgba(16,185,129,.14)'};color:${order.delivery_color || '#10b981'};">${escapeHtml(order.delivery_label || 'Ready for Delivery')}</div>`
-        : '';
-
-    const elapsed = column !== 'ready'
-        ? elapsedBadge(order.elapsed_mins)
-        : '';
+    const elapsed = elapsedBadge(order.elapsed_mins);
 
     return `
-        <div class="k-order-card${urgent}${pickedUp}" data-order-id="${order.id}" onclick="openOrderModal(${order.id})" style="cursor:pointer;">
-            ${deliveryBanner}
+        <div class="k-order-card${urgent}" data-order-id="${order.id}" onclick="openOrderModal(${order.id})" style="cursor:pointer;">
             <div class="k-card-top">
                 <div>
                     <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.15rem;">
@@ -801,12 +769,11 @@ function renderColumn(col, orders) {
     countEl.textContent = orders.length;
 
     if (!orders.length) {
-        const emptyMsg = { new: 'No new orders', queued: 'Queue is empty', cooking: 'Nothing cooking', ready: 'No orders ready for delivery' };
+        const emptyMsg = { new: 'No new orders', queued: 'Queue is empty', cooking: 'Nothing cooking' };
         const emptyIcon = {
             new:     '<svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-5-5.917V5a1 1 0 10-2 0v.083A6 6 0 006 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>',
             queued:  '<svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
             cooking: '<svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z"/></svg>',
-            ready:   '<svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg>',
         };
         el.innerHTML = `<div class="k-empty"><div class="k-empty-icon">${emptyIcon[col]}</div>${emptyMsg[col]}</div>`;
         return;
@@ -902,95 +869,8 @@ function openOrderModal(orderId) {
         (col !== 'new' ? printBtn : '') +
         btn + `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);flex:0 0 auto;padding:.6rem 1.2rem;" onclick="closeOrderModal()">Close</button>`;
 
-    // ── Rider assign section (visible on cooking + ready columns, ADMIN ONLY) ──────────
-    const canAssign = (col === 'cooking' || col === 'ready') && IS_ADMIN;
-    const riderSection = document.getElementById('riderAssignSection');
-    if (canAssign) {
-        if (order.rider_id && order.rider_name) {
-            riderSection.innerHTML = `
-                <div class="k-rider-assign">
-                    <div class="k-rider-assign-label"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Rider Assignment</div>
-                    <div class="k-rider-assigned-badge">✓ ${escapeHtml(order.rider_name)} assigned</div>
-                    <div style="margin-top:.5rem;">
-                        <button class="k-btn-assign" style="font-size:.72rem;padding:.4rem .7rem;background:rgba(255,255,255,.08);color:var(--text-muted);" onclick="showRiderReassign(${order.id})">Change Rider</button>
-                    </div>
-                </div>`;
-        } else {
-            riderSection.innerHTML = buildRiderSelectHtml(order.id);
-        }
-    } else {
-        riderSection.innerHTML = '';
-    }
-
     document.getElementById('orderModal').classList.add('open');
     document.body.style.overflow = 'hidden';
-}
-
-function buildRiderSelectHtml(orderId) {
-    if (!AVAILABLE_RIDERS.length) {
-        return `<div class="k-rider-assign">
-            <div class="k-rider-assign-label"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Rider Assignment</div>
-            <div style="font-size:.75rem;color:var(--text-muted);font-style:italic;">No riders available right now</div>
-        </div>`;
-    }
-    const options = AVAILABLE_RIDERS.map(r =>
-        `<option value="${r.id}">${escapeHtml(r.name)}${r.phone ? ' · ' + escapeHtml(r.phone) : ''}</option>`
-    ).join('');
-    return `
-        <div class="k-rider-assign">
-            <div class="k-rider-assign-label"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>Assign Rider</div>
-            <div class="k-rider-row">
-                <select class="k-rider-select" id="riderSelectFor_${orderId}">
-                    <option value="">— Choose a rider —</option>
-                    ${options}
-                </select>
-                <button class="k-btn-assign" id="riderAssignBtn_${orderId}"
-                    onclick="assignRiderAction(${orderId})">Assign</button>
-            </div>
-        </div>`;
-}
-
-function showRiderReassign(orderId) {
-    document.getElementById('riderAssignSection').innerHTML = buildRiderSelectHtml(orderId);
-}
-
-async function assignRiderAction(orderId) {
-    const select = document.getElementById('riderSelectFor_' + orderId);
-    const btn    = document.getElementById('riderAssignBtn_' + orderId);
-    const riderId = select ? select.value : '';
-
-    if (!riderId) { select.style.borderColor = '#ef4444'; setTimeout(() => select.style.borderColor = '', 1500); return; }
-
-    btn.disabled = true;
-    btn.textContent = '…';
-
-    try {
-        const res = await fetch(`/chef/orders/${orderId}/assign-rider`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rider_id: riderId }),
-        });
-        const data = await res.json();
-        if (!data.success) {
-            alert(data.message || 'Failed to assign rider.');
-            btn.disabled = false;
-            btn.textContent = 'Assign';
-            return;
-        }
-        // Update local orderDataMap
-        const riderObj = AVAILABLE_RIDERS.find(r => r.id == riderId);
-        if (orderDataMap[orderId]) {
-            orderDataMap[orderId].rider_id   = parseInt(riderId);
-            orderDataMap[orderId].rider_name = riderObj ? riderObj.name : 'Rider';
-            orderDataMap[orderId].column     = 'ready';
-        }
-        closeOrderModal();
-        await refreshKitchen(true);
-    } catch (e) {
-        alert('Network error. Please try again.');
-        btn.disabled = false;
-        btn.textContent = 'Assign';
-    }
 }
 
 function closeOrderModal(e) {
@@ -1095,7 +975,6 @@ async function refreshKitchen(manual) {
         renderColumn('new', data.new);
         renderColumn('queued', data.queued);
         renderColumn('cooking', data.cooking);
-        renderColumn('ready', data.ready);
 
         if (window.lucide) lucide.createIcons();
 
@@ -1145,19 +1024,16 @@ document.addEventListener('DOMContentLoaded', () => {
         $allKitchenOrders = array_merge(
             $newOrders->all(),
             $queuedOrders->all(),
-            $cookingOrders->all(),
-            $readyOrders->all()
+            $cookingOrders->all()
         );
         $kitchenSeed = [];
         foreach ($allKitchenOrders as $o) {
-            if (in_array($o->status, ['pending'])) {
+            if ($o->status === 'pending') {
                 $col = 'new';
-            } elseif (in_array($o->status, ['accepted'])) {
+            } elseif ($o->status === 'accepted') {
                 $col = 'queued';
-            } elseif ($o->status === 'preparing' && !$o->prepared_at) {
-                $col = 'cooking';
             } else {
-                $col = 'ready';
+                $col = 'cooking';
             }
             $kitchenSeed[] = [
                 'id'           => $o->id,
