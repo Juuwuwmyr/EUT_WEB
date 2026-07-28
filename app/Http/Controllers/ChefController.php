@@ -18,26 +18,6 @@ class ChefController extends Controller
     }
 
     /**
-     * Start cooking — no longer needed as accept auto-sets preparing.
-     * Kept for backward compat but proxies to markReady intent.
-     */
-    public function startCooking(Order $order)
-    {
-        // Admin accept already sets status=preparing, so this is a no-op safety valve
-        if (!in_array($order->status, ['accepted', 'preparing'])) {
-            return $this->kitchenActionResponse(false, 'Order is not in a cookable state.');
-        }
-
-        if ($order->status === 'accepted') {
-            // Edge case: order was accepted without auto-preparing — push it forward
-            $order->update(['status' => 'preparing']);
-            broadcast(new OrderStatusUpdated($order));
-        }
-
-        return $this->kitchenActionResponse(true, "Order #{$order->order_number} is now cooking.");
-    }
-
-    /**
      * Display the chef's kitchen board.
      */
     public function dashboard()
