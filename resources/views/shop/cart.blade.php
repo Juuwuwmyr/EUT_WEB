@@ -14,11 +14,10 @@
         /* -- NAVBAR -- */
         .topnav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            background: rgba(8,8,16,0.98);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(8,8,16,1);
             border-bottom: 1px solid rgba(255,255,255,0.06);
             will-change: transform;
+            transform: translate3d(0,0,0);
         }
         .topnav-inner {
             max-width: 560px; margin: 0 auto;
@@ -200,12 +199,11 @@
         .buy-now-bar {
             display: flex; align-items: center; justify-content: space-between;
             background: linear-gradient(135deg, #f59e0b, #facc15);
-            color: #000; padding: 14px 20px;
-            border-radius: 18px; border: none;
-            text-decoration: none; cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 6px 28px rgba(250,204,21,0.4);
-            margin-bottom: 10px;
+            color: #000; padding: 14px 18px;
+            border-radius: 16px; margin: 0 16px;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(250,204,21,0.3);
+            transition: transform 0.2s;
         }
         .buy-now-bar:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(250,204,21,0.5); }
         .buy-now-bar:active { transform: scale(0.98); }
@@ -313,6 +311,7 @@
             -webkit-backdrop-filter: blur(8px);
             padding: 10px 0 14px; z-index: 100;
             will-change: transform;
+            transform: translate3d(0,0,0);
         }
         @media (min-width: 1024px) { .bottom-nav { display: none; } }
         .bottom-nav-inner { display: flex; }

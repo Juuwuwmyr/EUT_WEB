@@ -32,12 +32,10 @@
         /* -- NAVBAR -- */
         .topnav {
             position: sticky; top: 0; z-index: 100;
-            background: rgba(8,8,16,0.98);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(8,8,16,1);
             border-bottom: 1px solid rgba(255,255,255,0.1);
             will-change: transform;
-            transform: translateZ(0);
+            transform: translate3d(0,0,0);
         }
         .topnav-inner {
             max-width: 1200px; margin: 0 auto;
@@ -97,6 +95,7 @@
             border-radius: 24px; overflow: hidden;
             position: relative; min-height: 220px;
             padding: 28px 28px 28px;
+            transform: translate3d(0,0,0);
         }
         .hero-card::before {
             content: '';
@@ -144,12 +143,10 @@
         /* -- CATEGORIES -- */
         .cats-wrap {
             position: sticky; top: 62px; z-index: 90;
-            background: rgba(8,8,16,0.98);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(8,8,16,1);
             border-bottom: 1px solid rgba(255,255,255,0.05);
             will-change: transform;
-            transform: translateZ(0);
+            transform: translate3d(0,0,0);
         }
         .cats-inner {
             max-width: 1200px; margin: 0 auto;
@@ -210,6 +207,11 @@
             transition: transform 0.22s ease, border-color 0.22s, box-shadow 0.22s;
             box-shadow: 0 4px 16px rgba(0,0,0,0.4);
             display: flex; flex-direction: column;
+            content-visibility: auto;
+            contain-intrinsic-size: 0 340px;
+            contain: content;
+            will-change: transform, opacity;
+            transform: translateZ(0);
         }
         .p-card:hover {
             transform: translateY(-4px);
@@ -294,13 +296,11 @@
         /* -- BOTTOM NAV -- */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(8,8,16,0.98);
+            background: rgba(8,8,16,1);
             border-top: 1px solid rgba(255,255,255,0.07);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             padding: 10px 0 14px; z-index: 100;
             will-change: transform;
-            transform: translateZ(0);
+            transform: translate3d(0,0,0);
         }
         @media (min-width: 1024px) { .bottom-nav { display: none; } }
         .bottom-nav-inner { display: flex; }
@@ -314,6 +314,15 @@
         /* Animations */
         @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
         .p-card { animation: fade-up 0.3s ease both; }
+        
+        /* ── NATIVE SCROLL OPTIMIZATION ── */
+        /* Disables heavy hover/paint calculations while the user is swiping */
+        body.is-scrolling .p-card,
+        body.is-scrolling a,
+        body.is-scrolling button {
+            pointer-events: none !important;
+        }
+
         @media (prefers-reduced-motion: reduce) {
             .p-card { animation: none !important; transition: none !important; }
             *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
@@ -380,7 +389,7 @@
 
 <!-- -- CATEGORIES -- -->
 <div class="cats-wrap">
-    <div style="max-width:1200px; margin:0 auto; padding:14px 0 14px 16px; display:flex; gap:10px; overflow-x:scroll; overflow-y:visible; -webkit-overflow-scrolling:touch; scrollbar-width:none; flex-wrap:nowrap; -ms-overflow-style:none;" id="catsRow">
+    <div style="max-width:1200px; margin:0 auto; padding:14px 0 14px 16px; display:flex; gap:10px; overflow-x:scroll; overflow-y:visible; -webkit-overflow-scrolling:touch; scrollbar-width:none; flex-wrap:nowrap; -ms-overflow-style:none; will-change:scroll-position; transform:translate3d(0,0,0);" id="catsRow">
         <button class="cat-pill active" data-category="all" style="flex-shrink:0;">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg> All
         </button>
@@ -622,25 +631,20 @@ const scrollObserver = new IntersectionObserver((entries) => {
     threshold: 0 
 });
 
-// Fallback scroll listener with Throttle to prevent layout thrashing
-let scrollThrottleTimer;
+// Fallback scroll listener removed to prevent layout thrashing and scrolling lag.
+// We rely entirely on the IntersectionObserver which is highly optimized for performance.
+
+// Native app-like scroll smoothness trick:
+// Disable pointer events (hovers, clicks) while actively scrolling so the GPU doesn't waste resources.
+let isScrollingTimer;
 window.addEventListener('scroll', () => {
-    if (scrollThrottleTimer) return;
-    
-    scrollThrottleTimer = setTimeout(() => {
-        scrollThrottleTimer = null;
-        
-        if (isLoaderVisible || visibleItemsCount >= allFilteredCards.length) return;
-        
-        // Check if we are near the bottom of the page (within 800px)
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
-            const loader = document.getElementById('infiniteScrollLoader');
-            if (loader) {
-                loader.style.opacity = '1';
-                loadMoreItems();
-            }
-        }
-    }, 150); // Throttle to 150ms
+    if (!document.body.classList.contains('is-scrolling')) {
+        document.body.classList.add('is-scrolling');
+    }
+    clearTimeout(isScrollingTimer);
+    isScrollingTimer = setTimeout(() => {
+        document.body.classList.remove('is-scrolling');
+    }, 120); // Quick reset after finger stops
 }, { passive: true });
 
 // Initialize

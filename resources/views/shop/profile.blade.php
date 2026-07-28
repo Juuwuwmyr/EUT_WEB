@@ -192,8 +192,9 @@
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(8,8,16,0.97);
             border-top: 1px solid rgba(255,255,255,0.07);
-            backdrop-filter: blur(20px);
             padding: 10px 0 14px; z-index: 100;
+            will-change: transform;
+            transform: translate3d(0,0,0);
         }
         @media (min-width: 1024px) { .bottom-nav { display: none; } }
         .bottom-nav-inner { display: flex; }

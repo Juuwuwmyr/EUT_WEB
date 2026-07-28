@@ -10,7 +10,7 @@
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
         body{background:#080810;color:#fff;min-height:100vh;}
-        .topnav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,16,.98);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.06);will-change:transform;}
+        .topnav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,16,.98);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.06);will-change:transform;transform:translate3d(0,0,0);}
         .topnav-inner{max-width:760px;margin:0 auto;padding:13px 16px;display:flex;align-items:center;gap:10px;}
         .back-btn{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#9ca3af;text-decoration:none;transition:all .2s;flex-shrink:0;}
         .back-btn:hover{background:rgba(255,255,255,.12);color:#fff;}
@@ -83,7 +83,7 @@
         @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
         /* ── BOTTOM NAV ── */
-        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.97);border-top:1px solid rgba(255,255,255,.07);backdrop-filter:blur(20px);padding:10px 0 14px;z-index:100;}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.97);border-top:1px solid rgba(255,255,255,.07);backdrop-filter:blur(20px);padding:10px 0 14px;z-index:100;will-change:transform;transform:translate3d(0,0,0);}
         @media(min-width:1024px){.bottom-nav{display:none;}}
         .bottom-nav-inner{display:flex;}
         .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#4b5563;text-decoration:none;font-size:10px;font-weight:500;transition:color .15s;}
