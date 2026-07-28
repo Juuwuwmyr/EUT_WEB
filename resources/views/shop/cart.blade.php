@@ -387,19 +387,95 @@
     @auth
     <!-- -- EMPTY STATE -- -->
     <div id="emptyCart" style="display:none;">
-        <div class="empty-state">
-            <div class="empty-bag" style="display:flex;align-items:center;justify-content:center;"><svg width="52" height="52" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></div>
-            <p class="empty-title">Your cart is empty</p>
-            <p class="empty-sub">Looks like you haven't added anything yet.<br>Browse our menu and find something delicious!</p>
-            <div class="empty-suggestions">
-                <a href="{{ route('shop.home') }}" class="suggestion-chip"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16"/></svg> Burgers</a>
-                <a href="{{ route('shop.home') }}" class="suggestion-chip"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6h3.5v7"/></svg> Fries</a>
-                <a href="{{ route('shop.home') }}" class="suggestion-chip"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2"/></svg> Beverages</a>
-                <a href="{{ route('shop.home') }}" class="suggestion-chip"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg> Combos</a>
+        <!-- Empty cart hero -->
+        <div style="text-align:center; padding: 48px 24px 32px;">
+            <!-- Animated cart icon -->
+            <div style="position:relative; width:110px; height:110px; margin:0 auto 28px;">
+                <div style="width:110px; height:110px; border-radius:50%;
+                    background: linear-gradient(145deg,#1a0d00,#12131f);
+                    border:1px solid rgba(245,158,11,0.2);
+                    display:flex; align-items:center; justify-content:center;
+                    box-shadow: 0 0 0 8px rgba(245,158,11,0.05), 0 0 0 16px rgba(245,158,11,0.025), 0 16px 40px rgba(0,0,0,0.5);">
+                    <svg width="48" height="48" fill="none" stroke="url(#cartGrad)" stroke-width="1.5" viewBox="0 0 24 24">
+                        <defs>
+                            <linearGradient id="cartGrad" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#f59e0b"/>
+                                <stop offset="100%" stop-color="#facc15"/>
+                            </linearGradient>
+                        </defs>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                </div>
+                <!-- Floating dots -->
+                <div style="position:absolute; top:4px; right:8px; width:14px; height:14px; border-radius:50%; background:rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.3);"></div>
+                <div style="position:absolute; bottom:8px; left:4px; width:9px; height:9px; border-radius:50%; background:rgba(220,38,38,0.2); border:1px solid rgba(220,38,38,0.3);"></div>
             </div>
-            <a href="{{ route('shop.home') }}" class="checkout-btn" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;max-width:280px;margin:0 auto;padding:13px 28px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(245,158,11,0.3);">
+
+            <h2 style="font-family:'Playfair Display',serif; font-size:24px; font-weight:700; color:#fff; margin-bottom:10px; letter-spacing:-0.01em;">
+                Your cart is empty
+            </h2>
+            <p style="font-size:14px; color:#6b7280; line-height:1.7; margin-bottom:32px; max-width:260px; margin-left:auto; margin-right:auto;">
+                Looks like you haven't added anything yet. Discover our menu and find something delicious!
+            </p>
+
+            <!-- CTA button -->
+            <a href="{{ route('shop.home') }}"
+               style="display:inline-flex; align-items:center; justify-content:center; gap:9px;
+                      padding:15px 32px; border-radius:14px;
+                      background:linear-gradient(135deg,#f59e0b,#facc15);
+                      color:#000; font-size:15px; font-weight:800; text-decoration:none;
+                      box-shadow:0 6px 24px rgba(245,158,11,0.35);
+                      transition:all 0.2s; letter-spacing:0.01em; margin-bottom:32px;">
+                <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h7"/>
+                </svg>
                 Browse Menu
             </a>
+        </div>
+
+        <!-- Quick category chips -->
+        <div style="padding: 0 20px 20px;">
+            <p style="font-size:11px; font-weight:700; color:#4b5563; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Popular right now</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="{{ route('shop.home') }}" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#9ca3af;font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s;">
+                    🍔 Burgers
+                </a>
+                <a href="{{ route('shop.home') }}" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#9ca3af;font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s;">
+                    🍟 Fries
+                </a>
+                <a href="{{ route('shop.home') }}" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#9ca3af;font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s;">
+                    🧋 Drinks
+                </a>
+                <a href="{{ route('shop.home') }}" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#9ca3af;font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s;">
+                    🍱 Combos
+                </a>
+                <a href="{{ route('shop.home') }}" style="display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:99px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#9ca3af;font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s;">
+                    🍰 Snacks
+                </a>
+            </div>
+        </div>
+
+        <!-- Trust strip -->
+        <div style="margin:8px 20px 16px; padding:16px 20px; border-radius:16px; background:linear-gradient(145deg,#12131f,#0e0f1a); border:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex; justify-content:space-around; gap:8px;">
+                <div style="text-align:center;">
+                    <div style="font-size:20px; margin-bottom:4px;">⚡</div>
+                    <p style="font-size:10px; font-weight:700; color:#facc15; margin-bottom:2px;">Fast</p>
+                    <p style="font-size:10px; color:#4b5563;">30–45 min</p>
+                </div>
+                <div style="width:1px; background:rgba(255,255,255,0.06);"></div>
+                <div style="text-align:center;">
+                    <div style="font-size:20px; margin-bottom:4px;">🛡️</div>
+                    <p style="font-size:10px; font-weight:700; color:#facc15; margin-bottom:2px;">Secure</p>
+                    <p style="font-size:10px; color:#4b5563;">Safe checkout</p>
+                </div>
+                <div style="width:1px; background:rgba(255,255,255,0.06);"></div>
+                <div style="text-align:center;">
+                    <div style="font-size:20px; margin-bottom:4px;">⭐</div>
+                    <p style="font-size:10px; font-weight:700; color:#facc15; margin-bottom:2px;">4.9 Rating</p>
+                    <p style="font-size:10px; color:#4b5563;">Top quality</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -625,6 +701,8 @@ function renderCart() {
 
     // Guest view — these elements don't exist, nothing to render
     if (!empty || !content) return;
+
+    if (!cart.length) {
         empty.style.display   = 'block';
         content.style.display = 'none';
         document.getElementById('navCartCount').textContent = '0 items';
