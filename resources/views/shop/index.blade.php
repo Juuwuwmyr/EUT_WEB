@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,10 @@
     <title>E.U.T Snack House - Menu</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-head')
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"></noscript>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         html { scroll-behavior: smooth; }
@@ -29,9 +32,12 @@
         /* -- NAVBAR -- */
         .topnav {
             position: sticky; top: 0; z-index: 100;
-            background: rgba(8,8,16,0.96);
-            backdrop-filter: blur(20px);
+            background: rgba(8,8,16,0.98);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border-bottom: 1px solid rgba(255,255,255,0.1);
+            will-change: transform;
+            transform: translateZ(0);
         }
         .topnav-inner {
             max-width: 1200px; margin: 0 auto;
@@ -138,9 +144,12 @@
         /* -- CATEGORIES -- */
         .cats-wrap {
             position: sticky; top: 62px; z-index: 90;
-            background: rgba(8,8,16,0.96);
-            backdrop-filter: blur(20px);
+            background: rgba(8,8,16,0.98);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
+            will-change: transform;
+            transform: translateZ(0);
         }
         .cats-inner {
             max-width: 1200px; margin: 0 auto;
@@ -201,6 +210,10 @@
             transition: transform 0.22s ease, border-color 0.22s, box-shadow 0.22s;
             box-shadow: 0 4px 16px rgba(0,0,0,0.4);
             display: flex; flex-direction: column;
+            will-change: transform, opacity;
+            contain: layout style paint;
+            content-visibility: auto;
+            contain-intrinsic-size: 1px 320px;
         }
         .p-card:hover {
             transform: translateY(-4px);
@@ -285,10 +298,13 @@
         /* -- BOTTOM NAV -- */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(8,8,16,0.97);
+            background: rgba(8,8,16,0.98);
             border-top: 1px solid rgba(255,255,255,0.07);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             padding: 10px 0 14px; z-index: 100;
+            will-change: transform;
+            transform: translateZ(0);
         }
         @media (min-width: 1024px) { .bottom-nav { display: none; } }
         .bottom-nav-inner { display: flex; }
@@ -302,6 +318,11 @@
         /* Animations */
         @keyframes fade-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
         .p-card { animation: fade-up 0.3s ease both; }
+        @media (prefers-reduced-motion: reduce) {
+            .p-card { animation: none !important; transition: none !important; }
+            *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+            html { scroll-behavior: auto; }
+        }
     </style>
 </head>
 <body>
@@ -393,10 +414,10 @@
 
 <div class="products-grid" id="productsGrid">
     @foreach($menuItems as $index => $item)
-    <div class="p-card" data-category="{{ $item->category->slug ?? '' }}" data-name="{{ strtolower($item->name) }}" style="animation-delay: {{ $index * 0.04 }}s;">
+    <div class="p-card" data-category="{{ $item->category->slug ?? '' }}" data-name="{{ strtolower($item->name) }}" style="display: none;">
         <a href="{{ route('shop.product', $item->id) }}" style="text-decoration:none; display:block;">
             <div class="p-card-img-wrap">
-                <img src="{{ $item->image ? asset($item->image) : 'https://placehold.co/400x300/1a1a2e/facc15?text=' . urlencode($item->name) }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy">
+                <img src="{{ $item->image ? asset($item->image) : 'https://placehold.co/400x300/1a1a2e/facc15?text=' . urlencode($item->name) }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy" decoding="async">
                 <div class="p-card-img-overlay"></div>
                 @if($item->featured)
                     <span class="badge-hot" style="display:inline-flex;align-items:center;gap:3px;"><svg width="10" height="10" fill="#fff" viewBox="0 0 24 24"><path d="M17.66 11.2C17.43 10.9 17.15 10.64 16.89 10.38C16.22 9.78 15.46 9.35 14.82 8.72C13.33 7.26 13 4.85 13.95 3C13 3.23 12.17 3.75 11.46 4.32C8.87 6.4 7.85 10.07 9.07 13.22C9.11 13.32 9.15 13.42 9.15 13.55C9.15 13.77 9 13.97 8.8 14.05C8.57 14.15 8.33 14.09 8.14 13.93C8.08 13.88 8.04 13.83 8 13.76C6.87 12.33 6.69 10.28 7.45 8.64C5.78 10 4.87 12.3 5 14.47C5.06 14.97 5.12 15.47 5.29 15.97C5.43 16.57 5.7 17.17 6 17.7C7.08 19.43 8.95 20.67 10.96 20.92C13.1 21.19 15.39 20.8 17.03 19.32C18.86 17.66 19.5 15 18.56 12.72L18.43 12.46C18.22 12 17.66 11.2 17.66 11.2Z"/></svg> Hot</span>
@@ -418,6 +439,20 @@
     </div>
     @endforeach
 </div>
+
+<!-- -- INFINITE SCROLL LOADER -- -->
+<div id="infiniteScrollLoader" style="display:none; text-align:center; padding: 20px 0 40px; grid-column: 1 / -1; width: 100%;">
+    <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:8px 16px; border-radius:99px; border:1px solid rgba(255,255,255,0.08);">
+        <svg style="animation: spin 1s linear infinite; color:#facc15;" width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-opacity="0.25"></circle>
+            <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span style="font-size:12px; color:#9ca3af; font-weight:600;">Loading more tasty items...</span>
+    </div>
+</div>
+<style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
 
 <!-- -- BOTTOM NAV -- -->
 <div style="height:80px;" class="lg:hidden"></div>
@@ -476,26 +511,151 @@ document.querySelectorAll('.cat-pill').forEach(pill => {
     pill.addEventListener('click', () => {
         document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
         pill.classList.add('active');
+        // Reset infinite scroll state on category change
+        visibleItemsCount = 0;
+        allFilteredCards = [];
         filterProducts();
     });
 });
 
 /* -- Search -- */
-document.getElementById('searchInput').addEventListener('input', filterProducts);
+let searchDebounceTimer;
+document.getElementById('searchInput').addEventListener('input', () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+        // Reset infinite scroll state on search
+        visibleItemsCount = 0;
+        allFilteredCards = [];
+        filterProducts();
+    }, 300); // 300ms debounce
+});
+
+/* -- Infinite Scroll State -- */
+const ITEMS_PER_PAGE = 8;
+let visibleItemsCount = 0;
+let allFilteredCards = [];
+let isLoaderVisible = false;
 
 function filterProducts() {
     const cat    = document.querySelector('.cat-pill.active')?.dataset.category || 'all';
     const query  = document.getElementById('searchInput').value.toLowerCase().trim();
-    let visible  = 0;
+    
+    // First, find all cards that match the current filter/search
+    allFilteredCards = [];
     document.querySelectorAll('.p-card').forEach(card => {
         const matchCat  = cat === 'all' || card.dataset.category === cat;
         const matchName = !query || card.dataset.name.includes(query);
-        const show = matchCat && matchName;
-        card.style.display = show ? 'flex' : 'none';
-        if (show) visible++;
+        
+        if (matchCat && matchName) {
+            allFilteredCards.push(card);
+        } else {
+            card.style.display = 'none'; // Hide non-matching immediately
+        }
     });
-    updateCount(visible);
+    
+    // Reset visible count if this is a fresh filter application
+    if (visibleItemsCount === 0) {
+        visibleItemsCount = Math.min(ITEMS_PER_PAGE, allFilteredCards.length);
+    }
+    
+    // Show only up to the visibleItemsCount
+    allFilteredCards.forEach((card, index) => {
+        if (index < visibleItemsCount) {
+            if (card.style.display === 'none' || card.style.display === '') {
+                card.style.display = 'flex';
+                const batchIndex = index % ITEMS_PER_PAGE;
+                card.style.animationDelay = (batchIndex * 0.04) + 's';
+            }
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    updateCount(allFilteredCards.length);
+    checkScrollLoader();
 }
+
+function loadMoreItems() {
+    if (visibleItemsCount >= allFilteredCards.length || isLoaderVisible) return;
+    
+    isLoaderVisible = true;
+    const loader = document.getElementById('infiniteScrollLoader');
+    loader.style.display = 'block';
+    loader.style.opacity = '1';
+    
+    // Simulate network delay for effect
+    setTimeout(() => {
+        const nextLimit = Math.min(visibleItemsCount + ITEMS_PER_PAGE, allFilteredCards.length);
+        
+        for (let i = visibleItemsCount; i < nextLimit; i++) {
+            const card = allFilteredCards[i];
+            card.style.display = 'flex';
+            card.style.animationDelay = ((i - visibleItemsCount) * 0.06) + 's';
+        }
+        
+        visibleItemsCount = nextLimit;
+        loader.style.display = 'none';
+        isLoaderVisible = false;
+        
+        checkScrollLoader();
+    }, 400); // Reduced delay slightly for snappier feel
+}
+
+function checkScrollLoader() {
+    const loader = document.getElementById('infiniteScrollLoader');
+    if (visibleItemsCount >= allFilteredCards.length) {
+        loader.style.display = 'none';
+    } else {
+        // Ensure loader is visible if we have more items to load
+        loader.style.display = 'block';
+        loader.style.opacity = '0'; // Hide visually but keep it in DOM for observer
+    }
+}
+
+// Infinite Scroll Observer - using a more reliable configuration
+const scrollObserver = new IntersectionObserver((entries) => {
+    const entry = entries[0];
+    if (entry.isIntersecting && !isLoaderVisible && visibleItemsCount > 0 && visibleItemsCount < allFilteredCards.length) {
+        // Make sure it's fully visible when actually loading
+        entry.target.style.opacity = '1';
+        loadMoreItems();
+    }
+}, { 
+    root: null,
+    rootMargin: "0px 0px 600px 0px", // Increased margin to trigger even earlier
+    threshold: 0 
+});
+
+// Fallback scroll listener with Throttle to prevent layout thrashing
+let scrollThrottleTimer;
+window.addEventListener('scroll', () => {
+    if (scrollThrottleTimer) return;
+    
+    scrollThrottleTimer = setTimeout(() => {
+        scrollThrottleTimer = null;
+        
+        if (isLoaderVisible || visibleItemsCount >= allFilteredCards.length) return;
+        
+        // Check if we are near the bottom of the page (within 800px)
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 800) {
+            const loader = document.getElementById('infiniteScrollLoader');
+            if (loader) {
+                loader.style.opacity = '1';
+                loadMoreItems();
+            }
+        }
+    }, 150); // Throttle to 150ms
+}, { passive: true });
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    // Start observing the loader element
+    const loader = document.getElementById('infiniteScrollLoader');
+    if (loader) scrollObserver.observe(loader);
+    
+    // Initial filter run
+    filterProducts();
+});
 
 function updateCount(n) {
     const all = document.querySelectorAll('.p-card').length;

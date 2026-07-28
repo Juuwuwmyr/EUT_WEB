@@ -14,9 +14,11 @@
         /* -- NAVBAR -- */
         .topnav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            background: rgba(8,8,16,0.94);
-            backdrop-filter: blur(20px);
+            background: rgba(8,8,16,0.98);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border-bottom: 1px solid rgba(255,255,255,0.06);
+            will-change: transform;
         }
         .topnav-inner {
             max-width: 560px; margin: 0 auto;
@@ -305,10 +307,12 @@
         /* -- BOTTOM NAV -- */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(8,8,16,0.97);
+            background: rgba(8,8,16,0.98);
             border-top: 1px solid rgba(255,255,255,0.07);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             padding: 10px 0 14px; z-index: 100;
+            will-change: transform;
         }
         @media (min-width: 1024px) { .bottom-nav { display: none; } }
         .bottom-nav-inner { display: flex; }
@@ -634,7 +638,7 @@ function renderCart() {
             }).join('');
 
         div.innerHTML = `
-            <img src="${item.image}" alt="${item.name}" class="item-img">
+            <img src="${item.image}" alt="${item.name}" class="item-img" loading="lazy" decoding="async">
             <div class="item-info">
                 <p class="item-name">${item.name}</p>
                 <p class="item-unit-price">&#8369;${item.price.toLocaleString()} each</p>

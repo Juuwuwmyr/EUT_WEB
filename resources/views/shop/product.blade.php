@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,8 +13,11 @@
         /* ── NAVBAR ── */
         .topnav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-            background: rgba(8,8,16,0.94); backdrop-filter: blur(20px);
+            background: rgba(8,8,16,0.96); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border-bottom: 1px solid rgba(255,255,255,0.06);
+            will-change: transform;
         }
         .topnav-inner {
             max-width: 560px; margin: 0 auto;
@@ -124,10 +127,13 @@
         /* ── BOTTOM SHEET TRIGGER ── */
         .buy-bar {
             position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-            background: rgba(8,8,16,0.97); backdrop-filter: blur(20px);
+            background: rgba(8,8,16,0.98); 
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border-top: 1px solid rgba(255,255,255,0.07);
             padding: 14px 16px 24px;
             max-width: 560px; margin: 0 auto; left: 50%; transform: translateX(-50%);
+            will-change: transform;
         }
         /* for screens smaller than 560px, full width */
         @media (max-width: 560px) { .buy-bar { left: 0; transform: none; max-width: 100%; } }
@@ -167,6 +173,7 @@
             border-bottom: none;
             transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
             max-height: 92vh; overflow-y: auto;
+            will-change: transform;
         }
         @media (max-width: 560px) { .sheet { left: 0; transform: translateY(100%); } }
         .sheet.open { transform: translateX(-50%) translateY(0); }
@@ -332,8 +339,11 @@
         /* ── BOTTOM NAV ── */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(8,8,16,0.97); border-top: 1px solid rgba(255,255,255,0.07);
-            backdrop-filter: blur(20px); padding: 10px 0 14px; z-index: 100;
+            background: rgba(8,8,16,0.98); border-top: 1px solid rgba(255,255,255,0.07);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 10px 0 14px; z-index: 100;
+            will-change: transform;
         }
         @media (min-width: 1024px) { .bottom-nav { display: none; } }
         .bottom-nav-inner { display: flex; }
@@ -378,7 +388,7 @@
 
     <!-- Hero image -->
     <div class="product-hero">
-        <img src="{{ $item['image'] ? asset($item['image']) : 'https://placehold.co/800x500/1a1a2e/facc15?text=' . urlencode($item['name']) }}" alt="{{ $item['name'] }}" class="product-hero-img">
+        <img src="{{ $item['image'] ? asset($item['image']) : 'https://placehold.co/800x500/1a1a2e/facc15?text=' . urlencode($item['name']) }}" alt="{{ $item['name'] }}" class="product-hero-img" decoding="async">
         <div class="product-hero-overlay"></div>
         @if(!empty($item['featured']))
             <span class="hero-badge-hot">🔥 Hot Item</span>
@@ -470,7 +480,7 @@
 
     <!-- Sheet header -->
     <div class="sheet-header">
-        <img src="{{ $item['image'] ? asset($item['image']) : 'https://placehold.co/120x120/1a1a2e/facc15?text=' . urlencode($item['name']) }}" alt="{{ $item['name'] }}" class="sheet-thumb">
+        <img src="{{ $item['image'] ? asset($item['image']) : 'https://placehold.co/120x120/1a1a2e/facc15?text=' . urlencode($item['name']) }}" alt="{{ $item['name'] }}" class="sheet-thumb" loading="lazy" decoding="async">
         <div style="flex:1; min-width:0;">
             <p class="sheet-item-name">{{ $item['name'] }}</p>
             <div class="sheet-item-price-row">

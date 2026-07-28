@@ -10,7 +10,7 @@
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
         body{background:#080810;color:#fff;min-height:100vh;}
-        .topnav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,16,.94);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);}
+        .topnav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,16,.98);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.06);will-change:transform;}
         .topnav-inner{max-width:760px;margin:0 auto;padding:13px 16px;display:flex;align-items:center;gap:10px;}
         .back-btn{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#9ca3af;text-decoration:none;transition:all .2s;flex-shrink:0;}
         .back-btn:hover{background:rgba(255,255,255,.12);color:#fff;}

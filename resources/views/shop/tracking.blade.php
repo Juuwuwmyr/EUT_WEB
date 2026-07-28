@@ -6,13 +6,17 @@
     <title>My Orders - E.U.T Snack House</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-head')
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"></noscript>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"></noscript>
 </head>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
 body{background:#080810;color:#fff;min-height:100vh;}
-.topnav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,16,.94);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);}
+.topnav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,16,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);will-change:transform;transform:translateZ(0);}
 .topnav-inner{max-width:540px;margin:0 auto;padding:14px 16px 0;}
 .topnav-row{display:flex;align-items:center;gap:10px;}
 .back-btn{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#9ca3af;text-decoration:none;transition:all .2s;flex-shrink:0;}
@@ -34,7 +38,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
 .ssc-lbl{font-size:10px;color:#4b5563;margin:0;text-transform:uppercase;letter-spacing:.04em;}
 
 /* ── ORDER CARD (compact) ── */
-.ocard{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,.4);cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent;}
+.ocard{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,.4);cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent;contain:layout style paint;}
 .ocard:hover{border-color:rgba(250,204,21,.25);transform:translateY(-1px);}
 .ocard:active{transform:scale(.98);}
 .ocard-top{display:flex;align-items:center;justify-content:space-between;padding:13px 16px 10px;}
@@ -127,7 +131,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
 .btn-reorder{background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;padding:8px 18px;border-radius:99px;font-size:12px;font-weight:700;text-decoration:none;display:inline-block;}
 
 /* bottom nav */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.97);border-top:1px solid rgba(255,255,255,.07);backdrop-filter:blur(20px);padding:10px 0 14px;z-index:100;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.97);border-top:1px solid rgba(255,255,255,.07);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:10px 0 14px;z-index:100;will-change:transform;transform:translateZ(0);}
 @media(min-width:1024px){.bottom-nav{display:none;}}
 .bottom-nav-inner{display:flex;}
 .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#4b5563;text-decoration:none;font-size:10px;font-weight:500;transition:color .15s;}
@@ -296,7 +300,7 @@ const TIMELINE_STEPS = ['pending','accepted','preparing','rider_assigned','out_f
 function buildOrderCard(o) {
     const cfg = STATUS_CFG[o.status] || STATUS_CFG.pending;
     const imgs = o.items.slice(0,3).map(i=>
-        `<img src="${escHtml(i.image)}" class="ocard-img" alt="${escHtml(i.name)}" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">`)
+        `<img src="${escHtml(i.image)}" class="ocard-img" alt="${escHtml(i.name)}" loading="lazy" decoding="async" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">`)
         .join('');
     const extra = o.items.length > 3 ? `<div class="ocard-more">+${o.items.length-3}</div>` : '';
     const isLive = !['delivered','cancelled'].includes(o.status);
@@ -474,7 +478,7 @@ function buildDetailBody(o) {
             <p class="sheet-section-title">Items (${o.items.length})</p>
             ${o.items.map(i=>`
             <div class="sitem">
-                <img src="${escHtml(i.image)}" class="sitem-img" alt="${escHtml(i.name)}" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">
+                <img src="${escHtml(i.image)}" class="sitem-img" alt="${escHtml(i.name)}" loading="lazy" decoding="async" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">
                 <div style="flex:1;min-width:0;">
                     <p class="sitem-name">${escHtml(i.name)}</p>
                     <p class="sitem-meta">x${i.qty}</p>
@@ -648,6 +652,14 @@ async function updateMapRiderPos(orderId,lat,lng){
 }
 
 /* ── Init ── */
+let pollTimer = null;
+function startPolling() {
+    if (pollTimer) return;
+    pollTimer = setInterval(loadAllOrders, 15000);
+}
+function stopPolling() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
 document.addEventListener('DOMContentLoaded',()=>{
     applyTheme(localStorage.getItem('eutTheme')||'dark');
     document.getElementById('shopThemeToggle').addEventListener('click',()=>{
@@ -684,8 +696,16 @@ document.addEventListener('DOMContentLoaded',()=>{
                 }
             });
     } else {
-        // Fallback: poll every 15s if Echo isn't available
-        setInterval(loadAllOrders, 15000);
+        // Fallback: poll every 15s if Echo isn't available — pause when tab is hidden
+        startPolling();
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopPolling();
+            } else {
+                loadAllOrders();
+                startPolling();
+            }
+        });
     }
 });
 </script>
@@ -928,7 +948,7 @@ function simulateMapRider(orderId, dest) {
     }
 }
 </script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 @include('partials.pwa-register')
 </body>
 </html>
