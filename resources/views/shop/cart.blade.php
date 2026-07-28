@@ -752,7 +752,9 @@ function renderCart() {
             }).join('');
 
         div.innerHTML = `
-            <img src="${item.image}" alt="${item.name}" class="item-img" loading="lazy" decoding="async">
+            <img src="${item.image ? (item.image.startsWith('http') ? item.image : '/' + item.image.replace(/^\//, '')) : '/images/hero-burger.webp'}" 
+                 alt="${item.name}" class="item-img" loading="lazy" decoding="async"
+                 onerror="this.onerror=null;this.src='/images/hero-burger.webp'">
             <div class="item-info">
                 <p class="item-name">${item.name}</p>
                 <p class="item-unit-price">&#8369;${item.price.toLocaleString()} each</p>
@@ -786,7 +788,7 @@ function renderCart() {
             const ci = cart.find(c => c.id === id);
             if (ci) ci.quantity = q;
             saveCart();
-            totalEl.textContent = '&#8369;' + (price * q).toLocaleString();
+            totalEl.textContent = '₱' + (price * q).toLocaleString();
             updateTotals();
             // refresh nav count
             const tq = cart.reduce((s,i) => s + i.quantity, 0);
@@ -830,24 +832,21 @@ function updateTotals() {
     if (subtotal >= FREE_DELIVERY_THRESHOLD) delivery = 0;
 
     const grand = subtotal + delivery - discount;
-    document.getElementById('subtotal').textContent      = '&#8369;' + subtotal.toLocaleString();
+    document.getElementById('subtotal').textContent      = '₱' + subtotal.toLocaleString();
     document.getElementById('totalItems').textContent    = totalQty;
-    document.getElementById('deliveryFeeDisplay').textContent = delivery === 0
-        ? '<span class="free-badge">FREE</span>'
-        : '&#8369;' + delivery;
     document.getElementById('deliveryFeeDisplay').innerHTML = delivery === 0
         ? '<span class="free-badge">FREE</span>'
-        : '&#8369;' + delivery;
-    document.getElementById('grandTotal').textContent    = '&#8369;' + grand.toLocaleString();
+        : '₱' + delivery;
+    document.getElementById('grandTotal').textContent    = '₱' + grand.toLocaleString();
     document.getElementById('itemSubCount').textContent  = totalQty + (totalQty === 1 ? ' item' : ' items') + ' in your order';
 
     // Sync Buy Now bar total
     const buyBarTotal = document.getElementById('buyBarTotal');
-    if (buyBarTotal) buyBarTotal.textContent = '&#8369;' + grand.toLocaleString();
+    if (buyBarTotal) buyBarTotal.textContent = '₱' + grand.toLocaleString();
 
     if (discount > 0) {
         document.getElementById('discountRow').style.display   = 'flex';
-        document.getElementById('discountDisplay').textContent = '-&#8369;' + discount.toLocaleString();
+        document.getElementById('discountDisplay').textContent = '-₱' + discount.toLocaleString();
     } else {
         document.getElementById('discountRow').style.display   = 'none';
     }

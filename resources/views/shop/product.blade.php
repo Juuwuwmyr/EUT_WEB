@@ -602,7 +602,7 @@ function updateCartBadge() {
 const BASE_PRICE = {{ $item['price'] }};
 const ITEM_ID    = {{ $item['id'] }};
 const ITEM_NAME  = @json($item['name']);
-const ITEM_IMAGE = @json($item['image']);
+const ITEM_IMAGE = @json($item['image'] ? asset($item['image']) : asset('images/hero-burger.webp'));
 const ITEM_CAT   = @json($item['category']['slug'] ?? 'food');
 
 // ── Modifier groups from DB ──────────────────────────────
