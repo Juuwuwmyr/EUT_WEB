@@ -86,6 +86,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/orders/{order}/cancel',   [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
     Route::patch('/orders/{order}/set-coords', [\App\Http\Controllers\OrderController::class, 'setCoords'])->name('orders.set-coords');
 
+    // Profile
+    Route::post ('/profile',          [AuthController::class, 'updateProfile'])->name('profile.update');
+    Route::post ('/profile/password', [AuthController::class, 'updatePassword'])->name('profile.password');
+
     // Saved addresses
     Route::get   ('/addresses',                      [\App\Http\Controllers\AddressController::class, 'index'])->name('addresses.index');
     Route::post  ('/addresses',                      [\App\Http\Controllers\AddressController::class, 'store'])->name('addresses.store');

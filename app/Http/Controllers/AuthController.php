@@ -120,6 +120,66 @@ class AuthController extends Controller
     }
 
     // -------------------------------------------------------
+    // UPDATE PROFILE (name + avatar)
+    // -------------------------------------------------------
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'name'   => 'required|string|max:200',
+            'avatar' => 'nullable|image|max:2048',
+        ]);
+
+        $data = ['name' => trim($request->name)];
+
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = asset('storage/' . $path);
+        }
+
+        $user->update($data);
+
+        return response()->json([
+            'success' => true,
+            'user'    => [
+                'name'   => $user->name,
+                'email'  => $user->email,
+                'avatar' => $user->avatar,
+            ],
+        ]);
+    }
+
+    // -------------------------------------------------------
+    // UPDATE PASSWORD
+    // -------------------------------------------------------
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'password'         => 'required|string|min:6|confirmed',
+        ], [
+            'password.confirmed' => 'New passwords do not match.',
+            'password.min'       => 'Password must be at least 6 characters.',
+        ]);
+
+        // Google-only users have no password
+        if ($user->provider === 'google' && !$user->password) {
+            return response()->json(['success' => false, 'message' => 'Google accounts cannot set a password here.'], 422);
+        }
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['success' => false, 'message' => 'Current password is incorrect.'], 422);
+        }
+
+        $user->update(['password' => Hash::make($request->password)]);
+
+        return response()->json(['success' => true, 'message' => 'Password updated successfully.']);
+    }
+
+    // -------------------------------------------------------
     // GOOGLE REDIRECT
     // -------------------------------------------------------
     public function redirectToGoogle()
