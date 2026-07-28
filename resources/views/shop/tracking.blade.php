@@ -140,6 +140,11 @@ body{background:#080810;color:#fff;min-height:100vh;}
 /* light mode */
 .light-mode body{background:#f0f0f8!important;}
 .light-mode .topnav{background:rgba(255,255,255,.96)!important;border-color:rgba(0,0,0,.07)!important;}
+
+@keyframes rider-pulse {
+    0%   { transform: scale(1);   opacity: .6; }
+    100% { transform: scale(2.2); opacity: 0;  }
+}
 .light-mode .topnav-title{color:#111!important;}
 .light-mode .ocard{background:#fff!important;border-color:rgba(0,0,0,.07)!important;}
 .light-mode .ocard-num,.light-mode .empty-title{color:#111!important;}
@@ -819,8 +824,13 @@ async function initOrderMap(order) {
 
     // Restaurant pin
     L.marker(RESTAURANT_POS, { icon: L.divIcon({
-        html: '<div style="background:#facc15;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);"><svg width="16" height="16" fill="none" stroke="#000" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6h3.5v7"/></svg></div>',
-        className: '', iconSize: [36, 36], iconAnchor: [18, 36],
+        html: `<div style="position:relative;width:42px;height:50px;">
+            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#facc15,#f59e0b);border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(245,158,11,.55);">
+                <svg width="20" height="20" fill="none" stroke="#000" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2v4a2 2 0 002 2h2a2 2 0 002-2V2M10 8v13M3 2h18M21 2v4a2 2 0 01-2 2h-1a2 2 0 01-2-2V2"/></svg>
+            </div>
+            <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid #f59e0b;"></div>
+        </div>`,
+        className: '', iconSize: [42, 50], iconAnchor: [21, 50],
     }) }).addTo(map).bindPopup('<b>E.U.T Snack House</b>');
 
     // Geocode fallback if coords missing
@@ -840,8 +850,13 @@ async function initOrderMap(order) {
     // Customer / delivery destination pin
     if (customerPos) {
         L.marker(customerPos, { icon: L.divIcon({
-            html: '<div style="background:#ef4444;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);"><svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22" stroke-linecap="round" stroke-linejoin="round"/></svg></div>',
-            className: '', iconSize: [36, 36], iconAnchor: [18, 36],
+            html: `<div style="position:relative;width:42px;height:50px;">
+                <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#dc2626);border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(220,38,38,.55);">
+                    <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg>
+                </div>
+                <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid #dc2626;"></div>
+            </div>`,
+            className: '', iconSize: [42, 50], iconAnchor: [21, 50],
         }) }).addTo(map).bindPopup('<b>Your Delivery Location</b>');
     }
 
@@ -858,10 +873,15 @@ async function initOrderMap(order) {
     // Store destination on map state for re-routing
     activeMaps[order.id].destLatLng = dest;
 
-    // Rider marker
+    // Rider marker — animated pulse circle with motorbike icon
     const rM = L.marker(riderPos, { icon: L.divIcon({
-        html: '<div style="background:#10b981;width:44px;height:44px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(16,185,129,.7);"><svg width="22" height="22" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg></div>',
-        className: '', iconSize: [44, 44], iconAnchor: [22, 22],
+        html: `<div style="position:relative;width:52px;height:52px;">
+            <div style="position:absolute;inset:0;border-radius:50%;background:rgba(16,185,129,.25);animation:rider-pulse 1.8s ease-out infinite;"></div>
+            <div style="position:relative;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(16,185,129,.6);">
+                <svg width="26" height="26" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="5.5" cy="17.5" r="2.5" stroke-width="2"/><circle cx="18.5" cy="17.5" r="2.5" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 17.5h7M15 17.5l-1-5H9l-2 3.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.5l1-4h4l2 4"/><path stroke-linecap="round" d="M15 8.5h3"/></svg>
+            </div>
+        </div>`,
+        className: '', iconSize: [52, 52], iconAnchor: [26, 26],
     }) }).addTo(map);
     if (order.rider) rM.bindPopup('<b>' + order.rider.name + '</b><br><svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> ' + order.rider.rating);
     activeMaps[order.id].riderMarker = rM;

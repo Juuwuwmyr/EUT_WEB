@@ -996,12 +996,38 @@ function dismissSuccess() {
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- GPS Permission Banner (shown when permission is denied/missing) -->
-<div id="gpsBanner" style="display:none;position:fixed;top:62px;left:0;right:0;z-index:9997;background:linear-gradient(135deg,#7c2d12,#92400e);border-bottom:1px solid rgba(245,158,11,.4);padding:10px 16px;text-align:center;">
-    <p style="font-size:12px;font-weight:700;color:#fef3c7;margin:0 0 6px;">📍 Location access is needed for delivery tracking</p>
-    <p style="font-size:11px;color:#fcd34d;margin:0 0 8px;">Open your browser settings → Site Settings → Location → Allow for this site, then tap below.</p>
-    <button onclick="retryGps()" style="background:linear-gradient(135deg,#f59e0b,#facc15);border:none;color:#000;padding:7px 18px;border-radius:99px;font-size:12px;font-weight:800;cursor:pointer;">🔄 Retry Location</button>
+<!-- GPS LOCATION GATE (fullscreen, non-dismissible) -->
+<div id="gpsBanner" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(8,8,16,.97);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px;flex-direction:column;text-align:center;">
+    <div style="max-width:320px;width:100%;">
+        <div style="width:80px;height:80px;border-radius:50%;background:rgba(245,158,11,.12);border:2px solid rgba(245,158,11,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:pulse-ring-amber 2s ease-in-out infinite;">
+            <svg width="36" height="36" fill="none" stroke="#f59e0b" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5" stroke-width="1.75"/></svg>
+        </div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin:0 0 10px;">Location Required</h2>
+        <p style="font-size:14px;font-weight:600;color:#f59e0b;margin:0 0 8px;">You can't accept deliveries without GPS.</p>
+        <p id="gpsGateMsg" style="font-size:13px;color:#9ca3af;line-height:1.7;margin:0 0 8px;">Enable location access so customers and dispatch can track you in real time.</p>
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px 16px;margin:16px 0 24px;text-align:left;">
+            <p style="font-size:12px;font-weight:700;color:#fbbf24;margin:0 0 8px;">📱 How to enable:</p>
+            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">• <strong>Chrome:</strong> Tap the lock icon → Site settings → Location → Allow</p>
+            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">• <strong>Safari:</strong> Settings → Safari → Location → Allow</p>
+            <p style="font-size:11px;color:#d97706;margin:0;line-height:1.6;">• <strong>Phone:</strong> Settings → Apps → Browser → Permissions → Location → Allow</p>
+        </div>
+        <button onclick="retryGps()" style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(245,158,11,.4);display:flex;align-items:center;justify-content:center;gap:8px;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            Enable Location & Continue
+        </button>
+        <p style="font-size:11px;color:#4b5563;margin:14px 0 0;line-height:1.6;">Your location is only shared during active deliveries.<br>It stops when you go offline.</p>
+    </div>
 </div>
+<style>
+@keyframes pulse-ring-amber {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,.35); }
+    50%       { box-shadow: 0 0 0 14px rgba(245,158,11,0); }
+}
+@keyframes rider-pulse {
+    0%   { transform: scale(1);   opacity: .6; }
+    100% { transform: scale(2.2); opacity: 0;  }
+}
+</style>
 
 <script>
 <?php
@@ -1101,8 +1127,13 @@ async function drawRoute() {
     // Add customer marker if not yet on map
     if (!customerMarker) {
         customerMarker = L.marker(dest, { icon: L.divIcon({
-            html: `<div style="background:#ef4444;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><svg style="transform:rotate(45deg)" width="18" height="18" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg></div>`,
-            className: '', iconSize: [38, 38], iconAnchor: [19, 38],
+            html: `<div style="position:relative;width:42px;height:50px;">
+                <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#dc2626);border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(220,38,38,.55);">
+                    <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 22V12h6v10"/></svg>
+                </div>
+                <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid #dc2626;"></div>
+            </div>`,
+            className: '', iconSize: [42, 50], iconAnchor: [21, 50],
         }) }).addTo(riderMapL).bindPopup(`<b>${CUSTOMER_NAME}</b>`);
     }
 
@@ -1159,14 +1190,24 @@ async function initRiderMap() {
 
     // Restaurant pin
     L.marker(RESTAURANT_R, { icon: L.divIcon({
-        html: `<div style="background:#facc15;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><svg style="transform:rotate(45deg)" width="18" height="18" fill="none" stroke="#000" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></div>`,
-        className: '', iconSize: [38, 38], iconAnchor: [19, 38],
+        html: `<div style="position:relative;width:42px;height:50px;">
+            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#facc15,#f59e0b);border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(245,158,11,.55);">
+                <svg width="20" height="20" fill="none" stroke="#000" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2v4a2 2 0 002 2h2a2 2 0 002-2V2M10 8v13M3 2h18M21 2v4a2 2 0 01-2 2h-1a2 2 0 01-2-2V2"/></svg>
+            </div>
+            <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-top:10px solid #f59e0b;"></div>
+        </div>`,
+        className: '', iconSize: [42, 50], iconAnchor: [21, 50],
     }) }).addTo(riderMapL).bindPopup('<b>E.U.T Snack House</b>');
 
-    // Rider marker
+    // Rider marker — animated pulse with motorbike icon
     myMarker = L.marker(myPos, { icon: L.divIcon({
-        html: `<div style="background:#8b5cf6;width:46px;height:46px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(139,92,246,0.7);"><svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3M5 8c0 1.657 3.134 3 7 3s7-1.343 7-3"/></svg></div>`,
-        className: '', iconSize: [46, 46], iconAnchor: [23, 23],
+        html: `<div style="position:relative;width:52px;height:52px;">
+            <div style="position:absolute;inset:0;border-radius:50%;background:rgba(139,92,246,.25);animation:rider-pulse 1.8s ease-out infinite;"></div>
+            <div style="position:relative;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(139,92,246,.6);">
+                <svg width="26" height="26" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><circle cx="5.5" cy="17.5" r="2.5" stroke-width="2"/><circle cx="18.5" cy="17.5" r="2.5" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 17.5h7M15 17.5l-1-5H9l-2 3.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.5l1-4h4l2 4"/><path stroke-linecap="round" d="M15 8.5h3"/></svg>
+            </div>
+        </div>`,
+        className: '', iconSize: [52, 52], iconAnchor: [26, 26],
     }) }).addTo(riderMapL).bindPopup('<b>You (Rider)</b>');
 
     // If no stored coords, try geocoding the address
@@ -1233,13 +1274,19 @@ function setGpsLabel(ok, msg) {
     if (el) { el.textContent = ok ? '● GPS Live' : '⚠ ' + msg; el.style.color = ok ? '#22c55e' : '#f59e0b'; }
 }
 
-function showGpsBanner(show) {
+function showGpsBanner(show, msg) {
     const b = document.getElementById('gpsBanner');
-    if (b) b.style.display = show ? 'block' : 'none';
+    if (!b) return;
+    b.style.display = show ? 'flex' : 'none';
+    document.body.style.overflow = show ? 'hidden' : '';
+    if (msg) {
+        const m = document.getElementById('gpsGateMsg');
+        if (m) m.textContent = msg;
+    }
 }
 
 function retryGps() {
-    showGpsBanner(false);
+    // Don't hide the gate — startGpsWatch will hide it on success
     startGpsWatch();
 }
 
@@ -1303,9 +1350,13 @@ function startGpsWatch() {
             }
         },
         err => {
-            const msgs = { 1: 'Location denied — tap to enable', 2: 'Position unavailable', 3: 'GPS timeout' };
+            const msgs = {
+                1: 'Location was denied. Enable it in your browser settings, then tap the button below.',
+                2: 'Your position could not be determined. Make sure GPS is turned on.',
+                3: 'GPS timed out. Move to an open area and try again.',
+            };
             setGpsLabel(false, msgs[err.code] || 'GPS error');
-            if (err.code === 1) showGpsBanner(true); // permission denied — show banner
+            showGpsBanner(true, msgs[err.code]);
         },
         { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
     );

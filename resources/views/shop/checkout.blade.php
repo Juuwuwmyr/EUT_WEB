@@ -712,21 +712,51 @@ async function saveAddress(){
 /* ── GPS capture — starts immediately and persists for accuracy ── */
 let _gpsLat = null, _gpsLng = null;
 let _gpsWatchCo = null;
+let _gpsGranted = false;
+
+function showLocationGate(show, reason) {
+    const gate = document.getElementById('locationGate');
+    const msg  = document.getElementById('locationGateMsg');
+    if (!gate) return;
+    gate.style.display = show ? 'flex' : 'none';
+    document.body.style.overflow = show ? 'hidden' : '';
+    if (reason && msg) msg.textContent = reason;
+}
+
+function retryCheckoutGps() {
+    showLocationGate(false);
+    startCheckoutGps();
+}
 
 function startCheckoutGps() {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+        showLocationGate(true, 'Your browser does not support GPS. Please use Chrome or Safari on your phone.');
+        return;
+    }
     if (_gpsWatchCo !== null) navigator.geolocation.clearWatch(_gpsWatchCo);
     _gpsWatchCo = navigator.geolocation.watchPosition(
         p => {
             _gpsLat = p.coords.latitude;
             _gpsLng = p.coords.longitude;
-            // Update GPS status indicator
+            _gpsGranted = true;
+            showLocationGate(false);
             const el = document.getElementById('gpsCheckoutStatus');
-            if (el) el.textContent = '📍 Location captured';
+            if (el) {
+                el.innerHTML = '<span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block;animation:blink 1.5s infinite;"></span><span style="color:#10b981;font-weight:600;">Location locked — accurate delivery pin ✓</span>';
+            }
         },
-        () => {
+        err => {
+            _gpsGranted = false;
             const el = document.getElementById('gpsCheckoutStatus');
-            if (el) el.textContent = '⚠ Location unavailable — delivery pin may be missing';
+            if (err.code === 1) {
+                // Denied — show blocking gate
+                showLocationGate(true, 'Location access was denied. We need it to accurately pin your delivery location.');
+                if (el) el.innerHTML = '<span style="color:#ef4444;">⚠ Location denied</span>';
+            } else {
+                // Unavailable / timeout — show gate with retry
+                showLocationGate(true, 'Could not get your location. Make sure GPS is on and try again.');
+                if (el) el.innerHTML = '<span style="color:#f59e0b;">⚠ Location unavailable — please retry</span>';
+            }
         },
         { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
     );
@@ -735,8 +765,15 @@ function startCheckoutGps() {
 // Check permission first, then start
 if (navigator.permissions) {
     navigator.permissions.query({ name: 'geolocation' }).then(r => {
-        startCheckoutGps(); // triggers prompt if state is 'prompt'
-        r.onchange = () => { if (r.state === 'granted') startCheckoutGps(); };
+        if (r.state === 'denied') {
+            showLocationGate(true, 'Location access is blocked for this site. Please enable it in your browser settings.');
+        } else {
+            startCheckoutGps();
+        }
+        r.onchange = () => {
+            if (r.state === 'granted') { showLocationGate(false); startCheckoutGps(); }
+            if (r.state === 'denied')  { showLocationGate(true, 'Location access is blocked. Please enable it in your browser settings.'); }
+        };
     });
 } else {
     startCheckoutGps();
@@ -835,5 +872,34 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
 });
 </script>
 @include('partials.pwa-register')
+
+<!-- ── LOCATION PERMISSION GATE ── -->
+<div id="locationGate" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(8,8,16,.97);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px;flex-direction:column;text-align:center;">
+    <div style="max-width:320px;width:100%;">
+        <div style="width:80px;height:80px;border-radius:50%;background:rgba(239,68,68,.12);border:2px solid rgba(239,68,68,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:pulse-ring 2s ease-in-out infinite;">
+            <svg width="36" height="36" fill="none" stroke="#ef4444" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5" stroke-width="1.75"/></svg>
+        </div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin:0 0 10px;">Location Required</h2>
+        <p id="locationGateMsg" style="font-size:13px;color:#9ca3af;line-height:1.7;margin:0 0 8px;">We need your location to accurately pin your delivery address on the map.</p>
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px 16px;margin:16px 0 24px;text-align:left;">
+            <p style="font-size:12px;font-weight:700;color:#fbbf24;margin:0 0 8px;">📱 How to enable:</p>
+            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">• <strong>Chrome:</strong> Tap the lock icon in the address bar → Site settings → Location → Allow</p>
+            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">• <strong>Safari:</strong> Settings → Safari → Location → Allow</p>
+            <p style="font-size:11px;color:#d97706;margin:0;line-height:1.6;">• <strong>Phone:</strong> Settings → Apps → Browser → Permissions → Location → Allow</p>
+        </div>
+        <button onclick="retryCheckoutGps()" style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(220,38,38,.4);display:flex;align-items:center;justify-content:center;gap:8px;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            Allow Location & Continue
+        </button>
+        <p style="font-size:11px;color:#4b5563;margin:14px 0 0;line-height:1.6;">Location is only used to pin your delivery address.<br>We never track you outside this order.</p>
+    </div>
+</div>
+
+<style>
+@keyframes pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.3); }
+    50%       { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
+}
+</style>
 </body>
 </html>
