@@ -119,7 +119,7 @@ var ORDERS_MAP   = {};
 var RIDERS       = [];
 var activeFilter = '{{ request("status","") }}';
 var pollTimer    = null;
-var POLL_INTERVAL = 8000; // 8 seconds
+var POLL_INTERVAL = 5000; // 5 seconds
 
 // ── Error Log ────────────────────────────────────────────
 var errorLogEntries = [];
@@ -218,6 +218,7 @@ var STATUS_TIMELINE = [
 
 // ── Auto-poll ────────────────────────────────────────────
 function startPolling() {
+    if (pollTimer) clearInterval(pollTimer); // prevent duplicate intervals
     fetchOrders();
     pollTimer = setInterval(fetchOrders, POLL_INTERVAL);
 }
@@ -900,27 +901,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (clr) clr.style.display = 'inline';
     }
 
-    // Initial load
-    fetchOrders();
+    // Always start polling so orders refresh even without WebSockets
+    startPolling();
 
-    // Echo: real-time order updates on the admin private channel
+    // Echo: real-time nudge — fetch fresh data immediately on any order event
     if (window.Echo) {
-        var dot   = document.getElementById('pollDot');
-        var label = document.getElementById('pollLabel');
-        if (dot)   dot.style.background = '#10b981';
-        if (label) label.textContent    = 'Live';
-
         window.Echo.private('admin.orders')
-            .listen('.order.updated', function(order) {
-                ORDERS_MAP[order.id] = order;
-                // Rebuild the order list — reuse existing render
-                var orders = Object.values(ORDERS_MAP);
-                renderStats(computeStatusCounts(orders));
-                renderTable(orders);
+            .listen('.order.updated', function() {
+                fetchOrders(); // pull full fresh snapshot from server
             });
-    } else {
-        // Fallback polling
-        startPolling();
     }
 });
 
