@@ -674,29 +674,6 @@ class AdminController extends Controller
             : back()->with('error', 'Riders are assigned by the Chef from the Kitchen Dashboard.');
     }
 
-        if (!$order->isAssignable()) {
-            if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'Order cannot be assigned at this stage.'], 422);
-            }
-            return back()->with('error', 'Order cannot be assigned at this stage.');
-        }
-
-        $order->update([
-            'rider_id'    => $request->rider_id,
-            'status'      => 'rider_assigned',
-            'assigned_at' => now(),
-            'prepared_at' => $order->prepared_at ?? now(),
-        ]);
-
-        broadcast(new OrderStatusUpdated($order));
-
-        if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => "Rider assigned to order #{$order->order_number}."]);
-        }
-
-        return back()->with('success', "Rider assigned to order #{$order->order_number}.");
-    }
-
     public function updateOrderStatus(Request $request, \App\Models\Order $order)
     {
         // Admin-allowed manual transitions:
