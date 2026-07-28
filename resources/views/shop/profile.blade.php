@@ -451,7 +451,7 @@ document.querySelectorAll('.modal-backdrop').forEach(el => {
 @auth
 async function loadStats() {
     try {
-        const res = await fetch('{{ route("orders.index") }}', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
+        const res  = await fetch('{{ route("orders.index") }}', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } }); headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
         if (!res.ok) return;
         const data = await res.json();
         const orders = data.orders || [];
@@ -503,7 +503,7 @@ async function saveProfile() {
     if (avatarFile) fd.append('avatar', avatarFile);
 
     try {
-        const res = await fetch('{{ route("profile.update") }}', {
+        const res = await fetch('/profile', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
             body: fd
@@ -534,7 +534,7 @@ async function loadAddresses() {
     const list = document.getElementById('addressList');
     list.innerHTML = '<p style="text-align:center;color:#4b5563;padding:20px 0;">Loading…</p>';
     try {
-        const res  = await fetch('{{ route("addresses.index") }}', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
+        const res  = await fetch('/addresses', {
         const data = await res.json();
         renderAddresses(data.addresses || []);
     } catch(e) {
@@ -578,7 +578,7 @@ function openAddressForm(addr) {
 }
 
 async function editAddress(id) {
-    const res  = await fetch('{{ route("addresses.index") }}', { headers: { 'Accept':'application/json','X-CSRF-TOKEN':CSRF }});
+    const res  = await fetch('/addresses', { headers: { 'Accept':'application/json','X-CSRF-TOKEN':CSRF }});
     const data = await res.json();
     const addr = (data.addresses||[]).find(a => a.id === id);
     if (addr) openAddressForm(addr);
@@ -649,7 +649,7 @@ async function savePassword() {
 
     btn.disabled = true; btn.textContent = 'Updating…';
     try {
-        const res  = await fetch('{{ route("profile.password") }}', {
+        const res  = await fetch('/profile/password', {
             method: 'POST',
             headers: { 'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json' },
             body: JSON.stringify({ current_password:current, password:newPw, password_confirmation:confirm })

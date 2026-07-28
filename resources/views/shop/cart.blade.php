@@ -397,7 +397,7 @@
                 <a href="{{ route('shop.home') }}" class="suggestion-chip"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2"/></svg> Beverages</a>
                 <a href="{{ route('shop.home') }}" class="suggestion-chip"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg> Combos</a>
             </div>
-            <a href="{{ route('shop.home') }}" class="checkout-btn" style="max-width:280px; margin:0 auto;">
+            <a href="{{ route('shop.home') }}" class="checkout-btn" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;max-width:280px;margin:0 auto;padding:13px 28px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(245,158,11,0.3);">
                 Browse Menu
             </a>
         </div>
@@ -568,13 +568,16 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(t);
     });
     renderCart();
-    document.getElementById('clearAllBtn').addEventListener('click', () => {
-        if (confirm('Remove all items from cart?')) {
-            cart = [];
-            saveCart();
-            renderCart();
-        }
-    });
+    const clearBtn = document.getElementById('clearAllBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Remove all items from cart?')) {
+                cart = [];
+                saveCart();
+                renderCart();
+            }
+        });
+    }
 
     // -- BUY NOW: validate required flavors before proceeding to checkout --
     const buyNowBar = document.getElementById('buyNowBar');
@@ -620,7 +623,8 @@ function renderCart() {
     const empty   = document.getElementById('emptyCart');
     const content = document.getElementById('cartContent');
 
-    if (!cart.length) {
+    // Guest view — these elements don't exist, nothing to render
+    if (!empty || !content) return;
         empty.style.display   = 'block';
         content.style.display = 'none';
         document.getElementById('navCartCount').textContent = '0 items';

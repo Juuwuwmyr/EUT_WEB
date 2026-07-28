@@ -288,20 +288,52 @@
 
         /* -- LIGHT MODE -- */
         .light-mode body { background: #f0f0f8 !important; }
-        .light-mode .topnav { background: rgba(255,255,255,0.96) !important; border-color: rgba(0,0,0,0.07) !important; }
-        .light-mode .cats-wrap { background: rgba(255,255,255,0.96) !important; border-color: rgba(0,0,0,0.06) !important; }
+        .light-mode .topnav { background: rgba(255,255,255,0.98) !important; border-color: rgba(0,0,0,0.09) !important; box-shadow: 0 1px 0 rgba(0,0,0,0.06) !important; }
+        .light-mode .cats-wrap { background: rgba(255,255,255,0.98) !important; border-color: rgba(0,0,0,0.07) !important; }
         .light-mode .nav-logo-text { color: #d97706 !important; }
-        .light-mode .search-input { background: #fff !important; border-color: rgba(0,0,0,0.15) !important; color: #111 !important; }
-        .light-mode .nav-icon-btn { background: rgba(0,0,0,0.05) !important; border-color: rgba(0,0,0,0.08) !important; color: #374151 !important; }
-        .light-mode .p-card { background: #fff !important; border-color: rgba(0,0,0,0.07) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important; }
+
+        /* Search bar */
+        .light-mode .search-input { background: #f3f4f6 !important; border-color: rgba(0,0,0,0.12) !important; color: #111 !important; }
+        .light-mode .search-input::placeholder { color: #9ca3af !important; }
+        .light-mode .search-input:focus { background: #fff !important; border-color: rgba(220,38,38,0.4) !important; }
+        .light-mode .search-btn { background: linear-gradient(135deg, #f59e0b, #facc15) !important; }
+
+        /* Nav icon buttons */
+        .light-mode .nav-icon-btn { background: #f3f4f6 !important; border-color: rgba(0,0,0,0.1) !important; color: #374151 !important; }
+        .light-mode .nav-icon-btn:hover { background: #e5e7eb !important; color: #111 !important; }
+        .light-mode .nav-icon-btn svg { color: #374151 !important; stroke: #374151 !important; }
+
+        /* Hero card */
+        .light-mode .hero-card { background: linear-gradient(135deg, #fff5f5 0%, #fffbeb 50%, #f9fafb 100%) !important; border-color: rgba(220,38,38,0.18) !important; }
+        .light-mode .hero-title { color: #111 !important; }
+        .light-mode .hero-sub { color: #6b7280 !important; }
+        .light-mode .hero-badge { background: rgba(239,68,68,0.1) !important; border-color: rgba(239,68,68,0.25) !important; color: #dc2626 !important; }
+        .light-mode .hero-pill { background: rgba(0,0,0,0.04) !important; border-color: rgba(0,0,0,0.1) !important; color: #374151 !important; }
+        .light-mode .hero-pill svg { stroke: #374151 !important; }
+
+        /* Category pills */
+        .light-mode .cat-pill { background: #f3f4f6 !important; border-color: rgba(0,0,0,0.1) !important; color: #6b7280 !important; }
+        .light-mode .cat-pill:hover { background: #e5e7eb !important; color: #111 !important; }
+        .light-mode .cat-pill.active { background: linear-gradient(135deg,#dc2626,#ef4444) !important; border-color: transparent !important; color: #fff !important; }
+
+        /* Product cards */
+        .light-mode .p-card { background: #fff !important; border-color: rgba(0,0,0,0.08) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important; }
+        .light-mode .p-card:hover { border-color: rgba(220,38,38,0.25) !important; box-shadow: 0 6px 24px rgba(0,0,0,0.1) !important; }
         .light-mode .p-card-name { color: #111 !important; }
         .light-mode .p-card-desc { color: #9ca3af !important; }
-        .light-mode .hero-card { background: linear-gradient(135deg, #fff5f5, #fffbeb, #fff) !important; border-color: rgba(220,38,38,0.15) !important; }
-        .light-mode .hero-sub { color: #9ca3af !important; }
-        .light-mode .cat-pill { background: rgba(0,0,0,0.04) !important; border-color: rgba(0,0,0,0.09) !important; color: #6b7280 !important; }
-        .light-mode .cat-pill:hover { background: rgba(0,0,0,0.08) !important; color: #111 !important; }
-        .light-mode .cats-wrap { background: rgba(255,255,255,0.97) !important; border-color: rgba(0,0,0,0.06) !important; }
+        .light-mode .p-card-sold { color: #9ca3af !important; }
+
+        /* Section header */
         .light-mode .section-title { color: #111 !important; }
+        .light-mode .section-count { color: #9ca3af !important; }
+
+        /* Bottom nav */
+        .light-mode .bottom-nav { background: rgba(255,255,255,0.98) !important; border-color: rgba(0,0,0,0.08) !important; }
+        .light-mode .bnav-item { color: #9ca3af !important; }
+        .light-mode .bnav-item.active { color: #dc2626 !important; }
+
+        /* Empty state */
+        .light-mode .empty-state-text { color: #6b7280 !important; }
 
         /* -- BOTTOM NAV -- */
         .bottom-nav {
