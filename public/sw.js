@@ -1,7 +1,10 @@
-const CACHE_NAME = 'eut-v1';
+const CACHE_NAME = 'eut-v2';
 const STATIC_ASSETS = [
     '/',
     '/manifest.json',
+    '/favicon.ico',
+    '/images/icons/icon-192x192.png',
+    '/images/icons/icon-512x512.png',
     '/images/DeliveryPanda.webp',
     '/images/DeliveryPanda1.webp',
     '/images/hero-burger.webp',
