@@ -4,12 +4,6 @@
 {{-- Leaflet for rider live map in modal --}}
 @push('head')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<style>
-@keyframes rider-pulse {
-    0%   { transform: scale(1);   opacity: .6; }
-    100% { transform: scale(2.2); opacity: 0;  }
-}
-</style>
 @endpush
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -777,19 +771,19 @@ async function initAdminRiderMap(o) {
     L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', { maxZoom: 20, opacity: 0.85 }).addTo(adminMapInstance);
 
     L.marker(ADMIN_RESTAURANT, { icon: L.divIcon({
-        html: `<div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 4px 12px rgba(245,158,11,.7));"><div style="width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,#fde68a,#f59e0b);border:2.5px solid rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.4);">🍽️</div><div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:10px solid #f59e0b;margin-top:-1px;"></div></div>`,
-        className: '', iconSize: [48, 62], iconAnchor: [24, 62]
+        html: '<div style="background:#facc15;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" fill="none" stroke="#000" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6h3.5v7"/></svg></span></div>',
+        className: '', iconSize: [34,34], iconAnchor: [17,34]
     })}).addTo(adminMapInstance).bindPopup('<b>E.U.T Snack House</b>');
 
     L.marker(riderPos, { icon: L.divIcon({
-        html: `<div style="display:flex;align-items:center;justify-content:center;position:relative;width:64px;height:64px;"><div style="position:absolute;inset:0;border-radius:50%;background:rgba(139,92,246,.2);animation:rider-pulse 1.6s ease-out infinite;"></div><div style="position:absolute;inset:6px;border-radius:50%;background:rgba(139,92,246,.15);animation:rider-pulse 1.6s ease-out .4s infinite;"></div><div style="position:relative;width:48px;height:48px;border-radius:50%;background:linear-gradient(145deg,#a78bfa,#7c3aed);border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;box-shadow:0 4px 16px rgba(139,92,246,.6),inset 0 1px 0 rgba(255,255,255,.3);">🏍️</div></div>`,
-        className: '', iconSize: [64,64], iconAnchor: [32,32]
+        html: '<div style="background:#8b5cf6;width:40px;height:40px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(139,92,246,.7);"><svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg></div>',
+        className: '', iconSize: [40,40], iconAnchor: [20,20]
     })}).addTo(adminMapInstance).bindPopup('<b>Rider: ' + escHtml(o.rider || 'Rider') + '</b>');
 
     if (custPos) {
         L.marker(custPos, { icon: L.divIcon({
-            html: `<div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 4px 12px rgba(239,68,68,.7));"><div style="width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,#fca5a5,#ef4444);border:2.5px solid rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.3);">🏠</div><div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:10px solid #ef4444;margin-top:-1px;"></div></div>`,
-            className: '', iconSize: [48,62], iconAnchor: [24,62]
+            html: '<div style="background:#ef4444;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.5);"><span style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>',
+            className: '', iconSize: [34,34], iconAnchor: [17,34]
         })}).addTo(adminMapInstance).bindPopup('<b>' + escHtml(o.customer) + '</b>');
     }
 

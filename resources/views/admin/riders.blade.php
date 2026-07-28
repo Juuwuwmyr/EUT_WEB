@@ -558,11 +558,8 @@ async function initAdminMap() {
 
     // Restaurant marker (permanent)
     L.marker(RESTAURANT_ADMIN, { icon: L.divIcon({
-        html: `<div style="display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 4px 12px rgba(245,158,11,.7));">
-            <div style="width:48px;height:48px;border-radius:16px;background:linear-gradient(145deg,#fde68a,#f59e0b);border:2.5px solid rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.4);">🍽️</div>
-            <div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:10px solid #f59e0b;margin-top:-1px;"></div>
-        </div>`,
-        className: '', iconSize: [48, 62], iconAnchor: [24, 62],
+        html: `<div style="background:#facc15;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:18px;line-height:1;">&#x1F354;</span></div>`,
+        className: '', iconSize: [42, 42], iconAnchor: [21, 42],
     }) }).addTo(adminMapInst).bindPopup('<b>E.U.T Snack House</b><br>Metro Naujan, Oriental Mindoro');
 
     const allPoints = [RESTAURANT_ADMIN];
@@ -621,8 +618,8 @@ async function addOrUpdateAdminRider(r) {
     if (!adminMarkers[r.id]) {
         // ── New rider — add marker ──────────────────────────
         const marker = L.marker(r.pos, { icon: L.divIcon({
-            html: `<div style="display:flex;align-items:center;justify-content:center;position:relative;width:64px;height:64px;"><div style="position:absolute;inset:0;border-radius:50%;background:${r.color}33;animation:rider-pulse 1.6s ease-out infinite;"></div><div style="position:absolute;inset:6px;border-radius:50%;background:${r.color}22;animation:rider-pulse 1.6s ease-out .4s infinite;"></div><div style="position:relative;width:48px;height:48px;border-radius:50%;background:${r.color};border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;box-shadow:0 4px 16px ${r.color}88,inset 0 1px 0 rgba(255,255,255,.3);">🏍️</div></div>`,
-            className: '', iconSize: [64, 64], iconAnchor: [32, 32],
+            html: `<div style="background:${r.color};width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 10px ${r.color}88;">&#x1F6F5;</div>`,
+            className: '', iconSize: [42, 42], iconAnchor: [21, 21],
         }) }).addTo(adminMapInst);
         marker.bindPopup(riderPopupHtml(r));
         adminMarkers[r.id] = { marker, routes: {}, destMarkers: {} };
@@ -631,8 +628,8 @@ async function addOrUpdateAdminRider(r) {
         adminMarkers[r.id].marker.setLatLng(r.pos);
         adminMarkers[r.id].marker.getPopup().setContent(riderPopupHtml(r));
         adminMarkers[r.id].marker.setIcon(L.divIcon({
-            html: `<div style="display:flex;align-items:center;justify-content:center;position:relative;width:64px;height:64px;"><div style="position:absolute;inset:0;border-radius:50%;background:${r.color}33;animation:rider-pulse 1.6s ease-out infinite;"></div><div style="position:absolute;inset:6px;border-radius:50%;background:${r.color}22;animation:rider-pulse 1.6s ease-out .4s infinite;"></div><div style="position:relative;width:48px;height:48px;border-radius:50%;background:${r.color};border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:1;box-shadow:0 4px 16px ${r.color}88,inset 0 1px 0 rgba(255,255,255,.3);">🏍️</div></div>`,
-            className: '', iconSize: [64, 64], iconAnchor: [32, 32],
+            html: `<div style="background:${r.color};width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 10px ${r.color}88;">&#x1F6F5;</div>`,
+            className: '', iconSize: [42, 42], iconAnchor: [21, 21],
         }));
     }
 
