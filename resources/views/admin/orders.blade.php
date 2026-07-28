@@ -195,16 +195,17 @@ var STAT_CONFIG = {
 };
 
 // -- Status pipeline for modal
-// pending / accepted / preparing are chef-owned — admin sees info only
-// rider_assigned is rider-owned — admin sees info only
+// Admin: Accept (→ auto preparing) | Dispatch rider (after chef marks ready) | Cancel
+// Chef: Mark Ready (on Kitchen Dashboard)
+// Rider: Picked Up | Delivered
 var STATUS_PIPELINE = {
-    pending:          { label:'Pending',        color:'#f59e0b', next:null, nextLabel:null, btnClass:'', chefAction:true     },
-    accepted:         { label:'Accepted',       color:'#3b82f6', next:null, nextLabel:null, btnClass:'', chefAction:true     },
-    preparing:        { label:'Preparing',      color:'#3b82f6', next:null, nextLabel:null, btnClass:'', chefAction:true     },
-    rider_assigned:   { label:'Rider Assigned', color:'#8b5cf6', next:null, nextLabel:null, btnClass:'', riderAction:true    },
-    out_for_delivery: { label:'On the Way',     color:'#8b5cf6', next:null, nextLabel:null, btnClass:''                      },
-    delivered:        { label:'Delivered',      color:'#10b981', next:null, nextLabel:null, btnClass:''                      },
-    cancelled:        { label:'Cancelled',      color:'#ef4444', next:null, nextLabel:null, btnClass:''                      },
+    pending:          { label:'Pending',        color:'#f59e0b', next:'accepted',  nextLabel:'Accept Order',    btnClass:'btn-success' },
+    accepted:         { label:'Accepted',       color:'#3b82f6', next:null,        nextLabel:null,              btnClass:'', chefAction:true },
+    preparing:        { label:'Preparing',      color:'#dc2626', next:null,        nextLabel:null,              btnClass:'', chefAction:true },
+    rider_assigned:   { label:'Rider Assigned', color:'#8b5cf6', next:null,        nextLabel:null,              btnClass:'', riderAction:true },
+    out_for_delivery: { label:'On the Way',     color:'#8b5cf6', next:null,        nextLabel:null,              btnClass:'' },
+    delivered:        { label:'Delivered',      color:'#10b981', next:null,        nextLabel:null,              btnClass:'' },
+    cancelled:        { label:'Cancelled',      color:'#ef4444', next:null,        nextLabel:null,              btnClass:'' },
 };
 
 var STATUS_TIMELINE = [
@@ -288,11 +289,10 @@ function renderStats(counts) {
 }
 
 // ── Render table rows ────────────────────────────────────
+// Flow: Admin ACCEPTS (auto→preparing) → Chef MARKS READY → Admin DISPATCHES rider → Rider PICKS UP → Rider DELIVERS
 var INLINE_ACTIONS = {
-    // pending, accepted, preparing → handled by the Chef on the Kitchen board
-    // rider_assigned → handled by the Rider on their dashboard
-    // Admin only acts on: assign rider (via dispatch modal)
-    preparing: { label:'Dispatch', icon:'bike', btnClass:'btn-warning', type:'dispatch' },
+    pending: { label:'Accept', icon:'check', btnClass:'btn-success', type:'accept' },
+    // preparing: handled dynamically — 'Dispatch' only when chef has marked ready (picked_up_at set on order data)
 };
 
 function renderTable(orders) {
@@ -326,11 +326,25 @@ function renderTable(orders) {
             itemsHtml += '<span style="font-size:.68rem;color:var(--text-muted);">+' + (o.items.length - 2) + ' more</span>';
         }
 
-        // Inline action button — replaces "Manage" for actionable statuses
+        // Inline action button
         var actionBtn = '';
         var act = INLINE_ACTIONS[o.status];
 
-        // For non-delivery orders, preparing goes straight to delivered
+        // preparing: show Dispatch if chef marked ready (prepared_at exists), else show "Chef Cooking" badge
+        if (o.status === 'preparing') {
+            if (o.picked_up_at || o.prepared_at) {
+                // Chef has marked ready — admin can now dispatch a rider
+                act = { label:'Dispatch Rider', icon:'bike', btnClass:'btn-warning', type:'dispatch' };
+            } else {
+                // Still cooking — admin waits for chef
+                actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(220,38,38,.1);color:#f87171;border:1px solid rgba(220,38,38,.25);white-space:nowrap;" title="Chef is cooking this order">' +
+                    '<span style="width:6px;height:6px;border-radius:50%;background:#f87171;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
+                    'Chef Cooking' +
+                    '</span>';
+            }
+        }
+
+        // For non-delivery orders (pickup/dine-in), preparing→delivered directly
         if (o.status === 'preparing' && o.order_type !== 'delivery') {
             act = { label: o.order_type === 'pickup' ? 'Picked Up' : 'Complete', icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
         }
@@ -343,16 +357,7 @@ function renderTable(orders) {
                 '</button>';
         }
 
-        // pending / accepted / preparing → chef-owned; show a read-only pill
-        if (!act && (o.status === 'pending' || o.status === 'accepted' || o.status === 'preparing')) {
-            var chefLabel = o.status === 'pending' ? 'Awaiting Chef Accept' : (o.status === 'accepted' ? 'Chef: Queued' : 'Chef: Cooking');
-            actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(217,119,6,.1);color:#f59e0b;border:1px solid rgba(217,119,6,.25);white-space:nowrap;" title="Managed by the Chef on the Kitchen Dashboard">' +
-                '<span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
-                chefLabel +
-                '</span>';
-        }
-
-        // rider_assigned → only the rider can mark as picked up; show a read-only pill
+        // rider_assigned → rider-owned
         if (o.status === 'rider_assigned') {
             var riderName = o.rider ? escHtml(o.rider) : 'Rider';
             actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.25);white-space:nowrap;" title="' + riderName + ' must click Picked Up on their dashboard">' +
@@ -541,14 +546,28 @@ function openManageModal(id) {
     var o = ORDERS_MAP[id];
     if (!o) { fetchOrders().then(function(){ openManageModal(id); }); return; }
 
-    // Adjust pipeline for non-delivery orders
+    // Adjust pipeline based on order state
     var sp = JSON.parse(JSON.stringify(STATUS_PIPELINE[o.status] || {}));
-    if (o.order_type !== 'delivery') {
-        if (o.status === 'preparing') {
-            sp.next = 'delivered';
-            sp.nextLabel = o.order_type === 'pickup' ? 'Mark as Picked Up' : 'Mark as Completed';
-            sp.btnClass = 'btn-success';
+
+    // Delivery order, preparing: show Dispatch only when chef has marked ready
+    if (o.order_type === 'delivery' && o.status === 'preparing') {
+        if (o.prepared_at) {
+            sp.next      = null; // dispatch via modal rider picker, not status patch
+            sp.nextLabel = null;
+            sp.btnClass  = '';
+            sp.chefAction = false;
+            sp.dispatchReady = true; // signal to show rider assignment section
+        } else {
+            sp.chefAction = true; // still cooking
         }
+    }
+
+    // Non-delivery, preparing → mark delivered directly
+    if (o.order_type !== 'delivery' && o.status === 'preparing') {
+        sp.next      = 'delivered';
+        sp.nextLabel = o.order_type === 'pickup' ? 'Mark as Picked Up' : 'Mark as Completed';
+        sp.btnClass  = 'btn-success';
+        sp.chefAction = false;
     }
 
     document.getElementById('mmTitle').textContent = 'Manage Order ' + o.order_number;
@@ -668,15 +687,15 @@ function openManageModal(id) {
                     '<svg width="14" height="14" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2z"/></svg>' +
                 '</div>' +
                 '<div>' +
-                    '<p style="font-size:.8rem;font-weight:700;color:#f59e0b;margin:0 0 .2rem;">Waiting for Chef Action</p>' +
+                    '<p style="font-size:.8rem;font-weight:700;color:#f59e0b;margin:0 0 .2rem;">Chef is Cooking</p>' +
                     '<p style="font-size:.72rem;color:var(--text-muted);margin:0;line-height:1.5;">' +
-                        'The chef must <strong style="color:#fcd34d;">' + chefStepLabel + '</strong> from the <em>Kitchen Dashboard</em>.' +
+                        'Waiting for the chef to <strong style="color:#fcd34d;">mark this order as ready</strong> from the Kitchen Dashboard.' +
                     '</p>' +
                 '</div>' +
             '</div>';
     }
 
-    if (o.status === 'preparing') {
+    if (o.status === 'preparing' && sp.dispatchReady) {
         var ridersToShow = RIDERS.length > 0 ? RIDERS : [];
 
         if (ridersToShow.length > 0) {

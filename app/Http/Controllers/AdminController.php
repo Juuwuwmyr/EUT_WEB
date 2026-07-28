@@ -636,6 +636,7 @@ class AdminController extends Controller
                 'date'             => $o->created_at->format('M d, Y g:i A'),
                 'date_short'       => $o->created_at->format('M d g:i A'),
                 'accepted_at'      => $o->accepted_at?->format('g:i A'),
+                'prepared_at'      => $o->prepared_at ? true : false, // chef marked ready flag
                 'picked_up_at'     => $o->picked_up_at?->format('g:i A'),
                 'delivered_at'     => $o->delivered_at?->format('g:i A'),
                 'rider'            => ($o->rider && $o->rider->user) ? $o->rider->user->name : null,
@@ -660,27 +661,60 @@ class AdminController extends Controller
 
     public function acceptOrder(\App\Models\Order $order)
     {
-        // Accept is now owned by the Chef — redirect to the chef route
-        return request()->expectsJson()
-            ? response()->json(['success' => false, 'message' => 'Orders are accepted by the Chef from the Kitchen Dashboard.'], 403)
-            : back()->with('error', 'Orders are accepted by the Chef from the Kitchen Dashboard.');
+        if ($order->status !== 'pending') {
+            return request()->expectsJson()
+                ? response()->json(['success' => false, 'message' => 'Order cannot be accepted.'], 422)
+                : back()->with('error', 'Order cannot be accepted.');
+        }
+
+        // Accept + immediately start cooking in one step
+        $order->update([
+            'status'      => 'preparing',
+            'accepted_at' => now(),
+        ]);
+
+        broadcast(new OrderStatusUpdated($order));
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success'     => true,
+                'message'     => "Order #{$order->order_number} accepted & sent to kitchen.",
+                'receipt_url' => route('chef.orders.receipt', $order->id),
+            ]);
+        }
+
+        return back()->with('success', "Order #{$order->order_number} accepted & sent to kitchen.");
     }
 
     public function assignRider(Request $request, \App\Models\Order $order)
     {
-        // Rider assignment is now owned by the Chef — redirect to the chef route
+        $request->validate(['rider_id' => 'required|exists:riders,id']);
+
+        if (!$order->isAssignable()) {
+            return request()->expectsJson()
+                ? response()->json(['success' => false, 'message' => 'Order cannot be assigned at this stage.'], 422)
+                : back()->with('error', 'Order cannot be assigned at this stage.');
+        }
+
+        $order->update([
+            'rider_id'    => $request->rider_id,
+            'status'      => 'rider_assigned',
+            'assigned_at' => now(),
+            'prepared_at' => $order->prepared_at ?? now(),
+        ]);
+
+        broadcast(new OrderStatusUpdated($order));
+
         return request()->expectsJson()
-            ? response()->json(['success' => false, 'message' => 'Riders are assigned by the Chef from the Kitchen Dashboard.'], 403)
-            : back()->with('error', 'Riders are assigned by the Chef from the Kitchen Dashboard.');
+            ? response()->json(['success' => true, 'message' => "Rider assigned to order #{$order->order_number}."])
+            : back()->with('success', "Rider assigned to order #{$order->order_number}.");
     }
 
     public function updateOrderStatus(Request $request, \App\Models\Order $order)
     {
-        // Admin-allowed manual transitions:
-        // - pending / accepted / preparing → chef-owned (Kitchen Dashboard)
-        // - out_for_delivery → rider-owned (Rider Dashboard)
-        // - cancelled → admin can cancel anytime (except delivered)
-        // - delivered → admin can mark delivered for pickup/dine-in only
+        // Admin transitions: cancel anytime, or mark delivered for pickup/dine-in
+        // preparing→preparing (chef marks ready via prepared_at, not status change)
+        // out_for_delivery is rider-owned
         $allowed = ['cancelled'];
         if ($order->order_type !== 'delivery') {
             $allowed[] = 'delivered';
@@ -688,21 +722,12 @@ class AdminController extends Controller
 
         $request->validate(['status' => ['required', Rule::in($allowed)]]);
 
-        // Prevent changing a delivered order
         if ($order->status === 'delivered') {
             return request()->expectsJson()
                 ? response()->json(['success' => false, 'message' => 'Delivered orders cannot be changed.'], 422)
                 : back()->with('error', 'Delivered orders cannot be changed.');
         }
 
-        // Chef-owned transitions
-        if (in_array($request->status, ['accepted', 'preparing'])) {
-            return request()->expectsJson()
-                ? response()->json(['success' => false, 'message' => 'This step is managed by the Chef on the Kitchen Dashboard.'], 403)
-                : back()->with('error', 'This step is managed by the Chef on the Kitchen Dashboard.');
-        }
-
-        // Rider-owned transition
         if ($request->status === 'out_for_delivery') {
             return request()->expectsJson()
                 ? response()->json(['success' => false, 'message' => 'Only the assigned rider can mark an order as out for delivery.'], 403)

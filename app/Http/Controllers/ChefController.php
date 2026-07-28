@@ -10,27 +10,31 @@ use Illuminate\Http\Request;
 class ChefController extends Controller
 {
     /**
-     * Accept an order and trigger receipt printing.
+     * Accept is owned by the Admin — admin accepts and auto-starts cooking.
      */
     public function acceptOrder(Order $order)
     {
-        if ($order->status !== 'pending') {
-            return $this->kitchenActionResponse(false, 'Order cannot be accepted.');
+        return $this->kitchenActionResponse(false, 'Orders are accepted by the Admin. They automatically start cooking.');
+    }
+
+    /**
+     * Start cooking — no longer needed as accept auto-sets preparing.
+     * Kept for backward compat but proxies to markReady intent.
+     */
+    public function startCooking(Order $order)
+    {
+        // Admin accept already sets status=preparing, so this is a no-op safety valve
+        if (!in_array($order->status, ['accepted', 'preparing'])) {
+            return $this->kitchenActionResponse(false, 'Order is not in a cookable state.');
         }
 
-        $order->update(['status' => 'accepted', 'accepted_at' => now()]);
-
-        broadcast(new OrderStatusUpdated($order));
-
-        if (request()->expectsJson()) {
-            return response()->json([
-                'success'     => true,
-                'message'     => "Order #{$order->order_number} accepted.",
-                'receipt_url' => route('chef.orders.receipt', $order->id),
-            ]);
+        if ($order->status === 'accepted') {
+            // Edge case: order was accepted without auto-preparing — push it forward
+            $order->update(['status' => 'preparing']);
+            broadcast(new OrderStatusUpdated($order));
         }
 
-        return back()->with('success', "Order #{$order->order_number} accepted.");
+        return $this->kitchenActionResponse(true, "Order #{$order->order_number} is now cooking.");
     }
 
     /**
@@ -161,8 +165,10 @@ class ChefController extends Controller
      */
     private function getKitchenOrders(): array
     {
+        // Admin accept sets status=preparing directly, so 'accepted' is a transient state.
+        // Show any 'accepted' orders in cooking column as a safety net.
         $active = Order::with(['user', 'items'])
-            ->whereIn('status', ['pending', 'accepted', 'preparing'])
+            ->whereIn('status', ['preparing', 'accepted'])
             ->oldest()
             ->get();
 
@@ -180,10 +186,15 @@ class ChefController extends Controller
             ->oldest('prepared_at')
             ->get();
 
+        // Cooking = preparing but not yet marked ready (prepared_at is null)
+        $cooking = $active->where('status', 'preparing')->whereNull('prepared_at')->values();
+        // Also catch any order still in 'accepted' (edge case)
+        $cooking = $cooking->merge($active->where('status', 'accepted')->values())->values();
+
         return [
-            'new'     => $active->where('status', 'pending')->values(),
-            'queued'  => $active->where('status', 'accepted')->values(),
-            'cooking' => $active->where('status', 'preparing')->whereNull('prepared_at')->values(),
+            'new'     => collect(), // Admin accepts — chef never sees 'pending'
+            'queued'  => collect(), // No queued step; admin accept → straight to cooking
+            'cooking' => $cooking,
             'ready'   => $readyForDelivery->values(),
         ];
     }
