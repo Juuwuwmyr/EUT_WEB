@@ -819,6 +819,10 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         const d = await r.json();
         if (d.success) {
             localStorage.setItem('eutCart', JSON.stringify([]));
+            // Clear server cart too
+            @auth
+            fetch('/cart', { method:'DELETE', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'} }).catch(()=>{});
+            @endauth
             window.location.href = '{{ route("shop.tracking") }}';
         } else {
             alert(d.message || 'Order failed.');
