@@ -231,7 +231,7 @@
                     <p class="hero-email">{{ auth()->user()->email }}</p>
                 </div>
             @else
-                <div class="hero-avatar-placeholder">?</div>
+                <div class="hero-avatar-placeholder" style="display:flex;align-items:center;justify-content:center;"><svg width="40" height="40" fill="none" stroke="#9ca3af" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
                 <div>
                     <p class="hero-greeting">Hello there</p>
                     <p class="hero-name">Guest User</p>

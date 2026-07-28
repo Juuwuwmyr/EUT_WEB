@@ -352,9 +352,9 @@
             <h1 class="hero-title">E.U.T Snack House</h1>
             <p class="hero-sub">Eat &middot; Unwind &middot; Tea &middot; Delivered Fast</p>
             <div class="hero-pills">
-                <span class="hero-pill">?? 30&ndash;45 min</span>
-                <span class="hero-pill">? 4.9 Rating</span>
-                <span class="hero-pill">?? Metro Manila</span>
+                <span class="hero-pill"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg> 30&ndash;45 min</span>
+                <span class="hero-pill"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.9 Rating</span>
+                <span class="hero-pill"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Metro Naujan</span>
             </div>
         </div>
         <img src="{{ asset('images/DeliveryPanda.webp') }}" alt="Delivery Panda" class="hero-img">
@@ -399,7 +399,7 @@
                 <img src="{{ $item->image ? asset($item->image) : 'https://placehold.co/400x300/1a1a2e/facc15?text=' . urlencode($item->name) }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy">
                 <div class="p-card-img-overlay"></div>
                 @if($item->featured)
-                    <span class="badge-hot">?? Hot</span>
+                    <span class="badge-hot" style="display:inline-flex;align-items:center;gap:3px;"><svg width="10" height="10" fill="#fff" viewBox="0 0 24 24"><path d="M17.66 11.2C17.43 10.9 17.15 10.64 16.89 10.38C16.22 9.78 15.46 9.35 14.82 8.72C13.33 7.26 13 4.85 13.95 3C13 3.23 12.17 3.75 11.46 4.32C8.87 6.4 7.85 10.07 9.07 13.22C9.11 13.32 9.15 13.42 9.15 13.55C9.15 13.77 9 13.97 8.8 14.05C8.57 14.15 8.33 14.09 8.14 13.93C8.08 13.88 8.04 13.83 8 13.76C6.87 12.33 6.69 10.28 7.45 8.64C5.78 10 4.87 12.3 5 14.47C5.06 14.97 5.12 15.47 5.29 15.97C5.43 16.57 5.7 17.17 6 17.7C7.08 19.43 8.95 20.67 10.96 20.92C13.1 21.19 15.39 20.8 17.03 19.32C18.86 17.66 19.5 15 18.56 12.72L18.43 12.46C18.22 12 17.66 11.2 17.66 11.2Z"/></svg> Hot</span>
                 @endif
                 <span class="badge-rating">
                     <svg width="9" height="9" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
@@ -410,7 +410,7 @@
                 <p class="p-card-name">{{ $item->name }}</p>
                 <p class="p-card-desc">{{ $item->description }}</p>
                 <div class="p-card-price-row">
-                    <span class="p-card-price">?{{ number_format($item->price, 0) }}</span>
+                    <span class="p-card-price">&#8369;{{ number_format($item->price, 0) }}</span>
                     <span class="p-card-sold">{{ rand(200,4800) }}+ sold</span>
                 </div>
             </div>

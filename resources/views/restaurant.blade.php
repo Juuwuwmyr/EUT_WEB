@@ -1715,7 +1715,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <label class="auth-label">Password</label>
                     <input type="password" class="auth-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
                 </div>
-                <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
+                <button class="btn-login" id="loginBtn" onclick="doLogin()" style="display:flex;align-items:center;justify-content:center;gap:8px;">Sign In <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
             </div>
 
             <!-- SIGNUP PANEL -->
@@ -1739,7 +1739,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <label class="auth-label">Password</label>
                     <input type="password" class="auth-input" id="signupPassword" placeholder="Min. 6 characters" autocomplete="new-password">
                 </div>
-                <button class="btn-signup" id="signupBtn" onclick="doSignup()">Create Account <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
+                <button class="btn-signup" id="signupBtn" onclick="doSignup()" style="display:flex;align-items:center;justify-content:center;gap:8px;">Create Account <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
             </div>
         </div>
     </div>
@@ -1923,8 +1923,8 @@ async function doLogin() {
     if (!email || !password) { showAlert('Please enter your email and password.'); return; }
     clearAlert();
 
-    btn.disabled    = true;
-    btn.textContent = 'Signing in...';
+    btn.disabled  = true;
+    btn.innerHTML = 'Signing in...';
 
     try {
         const res  = await fetch('{{ route("auth.login") }}', {
@@ -1947,8 +1947,8 @@ async function doLogin() {
         showAlert('Something went wrong. Please try again.');
     }
 
-    btn.disabled    = false;
-    btn.textContent = 'Sign In';
+    btn.disabled  = false;
+    btn.innerHTML = 'Sign In <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>';
 }
 
 /* ------------------------------------------------------
@@ -1964,8 +1964,8 @@ async function doSignup() {
     if (password.length < 6) { showAlert('Password must be at least 6 characters.'); return; }
     clearAlert();
 
-    btn.disabled    = true;
-    btn.textContent = 'Creating account...';
+    btn.disabled  = true;
+    btn.innerHTML = 'Creating account...';
 
     try {
         const res  = await fetch('{{ route("auth.signup") }}', {
@@ -1988,8 +1988,8 @@ async function doSignup() {
         showAlert('Something went wrong. Please try again.');
     }
 
-    btn.disabled    = false;
-    btn.textContent = 'Create Account';
+    btn.disabled  = false;
+    btn.innerHTML = 'Create Account <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>';
 }
 
 /* ------------------------------------------------------

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -353,14 +353,14 @@
     <!-- -- EMPTY STATE -- -->
     <div id="emptyCart" style="display:none;">
         <div class="empty-state">
-            <div class="empty-bag">??</div>
+            <div class="empty-bag" style="display:flex;align-items:center;justify-content:center;"><svg width="52" height="52" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></div>
             <p class="empty-title">Your cart is empty</p>
             <p class="empty-sub">Looks like you haven't added anything yet.<br>Browse our menu and find something delicious!</p>
             <div class="empty-suggestions">
-                <a href="{{ route('shop.home') }}" class="suggestion-chip">?? Burgers</a>
-                <a href="{{ route('shop.home') }}" class="suggestion-chip">?? Fries</a>
-                <a href="{{ route('shop.home') }}" class="suggestion-chip">?? Beverages</a>
-                <a href="{{ route('shop.home') }}" class="suggestion-chip">?? Combos</a>
+                <a href="{{ route('shop.home') }}" class="suggestion-chip"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16"/></svg> Burgers</a>
+                <a href="{{ route('shop.home') }}" class="suggestion-chip"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6h3.5v7"/></svg> Fries</a>
+                <a href="{{ route('shop.home') }}" class="suggestion-chip"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2"/></svg> Beverages</a>
+                <a href="{{ route('shop.home') }}" class="suggestion-chip"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg> Combos</a>
             </div>
             <a href="{{ route('shop.home') }}" class="checkout-btn" style="max-width:280px; margin:0 auto;">
                 Browse Menu
@@ -373,9 +373,9 @@
 
         <!-- Free delivery progress -->
         <div id="freeDeliveryBar" class="free-delivery-bar" style="display:none;">
-            <span style="font-size:16px;">??</span>
+            <span style="display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12v10H4V12M2 7h20v5H2zM12 22V7m0 0a2 2 0 00-2-2 2 2 0 000 4h2m0-4a2 2 0 012-2 2 2 0 010 4h-2"/></svg></span>
             <div style="flex:1;">
-                <p style="font-size:11px; color:#4b5563; margin-bottom:5px;" id="freeDeliveryText">Add ?X more for free delivery</p>
+                <p style="font-size:11px; color:#4b5563; margin-bottom:5px;" id="freeDeliveryText">Add &#8369;X more for free delivery</p>
                 <div class="free-delivery-fill">
                     <div class="free-delivery-fill-inner" id="freeDeliveryFill" style="width:0%"></div>
                 </div>
@@ -401,19 +401,19 @@
                 <div class="upsell-scroll">
                     <a href="{{ route('shop.home') }}" class="upsell-chip">
                         <img src="{{ asset('images/french-fries.webp') }}" class="upsell-img" alt="Fries">
-                        <div><p class="upsell-name">Crispy Fries</p><p class="upsell-price">?120</p></div>
+                        <div><p class="upsell-name">Crispy Fries</p><p class="upsell-price">&#8369;120</p></div>
                     </a>
                     <a href="{{ route('shop.home') }}" class="upsell-chip">
                         <img src="{{ asset('images/combo-meal.webp') }}" class="upsell-img" alt="Combo">
-                        <div><p class="upsell-name">Combo Meal</p><p class="upsell-price">?390</p></div>
+                        <div><p class="upsell-name">Combo Meal</p><p class="upsell-price">&#8369;390</p></div>
                     </a>
                     <a href="{{ route('shop.home') }}" class="upsell-chip">
                         <img src="{{ asset('images/gourmet-burger.webp') }}" class="upsell-img" alt="Burger">
-                        <div><p class="upsell-name">Gourmet Burger</p><p class="upsell-price">?420</p></div>
+                        <div><p class="upsell-name">Gourmet Burger</p><p class="upsell-price">&#8369;420</p></div>
                     </a>
                     <a href="{{ route('shop.home') }}" class="upsell-chip">
                         <img src="{{ asset('images/hero-burger.webp') }}" class="upsell-img" alt="Classic">
-                        <div><p class="upsell-name">Classic Burger</p><p class="upsell-price">?350</p></div>
+                        <div><p class="upsell-name">Classic Burger</p><p class="upsell-price">&#8369;350</p></div>
                     </a>
                 </div>
             </div>
@@ -444,43 +444,43 @@
             </div>
             <div class="summary-row">
                 <span class="summary-label">Subtotal (<span id="totalItems">0</span> items)</span>
-                <span class="summary-value" id="subtotal">?0</span>
+                <span class="summary-value" id="subtotal">&#8369;0</span>
             </div>
             <div class="summary-row">
                 <span class="summary-label">Delivery fee</span>
-                <span class="summary-value" id="deliveryFeeDisplay">?50</span>
+                <span class="summary-value" id="deliveryFeeDisplay">&#8369;50</span>
             </div>
             <div class="summary-row" id="discountRow" style="display:none;">
                 <span class="summary-label" style="color:#4ade80;">Promo discount</span>
-                <span class="summary-value" id="discountDisplay" style="color:#4ade80;">-?0</span>
+                <span class="summary-value" id="discountDisplay" style="color:#4ade80;">-&#8369;0</span>
             </div>
             <div class="summary-row" style="padding-top:14px; padding-bottom:14px;">
                 <span class="summary-label-bold">Total</span>
-                <span class="summary-value-bold" id="grandTotal">?0</span>
+                <span class="summary-value-bold" id="grandTotal">&#8369;0</span>
             </div>
 
             <!-- Trust badges -->
             <div class="trust-row">
-                <div class="trust-item"><span class="trust-icon">??</span>Secure<br>Payment</div>
-                <div class="trust-item"><span class="trust-icon">??</span>Fast<br>Delivery</div>
-                <div class="trust-item"><span class="trust-icon">??</span>Easy<br>Returns</div>
-                <div class="trust-item"><span class="trust-icon">?</span>Top<br>Quality</div>
+                <div class="trust-item"><span class="trust-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M7 11V7a5 5 0 0110 0v4"/></svg></span>Secure<br>Payment</div>
+                <div class="trust-item"><span class="trust-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg></span>Fast<br>Delivery</div>
+                <div class="trust-item"><span class="trust-icon"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></span>Easy<br>Returns</div>
+                <div class="trust-item"><span class="trust-icon"><svg width="18" height="18" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg></span>Top<br>Quality</div>
             </div>
         </div>
 
         <!-- Sticky Buy Now Bar -->
         <a href="{{ route('shop.checkout') }}" class="buy-now-bar" id="buyNowBar">
             <div class="buy-now-left">
-                <span class="buy-now-icon">??</span>
+                <span class="buy-now-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></span>
                 <div>
                     <p class="buy-now-label">Place Order</p>
-                    <p class="buy-now-total" id="buyBarTotal">?0</p>
+                    <p class="buy-now-total" id="buyBarTotal">&#8369;0</p>
                 </div>
             </div>
-            <span class="buy-now-cta">Buy Now ?</span>
+            <span class="buy-now-cta" style="display:inline-flex;align-items:center;gap:5px;">Buy Now <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></span>
         </a>
-        <a href="{{ route('shop.home') }}" class="continue-btn">
-            ? Continue Shopping
+        <a href="{{ route('shop.home') }}" class="continue-btn" style="display:inline-flex;align-items:center;gap:6px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg> Continue Shopping
         </a>
 
     </div><!-- /cartContent -->
@@ -557,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     el.style.transition = 'outline 0.2s';
                     setTimeout(() => el.style.outline = '', 2500);
                 }
-                showCartToast(`?? "${badItem.name.split('(')[0].trim()}" needs a flavor selected! Tap the item to fix it.`, badItem.item_id);
+                showCartToast(`"${badItem.name.split('(')[0].trim()}" needs a flavor selected! Tap the item to fix it.`, badItem.item_id);
                 return;
             }
             // All good � let the link navigate to checkout normally
@@ -573,7 +573,7 @@ const FREE_DELIVERY_THRESHOLD = 500;
 const PROMOS = {
     'EUTFREE': { type: 'delivery', label: 'Free delivery applied!' },
     'EUT10':   { type: 'percent', value: 10, label: '10% discount applied!' },
-    'SAVE50':  { type: 'fixed',   value: 50, label: '?50 off applied!' },
+    'SAVE50':  { type: 'fixed',   value: 50, label: '&#8369;50 off applied!' },
 };
 
 function saveCart() {
@@ -604,7 +604,7 @@ function renderCart() {
     if (subtotalRaw < FREE_DELIVERY_THRESHOLD) {
         const needed = FREE_DELIVERY_THRESHOLD - subtotalRaw;
         const pct = Math.min((subtotalRaw / FREE_DELIVERY_THRESHOLD) * 100, 100);
-        document.getElementById('freeDeliveryText').textContent = `Add ?${needed.toLocaleString()} more for free delivery`;
+        document.getElementById('freeDeliveryText').textContent = ``Add &#8369;${needed.toLocaleString()} more for free delivery`;
         document.getElementById('freeDeliveryFill').style.width = pct + '%';
         barEl.style.display = 'flex';
     } else {
@@ -629,7 +629,7 @@ function renderCart() {
                 const c = colors[m.type] || '#8b5cf6';
                 const adj = parseFloat(m.price_adjustment || 0);
                 const extra = (m.price_type === 'add' && adj > 0)
-                    ? ` <span style="color:#4ade80;font-size:.6rem;">+?${adj.toLocaleString()}</span>` : '';
+                    ? ` <span style="color:#4ade80;font-size:.6rem;">+&#8369;${adj.toLocaleString()}</span>` : '';
                 return `<span style="display:inline-flex;align-items:center;gap:.2rem;padding:.15rem .5rem;border-radius:999px;font-size:.65rem;font-weight:600;background:${c}18;color:${c};border:1px solid ${c}30;">${m.name}${extra}</span>`;
             }).join('');
 
@@ -637,12 +637,12 @@ function renderCart() {
             <img src="${item.image}" alt="${item.name}" class="item-img">
             <div class="item-info">
                 <p class="item-name">${item.name}</p>
-                <p class="item-unit-price">?${item.price.toLocaleString()} each</p>
+                <p class="item-unit-price">&#8369;${item.price.toLocaleString()} each</p>
                 <span class="item-category-tag">${item.category || 'Food'}</span>
                 ${modChipsHtml ? `<div style="display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.4rem;">${modChipsHtml}</div>` : ''}
             </div>
             <div class="item-right">
-                <p class="item-total-price">?${(item.price * item.quantity).toLocaleString()}</p>
+                <p class="item-total-price">&#8369;${(item.price * item.quantity).toLocaleString()}</p>
                 <div class="qty-wrap">
                     <button class="qty-btn qty-dec">-</button>
                     <input type="number" class="qty-value" value="${item.quantity}" min="1">
@@ -668,7 +668,7 @@ function renderCart() {
             const ci = cart.find(c => c.id === id);
             if (ci) ci.quantity = q;
             saveCart();
-            totalEl.textContent = '?' + (price * q).toLocaleString();
+            totalEl.textContent = '&#8369;' + (price * q).toLocaleString();
             updateTotals();
             // refresh nav count
             const tq = cart.reduce((s,i) => s + i.quantity, 0);
@@ -712,24 +712,24 @@ function updateTotals() {
     if (subtotal >= FREE_DELIVERY_THRESHOLD) delivery = 0;
 
     const grand = subtotal + delivery - discount;
-    document.getElementById('subtotal').textContent      = '?' + subtotal.toLocaleString();
+    document.getElementById('subtotal').textContent      = '&#8369;' + subtotal.toLocaleString();
     document.getElementById('totalItems').textContent    = totalQty;
     document.getElementById('deliveryFeeDisplay').textContent = delivery === 0
         ? '<span class="free-badge">FREE</span>'
-        : '?' + delivery;
+        : '&#8369;' + delivery;
     document.getElementById('deliveryFeeDisplay').innerHTML = delivery === 0
         ? '<span class="free-badge">FREE</span>'
-        : '?' + delivery;
-    document.getElementById('grandTotal').textContent    = '?' + grand.toLocaleString();
+        : '&#8369;' + delivery;
+    document.getElementById('grandTotal').textContent    = '&#8369;' + grand.toLocaleString();
     document.getElementById('itemSubCount').textContent  = totalQty + (totalQty === 1 ? ' item' : ' items') + ' in your order';
 
     // Sync Buy Now bar total
     const buyBarTotal = document.getElementById('buyBarTotal');
-    if (buyBarTotal) buyBarTotal.textContent = '?' + grand.toLocaleString();
+    if (buyBarTotal) buyBarTotal.textContent = '&#8369;' + grand.toLocaleString();
 
     if (discount > 0) {
         document.getElementById('discountRow').style.display   = 'flex';
-        document.getElementById('discountDisplay').textContent = '-?' + discount.toLocaleString();
+        document.getElementById('discountDisplay').textContent = '-&#8369;' + discount.toLocaleString();
     } else {
         document.getElementById('discountRow').style.display   = 'none';
     }
@@ -741,10 +741,10 @@ function applyPromo() {
     const promo = PROMOS[code];
     msgEl.style.display = 'block';
     if (promo) {
-        msgEl.innerHTML = `<span style="color:#4ade80;">? ${promo.label}</span>`;
+        msgEl.innerHTML = `<span style="color:#4ade80;display:inline-flex;align-items:center;gap:4px;"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> ${promo.label}</span>`;
         updateTotals();
     } else {
-        msgEl.innerHTML = `<span style="color:#f87171;">? Invalid promo code</span>`;
+        msgEl.innerHTML = `<span style="color:#f87171;display:inline-flex;align-items:center;gap:4px;"><svg width="14" height="14" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg> Invalid promo code</span>`;
     }
 }
 
