@@ -327,9 +327,10 @@
         
         /* ── NATIVE SCROLL OPTIMIZATION ── */
         /* Disables heavy hover/paint calculations while the user is swiping */
-        body.is-scrolling * {
+        body.is-scrolling .p-card,
+        body.is-scrolling a,
+        body.is-scrolling button {
             pointer-events: none !important;
-            transition: none !important;
         }
 
         @media (prefers-reduced-motion: reduce) {
