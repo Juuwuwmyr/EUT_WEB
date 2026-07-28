@@ -721,8 +721,7 @@ function renderActions(order, column) {
     }
 
     if (column === 'new') {
-        if (!IS_ADMIN) return `<div style="text-align:center;width:100%;font-size:.72rem;color:var(--text-muted);padding:.4rem;">Waiting for Admin to accept...</div>`;
-        return `<button class="k-btn k-btn-accept" onclick="event.stopPropagation();kitchenAction('accept', ${order.id}, this)">✓ Accept</button>`;
+        return `<button class="k-btn k-btn-accept" onclick="event.stopPropagation();kitchenAction('accept', ${order.id}, this)">✓ Accept Order</button>`;
     }
     if (column === 'queued') {
         return printBtn + `<button class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', ${order.id}, this)">🍳 Start Cooking</button>`;

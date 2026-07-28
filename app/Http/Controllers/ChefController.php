@@ -14,10 +14,6 @@ class ChefController extends Controller
      */
     public function acceptOrder(Order $order)
     {
-        if (!auth()->user()->isAdmin()) {
-            return $this->kitchenActionResponse(false, 'Only administrators can accept orders.');
-        }
-
         if ($order->status !== 'pending') {
             return $this->kitchenActionResponse(false, 'Order cannot be accepted.');
         }
@@ -133,10 +129,6 @@ class ChefController extends Controller
      */
     public function assignRider(Request $request, Order $order)
     {
-        if (!auth()->user()->isAdmin()) {
-            return $this->kitchenActionResponse(false, 'Only administrators can assign riders.');
-        }
-
         $request->validate(['rider_id' => 'required|exists:riders,id']);
 
         if (!$order->isAssignable()) {
