@@ -329,14 +329,6 @@
         .p-card { animation: fade-up 0.3s ease both; }
         .p-card.no-anim { animation: none !important; opacity: 1 !important; transform: none !important; }
         
-        /* ── NATIVE SCROLL OPTIMIZATION ── */
-        /* Disables heavy hover/paint calculations while the user is swiping */
-        body.is-scrolling .p-card,
-        body.is-scrolling a,
-        body.is-scrolling button {
-            pointer-events: none !important;
-        }
-
         @media (prefers-reduced-motion: reduce) {
             .p-card { animation: none !important; transition: none !important; }
             *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
@@ -615,7 +607,7 @@ function loadMoreItems() {
 
             for (let i = visibleItemsCount; i < nextLimit; i++) {
                 const card = allFilteredCards[i];
-                card.classList.add('no-anim');    // snap in, no animation for infinite-scroll batches
+                card.classList.add('no-anim');
                 card.classList.remove('p-card-hidden');
             }
 
@@ -623,8 +615,6 @@ function loadMoreItems() {
 
             if (domCache.loader) domCache.loader.style.display = 'none';
             isLoaderVisible = false;
-
-            checkScrollLoader();
         }, 150);
     });
 }
@@ -634,53 +624,29 @@ function checkScrollLoader() {
     if (visibleItemsCount >= allFilteredCards.length) {
         domCache.loader.style.display = 'none';
     } else {
-        domCache.loader.style.display = 'block';
-        domCache.loader.style.opacity = '0'; // visible to IntersectionObserver, invisible to user
+        domCache.loader.style.display = 'none'; // hidden until scroll triggers it
     }
 }
 
-// Infinite Scroll Observer - Highly optimized
-const scrollObserver = new IntersectionObserver((entries) => {
-    // Check if the loader is intersecting
-    if (entries[0].isIntersecting && !isLoaderVisible && visibleItemsCount > 0 && visibleItemsCount < allFilteredCards.length) {
-        entries[0].target.style.opacity = '1';
-        // Use requestIdleCallback or setTimeout to not block scrolling thread
-        (window.requestIdleCallback || setTimeout)(() => {
-            loadMoreItems();
-        }, 10);
-    }
-}, { 
-    root: null,
-    rootMargin: "0px 0px 800px 0px", // Huge margin so it loads way before user sees it
-    threshold: 0 
-});
+// Simple scroll-based infinite load — no IntersectionObserver race conditions
+function onScroll() {
+    if (isLoaderVisible) return;
+    if (visibleItemsCount >= allFilteredCards.length) return;
 
-// Fallback scroll listener removed to prevent layout thrashing and scrolling lag.
-// We rely entirely on the IntersectionObserver which is highly optimized for performance.
+    const scrolled   = window.scrollY || document.documentElement.scrollTop;
+    const viewHeight = window.innerHeight;
+    const docHeight  = document.documentElement.scrollHeight;
 
-// Native app-like scroll smoothness trick:
-// Disable pointer events (hovers, clicks) while actively scrolling so the GPU doesn't waste resources.
-let isScrollingTimer;
-let isActivelyScrolling = false;
-window.addEventListener('scroll', () => {
-    if (!isActivelyScrolling) {
-        isActivelyScrolling = true;
-        document.body.classList.add('is-scrolling');
+    // Load more when user is within 400px of the bottom
+    if (scrolled + viewHeight >= docHeight - 400) {
+        loadMoreItems();
     }
-    clearTimeout(isScrollingTimer);
-    isScrollingTimer = setTimeout(() => {
-        isActivelyScrolling = false;
-        document.body.classList.remove('is-scrolling');
-    }, 150); // Quick reset after finger stops
-}, { passive: true });
+}
+
+window.addEventListener('scroll', onScroll, { passive: true });
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    // Start observing the loader element
-    const loader = document.getElementById('infiniteScrollLoader');
-    if (loader) scrollObserver.observe(loader);
-    
-    // Initial filter run
     filterProducts();
 });
 
