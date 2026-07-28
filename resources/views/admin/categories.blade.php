@@ -18,7 +18,12 @@
 @php
 $lucideIcons = ['beef','flame','coffee','package','tag','utensils','pizza','soup','salad','sandwich'];
 @endphp
-<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+<style>
+#catCardsGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;margin-bottom:2rem;}
+@media(min-width:640px){#catCardsGrid{grid-template-columns:repeat(2,1fr);}}
+@media(min-width:1024px){#catCardsGrid{grid-template-columns:repeat(4,1fr);}}
+</style>
+<div id="catCardsGrid">
     @foreach($categories as $cat)
     <div class="stat-card" style="border-color:{{ $cat->color }}22;position:relative;overflow:hidden;">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.875rem;">

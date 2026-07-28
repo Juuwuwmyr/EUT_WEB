@@ -9,7 +9,7 @@
     @include('partials.pwa-head')
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.441.0/dist/umd/lucide.min.js"></script>
     @stack('head')
     <style>
         /* ── CSS VARIABLES ─────────────────────────────────── */
@@ -393,14 +393,20 @@
 })();
 </script>
 <script>
-if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
-} else {
-    // CDN may still be loading — retry after DOM settle
-    window.addEventListener('load', function() {
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    });
+// Lucide icons — init after full page load including stacked scripts
+function initLucide() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
 }
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLucide);
+} else {
+    initLucide();
+}
+window.addEventListener('load', initLucide);
+// Re-run after any dynamic content is injected
+window._lucideRefresh = function() { if (typeof lucide !== 'undefined') lucide.createIcons(); };
 </script>
 <script>
 function openModal(id){ var el=document.getElementById(id); if(el){el.classList.add('open');document.body.style.overflow='hidden';} }

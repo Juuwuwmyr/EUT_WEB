@@ -26,7 +26,11 @@
 $allCats = \App\Models\Category::active()->withCount(['activeMenuItems'])->orderBy('sort_order')->get();
 $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'label'=>$c->name,'color'=>$c->color,'bg'=>$c->color.'18','count'=>$c->active_menu_items_count]);
 @endphp
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+<style>
+#menuSummaryGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;margin-bottom:1.5rem;}
+@media(min-width:1024px){#menuSummaryGrid{grid-template-columns:repeat(4,1fr);}}
+</style>
+<div id="menuSummaryGrid">
     @foreach($summaryCards as $sc)
     <a href="{{ route('admin.menu-items',['category'=>$sc['slug']]) }}" class="stat-card"
        style="text-decoration:none;position:relative;overflow:hidden;border-color:{{ $sc['color'] }}22;

@@ -12,7 +12,11 @@
     </div>
 </div>
 
-<div class="grid lg:grid-cols-2 gap-6">
+<style>
+#settingsGrid{display:grid;grid-template-columns:1fr;gap:1.5rem;}
+@media(min-width:1024px){#settingsGrid{grid-template-columns:repeat(2,1fr);}}
+</style>
+<div id="settingsGrid">
 
     {{-- Restaurant Information --}}
     <div class="section-card">
@@ -49,7 +53,7 @@
                 </label>
                 <input type="text" name="address" value="123 Food Street, Culinary District" class="admin-input" placeholder="Full address">
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;">
                 <div>
                     <label class="field-label" style="display:flex;align-items:center;gap:.3rem;">
                         <i data-lucide="bike" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Delivery Fee (₱)

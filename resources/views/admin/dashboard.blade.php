@@ -8,7 +8,12 @@
 </div>
 
 {{-- ── STAT CARDS ── --}}
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+<style>
+#statCardsGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:2rem;}
+@media(min-width:768px){#statCardsGrid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:1024px){#statCardsGrid{grid-template-columns:repeat(5,1fr);}}
+</style>
+<div id="statCardsGrid">
     @php
         $statCards = [
             [
@@ -108,7 +113,8 @@
 </div>
 
 {{-- ── MIDDLE ROW ── --}}
-<div class="grid lg:grid-cols-2 gap-6 mb-8">
+<div style="display:grid;grid-template-columns:1fr;gap:1.5rem;margin-bottom:2rem;" id="midRow">
+<style>@media(min-width:1024px){#midRow{grid-template-columns:repeat(2,1fr);}}</style>
 
     {{-- Category breakdown --}}
     <div class="section-card">
@@ -186,7 +192,8 @@
         <i data-lucide="zap" style="width:1rem;height:1rem;color:var(--accent);stroke-width:2;"></i>
         <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Quick Actions</h2>
     </div>
-    <div class="p-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div style="padding:1.25rem;display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;" id="quickActGrid">
+    <style>@media(min-width:768px){#quickActGrid{grid-template-columns:repeat(4,1fr);}}</style>
         @php
             $actions = [
                 ['href'=>route('admin.users'),      'icon'=>'users',        'label'=>'Manage Users',  'color'=>'#6366f1','bg'=>'rgba(99,102,241,.10)'],

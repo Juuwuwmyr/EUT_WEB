@@ -9,7 +9,7 @@
     @include('partials.pwa-head')
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Lucide Icons CDN -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.441.0/dist/umd/lucide.min.js"></script>
     @stack('head')
     <style>
         /* ── CSS VARIABLES ─────────────────────────────────── */
@@ -125,6 +125,9 @@
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+    window.addEventListener('load', function() {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
 </script>
 @stack('scripts')
 </body>
