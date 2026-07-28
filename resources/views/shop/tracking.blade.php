@@ -824,8 +824,8 @@ async function initOrderMap(order) {
 
     // Restaurant pin
     L.marker(RESTAURANT_POS, { icon: L.divIcon({
-        html: `<div style="background:#facc15;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:18px;line-height:1;">🍽️</span></div>`,
-        className: '', iconSize: [38, 38], iconAnchor: [19, 38],
+        html: `<div style="background:#facc15;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">🍔</span></div>`,
+        className: '', iconSize: [42, 42], iconAnchor: [21, 42],
     }) }).addTo(map).bindPopup('<b>E.U.T Snack House</b>');
 
     // Geocode fallback if coords missing
@@ -845,8 +845,8 @@ async function initOrderMap(order) {
     // Customer / delivery destination pin
     if (customerPos) {
         L.marker(customerPos, { icon: L.divIcon({
-            html: `<div style="background:#ef4444;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:18px;line-height:1;">🏠</span></div>`,
-            className: '', iconSize: [38, 38], iconAnchor: [19, 38],
+            html: `<div style="background:#ef4444;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">🏠</span></div>`,
+            className: '', iconSize: [42, 42], iconAnchor: [21, 42],
         }) }).addTo(map).bindPopup('<b>Your Delivery Location</b>');
     }
 
@@ -865,7 +865,7 @@ async function initOrderMap(order) {
 
     // Rider marker — animated pulse circle with motorbike icon
     const rM = L.marker(riderPos, { icon: L.divIcon({
-        html: `<div style="background:#10b981;width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 10px rgba(16,185,129,.8);">🏍️</div>`,
+        html: `<div style="background:#10b981;width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 10px rgba(16,185,129,.8);">🛵</div>`,
         className: '', iconSize: [42, 42], iconAnchor: [21, 21],
     }) }).addTo(map);
     if (order.rider) rM.bindPopup('<b>' + order.rider.name + '</b><br><svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> ' + order.rider.rating);

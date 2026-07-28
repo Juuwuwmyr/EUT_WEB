@@ -1127,8 +1127,8 @@ async function drawRoute() {
     // Add customer marker if not yet on map
     if (!customerMarker) {
         customerMarker = L.marker(dest, { icon: L.divIcon({
-            html: `<div style="background:#ef4444;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:18px;line-height:1;">🏠</span></div>`,
-            className: '', iconSize: [38, 38], iconAnchor: [19, 38],
+            html: `<div style="background:#ef4444;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">🏠</span></div>`,
+            className: '', iconSize: [42, 42], iconAnchor: [21, 42],
         }) }).addTo(riderMapL).bindPopup(`<b>${CUSTOMER_NAME}</b>`);
     }
 
@@ -1185,13 +1185,13 @@ async function initRiderMap() {
 
     // Restaurant pin
     L.marker(RESTAURANT_R, { icon: L.divIcon({
-        html: `<div style="background:#facc15;width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:18px;line-height:1;">🍽️</span></div>`,
-        className: '', iconSize: [38, 38], iconAnchor: [19, 38],
+        html: `<div style="background:#facc15;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">🍔</span></div>`,
+        className: '', iconSize: [42, 42], iconAnchor: [21, 42],
     }) }).addTo(riderMapL).bindPopup('<b>E.U.T Snack House</b>');
 
     // Rider marker — animated pulse with motorbike icon
     myMarker = L.marker(myPos, { icon: L.divIcon({
-        html: `<div style="background:#8b5cf6;width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 10px rgba(139,92,246,.8);">🏍️</div>`,
+        html: `<div style="background:#8b5cf6;width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 10px rgba(139,92,246,.8);">🛵</div>`,
         className: '', iconSize: [42, 42], iconAnchor: [21, 21],
     }) }).addTo(riderMapL).bindPopup('<b>You (Rider)</b>');
 
