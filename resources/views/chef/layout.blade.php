@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Chef') — EUT Kitchen</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/admin.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-head')
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons — pinned stable version, deferred -->
+    <script defer src="https://cdn.jsdelivr.net/npm/lucide@0.441.0/dist/umd/lucide.min.js" onload="lucide.createIcons()"></script>
     @stack('head')
     <style>
         /* ── CSS VARIABLES ─────────────────────────────────── */
