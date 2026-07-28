@@ -1102,10 +1102,43 @@ function doAdd(goToCart) {
 
     localStorage.setItem('eutCart', JSON.stringify(cart));
     updateCartBadge();
+
+    @auth
+    // Sync to server in background (localStorage remains instant fallback)
+    syncCartItemToServer({
+        cart_key:     key,
+        menu_item_id: ITEM_ID,
+        name:         name,
+        image:        ITEM_IMAGE,
+        price:        unit,
+        quantity:     existing ? existing.quantity : currentQty,
+        category:     ITEM_CAT,
+        modifiers:    modifiers,
+    });
+    @endauth
+
     closeSheet();
     if (goToCart) window.location.href = '{{ route("shop.checkout") }}';
     else showToast('Added to cart! 🛒');
 }
+
+@auth
+async function syncCartItemToServer(item) {
+    try {
+        await fetch('/cart/item', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify(item),
+        });
+    } catch (e) {
+        // Silent fail — localStorage is the fallback
+    }
+}
+@endauth
 
 function showToast(msg) {
     const t = document.createElement('div');

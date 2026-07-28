@@ -159,7 +159,7 @@ class OrderController extends Controller
                 'qty'       => $i->quantity,
                 'price'     => $i->unit_price,
                 'subtotal'  => $i->subtotal,
-                'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.webp'),
+                'image'     => $i->resolvedImage(),
                 'modifiers' => $i->modifiers ?? [],
             ]),
         ]);
@@ -261,7 +261,7 @@ class OrderController extends Controller
                         'qty'       => $i->quantity,
                         'price'     => $i->unit_price,
                         'subtotal'  => $i->subtotal,
-                        'image'     => $i->image ? asset($i->image) : asset('images/hero-burger.webp'),
+                        'image'     => $i->resolvedImage(),
                         'modifiers' => $i->modifiers ?? [],
                     ];
                 }),

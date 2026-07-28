@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>My Cart - E.U.T Snack House</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-head')
@@ -644,6 +645,12 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(t);
     });
     renderCart();
+
+    @auth
+    // Load server cart and merge after local render (server is source of truth)
+    loadServerCart();
+    @endauth
+
     const clearBtn = document.getElementById('clearAllBtn');
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
@@ -651,6 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cart = [];
                 saveCart();
                 renderCart();
+                @auth serverClearCart(); @endauth
             }
         });
     }
@@ -684,6 +692,75 @@ document.addEventListener('DOMContentLoaded', () => {
 let cart = JSON.parse(localStorage.getItem('eutCart') || '[]');
 let promoDiscount = 0;
 const FREE_DELIVERY_THRESHOLD = 500;
+
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+@auth
+/* ── Server cart sync helpers ── */
+
+async function loadServerCart() {
+    try {
+        const res = await fetch('/cart/sync', {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.items && data.items.length > 0) {
+            const serverItems = data.items.map(i => ({
+                id:           i.cart_key,
+                item_id:      i.menu_item_id,
+                menu_item_id: i.menu_item_id,
+                name:         i.name,
+                image:        i.image,
+                price:        parseFloat(i.price),
+                quantity:     i.quantity,
+                category:     i.category,
+                modifiers:    i.modifiers || [],
+            }));
+            // Merge: server items override local by cart_key; local-only items are kept
+            const merged = [...serverItems];
+            cart.forEach(localItem => {
+                if (!merged.find(m => m.id === localItem.id)) {
+                    merged.push(localItem);
+                }
+            });
+            cart = merged;
+            saveCart();
+            renderCart();
+        }
+    } catch (e) {
+        // Silent fail
+    }
+}
+
+async function serverRemoveItem(cartKey) {
+    try {
+        await fetch('/cart/item/' + encodeURIComponent(cartKey), {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+        });
+    } catch (e) { /* Silent fail */ }
+}
+
+async function serverUpdateQty(cartKey, quantity) {
+    try {
+        await fetch('/cart/item/' + encodeURIComponent(cartKey), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+            body: JSON.stringify({ quantity }),
+        });
+    } catch (e) { /* Silent fail */ }
+}
+
+async function serverClearCart() {
+    try {
+        await fetch('/cart', {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json' },
+        });
+    } catch (e) { /* Silent fail */ }
+}
+@endauth
 
 const PROMOS = {
     'EUTFREE': { type: 'delivery', label: 'Free delivery applied!' },
@@ -793,6 +870,7 @@ function renderCart() {
             // refresh nav count
             const tq = cart.reduce((s,i) => s + i.quantity, 0);
             document.getElementById('navCartCount').textContent = tq + (tq === 1 ? ' item' : ' items');
+            @auth serverUpdateQty(id, q); @endauth
         }
 
         div.querySelector('.qty-dec').addEventListener('click', () => setQty(parseInt(qtyInput.value) - 1));
@@ -807,6 +885,7 @@ function renderCart() {
                 cart = cart.filter(c => c.id !== id);
                 saveCart();
                 renderCart();
+                @auth serverRemoveItem(id); @endauth
             }, 200);
         });
     });

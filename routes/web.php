@@ -80,6 +80,16 @@ Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(functi
 // Orders (authenticated customers)
 // -------------------------------------------------------
 Route::middleware('auth')->group(function () {
+    // -------------------------------------------------------
+    // Cart sync (server-side cart for logged-in users)
+    // -------------------------------------------------------
+    Route::get   ('/cart/sync',            [\App\Http\Controllers\CartController::class, 'index'])->name('cart.sync');
+    Route::post  ('/cart/sync',            [\App\Http\Controllers\CartController::class, 'bulkSync'])->name('cart.bulk-sync');
+    Route::post  ('/cart/item',            [\App\Http\Controllers\CartController::class, 'upsertItem'])->name('cart.upsert');
+    Route::patch ('/cart/item/{cartKey}',  [\App\Http\Controllers\CartController::class, 'updateQty'])->name('cart.update-qty');
+    Route::delete('/cart/item/{cartKey}',  [\App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
+    Route::delete('/cart',                 [\App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
+
     Route::post('/orders',                  [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders',                   [\App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}',           [\App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
