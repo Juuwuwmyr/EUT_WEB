@@ -210,10 +210,6 @@
             transition: transform 0.22s ease, border-color 0.22s, box-shadow 0.22s;
             box-shadow: 0 4px 16px rgba(0,0,0,0.4);
             display: flex; flex-direction: column;
-            will-change: transform, opacity;
-            contain: layout style paint;
-            content-visibility: auto;
-            contain-intrinsic-size: 1px 320px;
         }
         .p-card:hover {
             transform: translateY(-4px);
