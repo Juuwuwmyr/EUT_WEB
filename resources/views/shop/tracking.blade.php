@@ -172,6 +172,39 @@ body{background:#080810;color:#fff;min-height:100vh;}
 
 <!-- PAGE BODY -->
 <div class="page-body">
+
+    @guest
+    <!-- ── GUEST GATE ── -->
+    <div style="text-align:center; padding: 60px 24px 40px;">
+        <div style="width:96px;height:96px;margin:0 auto 24px;background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,0.07);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+            <svg width="44" height="44" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+        </div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">Track your orders</h2>
+        <p style="font-size:14px;color:#6b7280;line-height:1.7;margin-bottom:32px;max-width:280px;margin-left:auto;margin-right:auto;">
+            Sign in to view your order history, live status, and delivery tracking.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto 24px;">
+            <a href="{{ route('restaurant') }}#login"
+               style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 18px rgba(220,38,38,0.38);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                Log In
+            </a>
+            <a href="{{ route('restaurant') }}#register"
+               style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(245,158,11,0.3);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                Create Account
+            </a>
+        </div>
+        <a href="{{ route('shop.home') }}" style="font-size:13px;color:#4b5563;text-decoration:none;display:inline-flex;align-items:center;gap:5px;" onmouseover="this.style.color='#9ca3af'" onmouseout="this.style.color='#4b5563'">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Browse the menu instead
+        </a>
+    </div>
+    @endguest
+
+    @auth
     <!-- Summary Stats Banner (JS-rendered) -->
     <div id="orderSummaryBanner" style="display:none;margin-bottom:16px;">
         <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;min-width:0;overflow:hidden;">
@@ -209,8 +242,10 @@ body{background:#080810;color:#fff;min-height:100vh;}
     <div id="view-past"      style="display:none;"></div>
     <div id="view-cancelled" style="display:none;"></div>
 </div>
+@endauth
 
 <!-- ORDER DETAIL SHEET -->
+@auth
 <div class="sheet-backdrop" id="detailBackdrop" onclick="closeDetail()"></div>
 <div class="sheet" id="detailSheet">
     <div class="sheet-handle"></div>
@@ -241,6 +276,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
     <button id="confirmCancelBtn" onclick="submitCancel()" style="width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(239,68,68,.3);">Yes, Cancel My Order</button>
     <button onclick="closeCancelModal()" style="width:100%;padding:12px;margin-top:8px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#9ca3af;font-size:14px;font-weight:600;cursor:pointer;">Never Mind</button>
 </div>
+@endauth
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">

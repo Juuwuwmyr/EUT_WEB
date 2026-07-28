@@ -353,6 +353,38 @@
 <!-- ---------- PAGE BODY ---------- -->
 <div class="page-body">
 
+    @guest
+    <!-- ── GUEST GATE ── -->
+    <div style="text-align:center; padding: 60px 24px 40px;">
+        <div style="width:96px;height:96px;margin:0 auto 24px;background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,0.07);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+            <svg width="44" height="44" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+            </svg>
+        </div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">Your cart awaits</h2>
+        <p style="font-size:14px;color:#6b7280;line-height:1.7;margin-bottom:32px;max-width:280px;margin-left:auto;margin-right:auto;">
+            Sign in to view your cart, save items, and place orders.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto 24px;">
+            <a href="{{ route('restaurant') }}#login"
+               style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 18px rgba(220,38,38,0.38);transition:all 0.2s;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                Log In
+            </a>
+            <a href="{{ route('restaurant') }}#register"
+               style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(245,158,11,0.3);transition:all 0.2s;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                Create Account
+            </a>
+        </div>
+        <a href="{{ route('shop.home') }}" style="font-size:13px;color:#4b5563;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:color 0.2s;" onmouseover="this.style.color='#9ca3af'" onmouseout="this.style.color='#4b5563'">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Continue browsing menu
+        </a>
+    </div>
+    @endguest
+
+    @auth
     <!-- -- EMPTY STATE -- -->
     <div id="emptyCart" style="display:none;">
         <div class="empty-state">
@@ -487,6 +519,7 @@
         </a>
 
     </div><!-- /cartContent -->
+    @endauth
 
 </div><!-- /page-body -->
 
