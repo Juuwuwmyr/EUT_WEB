@@ -697,6 +697,7 @@ function openManageModal(id) {
     }
 
     if (o.status === 'preparing' && sp.dispatchReady) {
+        var riderCards   = '';
         var ridersToShow = RIDERS.length > 0 ? RIDERS : [];
 
         if (ridersToShow.length > 0) {
