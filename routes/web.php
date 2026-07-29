@@ -15,6 +15,9 @@ Route::get('/shop/checkout', [ShopController::class, 'checkout'])->name('shop.ch
 Route::get('/shop/tracking', [ShopController::class, 'tracking'])->name('shop.tracking');
 Route::get('/shop/profile', [ShopController::class, 'profile'])->name('shop.profile');
 
+// Public delivery fee calculator (used by checkout before login)
+Route::get('/delivery-fee', [\App\Http\Controllers\OrderController::class, 'calcFee'])->name('delivery-fee');
+
 // -------------------------------------------------------
 // Public pages
 // -------------------------------------------------------
@@ -74,6 +77,7 @@ Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(functi
     Route::post('/orders/{order}/ready',            [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.ready');
     Route::post('/orders/{order}/assign-rider',     [\App\Http\Controllers\ChefController::class, 'assignRider'])->name('orders.assign-rider');
     Route::get('/orders/{order}/receipt',           [\App\Http\Controllers\ChefController::class, 'receipt'])->name('orders.receipt');
+    Route::get('/orders/{order}/kitchen-ticket',    [\App\Http\Controllers\ChefController::class, 'kitchenTicket'])->name('orders.kitchen-ticket');
 });
 
 // -------------------------------------------------------
@@ -95,7 +99,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}',           [\App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel',   [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
     Route::patch('/orders/{order}/set-coords', [\App\Http\Controllers\OrderController::class, 'setCoords'])->name('orders.set-coords');
-    Route::get('/delivery-fee',             [\App\Http\Controllers\OrderController::class, 'calcFee'])->name('delivery-fee');
 
     // Profile
     Route::post ('/profile',          [AuthController::class, 'updateProfile'])->name('profile.update');

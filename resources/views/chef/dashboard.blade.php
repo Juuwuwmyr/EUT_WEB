@@ -919,6 +919,16 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
+function autoPrintKitchenTicket(orderId) {
+    const url = `/chef/orders/${orderId}/kitchen-ticket`;
+    const w = 220, h = 700;
+    const left = Math.round((screen.width  - w) / 2);
+    const top  = Math.round((screen.height - h) / 2);
+    const win  = window.open(url, `kitchen_ticket_${orderId}`,
+        `width=${w},height=${h},left=${left},top=${top},toolbar=0,scrollbars=0,status=0,menubar=0,location=0`);
+    if (!win) window.open(url, '_blank');
+}
+
 function printReceipt(receiptUrl) {
     const w    = 220; // 200px content + padding buffer
     const h    = 800;
@@ -1131,6 +1141,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Echo) {
         window.Echo.private('kitchen')
             .listen('.order.updated', (order) => {
+                // Auto-print kitchen ticket when admin accepts (pending → accepted)
+                if (order.status === 'accepted') {
+                    autoPrintKitchenTicket(order.id);
+                }
                 // Full kitchen refresh to re-categorise the order
                 refreshKitchen(false);
             });

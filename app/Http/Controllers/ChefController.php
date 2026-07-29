@@ -141,6 +141,15 @@ class ChefController extends Controller
     }
 
     /**
+     * Get the kitchen ticket (no prices) for an order.
+     */
+    public function kitchenTicket(Order $order)
+    {
+        $order->load(['items', 'user']);
+        return view('admin.partials.kitchen-ticket', compact('order'));
+    }
+
+    /**
      * Internal helper to fetch categorized kitchen orders.
      */
     private function getKitchenOrders(): array
