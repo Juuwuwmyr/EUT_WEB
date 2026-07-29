@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rider Dashboard €” EUT</title>
+    <title>Rider Dashboard ğŸï¸ EUT</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-head')
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: #080810; color: #fff; min-height: 100vh; }
 
-        /* ”€”€ TOPNAV ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ TOPNAV ï¿½ï¿½ï¿½ï¿½ */
         .topnav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
             background: rgba(8,8,16,0.97); backdrop-filter: blur(20px);
@@ -23,7 +23,7 @@
         .brand-logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #fff; }
         .brand-tag { font-size: 9px; font-weight: 700; letter-spacing: .1em; color: #f59e0b; background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.25); border-radius: 4px; padding: 2px 6px; text-transform: uppercase; }
 
-        /* ”€”€ ONLINE TOGGLE ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ ONLINE TOGGLE ï¿½ï¿½ï¿½ï¿½ */
         .online-toggle-wrap { display: flex; align-items: center; gap: 8px; }
         .online-label { font-size: 12px; font-weight: 600; transition: color .2s; }
         .toggle-pill {
@@ -38,10 +38,10 @@
         }
         .toggle-pill.is-online .toggle-pill-thumb { transform: translateX(20px); }
 
-        /* ”€”€ PAGE ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ PAGE ï¿½ï¿½ï¿½ï¿½ */
         .page-body { max-width: 540px; margin: 0 auto; padding: 82px 16px 110px; }
 
-        /* ”€”€ RIDER PROFILE CARD ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ RIDER PROFILE CARD ï¿½ï¿½ï¿½ï¿½ */
         .profile-card {
             background: linear-gradient(135deg, #1a0e00, #100f1a);
             border: 1px solid rgba(245,158,11,0.2); border-radius: 20px;
@@ -67,10 +67,10 @@
         .pstat-val { font-size: 20px; font-weight: 900; color: #facc15; }
         .pstat-label { font-size: 10px; color: #4b5563; margin-top: 2px; }
 
-        /* ”€”€ SECTION LABEL ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ SECTION LABEL ï¿½ï¿½ï¿½ï¿½ */
         .section-label { font-size: 11px; font-weight: 700; color: #4b5563; text-transform: uppercase; letter-spacing: .07em; margin: 0 0 10px; }
 
-        /* ”€”€ CARD ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ CARD ï¿½ï¿½ï¿½ï¿½ */
         .card {
             background: linear-gradient(145deg, #12131f, #0e0f1a);
             border: 1px solid rgba(255,255,255,0.07); border-radius: 20px;
@@ -84,7 +84,7 @@
         .card-title { font-size: 13px; font-weight: 700; color: #fff; }
         .card-sub   { font-size: 11px; color: #4b5563; margin-top: 2px; }
 
-        /* ”€”€ ORDER CARD ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ ORDER CARD ï¿½ï¿½ï¿½ï¿½ */
         .order-card {
             background: linear-gradient(145deg, #12131f, #0e0f1a);
             border: 1px solid rgba(255,255,255,0.08); border-radius: 18px;
@@ -117,7 +117,7 @@
         .oc-total { font-size: 16px; font-weight: 900; color: #facc15; }
         .oc-total-label { font-size: 10px; color: #4b5563; }
 
-        /* ”€”€ BUTTONS ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ BUTTONS ï¿½ï¿½ï¿½ï¿½ */
         .btn-accept {
             background: linear-gradient(135deg, #10b981, #059669); color: #fff;
             padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 13px;
@@ -152,29 +152,29 @@
         }
         .btn-decline:hover { background: rgba(239,68,68,.08); }
 
-        /* ”€”€ BADGE ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ BADGE ï¿½ï¿½ï¿½ï¿½ */
         .badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
         .badge-assigned  { background: rgba(245,158,11,.12); color: #f59e0b; border: 1px solid rgba(245,158,11,.25); }
         .badge-pickup    { background: rgba(139,92,246,.12); color: #a78bfa; border: 1px solid rgba(139,92,246,.25); }
         .badge-delivering{ background: rgba(16,185,129,.12); color: #34d399; border: 1px solid rgba(16,185,129,.25); }
         .badge-done      { background: rgba(34,197,94,.10);  color: #4ade80; border: 1px solid rgba(34,197,94,.22); }
 
-        /* ”€”€ PULSE DOT ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ PULSE DOT ï¿½ï¿½ï¿½ï¿½ */
         .pulse-dot { width: 7px; height: 7px; background: currentColor; border-radius: 50%; animation: blink 1.2s infinite; }
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-        /* ”€”€ TABS ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ TABS ï¿½ï¿½ï¿½ï¿½ */
         .tabs-bar { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 16px; }
         .tab { padding: 10px 20px; font-size: 13px; font-weight: 600; color: #6b7280; background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all .2s; position: relative; bottom: -1px; }
         .tab.active { color: #f59e0b; border-bottom-color: #f59e0b; }
 
-        /* ”€”€ EMPTY STATE ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ EMPTY STATE ï¿½ï¿½ï¿½ï¿½ */
         .empty-state { text-align: center; padding: 48px 24px; }
         .empty-icon { font-size: 50px; margin-bottom: 14px; opacity: .7; }
         .empty-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 6px; }
         .empty-sub { font-size: 13px; color: #4b5563; line-height: 1.6; }
 
-        /* ”€”€ BOTTOM NAV ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ BOTTOM NAV ï¿½ï¿½ï¿½ï¿½ */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(8,8,16,0.97); border-top: 1px solid rgba(255,255,255,0.07);
@@ -184,7 +184,7 @@
         .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; color: #4b5563; text-decoration: none; font-size: 10px; font-weight: 500; transition: color .15s; }
         .bnav-item.active { color: #f59e0b; }
 
-        /* ”€”€ EARNING CARD ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ EARNING CARD ï¿½ï¿½ï¿½ï¿½ */
         .earn-card {
             background: linear-gradient(135deg, #0e1a10, #0a1015);
             border: 1px solid rgba(16,185,129,.2); border-radius: 18px; padding: 16px 18px;
@@ -192,7 +192,7 @@
         }
         .earn-card::before { content:''; position:absolute; top:-30px; right:-30px; width:120px; height:120px; background: radial-gradient(circle,rgba(16,185,129,.08) 0%,transparent 70%); pointer-events:none; }
 
-        /* ”€”€ DELIVERY CONFIRM SHEET ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ DELIVERY CONFIRM SHEET ï¿½ï¿½ï¿½ï¿½ */
         .sheet-backdrop {
             display: none; position: fixed; inset: 0; z-index: 200;
             background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
@@ -223,7 +223,7 @@
         .sheet-title { font-size: 16px; font-weight: 800; color: #fff; margin: 0 0 3px; }
         .sheet-sub   { font-size: 12px; color: #6b7280; margin: 0; }
 
-        /* ”€”€ STEP VIEWS inside sheet ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ STEP VIEWS inside sheet ï¿½ï¿½ï¿½ï¿½ */
         .sheet-step { padding: 20px; display: none; }
         .sheet-step.active { display: block; }
 
@@ -299,7 +299,7 @@
         }
         .btn-sheet-back:hover { color: #9ca3af; border-color: rgba(255,255,255,.2); }
 
-        /* ”€”€ SUCCESS OVERLAY ”€”€ */
+        /* ï¿½ï¿½ï¿½ï¿½ SUCCESS OVERLAY ï¿½ï¿½ï¿½ï¿½ */
         .success-overlay {
             display: none; position: fixed; inset: 0; z-index: 300;
             background: rgba(8,8,16,.97); align-items: center; justify-content: center;
@@ -378,7 +378,7 @@
         <div style="background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(139,92,246,.3);border-radius:18px;overflow:hidden;margin-bottom:12px;">
             <div style="padding:12px 16px 8px;display:flex;align-items:center;justify-content:space-between;">
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="font-size:12px;font-weight:700;color:#a78bfa;">?? Live Map</span>
+                    <span style="font-size:12px;font-weight:700;color:#a78bfa;">ğŸ“ Live Map</span>
                     <span style="font-size:10px;color:#4b5563;">
                         @php
                             $activeOrder = $active->firstWhere('status', 'out_for_delivery') ?? $active->first();
@@ -396,7 +396,7 @@
             </div>
             <div style="position:relative;">
                 <div id="riderMap" style="width:100%;height:220px;"></div>
-                <!-- Re-center button — appears after rider pans away -->
+                <!-- Re-center button â€“ appears after rider pans away -->
                 <button id="recenterBtn" onclick="recenterMap()"
                     style="display:none;position:absolute;bottom:10px;right:10px;z-index:1000;
                            background:rgba(8,8,16,.88);border:1px solid rgba(139,92,246,.5);
@@ -405,17 +405,17 @@
                            display:none;align-items:center;gap:5px;transition:all .2s;"
                     onmouseenter="this.style.background='rgba(139,92,246,.2)'"
                     onmouseleave="this.style.background='rgba(8,8,16,.88)'">
-                    ?? Re-center
+                    ğŸ¯ Re-center
                 </button>
             </div>
             <div style="padding:8px 16px 12px;display:flex;justify-content:space-between;align-items:center;">
                 <span style="font-size:11px;color:#6b7280;">
                     @if($activeOrder && $activeOrder->status === 'out_for_delivery')
-                        ?? Restaurant ? ?? Customer
+                        ğŸª Restaurant â†’ ğŸ“ Customer
                     @elseif($activeOrder && $activeOrder->status === 'rider_assigned')
-                        ?? Restaurant
+                        ğŸª Restaurant
                     @else
-                        ?? Your Location
+                        ğŸ“ Your Location
                     @endif
                 </span>
                 <span id="riderDistText" style="font-size:11px;font-weight:700;color:#a78bfa;"></span>
@@ -424,9 +424,9 @@
 
         @foreach($active as $order)
             @if($loop->first && $order->status === 'rider_assigned')
-                <p class="section-label" style="margin-top:0;">?? Assigned — Head to Restaurant</p>
+                <p class="section-label" style="margin-top:0;">ğŸ“¦ Assigned â€“ Head to Restaurant</p>
             @elseif($order->status === 'rider_assigned')
-                <p class="section-label" style="margin-top:20px;">?? Assigned — Head to Restaurant</p>
+                <p class="section-label" style="margin-top:20px;">ğŸ“¦ Assigned â€“ Head to Restaurant</p>
             @elseif($loop->first && $order->status === 'out_for_delivery')
                 <!-- no label, map already has it -->
             @endif
@@ -458,7 +458,7 @@
                         <div>
                             <p class="oc-addr-label">Pick Up (Restaurant)</p>
                             <p class="oc-addr-val">
-                                {{ $order->status === 'out_for_delivery' ? '? Picked up at ' . $order->picked_up_at?->format('g:i A') : 'E.U.T Snack House — Metro Naujan' }}
+                                {{ $order->status === 'out_for_delivery' ? '? Picked up at ' . $order->picked_up_at?->format('g:i A') : 'E.U.T Snack House ï¿½ Metro Naujan' }}
                             </p>
                         </div>
                     </div>
@@ -473,7 +473,7 @@
                     </div>
                 </div>
                 <div class="oc-items">
-                    {{ $order->items->map(fn($i) => $i->item_name . ' × ' . $i->quantity)->implode(' · ') }}
+                    {{ $order->items->map(fn($i) => $i->item_name . ' Ã— ' . $i->quantity)->implode(' â€¢ ') }}
                 </div>
                 <div class="oc-footer">
                     <div>
@@ -521,7 +521,7 @@
                     <span style="font-size:11px;color:#4b5563;">{{ $order->delivered_at->format('g:i A') }}</span>
                 </div>
                 <p style="font-size:12px;font-weight:600;color:#d1d5db;margin:0 0 2px;">{{ $order->user->name }}</p>
-                <p style="font-size:11px;color:#4b5563;margin:0;">{{ $order->items->map(fn($i) => $i->item_name . ' × ' . $i->quantity)->implode(' · ') }}</p>
+                <p style="font-size:11px;color:#4b5563;margin:0;">{{ $order->items->map(fn($i) => $i->item_name . ' Ã— ' . $i->quantity)->implode(' â€¢ ') }}</p>
             </div>
             <div style="text-align:right;flex-shrink:0;">
                 <p style="font-size:16px;font-weight:900;color:#facc15;margin:0 0 3px;">&#8369;{{ number_format($order->total, 2) }}</p>
@@ -602,7 +602,7 @@
             </div>
             <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;">
                 <p style="font-size:10px;color:#4b5563;text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;">Phone</p>
-                <p style="font-size:14px;font-weight:700;color:#fff;margin:0;">{{ $rider->phone ?? '—' }}</p>
+                <p style="font-size:14px;font-weight:700;color:#fff;margin:0;">{{ $rider->phone ?? 'â€”' }}</p>
             </div>
             <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;">
                 <p style="font-size:10px;color:#4b5563;text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;">Rating</p>
@@ -636,7 +636,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
             <div>
                 <p style="font-size:14px;font-weight:700;color:#fff;margin:0 0 3px;" id="profileStatusLabel">
-                    {{ $rider->is_available ? 'Online — Ready for orders' : 'Offline — Not accepting orders' }}
+                    {{ $rider->is_available ? 'Online ï¿½ Ready for orders' : 'Offline ï¿½ Not accepting orders' }}
                 </p>
                 <p style="font-size:11px;color:#6b7280;margin:0;">Toggle to start or stop receiving deliveries</p>
             </div>
@@ -722,7 +722,7 @@
         <!-- Step 2a: Direct handover -->
         <div class="sheet-step" id="sheet-step-2-present">
             <div style="text-align:center;padding:8px 0 20px;">
-                <div style="font-size:52px;margin-bottom:12px;">¤</div>
+                <div style="font-size:52px;margin-bottom:12px;">ï¿½ï¿½</div>
                 <p style="font-size:15px;font-weight:800;color:#fff;margin-bottom:6px;">Hand over the order</p>
                 <p style="font-size:13px;color:#6b7280;line-height:1.6;">Make sure the customer has all items before confirming.</p>
             </div>
@@ -734,7 +734,7 @@
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                 Confirm Delivered
             </button>
-            <button class="btn-sheet-back" onclick="sheetStep(1)">† Back</button>
+            <button class="btn-sheet-back" onclick="sheetStep(1)">ï¿½ï¿½ Back</button>
         </div>
 
         <!-- Step 2b: Photo proof -->
@@ -757,7 +757,7 @@
                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                 Submit Proof &amp; Confirm
             </button>
-            <button class="btn-sheet-back" onclick="sheetStep(1)">† Back</button>
+            <button class="btn-sheet-back" onclick="sheetStep(1)">ï¿½ï¿½ Back</button>
         </div>
     </div>
 </div>
@@ -777,12 +777,12 @@
         <span style="color:#6b7280;" id="successTime"></span>
     </p>
     <button onclick="dismissSuccess()" style="background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;padding:14px 40px;border-radius:16px;font-size:15px;font-weight:800;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(250,204,21,.3);">
-        Done œ“
+        Done ï¿½ï¿½
     </button>
 </div>
 
 <script>
-/* ”€”€ Online/Offline Toggle ”€”€ */
+/* ï¿½ï¿½ï¿½ï¿½ Online/Offline Toggle ï¿½ï¿½ï¿½ï¿½ */
 let isOnline = {{ $rider->is_available ? 'true' : 'false' }};
 
 function applyOnlineUI(online) {
@@ -793,7 +793,7 @@ function applyOnlineUI(online) {
     const pill2  = document.getElementById('profileOnlineToggle');
     const label2 = document.getElementById('profileStatusLabel');
     if (pill2)  pill2.classList.toggle('is-online', online);
-    if (label2) label2.textContent = online ? 'Online — Ready for orders' : 'Offline — Not accepting orders';
+    if (label2) label2.textContent = online ? 'Online ï¿½ Ready for orders' : 'Offline ï¿½ Not accepting orders';
 }
 
 async function toggleOnline() {
@@ -813,7 +813,7 @@ async function toggleOnline() {
 
 const toggleOnlineSync = toggleOnline;
 
-/* ”€”€ Tabs ”€”€ */
+/* ï¿½ï¿½ï¿½ï¿½ Tabs ï¿½ï¿½ï¿½ï¿½ */
 function switchTab(tab) {
     const allTabs = ['active','history','earnings','profile'];
     allTabs.forEach(id => {
@@ -853,7 +853,7 @@ function openDeliverySheet(btn) {
     _activeOrderId = _activeCard ? (_activeCard.dataset.orderId || _activeCard.querySelector('[data-order-id]')?.dataset.orderId || null) : null;
     const orderId  = _activeCard ? _activeCard.querySelector('.oc-id').textContent  : '';
     const custName = _activeCard ? _activeCard.querySelector('.oc-cname').textContent : '';
-    document.getElementById('sheetOrderId').textContent = orderId + ' · ' + custName;
+    document.getElementById('sheetOrderId').textContent = orderId + ' ï¿½ ' + custName;
     sheetStep(1);
     // reset photo state
     document.getElementById('photoInput').value = '';
@@ -912,8 +912,8 @@ async function confirmDelivered(type) {
     // Disable confirm buttons to prevent double-submit
     const presBtn  = document.querySelector('#sheet-step-2-present .btn-sheet-confirm');
     const photoBtn = document.getElementById('photoConfirmBtn');
-    if (presBtn)  { presBtn.disabled  = true; presBtn.textContent  = 'Saving…'; }
-    if (photoBtn) { photoBtn.disabled = true; photoBtn.textContent = 'Saving…'; }
+    if (presBtn)  { presBtn.disabled  = true; presBtn.textContent  = 'Savingï¿½'; }
+    if (photoBtn) { photoBtn.disabled = true; photoBtn.textContent = 'Savingï¿½'; }
 
     const formData = new FormData();
     formData.append('delivery_type', type);
@@ -940,7 +940,7 @@ async function confirmDelivered(type) {
             throw new Error(data.message || 'Server returned an error.');
         }
 
-        // ? Success — update UI
+        // ? Success ï¿½ update UI
         closeSheet();
 
         if (_activeCard) {
@@ -957,7 +957,7 @@ async function confirmDelivered(type) {
         const now  = new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true });
         const date = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
         document.getElementById('successOrderId').textContent  = orderId;
-        document.getElementById('successTime').textContent     = now + ' · ' + date;
+        document.getElementById('successTime').textContent     = now + ' ï¿½ ' + date;
         document.getElementById('successSubText').textContent  = type === 'photo'
             ? 'Proof photo submitted. Order marked as delivered.'
             : 'Order handed directly to customer.';
@@ -1007,9 +1007,9 @@ function dismissSuccess() {
         <p id="gpsGateMsg" style="font-size:13px;color:#9ca3af;line-height:1.7;margin:0 0 8px;">Enable location access so customers and dispatch can track you in real time.</p>
         <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px 16px;margin:16px 0 24px;text-align:left;">
             <p style="font-size:12px;font-weight:700;color:#fbbf24;margin:0 0 8px;">?? How to enable:</p>
-            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">• <strong>Chrome:</strong> Tap the lock icon ? Site settings ? Location ? Allow</p>
-            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">• <strong>Safari:</strong> Settings ? Safari ? Location ? Allow</p>
-            <p style="font-size:11px;color:#d97706;margin:0;line-height:1.6;">• <strong>Phone:</strong> Settings ? Apps ? Browser ? Permissions ? Location ? Allow</p>
+            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">ï¿½ <strong>Chrome:</strong> Tap the lock icon ? Site settings ? Location ? Allow</p>
+            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">ï¿½ <strong>Safari:</strong> Settings ? Safari ? Location ? Allow</p>
+            <p style="font-size:11px;color:#d97706;margin:0;line-height:1.6;">ï¿½ <strong>Phone:</strong> Settings ? Apps ? Browser ? Permissions ? Location ? Allow</p>
         </div>
         <button onclick="retryGps()" style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(245,158,11,.4);display:flex;align-items:center;justify-content:center;gap:8px;">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg>
@@ -1064,7 +1064,7 @@ let customerMarker = null;
 async function geocodeAddress(rawAddr) {
     if (!rawAddr) return null;
 
-    // Strip leading "Name, " prefix — delivery_address is stored as "Name, street address"
+    // Strip leading "Name, " prefix ï¿½ delivery_address is stored as "Name, street address"
     // Pattern: if the first comma-separated part has no digits, it's a name
     let addr = rawAddr;
     const parts = rawAddr.split(',');
@@ -1091,19 +1091,19 @@ async function geocodeAddress(rawAddr) {
             if (data && data.length) {
                 const lat = parseFloat(data[0].lat);
                 const lng = parseFloat(data[0].lon);
-                // Sanity check — must be somewhere in Philippines (roughly)
+                // Sanity check ï¿½ must be somewhere in Philippines (roughly)
                 if (lat > 4 && lat < 22 && lng > 116 && lng < 127) {
                     console.log('Geocoded via Nominatim:', q, '->', lat, lng);
                     return [lat, lng];
                 }
             }
         } catch(e) { /* try next */ }
-        // Nominatim rate limit — small delay between attempts
+        // Nominatim rate limit ï¿½ small delay between attempts
         await new Promise(r => setTimeout(r, 400));
     }
 
     // Absolute fallback: use Naujan, Oriental Mindoro area center
-    console.warn('Geocode failed for:', rawAddr, '— using area fallback');
+    console.warn('Geocode failed for:', rawAddr, 'ï¿½ using area fallback');
     return [13.3100, 121.2950]; // Naujan area center
 }
 
@@ -1189,7 +1189,7 @@ async function initRiderMap() {
         className: '', iconSize: [42, 42], iconAnchor: [21, 42],
     }) }).addTo(riderMapL).bindPopup('<b>E.U.T Snack House</b>');
 
-    // Rider marker — animated pulse with motorbike icon
+    // Rider marker ï¿½ animated pulse with motorbike icon
     myMarker = L.marker(myPos, { icon: L.divIcon({
         html: `<div style="background:#8b5cf6;width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 10px rgba(139,92,246,.8);">??</div>`,
         className: '', iconSize: [42, 42], iconAnchor: [21, 21],
@@ -1244,7 +1244,7 @@ function recenterMap() {
 document.addEventListener('DOMContentLoaded', initRiderMap);
 
 /* -------------------------------------------
-   GPS — single watcher for ping + map update
+   GPS ï¿½ single watcher for ping + map update
 ------------------------------------------- */
 function pingLocation(lat, lng) {
     fetch('{{ route("rider.location") }}', {
@@ -1271,7 +1271,7 @@ function showGpsBanner(show, msg) {
 }
 
 function retryGps() {
-    // Don't hide the gate — startGpsWatch will hide it on success
+    // Don't hide the gate ï¿½ startGpsWatch will hide it on success
     startGpsWatch();
 }
 
@@ -1304,7 +1304,7 @@ function startGpsWatch() {
             myPos = [lat, lng];
             if (myMarker) myMarker.setLatLng(myPos);
 
-            // Auto-recenter — only if rider hasn't manually panned in the last 8 seconds
+            // Auto-recenter ï¿½ only if rider hasn't manually panned in the last 8 seconds
             if (riderMapL) {
                 const idleMs = Date.now() - _lastUserMove;
                 if (idleMs > 8000) {
@@ -1318,7 +1318,7 @@ function startGpsWatch() {
             }
             updateRiderDist();
 
-            // Refresh OSRM route — throttled to once per 20 seconds
+            // Refresh OSRM route ï¿½ throttled to once per 20 seconds
             if (CUSTOMER_R && now - _lastRoute > 20000) {
                 _lastRoute = now;
                 const fresh = await fetchOSRMRoute(myPos, CUSTOMER_R);
@@ -1328,7 +1328,7 @@ function startGpsWatch() {
                 }
             }
 
-            // Ping server — throttled to once per 10 seconds
+            // Ping server ï¿½ throttled to once per 10 seconds
             if (now - _lastPing >= 10000) {
                 _lastPing = now;
                 pingLocation(lat, lng);
@@ -1351,10 +1351,10 @@ function startGpsWatch() {
 if (navigator.permissions) {
     navigator.permissions.query({ name: 'geolocation' }).then(result => {
         if (result.state === 'denied') {
-            setGpsLabel(false, 'Location denied — tap to enable');
+            setGpsLabel(false, 'Location denied ï¿½ tap to enable');
             showGpsBanner(true);
         } else {
-            startGpsWatch(); // 'granted' or 'prompt' — start watching (will trigger browser prompt if needed)
+            startGpsWatch(); // 'granted' or 'prompt' ï¿½ start watching (will trigger browser prompt if needed)
         }
         result.onchange = () => {
             if (result.state === 'granted') { showGpsBanner(false); startGpsWatch(); }
