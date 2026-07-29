@@ -16,16 +16,6 @@
         .kitchen-board { grid-template-columns: 1fr; }
     }
 
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr);
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    @media (max-width: 1280px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 768px)  { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 480px)  { .stats-grid { grid-template-columns: 1fr; } }
-
     .kitchen-col {
         background: var(--bg-section);
         border: 1px solid var(--border-section);
@@ -480,88 +470,6 @@
 
 @section('content')
 
-{{-- ── KITCHEN OVERVIEW STATS ── --}}
-<div class="stats-grid">
-    @php
-        $cookingNow = $cookingOrders->count() + $queuedOrders->count();
-        $chefStats = [
-            [
-                'label' => 'Delivery',
-                'value' => $todayDelivery,
-                'sub'   => 'Today',
-                'icon'  => 'truck',
-                'color' => '#3b82f6',
-                'bg'    => 'rgba(59,130,246,.12)',
-                'border'=> 'rgba(59,130,246,.18)',
-            ],
-            [
-                'label' => 'Dine-in',
-                'value' => $todayDineIn,
-                'sub'   => 'Today',
-                'icon'  => 'utensils',
-                'color' => '#f59e0b',
-                'bg'    => 'rgba(245,158,11,.12)',
-                'border'=> 'rgba(245,158,11,.18)',
-            ],
-            [
-                'label' => 'Pickup',
-                'value' => $todayPickup,
-                'sub'   => 'Today',
-                'icon'  => 'shopping-bag',
-                'color' => '#8b5cf6',
-                'bg'    => 'rgba(139,92,246,.12)',
-                'border'=> 'rgba(139,92,246,.18)',
-            ],
-            [
-                'label' => 'Pending',
-                'value' => $pendingCount,
-                'sub'   => 'Need acceptance',
-                'icon'  => 'clock',
-                'color' => '#f97316',
-                'bg'    => 'rgba(249,115,22,.12)',
-                'border'=> 'rgba(249,115,22,.18)',
-            ],
-            [
-                'label' => 'In Kitchen',
-                'value' => $cookingNow,
-                'sub'   => 'Queued & cooking',
-                'icon'  => 'flame',
-                'color' => '#dc2626',
-                'bg'    => 'rgba(220,38,38,.12)',
-                'border'=> 'rgba(220,38,38,.18)',
-            ],
-            [
-                'label' => 'Completed',
-                'value' => $deliveredToday,
-                'sub'   => '₱'.number_format($revenueToday).' revenue',
-                'icon'  => 'circle-check',
-                'color' => '#10b981',
-                'bg'    => 'rgba(16,185,129,.12)',
-                'border'=> 'rgba(16,185,129,.18)',
-            ],
-        ];
-    @endphp
-    @foreach($chefStats as $s)
-    <div style="
-        position: relative;
-        overflow: hidden;
-        background: var(--bg-card);
-        border: 1px solid {{ $s['border'] }};
-        border-radius: 1rem;
-        padding: 1.1rem 1.2rem 1rem;
-    ">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem;">
-            <p style="font-size:.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin:0;font-weight:700;">{{ $s['label'] }}</p>
-            <div style="width:1.9rem;height:1.9rem;border-radius:.5rem;background:{{ $s['bg'] }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <i data-lucide="{{ $s['icon'] }}" style="width:.9rem;height:.9rem;color:{{ $s['color'] }};stroke-width:2.5;"></i>
-            </div>
-        </div>
-        <p style="font-size:2rem;font-weight:900;color:{{ $s['color'] }};margin:0;line-height:1;letter-spacing:-.02em;">{{ $s['value'] }}</p>
-        <p style="font-size:.65rem;color:var(--text-muted);margin:.35rem 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $s['sub'] }}</p>
-        <div style="position:absolute;bottom:-1.25rem;right:-1.25rem;width:4.5rem;height:4.5rem;border-radius:50%;background:{{ $s['bg'] }};filter:blur(16px);pointer-events:none;"></div>
-    </div>
-    @endforeach
-</div>
 
 <div class="kitchen-toolbar">
     <div style="display:flex;align-items:center;gap:.75rem;">
