@@ -74,19 +74,31 @@ class AdminController extends Controller
     public function storeUser(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:100',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-            'role'     => ['required', Rule::in(['admin', 'user', 'chef'])],
+            'name'         => 'required|string|max:100',
+            'email'        => 'required|email|unique:users,email',
+            'password'     => 'required|string|min:6',
+            'role'         => ['required', Rule::in(['admin', 'user', 'chef', 'rider'])],
+            'phone'        => 'required_if:role,rider|nullable|string|max:20',
+            'plate_number' => 'nullable|string|max:30',
         ]);
 
-        User::create([
+        $user = User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
             'role'     => $request->role,
             'provider' => 'email',
         ]);
+
+        // If rider, also create the Rider profile record
+        if ($request->role === 'rider') {
+            \App\Models\Rider::create([
+                'user_id'      => $user->id,
+                'phone'        => $request->phone,
+                'plate_number' => $request->plate_number,
+                'is_available' => false,
+            ]);
+        }
 
         return back()->with('success', "User \"{$request->name}\" created successfully.");
     }
@@ -96,7 +108,7 @@ class AdminController extends Controller
         $request->validate([
             'name'  => 'required|string|max:100',
             'email' => ['required','email', Rule::unique('users','email')->ignore($user->id)],
-            'role'  => ['required', Rule::in(['admin', 'user', 'chef'])],
+            'role'  => ['required', Rule::in(['admin', 'user', 'chef', 'rider'])],
         ]);
 
         if ($user->id === auth()->id() && $request->role !== 'admin') {
