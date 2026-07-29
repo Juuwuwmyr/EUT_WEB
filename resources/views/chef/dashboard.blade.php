@@ -921,12 +921,29 @@ function escapeHtml(str) {
 
 function autoPrintKitchenTicket(orderId) {
     const url = `/chef/orders/${orderId}/kitchen-ticket`;
-    const w = 220, h = 700;
-    const left = Math.round((screen.width  - w) / 2);
-    const top  = Math.round((screen.height - h) / 2);
-    const win  = window.open(url, `kitchen_ticket_${orderId}`,
-        `width=${w},height=${h},left=${left},top=${top},toolbar=0,scrollbars=0,status=0,menubar=0,location=0`);
-    if (!win) window.open(url, '_blank');
+
+    // Remove any existing print iframe
+    const old = document.getElementById('kitchenPrintFrame');
+    if (old) old.remove();
+
+    // Create a hidden iframe — no popup, no user click needed
+    const iframe = document.createElement('iframe');
+    iframe.id  = 'kitchenPrintFrame';
+    iframe.src = url;
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
+    document.body.appendChild(iframe);
+
+    // Once loaded, trigger print silently inside the iframe
+    iframe.onload = function() {
+        try {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        } catch(e) {
+            console.warn('Auto-print failed:', e);
+        }
+        // Clean up after 30 seconds
+        setTimeout(() => iframe.remove(), 30000);
+    };
 }
 
 function printReceipt(receiptUrl) {

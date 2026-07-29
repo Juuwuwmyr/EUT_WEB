@@ -197,11 +197,15 @@ hr.double { border-top: 3px double #000; }
 </div>
 
 <script>
-window.onload = function () {
-    document.body.style.width = '185px';
-    document.body.style.maxWidth = '185px';
-    setTimeout(function() { window.print(); window.close(); }, 300);
-};
+// iframe mode: do NOT auto-print here — parent calls iframe.contentWindow.print()
+// This script only runs if opened directly as a standalone page
+if (window.self === window.top) {
+    window.onload = function () {
+        document.body.style.width = '185px';
+        document.body.style.maxWidth = '185px';
+        setTimeout(function() { window.print(); }, 300);
+    };
+}
 </script>
 </body>
 </html>
