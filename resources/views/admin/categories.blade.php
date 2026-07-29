@@ -14,38 +14,47 @@
     </button>
 </div>
 
-{{-- Category cards --}}
+{{-- Category summary cards — max 5 --}}
 @php
 $lucideIcons = ['beef','flame','coffee','package','tag','utensils','pizza','soup','salad','sandwich'];
+$topCatCards  = $categories->take(4);
+$restCatCards = $categories->skip(4);
+$restItemCount = $restCatCards->sum('active_menu_items_count');
 @endphp
 <style>
-#catCardsGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;margin-bottom:2rem;}
-@media(min-width:640px){#catCardsGrid{grid-template-columns:repeat(2,1fr);}}
-@media(min-width:1024px){#catCardsGrid{grid-template-columns:repeat(4,1fr);}}
+#catCardsGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:2rem;}
+@media(min-width:768px){#catCardsGrid{grid-template-columns:repeat(5,1fr);}}
 </style>
 <div id="catCardsGrid">
-    @foreach($categories as $cat)
+    @foreach($topCatCards as $cat)
     <div class="stat-card" style="border-color:{{ $cat->color }}22;position:relative;overflow:hidden;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.875rem;">
-            <div style="width:2.75rem;height:2.75rem;border-radius:.875rem;background:{{ $cat->color }}18;display:flex;align-items:center;justify-content:center;">
-                <i data-lucide="{{ $cat->icon }}" style="width:1.25rem;height:1.25rem;color:{{ $cat->color }};stroke-width:2;"></i>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;">
+            <div style="width:2.5rem;height:2.5rem;border-radius:.75rem;background:{{ $cat->color }}18;display:flex;align-items:center;justify-content:center;">
+                <i data-lucide="{{ $cat->icon }}" style="width:1.2rem;height:1.2rem;color:{{ $cat->color }};stroke-width:2;"></i>
             </div>
             <span style="font-size:2rem;font-weight:800;color:{{ $cat->color }};line-height:1;">{{ $cat->active_menu_items_count }}</span>
         </div>
-        <h3 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin:0 0 .25rem;">{{ $cat->name }}</h3>
-        <p style="font-size:.75rem;color:var(--text-muted);margin:0 0 1rem;">{{ $cat->description ?: 'No description' }}</p>
-        @if($cat->is_archived)
-            <span class="badge badge-cancelled" style="display:inline-flex;align-items:center;gap:.25rem;margin-bottom:.75rem;">
-                <i data-lucide="archive" style="width:.65rem;height:.65rem;stroke-width:2;"></i> Archived
-            </span>
-        @endif
+        <h3 style="font-size:.875rem;font-weight:700;color:var(--text-strong);margin:0 0 .2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $cat->name }}</h3>
         <a href="{{ route('admin.menu-items',['category'=>$cat->slug]) }}"
-           style="font-size:.72rem;font-weight:600;color:{{ $cat->color }};text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;">
-            Browse items <i data-lucide="arrow-right" style="width:.7rem;height:.7rem;stroke-width:2.5;"></i>
+           style="font-size:.7rem;font-weight:600;color:{{ $cat->color }};text-decoration:none;display:inline-flex;align-items:center;gap:.3rem;">
+            Browse <i data-lucide="arrow-right" style="width:.65rem;height:.65rem;stroke-width:2.5;"></i>
         </a>
         <div style="position:absolute;bottom:-1.5rem;right:-1.5rem;width:5rem;height:5rem;border-radius:50%;background:{{ $cat->color }}12;filter:blur(16px);pointer-events:none;"></div>
     </div>
     @endforeach
+    @if($restCatCards->count())
+    <div class="stat-card" style="border-color:rgba(107,114,128,.2);position:relative;overflow:hidden;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;">
+            <div style="width:2.5rem;height:2.5rem;border-radius:.75rem;background:rgba(107,114,128,.12);display:flex;align-items:center;justify-content:center;">
+                <i data-lucide="layers" style="width:1.2rem;height:1.2rem;color:#6b7280;stroke-width:2;"></i>
+            </div>
+            <span style="font-size:2rem;font-weight:800;color:#6b7280;line-height:1;">{{ $restItemCount }}</span>
+        </div>
+        <h3 style="font-size:.875rem;font-weight:700;color:var(--text-strong);margin:0 0 .2rem;">+{{ $restCatCards->count() }} More</h3>
+        <span style="font-size:.7rem;color:var(--text-muted);">Other categories</span>
+        <div style="position:absolute;bottom:-1.5rem;right:-1.5rem;width:5rem;height:5rem;border-radius:50%;background:rgba(107,114,128,.08);filter:blur(16px);pointer-events:none;"></div>
+    </div>
+    @endif
 </div>
 
 {{-- Per-category item tables --}}
