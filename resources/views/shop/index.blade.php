@@ -414,7 +414,7 @@
 </nav>
 
 <!-- -- HERO -- -->
-<div class="hero">
+<div class="hero" id="heroSection">
     <div class="hero-card">
         <div class="hero-text">
             <div class="hero-badge"><span class="hero-badge-dot"></span> Open Now</div>
@@ -583,21 +583,24 @@ let searchDebounceTimer;
 document.getElementById('searchInput').addEventListener('input', () => {
     clearTimeout(searchDebounceTimer);
     const val = document.getElementById('searchInput').value;
-    // Toggle clear button / magnifier
-    const clearBtn = document.getElementById('searchClearBtn');
+    const clearBtn  = document.getElementById('searchClearBtn');
     const magnifier = document.getElementById('searchMagnifier');
+    const hero      = document.getElementById('heroSection');
+
     if (val.length > 0) {
-        if (clearBtn)   { clearBtn.style.display = 'flex'; }
-        if (magnifier)  { magnifier.style.display = 'none'; }
-        // Scroll past hero so category pills are visible
-        const catsWrap = document.querySelector('.cats-wrap');
-        if (catsWrap) {
-            catsWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        // Hide hero, show clear button
+        if (hero)      { hero.style.display = 'none'; }
+        if (clearBtn)  { clearBtn.style.display = 'flex'; }
+        if (magnifier) { magnifier.style.display = 'none'; }
+        // Scroll to top so category pills stick right under navbar
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-        if (clearBtn)   { clearBtn.style.display = 'none'; }
-        if (magnifier)  { magnifier.style.display = 'flex'; }
+        // Restore hero, reset buttons
+        if (hero)      { hero.style.display = ''; }
+        if (clearBtn)  { clearBtn.style.display = 'none'; }
+        if (magnifier) { magnifier.style.display = 'flex'; }
     }
+
     searchDebounceTimer = setTimeout(() => {
         visibleItemsCount = 0;
         allFilteredCards = [];
@@ -606,13 +609,19 @@ document.getElementById('searchInput').addEventListener('input', () => {
 });
 
 function clearSearch() {
-    const input = document.getElementById('searchInput');
+    const input     = document.getElementById('searchInput');
+    const clearBtn  = document.getElementById('searchClearBtn');
+    const magnifier = document.getElementById('searchMagnifier');
+    const hero      = document.getElementById('heroSection');
+
     input.value = '';
     input.focus();
-    const clearBtn = document.getElementById('searchClearBtn');
-    const magnifier = document.getElementById('searchMagnifier');
+
+    // Restore hero
+    if (hero)      { hero.style.display = ''; }
     if (clearBtn)  { clearBtn.style.display = 'none'; }
     if (magnifier) { magnifier.style.display = 'flex'; }
+
     visibleItemsCount = 0;
     allFilteredCards = [];
     applySortAndFilter();
