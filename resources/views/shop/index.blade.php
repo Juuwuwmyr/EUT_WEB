@@ -376,6 +376,12 @@
         <a href="{{ route('shop.home') }}" class="nav-brand" style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;text-decoration:none;flex-shrink:0;white-space:nowrap;letter-spacing:.05em;line-height:1;">
             <span style="color:#f97316;">E</span><span style="color:#38bdf8;">U</span><span style="color:#ef4444;">T</span>
         </a>
+        {{-- Back button — only visible when searching --}}
+        <button id="searchBackBtn" onclick="clearSearch()" style="display:none;flex-shrink:0;width:36px;height:36px;border-radius:50%;background:none;border:none;color:#9ca3af;cursor:pointer;align-items:center;justify-content:center;transition:color .15s;" title="Back">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
         <div class="search-wrap" style="max-width:100%;position:relative;">
             <input type="text" id="searchInput" class="search-input" placeholder="Search burgers, fries, drinks...">
             <button class="search-btn" id="searchClearBtn" onclick="clearSearch()" style="display:none;background:none;border:none;color:#9ca3af;padding:0;position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;width:28px;height:28px;display:none;align-items:center;justify-content:center;border-radius:50%;" title="Clear search">
@@ -588,17 +594,21 @@ document.getElementById('searchInput').addEventListener('input', () => {
     const hero      = document.getElementById('heroSection');
 
     if (val.length > 0) {
-        // Hide hero, show clear button
+        // Hide hero, show clear button + back button, hide brand
         if (hero)      { hero.style.display = 'none'; }
         if (clearBtn)  { clearBtn.style.display = 'flex'; }
         if (magnifier) { magnifier.style.display = 'none'; }
+        document.getElementById('searchBackBtn').style.display = 'flex';
+        document.querySelector('.nav-brand').style.display = 'none';
         // Scroll to top so category pills stick right under navbar
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-        // Restore hero, reset buttons
+        // Restore hero, reset buttons, show brand
         if (hero)      { hero.style.display = ''; }
         if (clearBtn)  { clearBtn.style.display = 'none'; }
         if (magnifier) { magnifier.style.display = 'flex'; }
+        document.getElementById('searchBackBtn').style.display = 'none';
+        document.querySelector('.nav-brand').style.display = '';
     }
 
     searchDebounceTimer = setTimeout(() => {
@@ -621,6 +631,8 @@ function clearSearch() {
     if (hero)      { hero.style.display = ''; }
     if (clearBtn)  { clearBtn.style.display = 'none'; }
     if (magnifier) { magnifier.style.display = 'flex'; }
+    document.getElementById('searchBackBtn').style.display = 'none';
+    document.querySelector('.nav-brand').style.display = '';
 
     visibleItemsCount = 0;
     allFilteredCards = [];
