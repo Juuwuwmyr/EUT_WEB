@@ -145,10 +145,16 @@ class ChefController extends Controller
      */
     private function getKitchenOrders(): array
     {
-        // Admin accept sets status=preparing directly, so 'accepted' is a transient state.
-        // Show any 'accepted' orders in cooking column as a safety net.
-        $active = Order::with(['user', 'items'])
-            ->whereIn('status', ['preparing', 'accepted'])
+        // New = accepted by admin, waiting for chef to start cooking
+        $newOrders = Order::with(['user', 'items'])
+            ->where('status', 'accepted')
+            ->oldest()
+            ->get();
+
+        // Cooking = preparing but not yet marked ready (prepared_at is null)
+        $cookingOrders = Order::with(['user', 'items'])
+            ->where('status', 'preparing')
+            ->whereNull('prepared_at')
             ->oldest()
             ->get();
 
@@ -166,15 +172,10 @@ class ChefController extends Controller
             ->oldest('prepared_at')
             ->get();
 
-        // Cooking = preparing but not yet marked ready (prepared_at is null)
-        $cooking = $active->where('status', 'preparing')->whereNull('prepared_at')->values();
-        // Also catch any order still in 'accepted' (edge case)
-        $cooking = $cooking->merge($active->where('status', 'accepted')->values())->values();
-
         return [
-            'new'     => collect(), // Admin accepts — chef never sees 'pending'
-            'queued'  => collect(), // No queued step; admin accept → straight to cooking
-            'cooking' => $cooking,
+            'new'     => $newOrders,    // Accepted by admin — chef clicks Start Cooking
+            'queued'  => collect(),     // Unused step kept for UI compatibility
+            'cooking' => $cookingOrders,
             'ready'   => $readyForDelivery->values(),
         ];
     }

@@ -667,9 +667,9 @@ class AdminController extends Controller
                 : back()->with('error', 'Order cannot be accepted.');
         }
 
-        // Accept + immediately start cooking in one step
+        // Accept the order — chef will start cooking manually
         $order->update([
-            'status'      => 'preparing',
+            'status'      => 'accepted',
             'accepted_at' => now(),
         ]);
 
