@@ -27,11 +27,6 @@
     </button>
 </div>
 
-{{-- ── STATUS STAT CARDS (JS-rendered, auto-refreshed) ── --}}
-<div id="statCards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;">
-    <div class="stat-card" style="grid-column:span 2;text-align:center;color:var(--text-muted);padding:1.5rem;">Loading…</div>
-</div>
-
 {{-- ── ERROR LOG PANEL ── --}}
 <div id="errorLogPanel" style="display:none;margin-bottom:1.25rem;border:1px solid rgba(239,68,68,.35);border-radius:.75rem;background:rgba(239,68,68,.06);overflow:hidden;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.08);">
@@ -184,16 +179,6 @@ var STATUS_COLOR_MAP = {
     cancelled:        { bg:'rgba(239,68,68,.12)',   color:'#dc2626',  label:'Cancelled'      },
 };
 
-var STAT_CONFIG = {
-    pending:       { label:'Pending',        sub:'Awaiting confirmation',  icon:'clock',        color:'#f59e0b', bg:'rgba(245,158,11,.10)'  },
-    preparing:     { label:'Preparing',      sub:'Being cooked',           icon:'chef-hat',     color:'#3b82f6', bg:'rgba(59,130,246,.10)'  },
-    out:           { label:'On the Way',     sub:'Out for delivery',       icon:'bike',         color:'#8b5cf6', bg:'rgba(139,92,246,.10)'  },
-    delivered:     { label:'Delivered',      sub:'Completed orders',       icon:'circle-check', color:'#10b981', bg:'rgba(16,185,129,.10)'  },
-    cancelled:     { label:'Cancelled',      sub:'Cancelled orders',       icon:'circle-x',     color:'#ef4444', bg:'rgba(239,68,68,.10)'   },
-    today:         { label:'Today\'s Orders',sub:'Placed today',           icon:'calendar',     color:'#6366f1', bg:'rgba(99,102,241,.10)'  },
-    revenue_today: { label:'Today\'s Revenue',sub:'From delivered orders', icon:'trending-up',  color:'#22c55e', bg:'rgba(34,197,94,.10)',  isCurrency:true },
-};
-
 // -- Status pipeline for modal
 // Admin: Accept (→ auto preparing) | Dispatch rider (after chef marks ready) | Cancel
 // Chef: Mark Ready (on Kitchen Dashboard)
@@ -238,7 +223,6 @@ async function fetchOrders() {
         data.orders.forEach(function(o) { ORDERS_MAP[o.id] = o; });
         RIDERS = data.riders || [];
 
-        renderStats(data.statusCounts);
         renderTable(data.orders);
 
         if (dot)   dot.style.background   = '#10b981'; // green = ok
@@ -258,35 +242,6 @@ function applyStatusFilter(val) {
     var clr = document.getElementById('clearFilter');
     if (clr) clr.style.display = val ? 'inline' : 'none';
     fetchOrders();
-}
-
-// ── Render stat cards ────────────────────────────────────
-function renderStats(counts) {
-    var html = '';
-    Object.keys(STAT_CONFIG).forEach(function(key) {
-        var sc    = STAT_CONFIG[key];
-        var count = counts[key] || 0;
-        var active = activeFilter === key;
-        var isClickable = ['pending','preparing','out','delivered','cancelled'].includes(key);
-        var displayVal = sc.isCurrency ? '₱' + Number(count).toLocaleString() : count;
-        html +=
-            '<' + (isClickable ? 'a href="#" onclick="applyStatusFilter(\'' + key + '\');return false;"' : 'div') + ' class="stat-card"' +
-            ' style="text-decoration:none;position:relative;overflow:hidden;' + (isClickable ? 'cursor:pointer;' : '') +
-            'border-color:' + sc.color + '22;' +
-            (active ? 'border-color:' + sc.color + '66;box-shadow:0 0 0 3px ' + sc.color + '18;' : '') + '">' +
-            '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;">' +
-                '<div style="width:2.75rem;height:2.75rem;border-radius:.75rem;background:' + sc.bg + ';display:flex;align-items:center;justify-content:center;">' +
-                    '<i data-lucide="' + sc.icon + '" style="width:1.3rem;height:1.3rem;color:' + sc.color + ';stroke-width:2;"></i>' +
-                '</div>' +
-                '<span style="font-size:' + (sc.isCurrency ? '1.4rem' : '2.25rem') + ';font-weight:900;color:' + sc.color + ';line-height:1;">' + displayVal + '</span>' +
-            '</div>' +
-            '<h3 style="font-size:.875rem;font-weight:700;color:var(--text-strong);margin:0 0 .15rem;">' + sc.label + '</h3>' +
-            '<p style="font-size:.7rem;color:var(--text-muted);margin:0;">' + sc.sub + '</p>' +
-            '<div style="position:absolute;bottom:-1.5rem;right:-1.5rem;width:5rem;height:5rem;border-radius:50%;background:' + sc.bg + ';filter:blur(18px);pointer-events:none;"></div>' +
-            '</' + (isClickable ? 'a' : 'div') + '>';
-    });
-    var el = document.getElementById('statCards');
-    if (el) { el.innerHTML = html; if (typeof lucide !== 'undefined') lucide.createIcons(); }
 }
 
 // ── Render table rows ────────────────────────────────────

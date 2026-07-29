@@ -116,32 +116,36 @@
 <div style="display:grid;grid-template-columns:1fr;gap:1.5rem;margin-bottom:2rem;" id="midRow">
 <style>@media(min-width:1024px){#midRow{grid-template-columns:repeat(2,1fr);}}</style>
 
-    {{-- Category breakdown --}}
+    {{-- Top Selling Items --}}
     <div class="section-card">
         <div class="px-5 py-4 card-header-border" style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:.5rem;">
-                <i data-lucide="pie-chart" style="width:1rem;height:1rem;color:var(--accent);stroke-width:2;"></i>
-                <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Menu by Category</h2>
+                <i data-lucide="trending-up" style="width:1rem;height:1rem;color:var(--accent);stroke-width:2;"></i>
+                <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Top Selling Items</h2>
             </div>
-            <a href="{{ route('admin.menu-items') }}" style="font-size:.7rem;color:var(--accent);text-decoration:none;font-weight:500;">View all →</a>
+            <a href="{{ route('admin.orders') }}" style="font-size:.7rem;color:var(--accent);text-decoration:none;font-weight:500;">View orders →</a>
         </div>
-        <div class="p-5" style="display:flex;flex-direction:column;gap:1rem;">
-            @foreach($categories as $cat)
-            <div style="display:flex;align-items:center;gap:.875rem;">
-                <div style="width:2rem;height:2rem;border-radius:.5rem;background:{{ $cat['hex'] }}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <i data-lucide="{{ $cat['icon'] }}" style="width:.9rem;height:.9rem;color:{{ $cat['hex'] }};stroke-width:2.5;"></i>
-                </div>
+        <div class="p-5" style="display:flex;flex-direction:column;gap:.75rem;">
+            @php $maxSold = collect($topItems)->max('total_sold') ?: 1; @endphp
+            @forelse($topItems as $i => $item)
+            <div style="display:flex;align-items:center;gap:.75rem;">
+                <span style="font-size:.7rem;font-weight:800;color:var(--text-muted);min-width:1.25rem;text-align:right;">{{ $i+1 }}</span>
+                <img src="{{ $item['image'] }}" alt=""
+                     style="width:2.25rem;height:2.25rem;border-radius:.5rem;object-fit:cover;flex-shrink:0;border:1px solid var(--border-card);"
+                     onerror="this.src='/images/hero-burger.webp'">
                 <div style="flex:1;min-width:0;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;">
-                        <span style="font-size:.8rem;font-weight:500;color:var(--text-strong);">{{ $cat['name'] }}</span>
-                        <span style="font-size:.8rem;font-weight:700;color:{{ $cat['hex'] }};">{{ $cat['count'] }}</span>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;">
+                        <span style="font-size:.8rem;font-weight:600;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;">{{ $item['name'] }}</span>
+                        <span style="font-size:.78rem;font-weight:800;color:#facc15;flex-shrink:0;">{{ number_format($item['total_sold']) }} sold</span>
                     </div>
-                    <div style="height:5px;background:var(--border-card);border-radius:9999px;overflow:hidden;">
-                        <div style="height:100%;border-radius:9999px;background:{{ $cat['hex'] }};width:{{ $stats['total_items'] > 0 ? min(100,($cat['count']/$stats['total_items'])*100) : 0 }}%;transition:width .6s ease;"></div>
+                    <div style="height:4px;background:var(--border-card);border-radius:9999px;overflow:hidden;">
+                        <div style="height:100%;border-radius:9999px;background:{{ $item['category_color'] }};width:{{ min(100, ($item['total_sold']/$maxSold)*100) }}%;transition:width .6s ease;"></div>
                     </div>
                 </div>
             </div>
-            @endforeach
+            @empty
+            <div style="text-align:center;color:var(--text-muted);padding:1.5rem;font-size:.8rem;">No sales data yet.</div>
+            @endforelse
         </div>
     </div>
 

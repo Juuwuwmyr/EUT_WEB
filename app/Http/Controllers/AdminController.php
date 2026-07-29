@@ -48,7 +48,26 @@ class AdminController extends Controller
             'slug'  => $c->slug,
         ])->toArray();
 
-        return view('admin.dashboard', compact('stats', 'recent_users', 'categories'));
+        // Top-selling menu items (by total quantity sold from delivered orders)
+        $topItems = \App\Models\OrderItem::select('menu_item_id', 'item_name',
+                \Illuminate\Support\Facades\DB::raw('SUM(quantity) as total_sold'),
+                \Illuminate\Support\Facades\DB::raw('SUM(subtotal) as total_revenue')
+            )
+            ->whereHas('order', fn($q) => $q->where('status', 'delivered'))
+            ->groupBy('menu_item_id', 'item_name')
+            ->orderByDesc('total_sold')
+            ->take(10)
+            ->get()
+            ->map(fn($i) => [
+                'name'          => $i->item_name,
+                'total_sold'    => (int) $i->total_sold,
+                'total_revenue' => (float) $i->total_revenue,
+                'image'         => optional(\App\Models\MenuItem::find($i->menu_item_id))->image ?? '/images/hero-burger.webp',
+                'category'      => optional(\App\Models\MenuItem::with('category')->find($i->menu_item_id))->category?->name ?? '—',
+                'category_color'=> optional(\App\Models\MenuItem::with('category')->find($i->menu_item_id))->category?->color ?? '#6b7280',
+            ])->toArray();
+
+        return view('admin.dashboard', compact('stats', 'recent_users', 'categories', 'topItems'));
     }
 
     // ════════════════════════════════════════════════════════
