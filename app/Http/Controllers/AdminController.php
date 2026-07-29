@@ -182,7 +182,44 @@ class AdminController extends Controller
     public function categories()
     {
         $categories = Category::withCount(['activeMenuItems'])->orderBy('sort_order')->get();
-        return view('admin.categories', compact('categories'));
+
+        // Data-mining summary stats
+        $totalItems      = \App\Models\MenuItem::active()->count();
+        $totalCats       = $categories->where('is_archived', false)->count();
+        $archivedCats    = $categories->where('is_archived', true)->count();
+
+        // Best-selling category (most items sold from delivered orders)
+        $bestCat = \App\Models\OrderItem::select('menu_item_id',
+                \Illuminate\Support\Facades\DB::raw('SUM(quantity) as qty'))
+            ->whereHas('order', fn($q) => $q->where('status', 'delivered'))
+            ->groupBy('menu_item_id')
+            ->get()
+            ->groupBy(fn($row) => optional(\App\Models\MenuItem::find($row->menu_item_id))->category?->name ?? 'Unknown')
+            ->map(fn($rows) => $rows->sum('qty'))
+            ->sortDesc()
+            ->first() ? null : null; // compute label below
+
+        $catSales = \App\Models\OrderItem::select('menu_item_id',
+                \Illuminate\Support\Facades\DB::raw('SUM(quantity) as qty'))
+            ->whereHas('order', fn($q) => $q->where('status', 'delivered'))
+            ->groupBy('menu_item_id')
+            ->get()
+            ->groupBy(fn($row) => optional(\App\Models\MenuItem::with('category')->find($row->menu_item_id))->category?->name ?? 'Unknown')
+            ->map(fn($rows) => $rows->sum('qty'))
+            ->sortDesc();
+
+        $bestCatName  = $catSales->keys()->first() ?? '—';
+        $bestCatCount = $catSales->first() ?? 0;
+
+        $menuStats = [
+            ['label'=>'Total Categories', 'value'=>$totalCats,    'sub'=>$archivedCats.' archived',      'icon'=>'layout-grid',   'color'=>'#10b981','bg'=>'rgba(16,185,129,.12)'],
+            ['label'=>'Total Items',      'value'=>$totalItems,   'sub'=>'Active menu items',             'icon'=>'utensils',      'color'=>'#f59e0b','bg'=>'rgba(245,158,11,.12)'],
+            ['label'=>'Avg Items/Cat',    'value'=>$totalCats > 0 ? round($totalItems/$totalCats,1) : 0,'sub'=>'Items per category','icon'=>'bar-chart-2','color'=>'#6366f1','bg'=>'rgba(99,102,241,.12)'],
+            ['label'=>'Best Selling Cat', 'value'=>$bestCatName,  'sub'=>number_format($bestCatCount).' units sold', 'icon'=>'trophy','color'=>'#facc15','bg'=>'rgba(250,204,21,.12)'],
+            ['label'=>'Active Rate',      'value'=>$totalCats+$archivedCats > 0 ? round($totalCats/($totalCats+$archivedCats)*100).'%' : '—', 'sub'=>'Categories active','icon'=>'activity','color'=>'#22c55e','bg'=>'rgba(34,197,94,.12)'],
+        ];
+
+        return view('admin.categories', compact('categories', 'menuStats'));
     }
 
     public function storeCategory(Request $request)
@@ -274,7 +311,29 @@ class AdminController extends Controller
         $items      = $query->orderBy('category_id')->orderBy('sort_order')->get();
         $categories = Category::active()->orderBy('sort_order')->get();
 
-        return view('admin.menu-items', compact('items', 'categories'));
+        // Data-mining summary stats for menu items page
+        $totalActive   = \App\Models\MenuItem::active()->count();
+        $totalFeatured = \App\Models\MenuItem::featured()->count();
+        $totalArchived = \App\Models\MenuItem::archived()->count();
+        $avgPrice      = \App\Models\MenuItem::active()->avg('price') ?? 0;
+
+        // Most popular item
+        $topItem = \App\Models\OrderItem::select('item_name',
+                \Illuminate\Support\Facades\DB::raw('SUM(quantity) as qty'))
+            ->whereHas('order', fn($q) => $q->where('status', 'delivered'))
+            ->groupBy('item_name')
+            ->orderByDesc('qty')
+            ->first();
+
+        $menuItemStats = [
+            ['label'=>'Active Items',   'value'=>$totalActive,                         'sub'=>$totalArchived.' archived',          'icon'=>'utensils',     'color'=>'#f59e0b','bg'=>'rgba(245,158,11,.12)'],
+            ['label'=>'Featured',       'value'=>$totalFeatured,                       'sub'=>'Highlighted on menu',               'icon'=>'star',         'color'=>'#facc15','bg'=>'rgba(250,204,21,.12)'],
+            ['label'=>'Avg Price',      'value'=>'₱'.number_format($avgPrice,0),       'sub'=>'Per active item',                   'icon'=>'tag',          'color'=>'#10b981','bg'=>'rgba(16,185,129,.12)'],
+            ['label'=>'Best Seller',    'value'=>$topItem?->item_name ?? '—',          'sub'=>number_format($topItem?->qty ?? 0).' units sold','icon'=>'trophy','color'=>'#a78bfa','bg'=>'rgba(167,139,250,.12)'],
+            ['label'=>'Categories',     'value'=>$categories->count(),                 'sub'=>'Active categories',                 'icon'=>'layout-grid',  'color'=>'#22c55e','bg'=>'rgba(34,197,94,.12)'],
+        ];
+
+        return view('admin.menu-items', compact('items', 'categories', 'menuItemStats'));
     }
 
     public function storeMenuItem(Request $request)

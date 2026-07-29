@@ -21,43 +21,25 @@
     </div>
 </div>
 
-{{-- Stat Cards — max 5 (top 4 categories + 1 summary) --}}
-@php
-$allCats = \App\Models\Category::active()->withCount(['activeMenuItems'])->orderBy('sort_order')->get();
-$topCats  = $allCats->take(4);
-$restCats = $allCats->skip(4);
-$restCount = $restCats->sum('active_menu_items_count');
-$summaryCards = $topCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'label'=>$c->name,'color'=>$c->color,'bg'=>$c->color.'18','count'=>$c->active_menu_items_count,'is_all'=>false]);
-if($restCats->count()) {
-    $summaryCards->push(['slug'=>'','icon'=>'layers','label'=>'Other Categories','color'=>'#6b7280','bg'=>'rgba(107,114,128,.12)','count'=>$restCount,'is_all'=>true]);
-}
-@endphp
+{{-- ── 5 Data Summary Cards ── --}}
 <style>
-#menuSummaryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:1.5rem;}
-@media(min-width:768px){#menuSummaryGrid{grid-template-columns:repeat(5,1fr);}}
+#menuSummaryGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;}
+@media(min-width:640px){#menuSummaryGrid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:1024px){#menuSummaryGrid{grid-template-columns:repeat(5,1fr);}}
 </style>
 <div id="menuSummaryGrid">
-    @foreach($summaryCards as $sc)
-    @if(!$sc['is_all'])
-    <a href="{{ route('admin.menu-items',['category'=>$sc['slug']]) }}" class="stat-card"
-       style="text-decoration:none;position:relative;overflow:hidden;border-color:{{ $sc['color'] }}22;
-              {{ request('category')===$sc['slug'] ? 'border-color:'.$sc['color'].'55;box-shadow:0 0 0 3px '.$sc['color'].'18;' : '' }}">
-    @else
-    <a href="{{ route('admin.menu-items') }}" class="stat-card"
-       style="text-decoration:none;position:relative;overflow:hidden;border-color:{{ $sc['color'] }}22;">
-    @endif
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;">
-            <div style="width:2.5rem;height:2.5rem;border-radius:.75rem;background:{{ $sc['bg'] }};display:flex;align-items:center;justify-content:center;">
-                <i data-lucide="{{ $sc['icon'] }}" style="width:1.2rem;height:1.2rem;color:{{ $sc['color'] }};stroke-width:2;"></i>
+    @foreach($menuItemStats as $s)
+    <div class="stat-card" style="position:relative;overflow:hidden;border-color:{{ $s['color'] }}22;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.65rem;">
+            <div style="width:2.25rem;height:2.25rem;border-radius:.65rem;background:{{ $s['bg'] }};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="{{ $s['icon'] }}" style="width:1rem;height:1rem;color:{{ $s['color'] }};stroke-width:2;"></i>
             </div>
-            <span style="font-size:2rem;font-weight:900;color:{{ $sc['color'] }};line-height:1;">{{ $sc['count'] }}</span>
         </div>
-        <h3 style="font-size:.875rem;font-weight:700;color:var(--text-strong);margin:0 0 .2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $sc['label'] }}</h3>
-        <span style="font-size:.7rem;font-weight:600;color:{{ $sc['color'] }};display:inline-flex;align-items:center;gap:.3rem;">
-            Browse <i data-lucide="arrow-right" style="width:.65rem;height:.65rem;stroke-width:2.5;"></i>
-        </span>
-        <div style="position:absolute;bottom:-1.5rem;right:-1.5rem;width:5rem;height:5rem;border-radius:50%;background:{{ $sc['bg'] }};filter:blur(18px);pointer-events:none;"></div>
-    </a>
+        <p style="font-size:.6rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin:0 0 .2rem;">{{ $s['label'] }}</p>
+        <p style="font-size:{{ strlen((string)$s['value']) > 8 ? '1rem' : '1.6rem' }};font-weight:900;color:{{ $s['color'] }};margin:0 0 .15rem;line-height:1.1;word-break:break-word;">{{ $s['value'] }}</p>
+        <p style="font-size:.65rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $s['sub'] }}</p>
+        <div style="position:absolute;bottom:-1rem;right:-1rem;width:4rem;height:4rem;border-radius:50%;background:{{ $s['bg'] }};filter:blur(14px);pointer-events:none;"></div>
+    </div>
     @endforeach
 </div>
 
