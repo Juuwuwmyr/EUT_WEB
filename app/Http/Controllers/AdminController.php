@@ -253,7 +253,7 @@ class AdminController extends Controller
             'category_id'                           => 'required|exists:categories,id',
             'price'                                 => 'required|numeric|min:0',
             'description'                           => 'nullable|string|max:400',
-            'image'                                 => 'nullable|string|max:255',
+            'image_file'                            => 'nullable|image|mimes:jpeg,jpg,png,webp,gif|max:4096',
             'featured'                              => 'nullable|boolean',
             'groups'                                => 'nullable|array',
             'groups.*.type'                         => 'required_with:groups|in:flavor,modifier,addon',
@@ -268,12 +268,18 @@ class AdminController extends Controller
             'groups.*.options.*.is_active'          => 'nullable|boolean',
         ]);
 
+        // Handle image upload
+        $imagePath = '/images/hero-burger.webp';
+        if ($request->hasFile('image_file')) {
+            $imagePath = '/storage/' . $request->file('image_file')->store('menu-items', 'public');
+        }
+
         $item = MenuItem::create([
             'name'        => $request->name,
             'category_id' => $request->category_id,
             'price'       => $request->price,
             'description' => $request->description,
-            'image'       => $request->image ?: '/images/hero-burger.webp',
+            'image'       => $imagePath,
             'featured'    => $request->boolean('featured'),
             'is_archived' => $request->input('is_archived_flag', '0') === '1',
             'sort_order'  => MenuItem::where('category_id', $request->category_id)->max('sort_order') + 1,
@@ -292,7 +298,7 @@ class AdminController extends Controller
             'category_id'                           => 'required|exists:categories,id',
             'price'                                 => 'required|numeric|min:0',
             'description'                           => 'nullable|string|max:400',
-            'image'                                 => 'nullable|string|max:255',
+            'image_file'                            => 'nullable|image|mimes:jpeg,jpg,png,webp,gif|max:4096',
             'featured'                              => 'nullable|boolean',
             'groups'                                => 'nullable|array',
             'groups.*.type'                         => 'required_with:groups|in:flavor,modifier,addon',
@@ -307,12 +313,20 @@ class AdminController extends Controller
             'groups.*.options.*.is_active'          => 'nullable|boolean',
         ]);
 
+        // Handle image upload — use new file if provided, otherwise keep existing
+        $imagePath = $menuItem->image;
+        if ($request->hasFile('image_file')) {
+            $imagePath = '/storage/' . $request->file('image_file')->store('menu-items', 'public');
+        } elseif ($request->input('image_existing') !== null) {
+            $imagePath = $request->input('image_existing') ?: $menuItem->image;
+        }
+
         $menuItem->update([
             'name'        => $request->name,
             'category_id' => $request->category_id,
             'price'       => $request->price,
             'description' => $request->description,
-            'image'       => $request->image ?: $menuItem->image,
+            'image'       => $imagePath,
             'featured'    => $request->boolean('featured'),
             'is_archived' => $request->input('is_archived_flag', '0') === '1',
         ]);

@@ -211,7 +211,7 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
       </button>
     </div>
 
-    <form method="POST" id="itemModalForm">
+    <form method="POST" id="itemModalForm" enctype="multipart/form-data">
       @csrf
       <input type="hidden" name="_method" id="itemModalMethod" value="POST">
 
@@ -241,8 +241,31 @@ $summaryCards = $allCats->map(fn($c) => ['slug'=>$c->slug,'icon'=>$c->icon,'labe
         </div>
         <div class="form-row" style="width:100%;">
           <div class="form-group">
-            <label>Image Path</label>
-            <input type="text" name="image" id="iImage" class="admin-input" placeholder="/images/hero-burger.webp">
+            <label>Item Image</label>
+            <div style="display:flex;flex-direction:column;gap:.5rem;">
+              {{-- Hidden input to keep existing path when no new file chosen --}}
+              <input type="hidden" name="image_existing" id="iImageExisting">
+              {{-- File picker --}}
+              <label for="iImageFile" style="
+                  display:flex;align-items:center;gap:.6rem;
+                  padding:.55rem .85rem;border-radius:.5rem;
+                  border:1px dashed rgba(255,255,255,.2);
+                  background:rgba(255,255,255,.04);
+                  cursor:pointer;font-size:.8rem;color:var(--text-subtle);
+                  transition:border-color .2s,background .2s;
+              " onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-soft)';"
+                 onmouseout="this.style.borderColor='rgba(255,255,255,.2)';this.style.background='rgba(255,255,255,.04)';">
+                <i data-lucide="upload" style="width:14px;height:14px;flex-shrink:0;"></i>
+                <span id="iImageLabel">Choose image from computer…</span>
+              </label>
+              <input type="file" name="image_file" id="iImageFile" accept="image/*"
+                     style="display:none;" onchange="previewMenuImage(this)">
+              {{-- Preview --}}
+              <div id="iImagePreviewWrap" style="display:none;position:relative;width:80px;height:80px;">
+                <img id="iImagePreview" src="" alt="preview" style="width:80px;height:80px;object-fit:cover;border-radius:.5rem;border:1px solid rgba(255,255,255,.12);">
+                <button type="button" onclick="clearMenuImage()" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#dc2626;border:none;color:#fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+              </div>
+            </div>
           </div>
           <div class="form-group" style="justify-content:flex-end;">
             <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none;margin-top:auto;">
@@ -392,6 +415,29 @@ input[type=number].admin-input:disabled { opacity:.35; cursor:not-allowed; }
 
 <script>
 // ─────────────────────────────────────────────────────────
+// Image file picker helpers
+// ─────────────────────────────────────────────────────────
+function previewMenuImage(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('iImagePreview').src = e.target.result;
+        document.getElementById('iImagePreviewWrap').style.display = 'block';
+        document.getElementById('iImageLabel').textContent = file.name;
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearMenuImage() {
+    document.getElementById('iImageFile').value  = '';
+    document.getElementById('iImageExisting').value = '';
+    document.getElementById('iImagePreview').src = '';
+    document.getElementById('iImagePreviewWrap').style.display = 'none';
+    document.getElementById('iImageLabel').textContent = 'Choose image from computer…';
+}
+
+// ─────────────────────────────────────────────────────────
 // Tab switching
 // ─────────────────────────────────────────────────────────
 var TABS = ['tabBasic','tabCustomize','tabAddons'];
@@ -420,7 +466,11 @@ function openAddItemModal() {
     document.getElementById('iName').value      = '';
     document.getElementById('iPrice').value     = '';
     document.getElementById('iDesc').value      = '';
-    document.getElementById('iImage').value     = '';
+    document.getElementById('iImageFile').value  = '';
+    document.getElementById('iImageExisting').value = '';
+    document.getElementById('iImageLabel').textContent = 'Choose image from computer…';
+    document.getElementById('iImagePreviewWrap').style.display = 'none';
+    document.getElementById('iImagePreview').src = '';
     document.getElementById('iFeatured').checked = false;
     document.getElementById('iStatus').value    = 'active';
     // Reset first category option
@@ -442,7 +492,17 @@ function openEditItemModal(item, categories) {
     document.getElementById('iName').value       = item.name;
     document.getElementById('iPrice').value      = item.price;
     document.getElementById('iDesc').value       = item.description || '';
-    document.getElementById('iImage').value      = item.image || '';
+    // For edit: store existing image path, show preview if it exists
+    document.getElementById('iImageExisting').value = item.image || '';
+    document.getElementById('iImageFile').value  = '';
+    if (item.image) {
+        document.getElementById('iImageLabel').textContent = 'Change image…';
+        document.getElementById('iImagePreview').src = item.image.startsWith('/') ? item.image : '/' + item.image;
+        document.getElementById('iImagePreviewWrap').style.display = 'block';
+    } else {
+        document.getElementById('iImageLabel').textContent = 'Choose image from computer…';
+        document.getElementById('iImagePreviewWrap').style.display = 'none';
+    }
     document.getElementById('iFeatured').checked = !!item.featured;
     document.getElementById('iStatus').value     = item.is_archived ? 'archived':'active';
     // Populate categories
