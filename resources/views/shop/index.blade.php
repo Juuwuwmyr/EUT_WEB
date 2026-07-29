@@ -450,14 +450,27 @@
 </div>
 
 <!-- -- PRODUCTS -- -->
-<div class="section-head">
-    <h2 class="section-title">Our Menu</h2>
-    <span class="section-count" id="visibleCount"></span>
+<div class="section-head" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
+    <div style="display:flex;align-items:center;gap:.5rem;">
+        <h2 class="section-title">Our Menu</h2>
+        <span class="section-count" id="visibleCount"></span>
+    </div>
+    {{-- Sort by price --}}
+    <select id="sortSelect" onchange="applySortAndFilter()"
+        style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:99px;
+               color:#d1d5db;font-size:11px;font-weight:600;padding:6px 14px;cursor:pointer;outline:none;
+               -webkit-appearance:none;appearance:none;
+               background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ca3af' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");
+               background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;">
+        <option value="default">Default</option>
+        <option value="price_asc">Price: Low → High</option>
+        <option value="price_desc">Price: High → Low</option>
+    </select>
 </div>
 
 <div class="products-grid" id="productsGrid">
     @foreach($menuItems as $index => $item)
-    <div class="p-card" data-category="{{ $item->category->slug ?? '' }}" data-name="{{ strtolower($item->name) }}">
+    <div class="p-card" data-category="{{ $item->category->slug ?? '' }}" data-name="{{ strtolower($item->name) }}" data-price="{{ $item->price }}">
         <a href="{{ route('shop.product', $item->id) }}" style="text-decoration:none; display:block;">
             <div class="p-card-img-wrap">
                 <img src="{{ $item->image ? asset($item->image) : 'https://placehold.co/400x300/1a1a2e/facc15?text=' . urlencode($item->name) }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy" decoding="async" fetchpriority="low">
@@ -556,7 +569,7 @@ document.querySelectorAll('.cat-pill').forEach(pill => {
         pill.classList.add('active');
         visibleItemsCount = 0;
         allFilteredCards = [];
-        filterProducts();
+        applySortAndFilter();
     });
 });
 
@@ -567,7 +580,7 @@ document.getElementById('searchInput').addEventListener('input', () => {
     searchDebounceTimer = setTimeout(() => {
         visibleItemsCount = 0;
         allFilteredCards = [];
-        filterProducts();
+        applySortAndFilter();
     }, 300);
 });
 
@@ -603,6 +616,18 @@ function filterProducts() {
         card.classList.add('p-card-hidden');
         card.classList.remove('no-anim');
     });
+
+    // Apply sort
+    const sort = document.getElementById('sortSelect')?.value || 'default';
+    if (sort === 'price_asc') {
+        allFilteredCards.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+    } else if (sort === 'price_desc') {
+        allFilteredCards.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+    }
+
+    // Reorder DOM to match sorted order
+    const grid = domCache.grid;
+    allFilteredCards.forEach(card => grid.appendChild(card));
 
     // Determine how many to show in this batch
     visibleItemsCount = Math.min(ITEMS_PER_PAGE, allFilteredCards.length);
@@ -679,8 +704,14 @@ window.addEventListener('scroll', onScroll, { passive: true });
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    filterProducts();
+    applySortAndFilter();
 });
+
+function applySortAndFilter() {
+    visibleItemsCount = 0;
+    allFilteredCards = [];
+    filterProducts();
+}
 
 function updateCount(n) {
     const all = document.querySelectorAll('.p-card').length;
