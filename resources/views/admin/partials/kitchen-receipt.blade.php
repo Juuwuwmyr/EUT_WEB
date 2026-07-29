@@ -60,25 +60,9 @@ hr.solid {
 }
 .item-qty   { flex-shrink: 0; font-size: 10px; margin-right: 2px; }
 .item-name  { flex: 1; font-weight: bold; font-size: 10px; word-break: break-word; padding-right: 4px; }
-.item-price { flex-shrink: 0; font-size: 10px; }
 
 .spec-list { padding-left: 8px; }
 .spec-row  { font-size: 8.5px; color: #000; font-weight: bold; line-height: 1.4; }
-
-.total-row {
-    display: flex;
-    justify-content: space-between;
-    margin: 1px 0;
-    font-size: 9px;
-    width: 100%;
-}
-.total-row.grand {
-    font-size: 11px;
-    font-weight: bold;
-    margin-top: 3px;
-    padding-top: 3px;
-    border-top: 1px solid #000;
-}
 
 .address-box { font-size: 9px; line-height: 1.4; word-break: break-word; }
 .notes-box   { border: 1px dashed #000; padding: 2px 3px; font-size: 9px; margin: 3px 0; word-break: break-word; }
@@ -131,16 +115,14 @@ hr.solid {
 
 <hr>
 
-<div style="display:flex;justify-content:space-between;font-size:9px;font-weight:bold;border-bottom:1px solid #000;padding-bottom:2px;margin-bottom:2px;">
+<div style="font-size:9px;font-weight:bold;border-bottom:1px solid #000;padding-bottom:2px;margin-bottom:2px;">
     <span>QTY &nbsp;ITEM</span>
-    <span>PRICE</span>
 </div>
 
 @foreach($order->items as $item)
 <div class="item-row">
-    <div style="display:flex;justify-content:space-between;width:100%;">
+    <div style="display:flex;width:100%;">
         <span style="flex:1;word-break:break-word;"><span class="item-qty">{{ $item->quantity }}x</span> <span class="item-name">{{ $item->item_name }}</span></span>
-        <span class="item-price" style="flex-shrink:0;margin-left:4px;">P{{ number_format($item->subtotal, 2) }}</span>
     </div>
 @php
     $specs = collect($item->modifiers ?? [])
@@ -150,7 +132,7 @@ hr.solid {
 @if($specs->count())
 <div class="spec-list">
     @foreach($specs as $spec)
-    <div class="spec-row">- {{ $spec['name'] }}@if(($spec['price_type'] ?? '') === 'add' && ($spec['price_adjustment'] ?? 0) > 0) +P{{ number_format($spec['price_adjustment'], 2) }}@endif</div>
+    <div class="spec-row">- {{ $spec['name'] }}</div>
     @endforeach
 </div>
 @endif
@@ -159,14 +141,7 @@ hr.solid {
 
 <hr>
 
-<div class="total-row"><span>Subtotal</span><span>P{{ number_format($order->subtotal, 2) }}</span></div>
-@if($order->order_type === 'delivery')
-<div class="total-row"><span>Delivery</span><span>{{ $order->delivery_fee == 0 ? 'FREE' : 'P'.number_format($order->delivery_fee, 2) }}</span></div>
-@endif
-<div class="total-row grand"><span>TOTAL</span><span>P{{ number_format($order->total, 2) }}</span></div>
-
 @if($order->order_type === 'delivery' && $order->delivery_address)
-<hr>
 <div class="address-box">
     <div class="bold" style="margin-bottom:1px;">Deliver to:</div>
     <div>{{ $order->delivery_address }}</div>

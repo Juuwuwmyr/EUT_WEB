@@ -676,6 +676,7 @@ const READY_URL   = id => `/chef/orders/${id}/ready`;
 let lastNewCount = {{ $newOrders->count() }};
 let orderDataMap = {};
 let fallbackTimer = null;
+let printedOrderIds = new Set();
 
 function elapsedBadge(mins) {
     let bg, color, label;
@@ -934,6 +935,18 @@ function printReceipt(receiptUrl) {
     }
 }
 
+function kitchenAutoPrint(receiptUrl) {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '-9999px';
+    iframe.style.bottom = '-9999px';
+    iframe.style.width = '200px';
+    iframe.style.height = '100px';
+    iframe.style.border = 'none';
+    iframe.src = receiptUrl;
+    document.body.appendChild(iframe);
+}
+
 async function kitchenAction(action, orderId, btn) {
     const urls = {
         accept: ACCEPT_URL(orderId),
@@ -985,6 +998,14 @@ async function refreshKitchen(manual) {
         renderColumn('new', data.new);
         renderColumn('queued', data.queued);
         renderColumn('cooking', data.cooking);
+
+        // Auto-print newly accepted orders (appearing in queued column)
+        data.queued.forEach(order => {
+            if (!printedOrderIds.has(order.id)) {
+                printedOrderIds.add(order.id);
+                setTimeout(() => kitchenAutoPrint(`/chef/orders/${order.id}/receipt`), 500);
+            }
+        });
 
         if (window.lucide) lucide.createIcons();
 
@@ -1090,7 +1111,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     @endphp
     const _kitchenSeed = @json($kitchenSeed);
-    _kitchenSeed.forEach(o => { orderDataMap[o.id] = o; });
+    _kitchenSeed.forEach(o => {
+        orderDataMap[o.id] = o;
+        if (o.status === 'accepted') {
+            printedOrderIds.add(o.id);
+        }
+    });
 
     // Wire click on blade-rendered cards (before first AJAX refresh)
     document.querySelectorAll('.k-order-card[data-order-id]').forEach(card => {
