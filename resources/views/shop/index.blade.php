@@ -376,9 +376,14 @@
         <a href="{{ route('shop.home') }}" class="nav-brand" style="font-family:'Playfair Display',serif;font-weight:800;font-size:22px;text-decoration:none;flex-shrink:0;white-space:nowrap;letter-spacing:.05em;line-height:1;">
             <span style="color:#f97316;">E</span><span style="color:#38bdf8;">U</span><span style="color:#ef4444;">T</span>
         </a>
-        <div class="search-wrap" style="max-width:100%;">
+        <div class="search-wrap" style="max-width:100%;position:relative;">
             <input type="text" id="searchInput" class="search-input" placeholder="Search burgers, fries, drinks...">
-            <button class="search-btn">
+            <button class="search-btn" id="searchClearBtn" onclick="clearSearch()" style="display:none;background:none;border:none;color:#9ca3af;padding:0;position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;width:28px;height:28px;display:none;align-items:center;justify-content:center;border-radius:50%;" title="Clear search">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <button class="search-btn" id="searchMagnifier">
                 <svg width="14" height="14" fill="none" stroke="#000" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
@@ -577,12 +582,41 @@ document.querySelectorAll('.cat-pill').forEach(pill => {
 let searchDebounceTimer;
 document.getElementById('searchInput').addEventListener('input', () => {
     clearTimeout(searchDebounceTimer);
+    const val = document.getElementById('searchInput').value;
+    // Toggle clear button / magnifier
+    const clearBtn = document.getElementById('searchClearBtn');
+    const magnifier = document.getElementById('searchMagnifier');
+    if (val.length > 0) {
+        if (clearBtn)   { clearBtn.style.display = 'flex'; }
+        if (magnifier)  { magnifier.style.display = 'none'; }
+        // Scroll past hero so category pills are visible
+        const catsWrap = document.querySelector('.cats-wrap');
+        if (catsWrap) {
+            catsWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    } else {
+        if (clearBtn)   { clearBtn.style.display = 'none'; }
+        if (magnifier)  { magnifier.style.display = 'flex'; }
+    }
     searchDebounceTimer = setTimeout(() => {
         visibleItemsCount = 0;
         allFilteredCards = [];
         applySortAndFilter();
     }, 300);
 });
+
+function clearSearch() {
+    const input = document.getElementById('searchInput');
+    input.value = '';
+    input.focus();
+    const clearBtn = document.getElementById('searchClearBtn');
+    const magnifier = document.getElementById('searchMagnifier');
+    if (clearBtn)  { clearBtn.style.display = 'none'; }
+    if (magnifier) { magnifier.style.display = 'flex'; }
+    visibleItemsCount = 0;
+    allFilteredCards = [];
+    applySortAndFilter();
+}
 
 /* -- Infinite Scroll & Cache State -- */
 const ITEMS_PER_PAGE = 8;
