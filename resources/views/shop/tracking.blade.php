@@ -988,6 +988,12 @@ function simulateMapRider(orderId, dest) {
         }, 3000);
     }
 }
+
+// ── Mobile back button guard ──────────────────────────────
+history.pushState({ page: 'tracking' }, '', window.location.href);
+window.addEventListener('popstate', function() {
+    history.pushState({ page: 'tracking' }, '', window.location.href);
+});
 </script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 @include('partials.pwa-register')

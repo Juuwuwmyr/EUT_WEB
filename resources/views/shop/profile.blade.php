@@ -681,6 +681,12 @@ function showAlert(el, type, msg) {
 }
 function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 @endauth
+
+// ── Mobile back button guard ──────────────────────────────
+history.pushState({ page: 'profile' }, '', window.location.href);
+window.addEventListener('popstate', function() {
+    history.pushState({ page: 'profile' }, '', window.location.href);
+});
 </script>
 </body>
 </html>

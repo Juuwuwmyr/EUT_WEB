@@ -968,6 +968,12 @@ function showCartToast(msg, itemId) {
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 4000);
 }
+
+// ── Mobile back button guard ──────────────────────────────
+history.pushState({ page: 'cart' }, '', window.location.href);
+window.addEventListener('popstate', function() {
+    history.pushState({ page: 'cart' }, '', window.location.href);
+});
 </script>
 @include('partials.pwa-register')
 </body>

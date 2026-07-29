@@ -687,6 +687,15 @@ function updateCount(n) {
     const count = n !== undefined ? n : all;
     document.getElementById('visibleCount').textContent = count + ' items';
 }
+
+// ── Mobile back button guard ──────────────────────────────
+// Push a dummy state so the back button hits our handler first
+// instead of going to a previous unrelated page.
+history.pushState({ page: 'shop' }, '', window.location.href);
+window.addEventListener('popstate', function(e) {
+    // When back is pressed, just reload/stay on the menu page
+    history.pushState({ page: 'shop' }, '', window.location.href);
+});
 </script>
 
 {{-- PWA Install Banner --}}
