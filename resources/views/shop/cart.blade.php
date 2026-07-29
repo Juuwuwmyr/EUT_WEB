@@ -560,7 +560,7 @@
             </div>
             <div class="summary-row">
                 <span class="summary-label">Delivery fee</span>
-                <span class="summary-value" id="deliveryFeeDisplay">&#8369;50</span>
+                <span class="summary-value" id="deliveryFeeDisplay">&#8369;30</span>
             </div>
             <div class="summary-row" id="discountRow" style="display:none;">
                 <span class="summary-label" style="color:#4ade80;">Promo discount</span>
@@ -898,7 +898,7 @@ function updateTotals() {
     const totalQty = cart.reduce((s,i) => s + i.quantity, 0);
 
     // Check promo
-    let delivery = 50;
+    let delivery = 30;   // base delivery fee (₱30 for first 2 km)
     let discount = 0;
     const promoCode = document.getElementById('promoInput').value.trim().toUpperCase();
     const promo = PROMOS[promoCode];
@@ -907,8 +907,6 @@ function updateTotals() {
         else if (promo.type === 'percent') discount = Math.round(subtotal * promo.value / 100);
         else if (promo.type === 'fixed')   discount = promo.value;
     }
-    // Free delivery threshold
-    if (subtotal >= FREE_DELIVERY_THRESHOLD) delivery = 0;
 
     const grand = subtotal + delivery - discount;
     document.getElementById('subtotal').textContent      = '₱' + subtotal.toLocaleString();

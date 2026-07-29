@@ -95,6 +95,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/orders/{order}',           [\App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel',   [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
     Route::patch('/orders/{order}/set-coords', [\App\Http\Controllers\OrderController::class, 'setCoords'])->name('orders.set-coords');
+    Route::get('/delivery-fee',             [\App\Http\Controllers\OrderController::class, 'calcFee'])->name('delivery-fee');
 
     // Profile
     Route::post ('/profile',          [AuthController::class, 'updateProfile'])->name('profile.update');

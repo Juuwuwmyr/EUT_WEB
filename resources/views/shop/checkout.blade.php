@@ -308,7 +308,8 @@
 
             <div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.05);">
                 <div class="tot-row"><span class="tot-label">Subtotal</span><span class="tot-val" id="coSubtotal">₱0</span></div>
-                <div class="tot-row"><span class="tot-label">Delivery fee</span><span class="tot-val" id="coDelivery">₱50</span></div>
+                <div class="tot-row"><span class="tot-label">Delivery fee</span><span class="tot-val" id="coDelivery">₱30</span></div>
+                <div id="deliveryDistRow" style="margin:-6px 0 4px;"><span style="font-size:10px;color:#4b5563;" id="deliveryDistLabel">Calculating distance…</span></div>
                 <div class="tot-row" style="padding-top:12px;padding-bottom:12px;border-top:1px solid rgba(255,255,255,.06);">
                     <span class="tot-grand-label">Total</span>
                     <span class="tot-grand-val" id="coTotal">₱0</span>
@@ -429,7 +430,14 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 /* ── Helpers ── */
 const CSRF = '{{ csrf_token() }}';
-const FREE_MIN = 500;
+const DELIVERY_FEE_URL = '{{ route("delivery-fee") }}';
+// Delivery pricing constants (mirrors server-side)
+const DELIVERY_BASE_FEE = 30;   // ₱30 base (covers first 2 km)
+const DELIVERY_PER_KM   = 10;   // ₱10 per km beyond 2 km
+const DELIVERY_FREE_KM  = 2;    // first 2 km included in base
+const DELIVERY_MAX_KM   = 100;  // max range
+let currentDeliveryFee  = DELIVERY_BASE_FEE; // updated when address coords are known
+
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function modChips(mods){
     if(!mods||!mods.length)return'';
@@ -441,6 +449,26 @@ function modChips(mods){
         return`<span style="display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border-radius:99px;font-size:10px;font-weight:600;background:${s.bg};color:${s.c};border:1px solid ${s.c}30;white-space:nowrap;">${s.i} ${esc(m.name)}${ex}</span>`;
     });
     return chips.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;">${chips.join('')}</div>`:'';
+}
+
+/* ── Fetch delivery fee from server when coordinates are known ── */
+async function updateDeliveryFeeByCoords(lat, lng) {
+    if (!lat || !lng || currentOrderType !== 'delivery') return;
+    try {
+        const res = await fetch(`${DELIVERY_FEE_URL}?lat=${lat}&lng=${lng}`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+        });
+        const data = await res.json();
+        if (data.success) {
+            currentDeliveryFee = data.fee;
+            const distEl = document.getElementById('deliveryDistLabel');
+            if (distEl) distEl.textContent = data.label;
+            renderSummary();
+        } else {
+            const errEl = document.getElementById('addressError');
+            if (errEl) { errEl.textContent = data.message; errEl.style.display = 'block'; }
+        }
+    } catch(e) {}
 }
 
 /* ── Order summary ── */
@@ -459,17 +487,15 @@ function renderSummary(){
         el.appendChild(row);sub+=item.price*item.quantity;
     });
     const qty=cart.reduce((s,i)=>s+i.quantity,0);
-    const fee=(sub>=FREE_MIN || currentOrderType !== 'delivery') ? 0 : 50;
+    const fee = currentOrderType !== 'delivery' ? 0 : currentDeliveryFee;
     document.getElementById('itemCountBadge').textContent=qty+(qty===1?' item':' items');
     document.getElementById('coSubtotal').textContent='₱'+sub.toLocaleString();
-    document.getElementById('coDelivery').innerHTML=fee===0?'<span style="color:#4ade80;font-weight:700;">FREE</span>':'₱50';
+    document.getElementById('coDelivery').innerHTML=fee===0
+        ? '<span style="color:#4ade80;font-weight:700;">FREE</span>'
+        : '₱'+fee.toLocaleString();
     document.getElementById('coTotal').textContent='₱'+(sub+fee).toLocaleString();
     const fb=document.getElementById('freeBar');
-    if(sub>0&&sub<FREE_MIN){
-        document.getElementById('freeBarText').textContent=`Add ₱${(FREE_MIN-sub).toLocaleString()} more for free delivery`;
-        document.getElementById('freeBarFill').style.width=Math.round(sub/FREE_MIN*100)+'%';
-        fb.style.display='flex';
-    }else{fb.style.display='none';}
+    if(fb) fb.style.display='none'; // no free-delivery threshold anymore
 }
 
 /* ── Payment highlight ── */
@@ -488,6 +514,9 @@ function selectOrderType(el, type){
     const addrCard = document.getElementById('addressCard');
     if(type === 'delivery') {
         addrCard.style.display = 'block';
+        // Recalculate fee for currently selected address
+        const a = addresses.find(a => a.id === selectedAddressId);
+        if (a && a.lat && a.lng) updateDeliveryFeeByCoords(a.lat, a.lng);
     } else {
         addrCard.style.display = 'none';
     }
@@ -516,6 +545,10 @@ async function loadAddresses(){
         const def=addresses.find(a=>a.is_default)||addresses[0]||null;
         selectedAddressId=def?def.id:null;
         renderSelectedAddress();
+        // Calculate delivery fee for default address
+        if (def && def.lat && def.lng) {
+            updateDeliveryFeeByCoords(def.lat, def.lng);
+        }
     }catch(e){console.error('addr load failed',e);}
 }
 
@@ -581,6 +614,11 @@ function selectAddress(id){
     selectedAddressId=id;
     renderSelectedAddress();
     renderAddrList();
+    // Update delivery fee based on selected address coordinates
+    const a = addresses.find(a => a.id === id);
+    if (a && a.lat && a.lng) {
+        updateDeliveryFeeByCoords(a.lat, a.lng);
+    }
     setTimeout(closePicker,200);
 }
 

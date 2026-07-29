@@ -78,9 +78,42 @@ class OrderController extends Controller
                 ];
             }
 
-            // Delivery fee: free if subtotal ≥ ₱500, otherwise ₱50. No fee for pickup/dine-in.
-            $deliveryFee = ($subtotal >= 500 || $request->order_type !== 'delivery') ? 0 : 50;
-            $total       = round($subtotal + $deliveryFee, 2);
+            // ── Distance-based delivery fee ─────────────────────────────
+            // Formula: ₱30 base (covers first 2 km) + ₱10 per km beyond 2 km.
+            // Max range: 100 km. Pickup / dine-in = free.
+            $deliveryFee = 0;
+            if ($request->order_type === 'delivery') {
+                $lat = (float) $request->delivery_lat;
+                $lng = (float) $request->delivery_lng;
+
+                if ($lat && $lng) {
+                    // Haversine distance from restaurant to customer (in km)
+                    $restLat = 13.3213129;
+                    $restLng = 121.3027265;
+                    $earthR  = 6371;
+                    $dLat    = deg2rad($lat - $restLat);
+                    $dLng    = deg2rad($lng - $restLng);
+                    $a       = sin($dLat/2) * sin($dLat/2)
+                             + cos(deg2rad($restLat)) * cos(deg2rad($lat))
+                             * sin($dLng/2) * sin($dLng/2);
+                    $km      = $earthR * 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+                    if ($km > 100) {
+                        DB::rollBack();
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Sorry, your location is outside our 100 km delivery range.',
+                        ], 422);
+                    }
+
+                    // ₱30 for first 2 km, +₱10 per km after that
+                    $deliveryFee = 30 + max(0, ceil($km - 2)) * 10;
+                } else {
+                    // No coordinates yet — use minimum ₱30
+                    $deliveryFee = 30;
+                }
+            }
+            $total = round($subtotal + $deliveryFee, 2);
 
             $order = Order::create([
                 'user_id'          => auth()->id(),
@@ -280,6 +313,48 @@ class OrderController extends Controller
             'active'    => $active,
             'past'      => $past,
             'cancelled' => $cancelled,
+        ]);
+    }
+
+    // ── GET /delivery-fee — calculate fee from coordinates ─────────────
+    public function calcFee(Request $request)
+    {
+        $request->validate([
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+        ]);
+
+        $lat    = (float) $request->lat;
+        $lng    = (float) $request->lng;
+        $restLat = 13.3213129;
+        $restLng = 121.3027265;
+        $earthR  = 6371;
+
+        $dLat = deg2rad($lat - $restLat);
+        $dLng = deg2rad($lng - $restLng);
+        $a    = sin($dLat/2) * sin($dLat/2)
+              + cos(deg2rad($restLat)) * cos(deg2rad($lat))
+              * sin($dLng/2) * sin($dLng/2);
+        $km   = round($earthR * 2 * atan2(sqrt($a), sqrt(1 - $a)), 2);
+
+        if ($km > 100) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Outside delivery range (max 100 km).',
+                'km'      => $km,
+            ], 422);
+        }
+
+        // ₱30 for first 2 km, +₱10 per km after that (rounded up per km)
+        $fee = 30 + max(0, ceil($km - 2)) * 10;
+
+        return response()->json([
+            'success' => true,
+            'km'      => $km,
+            'fee'     => $fee,
+            'label'   => $km <= 2
+                ? "₱{$fee} (within 2 km)"
+                : "₱{$fee} (" . number_format($km, 1) . " km)",
         ]);
     }
 }
