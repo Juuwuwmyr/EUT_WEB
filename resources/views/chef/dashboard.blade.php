@@ -1009,20 +1009,30 @@ function playNewOrderSound() {
     } catch (e) {}
 }
 
-function toggleKitchenFullscreen() {
-    document.body.classList.toggle('kitchen-fullscreen');
+function updateWSStatus(connected) {
+    const statusEl = document.getElementById('wsStatusText');
+    const dotEl = document.querySelector('.live-dot');
+    
+    if (connected) {
+        if (statusEl) statusEl.textContent = 'Live';
+        if (dotEl) dotEl.style.background = '#22c55e';
+        // Clear fallback polling when WebSocket is active
+        if (fallbackTimer) {
+            clearInterval(fallbackTimer);
+            fallbackTimer = null;
+        }
+    } else {
+        if (statusEl) statusEl.textContent = 'Reconnecting...';
+        if (dotEl) dotEl.style.background = '#f59e0b';
+        // Start fallback polling every 30 seconds
+        if (!fallbackTimer) {
+            fallbackTimer = setInterval(() => refreshKitchen(false), 30000);
+        }
+    }
 }
 
-function startCountdown() {
-    clearInterval(countdownTimer);
-    countdownTimer = setInterval(() => {
-        refreshTimer--;
-        const el = document.getElementById('refreshCountdown');
-        if (el) el.textContent = refreshTimer;
-        if (refreshTimer <= 0) {
-            refreshKitchen(false);
-        }
-    }, 1000);
+function toggleKitchenFullscreen() {
+    document.body.classList.toggle('kitchen-fullscreen');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1098,9 +1108,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Full kitchen refresh to re-categorise the order
                 refreshKitchen(false);
             });
+        
+        // Update status when connected
+        updateWSStatus(true);
+        
+        // Handle connection state changes
+        if (window.Echo.connector && window.Echo.connector.pusher) {
+            window.Echo.connector.pusher.connection.bind('connected', () => {
+                updateWSStatus(true);
+            });
+            window.Echo.connector.pusher.connection.bind('disconnected', () => {
+                updateWSStatus(false);
+            });
+            window.Echo.connector.pusher.connection.bind('unavailable', () => {
+                updateWSStatus(false);
+            });
+        }
+    } else {
+        // WebSocket not available, use fallback polling every 30 seconds
+        updateWSStatus(false);
     }
-
-    startCountdown();
 });
 </script>
 @endpush
