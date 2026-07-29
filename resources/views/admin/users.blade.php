@@ -169,25 +169,11 @@
                     </div>
                     <div class="form-group">
                         <label class="field-label">Role <span style="color:#dc2626;">*</span></label>
-                        <select name="role" id="addUserRole" class="admin-input" required onchange="toggleRiderFields(this.value)">
+                        <select name="role" id="addUserRole" class="admin-input" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                             <option value="chef">Chef / Kitchen</option>
-                            <option value="rider">Rider</option>
                         </select>
-                    </div>
-                </div>
-                {{-- Rider-specific fields (shown only when role = rider) --}}
-                <div id="riderFields" style="display:none;">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="field-label">Phone Number <span style="color:#dc2626;">*</span></label>
-                            <input type="text" name="phone" id="addRiderPhone" class="admin-input" placeholder="09XX-XXX-XXXX">
-                        </div>
-                        <div class="form-group">
-                            <label class="field-label">Plate / Vehicle ID</label>
-                            <input type="text" name="plate_number" class="admin-input" placeholder="e.g. ABC-1234">
-                        </div>
                     </div>
                 </div>
             </div>
@@ -250,18 +236,6 @@
 </div>
 
 <script>
-function toggleRiderFields(role) {
-    const riderFields = document.getElementById('riderFields');
-    const phoneInput  = document.getElementById('addRiderPhone');
-    if (role === 'rider') {
-        riderFields.style.display = 'block';
-        phoneInput.required = true;
-    } else {
-        riderFields.style.display = 'none';
-        phoneInput.required = false;
-    }
-}
-
 function openEditUser(user) {
     document.getElementById('editUserName').value  = user.name;
     document.getElementById('editUserEmail').value = user.email;
