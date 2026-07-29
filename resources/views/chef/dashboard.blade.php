@@ -574,7 +574,10 @@
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;">
-        <span class="kitchen-live"><span class="live-dot"></span> Auto-refresh <span id="refreshCountdown">15</span>s</span>
+        <span class="kitchen-live" id="wsStatus" title="WebSocket connection status">
+            <span class="live-dot"></span> 
+            <span id="wsStatusText">Connecting...</span>
+        </span>
         <button type="button" class="btn-ghost" style="font-size:.75rem;" onclick="refreshKitchen(true)">
             <i data-lucide="refresh-cw" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Refresh
         </button>
@@ -670,10 +673,9 @@ const ACCEPT_URL  = id => IS_ADMIN ? `/admin/orders/${id}/accept` : `/chef/order
 const START_URL   = id => `/chef/orders/${id}/start`;
 const READY_URL   = id => `/chef/orders/${id}/ready`;
 
-let refreshTimer = 15;
-let countdownTimer = null;
 let lastNewCount = {{ $newOrders->count() }};
 let orderDataMap = {};
+let fallbackTimer = null;
 
 function elapsedBadge(mins) {
     let bg, color, label;
@@ -986,7 +988,6 @@ async function refreshKitchen(manual) {
 
         if (window.lucide) lucide.createIcons();
 
-        refreshTimer = 15;
     } catch (e) {
         if (manual) alert('Could not refresh kitchen board.');
     }
