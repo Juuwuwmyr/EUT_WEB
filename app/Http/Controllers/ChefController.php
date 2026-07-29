@@ -145,8 +145,14 @@ class ChefController extends Controller
      */
     private function getKitchenOrders(): array
     {
-        // New = accepted by admin, waiting for chef to start cooking
+        // New = pending, waiting for admin to accept
         $newOrders = Order::with(['user', 'items'])
+            ->where('status', 'pending')
+            ->oldest()
+            ->get();
+
+        // Queue = accepted by admin, waiting for chef to start cooking
+        $queuedOrders = Order::with(['user', 'items'])
             ->where('status', 'accepted')
             ->oldest()
             ->get();
@@ -173,9 +179,9 @@ class ChefController extends Controller
             ->get();
 
         return [
-            'new'     => $newOrders,    // Accepted by admin — chef clicks Start Cooking
-            'queued'  => collect(),     // Unused step kept for UI compatibility
-            'cooking' => $cookingOrders,
+            'new'     => $newOrders,      // Pending — admin needs to accept
+            'queued'  => $queuedOrders,   // Accepted — chef clicks Start Cooking
+            'cooking' => $cookingOrders,  // Actively being prepared
             'ready'   => $readyForDelivery->values(),
         ];
     }

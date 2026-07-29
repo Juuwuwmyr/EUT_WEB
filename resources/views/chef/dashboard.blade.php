@@ -666,7 +666,7 @@
 const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
 const IS_ADMIN   = {{ auth()->user()->isAdmin() ? 'true' : 'false' }};
 const KITCHEN_URL = '{{ route('chef.orders') }}';
-const ACCEPT_URL  = id => `/chef/orders/${id}/accept`;
+const ACCEPT_URL  = id => IS_ADMIN ? `/admin/orders/${id}/accept` : `/chef/orders/${id}/accept`;
 const START_URL   = id => `/chef/orders/${id}/start`;
 const READY_URL   = id => `/chef/orders/${id}/ready`;
 
@@ -718,10 +718,13 @@ function renderActions(order, column) {
     const printBtn = `<button class="k-btn" style="flex:0 0 auto;width:2.5rem;background:rgba(255,255,255,.06);color:var(--text-muted);" onclick="event.stopPropagation();printReceipt('${receiptUrl}')" title="Print Receipt"><i data-lucide="printer" style="width:14px;height:14px;"></i></button>`;
 
     if (column === 'new') {
-        // Order is accepted by admin — chef clicks Start Cooking
-        return printBtn + `<button class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', ${order.id}, this)">🍳 Start Cooking</button>`;
+        // Pending orders — admin accepts
+        return IS_ADMIN
+            ? `<button class="k-btn k-btn-accept" onclick="event.stopPropagation();kitchenAction('accept', ${order.id}, this)">✓ Accept Order</button>`
+            : `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);" disabled>Waiting for acceptance…</button>`;
     }
     if (column === 'queued') {
+        // Accepted orders — chef starts cooking
         return printBtn + `<button class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', ${order.id}, this)">🍳 Start Cooking</button>`;
     }
     if (column === 'cooking') {
@@ -859,20 +862,19 @@ function openOrderModal(orderId) {
     let printBtn = `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);flex:0 0 auto;width:3rem;" onclick="printReceipt('/chef/orders/${order.id}/receipt')" title="Print Receipt"><i data-lucide="printer" style="width:16px;height:16px;"></i></button>`;
 
     if (col === 'new') {
-        if (order.status === 'pending') {
-            btn = IS_ADMIN
-                ? `<button class="k-btn k-btn-accept" style="flex:1;" onclick="modalAction('accept',${order.id})">✓ Accept Order</button>`
-                : `<button class="k-btn" style="flex:1;background:rgba(255,255,255,.06);color:var(--text-muted);" disabled>Waiting for acceptance…</button>`;
-        } else {
-            // accepted — chef starts cooking
-            btn = `<button class="k-btn k-btn-cook" style="flex:1;" onclick="modalAction('start',${order.id})">🍳 Start Cooking</button>`;
-        }
+        // Pending — admin accepts
+        btn = IS_ADMIN
+            ? `<button class="k-btn k-btn-accept" style="flex:1;" onclick="modalAction('accept',${order.id})">✓ Accept Order</button>`
+            : `<button class="k-btn" style="flex:1;background:rgba(255,255,255,.06);color:var(--text-muted);" disabled>Waiting for acceptance…</button>`;
     }
-    if (col === 'queued')  btn = `<button class="k-btn k-btn-cook" style="flex:1;" onclick="modalAction('start',${order.id})">Start Cooking</button>`;
+    if (col === 'queued') {
+        // Accepted — chef starts cooking
+        btn = `<button class="k-btn k-btn-cook" style="flex:1;" onclick="modalAction('start',${order.id})">🍳 Start Cooking</button>`;
+    }
     if (col === 'cooking') btn = `<button class="k-btn k-btn-ready" style="flex:1;" onclick="modalAction('ready',${order.id})">Mark Ready</button>`;
 
     document.getElementById('modalActions').innerHTML =
-        printBtn +
+        (col !== 'new' ? printBtn : '') +
         btn + `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);flex:0 0 auto;padding:.6rem 1.2rem;" onclick="closeOrderModal()">Close</button>`;
 
     document.getElementById('orderModal').classList.add('open');
@@ -1037,7 +1039,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if ($o->status === 'pending') {
                 $col = 'new';
             } elseif ($o->status === 'accepted') {
-                $col = 'new';
+                $col = 'queued';
             } else {
                 $col = 'cooking';
             }
