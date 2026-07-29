@@ -115,7 +115,19 @@ hr.solid {
 <div class="row"><span>Type: </span><span class="bold">{{ $order->order_type_label }}</span></div>
 <div class="row"><span>Date: {{ $order->created_at->format('M d, Y g:i A') }}</span></div>
 <div class="row"><span>Customer: {{ $order->user?->name ?? 'Guest' }}</span></div>
-<div class="row"><span>Payment: <strong>{{ $order->payment_method === 'cash' ? 'CASH ON DELIVERY' : strtoupper($order->payment_method) }}</strong></span></div>
+<div class="row"><span>Payment: <strong>
+@if($order->payment_method === 'gcash')
+    GCASH
+@elseif($order->payment_method === 'card')
+    CARD
+@elseif($order->order_type === 'delivery')
+    CASH ON DELIVERY
+@elseif($order->order_type === 'pickup')
+    CASH ON PICKUP
+@else
+    CASH (DINE-IN)
+@endif
+</strong></span></div>
 
 <hr>
 
@@ -148,7 +160,9 @@ hr.solid {
 <hr>
 
 <div class="total-row"><span>Subtotal</span><span>P{{ number_format($order->subtotal, 2) }}</span></div>
+@if($order->order_type === 'delivery')
 <div class="total-row"><span>Delivery</span><span>{{ $order->delivery_fee == 0 ? 'FREE' : 'P'.number_format($order->delivery_fee, 2) }}</span></div>
+@endif
 <div class="total-row grand"><span>TOTAL</span><span>P{{ number_format($order->total, 2) }}</span></div>
 
 @if($order->order_type === 'delivery' && $order->delivery_address)
