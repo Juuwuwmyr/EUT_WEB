@@ -26,6 +26,7 @@ class OrderController extends Controller
             'delivery_lng'     => 'nullable|numeric|between:-180,180',
             'payment_method'   => 'required|in:cash,gcash,card',
             'notes'            => 'nullable|string|max:500',
+            'table_number'     => 'required_if:order_type,dine_in|nullable|string|max:20',
         ]);
 
         DB::beginTransaction();
@@ -115,6 +116,50 @@ class OrderController extends Controller
             }
             $total = round($subtotal + $deliveryFee, 2);
 
+            // ── Dine-in: merge into existing active order for same table ────
+            // If the customer already has an active dine-in order at the same table,
+            // append items to it and update totals instead of creating a new order.
+            if ($request->order_type === 'dine_in' && $request->table_number) {
+                $existingOrder = Order::where('user_id', auth()->id())
+                    ->where('order_type', 'dine_in')
+                    ->where('table_number', $request->table_number)
+                    ->whereIn('status', ['pending', 'accepted', 'preparing'])
+                    ->latest()
+                    ->first();
+
+                if ($existingOrder) {
+                    // Append new items to the existing order
+                    foreach ($lineItems as $item) {
+                        $existingOrder->items()->create($item);
+                    }
+
+                    // Recalculate totals from all items
+                    $newSubtotal = $existingOrder->items()->sum('subtotal');
+                    $existingOrder->update([
+                        'subtotal' => round($newSubtotal, 2),
+                        'total'    => round($newSubtotal, 2), // dine-in has no delivery fee
+                        // Append new notes if any
+                        'notes'    => $request->notes
+                            ? ($existingOrder->notes
+                                ? $existingOrder->notes . ' | ' . $request->notes
+                                : $request->notes)
+                            : $existingOrder->notes,
+                    ]);
+
+                    DB::commit();
+                    broadcast(new OrderStatusUpdated($existingOrder))->toOthers();
+
+                    return response()->json([
+                        'success'      => true,
+                        'order_id'     => $existingOrder->id,
+                        'order_number' => $existingOrder->order_number,
+                        'total'        => round($newSubtotal, 2),
+                        'merged'       => true, // let frontend know it was merged
+                        'message'      => 'Items added to your existing table order.',
+                    ]);
+                }
+            }
+
             $order = Order::create([
                 'user_id'          => auth()->id(),
                 'status'           => 'pending',
@@ -128,6 +173,7 @@ class OrderController extends Controller
                 'delivery_barangay'=> $request->delivery_barangay,
                 'delivery_lat'     => $request->delivery_lat,
                 'delivery_lng'     => $request->delivery_lng,
+                'table_number'     => $request->order_type === 'dine_in' ? $request->table_number : null,
                 'notes'            => $request->notes,
             ]);
 
@@ -175,6 +221,7 @@ class OrderController extends Controller
             'delivery_lat'     => $order->delivery_lat,
             'delivery_lng'     => $order->delivery_lng,
             'payment_method'   => $order->payment_method,
+            'table_number'     => $order->table_number,
             'placed_at'        => $order->created_at->format('g:i A'),
             'accepted_at'      => $order->accepted_at?->format('g:i A'),
             'assigned_at'      => $order->assigned_at?->format('g:i A'),
@@ -273,6 +320,7 @@ class OrderController extends Controller
                 'delivery_lat'     => $order->delivery_lat,
                 'delivery_lng'     => $order->delivery_lng,
                 'payment_method'   => $order->payment_method,
+                'table_number'     => $order->table_number,
                 'notes'            => $order->notes,
                 'cancel_reason'    => $order->cancel_reason,
                 'placed_at'        => $order->created_at->format('M d, Y g:i A'),

@@ -242,6 +242,29 @@
             </div>
         </div>
 
+        <!-- Table Number (dine-in only) -->
+        <div class="card" id="tableNumberCard" style="display:none;">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(250,204,21,.1);">
+                    <svg width="15" height="15" fill="none" stroke="#facc15" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 6h18M7 14h10M7 18h10"/></svg>
+                </div>
+                <span class="card-title">Table Number <span style="font-size:11px;font-weight:400;color:#ef4444;">*required</span></span>
+            </div>
+            <div class="card-body">
+                <input
+                    type="text"
+                    id="tableNumberInput"
+                    name="table_number"
+                    class="notes-input"
+                    maxlength="20"
+                    placeholder="e.g. Table 5, Table A2…"
+                    style="width:100%;"
+                    oninput="this.value=this.value.replace(/[^a-zA-Z0-9\s\-]/g,'')"
+                >
+                <p style="font-size:11px;color:#4b5563;margin-top:6px;">Ask a staff member for your table number.</p>
+            </div>
+        </div>
+
         <!-- Payment Method -->
         <div class="card" id="paymentMethodCard">
             <div class="card-header">
@@ -521,12 +544,17 @@ function selectOrderType(el, type){
         addrCard.style.display = 'none';
     }
 
+    // Show table number field only for dine-in
+    const tableCard = document.getElementById('tableNumberCard');
+    if (tableCard) tableCard.style.display = type === 'dine_in' ? 'block' : 'none';
+    const tableInput = document.getElementById('tableNumberInput');
+    if (tableInput) tableInput.required = (type === 'dine_in');
+
     // Hide/Show payment method card — only visible for delivery
     const paymentCard = document.getElementById('paymentMethodCard');
     if(paymentCard) {
         paymentCard.style.display = type === 'delivery' ? 'block' : 'none';
     }
-    renderSummary();
 }
 
 /* ═══════════════════════════════════
@@ -834,6 +862,21 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         return; 
     }
 
+    // Validate table number for dine-in
+    const tableNumber = document.getElementById('tableNumberInput')?.value?.trim() || '';
+    if (orderType === 'dine_in' && !tableNumber) {
+        const tableCard = document.getElementById('tableNumberCard');
+        if (tableCard) {
+            tableCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            tableCard.style.outline = '2px solid #ef4444';
+            tableCard.style.borderRadius = '20px';
+            setTimeout(() => { tableCard.style.outline = ''; }, 2500);
+        }
+        document.getElementById('tableNumberInput')?.focus();
+        alert('Please enter your table number for dine-in orders.');
+        return;
+    }
+
     const btn = document.getElementById('placeOrderBtn');
     btn.disabled = true; btn.textContent = 'Placing order…';
 
@@ -883,6 +926,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         notes,
         delivery_lat: lat,
         delivery_lng: lng,
+        table_number: orderType === 'dine_in' ? tableNumber : null,
     };
 
     try {
@@ -898,7 +942,12 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
             @auth
             fetch('/cart', { method:'DELETE', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'} }).catch(()=>{});
             @endauth
-            window.location.href = '{{ route("shop.tracking") }}';
+            if (d.merged) {
+                // Items were added to existing table order — go to tracking
+                window.location.href = '{{ route("shop.tracking") }}';
+            } else {
+                window.location.href = '{{ route("shop.tracking") }}';
+            }
         } else {
             alert(d.message || 'Order failed.');
             btn.disabled = false; btn.textContent = 'Place Order';

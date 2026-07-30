@@ -565,6 +565,7 @@
         <div class="k-modal-meta" id="modalMeta"></div>
         <div class="k-modal-items" id="modalItems"></div>
         <div id="modalNotes"></div>
+        <div id="modalTableNote" style="display:none;"></div>
         <div class="k-modal-footer" id="modalFooter"></div>
         <div class="k-modal-action-bar" id="modalActions"></div>
     </div>
@@ -649,6 +650,9 @@ function renderOrderCard(order, column) {
     const notes = order.notes
         ? `<div class="k-notes">📝 ${escapeHtml(order.notes)}</div>`
         : '';
+    const tableNote = (order.order_type === 'dine_in' && order.table_number)
+        ? `<div class="k-notes" style="background:rgba(250,204,21,.08);border-color:rgba(250,204,21,.25);color:#facc15;">🪑 Table ${escapeHtml(order.table_number)}</div>`
+        : '';
 
     const elapsed = elapsedBadge(order.elapsed_mins);
 
@@ -667,6 +671,7 @@ function renderOrderCard(order, column) {
                 ${elapsed}
             </div>
             <div class="k-items">${renderItems(order.items)}</div>
+            ${tableNote}
             ${notes}
             <div class="k-actions">${renderActions(order, column)}</div>
         </div>`;
@@ -758,6 +763,17 @@ function openOrderModal(orderId) {
 
     document.getElementById('modalNotes').innerHTML = order.notes
         ? `<div class="k-modal-notes">📝 <strong>Note:</strong> ${escapeHtml(order.notes)}</div>` : '';
+
+    // Show table number prominently for dine-in
+    const tableNoteEl = document.getElementById('modalTableNote');
+    if (tableNoteEl) {
+        if (order.order_type === 'dine_in' && order.table_number) {
+            tableNoteEl.innerHTML = `<div class="k-modal-notes" style="background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.25);color:#facc15;">🪑 <strong>Table Number:</strong> ${escapeHtml(order.table_number)}</div>`;
+            tableNoteEl.style.display = 'block';
+        } else {
+            tableNoteEl.style.display = 'none';
+        }
+    }
 
     const delivery = parseFloat(order.delivery_fee ?? 50);
     const total    = parseFloat(order.total > 0 ? order.total : (order.subtotal + delivery));
@@ -1021,6 +1037,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'placed_at'    => $o->created_at->format('g:i A'),
                 'elapsed_mins' => (int) $o->created_at->diffInMinutes(now()),
                 'notes'        => $o->notes,
+                'table_number' => $o->table_number,
                 'subtotal'     => (float) ($o->subtotal ?? 0),
                 'delivery_fee' => (float) ($o->delivery_fee ?? 50),
                 'total'        => (float) ($o->total ?? 0),

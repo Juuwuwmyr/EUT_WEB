@@ -732,6 +732,7 @@ class AdminController extends Controller
                 'address'          => $o->delivery_address,
                 'delivery_lat'     => $o->delivery_lat,
                 'delivery_lng'     => $o->delivery_lng,
+                'table_number'     => $o->table_number,
                 'payment'          => $o->payment_method,
                 'subtotal'         => $o->subtotal,
                 'delivery_fee'     => $o->delivery_fee,

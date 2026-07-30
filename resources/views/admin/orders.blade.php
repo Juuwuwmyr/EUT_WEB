@@ -333,7 +333,9 @@ function renderTable(orders) {
                     '<p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">' + escHtml(o.customer) + '</p>' +
                     '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;">' + (o.order_type_icon || '') + ' ' + escHtml(o.order_type_label) + '</span>' +
                     '</div>' +
-                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">' + escHtml(o.address || '') + '</p>' +
+                    (o.order_type === 'dine_in' && o.table_number
+                        ? '<p style="font-size:.7rem;color:#facc15;font-weight:700;margin:0 0 1px;">🪑 Table ' + escHtml(o.table_number) + '</p>'
+                        : '<p style="font-size:.68rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">' + escHtml(o.address || '') + '</p>') +
                 '</div>' +
                 '</div>' +
             '</td>' +
@@ -720,8 +722,10 @@ function openManageModal(id) {
                 '<p style="color:var(--text-muted);font-size:.7rem;margin:.1rem 0 0;text-transform:capitalize;">' + escHtml(o.payment) + '</p>' +
             '</div>' +
             '<div style="background:var(--bg-filter);border-radius:.625rem;padding:.75rem;grid-column:span 2;">' +
-                '<p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .25rem;">Delivery Address</p>' +
-                '<p style="font-size:.8rem;color:var(--text-body);margin:0;">' + escHtml(o.address || '') + '</p>' +
+                '<p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .25rem;">' + (o.order_type === 'dine_in' ? 'Table Number' : 'Delivery Address') + '</p>' +
+                (o.order_type === 'dine_in' && o.table_number
+                    ? '<p style="font-size:.95rem;font-weight:800;color:#facc15;margin:0;">🪑 Table ' + escHtml(o.table_number) + '</p>'
+                    : '<p style="font-size:.8rem;color:var(--text-body);margin:0;">' + escHtml(o.address || '') + '</p>') +
             '</div>' +
         '</div>' +
         '<div>' +

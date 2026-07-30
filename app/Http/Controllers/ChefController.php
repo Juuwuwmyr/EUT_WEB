@@ -219,6 +219,7 @@ class ChefController extends Controller
             'order_type_icon' => $order->order_type_icon,
             'customer'        => $order->user?->name ?? 'Guest',
             'notes'           => $order->notes,
+            'table_number'    => $order->table_number,
             'placed_at'       => $order->created_at->format('g:i A'),
             'elapsed_mins'    => (int) $order->created_at->diffInMinutes(now()),
             'accepted_at'     => $order->accepted_at?->format('g:i A'),
