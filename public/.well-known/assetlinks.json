@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.eut.snackhouse",
+      "sha256_cert_fingerprints": [
+        "66:2A:11:4C:7C:3F:DE:A9:12:1D:00:21:6B:C4:2B:62:2A:5A:DA:76:A2:7D:38:BC:D2:A5:B7:ED:15:EC:99:04"
+      ]
+    }
+  }
+]
