@@ -1,0 +1,42 @@
+{
+  "packageId": "org.eut.snackhouse",
+  "host": "eut-delivery.duckdns.org",
+  "name": "E.U.T Snack House",
+  "launcherName": "EUT",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#080810",
+  "navigationColor": "#080810",
+  "navigationColorDark": "#080810",
+  "navigationDividerColor": "#080810",
+  "navigationDividerColorDark": "#080810",
+  "backgroundColor": "#080810",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://eut-delivery.duckdns.org/images/icons/icon-512x512.png",
+  "maskableIconUrl": "https://eut-delivery.duckdns.org/images/icons/icon-512x512.png",
+  "monochromeIconUrl": "https://eut-delivery.duckdns.org/images/icons/icon-512x512.png",
+  "appVersion": "1.0.0",
+  "appVersionCode": 1,
+  "signingKey": {
+    "path": "android.keystore",
+    "alias": "android"
+  },
+  "splashScreenFadeOutDuration": 300,
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://eut-delivery.duckdns.org/",
+  "minSdkVersion": 21,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://eut-delivery.duckdns.org/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "additionalTrustedOrigins": [],
+  "retainedBundles": []
+}
