@@ -192,7 +192,7 @@ $statusMap = [
             <button class="btn-icon-edit" onclick="openRiderDetail({{ $rider->id }})" title="View Details">
                 <i data-lucide="eye" style="width:.8rem;height:.8rem;stroke-width:2;"></i>
             </button>
-            <button class="btn-icon-archive" onclick="openModal('editRiderModal')" title="Edit">
+            <button class="btn-icon-archive" onclick="openEditRider({{ $rider->id }}, '{{ addslashes($rider->user->name) }}', '{{ $rider->phone }}', '{{ $rider->vehicle_type }}', '{{ $rider->plate_number }}')" title="Edit">
                 <i data-lucide="pencil" style="width:.8rem;height:.8rem;stroke-width:2;"></i>
             </button>
             <form method="POST" action="{{ route('admin.riders.destroy', $rider) }}" onsubmit="return confirm('Remove {{ $rider->user->name }} from riders? This action cannot be undone.');" style="display:inline;">
@@ -222,55 +222,51 @@ $statusMap = [
                 <i data-lucide="x" style="width:1rem;height:1rem;stroke-width:2;"></i>
             </button>
         </div>
-        <div class="modal-body">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" class="admin-input" placeholder="e.g. Juan dela Cruz">
+        <form method="POST" action="{{ route('admin.riders.store') }}">
+            @csrf
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label">Full Name <span style="color:#dc2626;">*</span></label>
+                        <input type="text" name="name" class="admin-input" placeholder="e.g. Juan dela Cruz" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Phone Number <span style="color:#dc2626;">*</span></label>
+                        <input type="text" name="phone" class="admin-input" placeholder="e.g. 09171234567" required>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Phone Number</label>
-                    <input type="text" class="admin-input" placeholder="e.g. 09171234567">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label">Email Address <span style="color:#dc2626;">*</span></label>
+                        <input type="email" name="email" class="admin-input" placeholder="rider@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Vehicle Type <span style="color:#dc2626;">*</span></label>
+                        <select name="vehicle_type" class="admin-input" required>
+                            <option value="motorcycle">Motorcycle</option>
+                            <option value="bicycle">Bicycle</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label">Plate / ID Number</label>
+                        <input type="text" name="plate_number" class="admin-input" placeholder="e.g. ABC-1234 or RIDER-001">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Password <span style="color:#dc2626;">*</span></label>
+                        <input type="password" name="password" class="admin-input" placeholder="Min. 8 characters" required minlength="8">
+                    </div>
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" class="admin-input" placeholder="rider@email.com">
-                </div>
-                <div class="form-group">
-                    <label>Vehicle Type</label>
-                    <select class="admin-input">
-                        <option value="motorcycle">Motorcycle</option>
-                        <option value="bicycle">Bicycle</option>
-                    </select>
-                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-ghost" onclick="closeModal('addRiderModal')">Cancel</button>
+                <button type="submit" class="btn-success" style="display:inline-flex;align-items:center;gap:.4rem;">
+                    <i data-lucide="user-plus" style="width:.85rem;height:.85rem;stroke-width:2.5;"></i>
+                    Add Rider
+                </button>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Plate / ID Number</label>
-                    <input type="text" class="admin-input" placeholder="e.g. ABC-1234 or RIDER-001">
-                </div>
-                <div class="form-group">
-                    <label>Initial Status</label>
-                    <select class="admin-input">
-                        <option value="offline">Offline</option>
-                        <option value="online">Online</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Temporary Password</label>
-                <input type="password" class="admin-input" placeholder="Will be changed on first login">
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-ghost" onclick="closeModal('addRiderModal')">Cancel</button>
-            <button class="btn-success" onclick="alert('Connect to DB to activate.')">
-                <i data-lucide="user-plus" style="width:.85rem;height:.85rem;stroke-width:2.5;"></i>
-                Add Rider
-            </button>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -363,48 +359,42 @@ $statusMap = [
         <div class="modal-header">
             <h3 class="modal-title" style="display:flex;align-items:center;gap:.5rem;">
                 <i data-lucide="pencil" style="width:1rem;height:1rem;color:#d97706;stroke-width:2;"></i>
-                Edit Rider
+                Edit Rider: <span id="editRiderName" style="color:var(--text-muted);font-weight:400;font-size:.9rem;margin-left:.25rem;"></span>
             </h3>
             <button class="modal-close" onclick="closeModal('editRiderModal')">
                 <i data-lucide="x" style="width:1rem;height:1rem;stroke-width:2;"></i>
             </button>
         </div>
-        <div class="modal-body">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" class="admin-input" value="Juan dela Cruz">
+        <form id="editRiderForm" method="POST" action="">
+            @csrf
+            @method('PATCH')
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="field-label">Phone Number</label>
+                        <input type="text" name="phone" id="editRiderPhone" class="admin-input" placeholder="09171234567">
+                    </div>
+                    <div class="form-group">
+                        <label class="field-label">Vehicle Type <span style="color:#dc2626;">*</span></label>
+                        <select name="vehicle_type" id="editRiderVehicle" class="admin-input" required>
+                            <option value="motorcycle">Motorcycle</option>
+                            <option value="bicycle">Bicycle</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Phone Number</label>
-                    <input type="text" class="admin-input" value="09171234567">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Vehicle Type</label>
-                    <select class="admin-input">
-                        <option selected>Motorcycle</option>
-                        <option>Bicycle</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select class="admin-input">
-                        <option value="online">Online</option>
-                        <option value="on_delivery" selected>On Delivery</option>
-                        <option value="offline">Offline</option>
-                    </select>
+                    <label class="field-label">Plate / ID Number</label>
+                    <input type="text" name="plate_number" id="editRiderPlate" class="admin-input" placeholder="e.g. ABC-1234">
                 </div>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-ghost" onclick="closeModal('editRiderModal')">Cancel</button>
-            <button class="btn-warning" onclick="alert('Connect to DB to activate.')">
-                <i data-lucide="save" style="width:.85rem;height:.85rem;stroke-width:2.5;"></i>
-                Save Changes
-            </button>
-        </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-ghost" onclick="closeModal('editRiderModal')">Cancel</button>
+                <button type="submit" class="btn-warning" style="display:inline-flex;align-items:center;gap:.4rem;">
+                    <i data-lucide="save" style="width:.85rem;height:.85rem;stroke-width:2.5;"></i>
+                    Save Changes
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -449,6 +439,17 @@ $statusMapJson = json_encode($statusMap);
 const RIDERS = {!! $ridersJson !!};
 const STATUS_MAP = {!! $statusMapJson !!};
 
+function openEditRider(id, name, phone, vehicleType, plateNumber) {
+    document.getElementById('editRiderName').textContent = name;
+    document.getElementById('editRiderPhone').value = phone || '';
+    document.getElementById('editRiderPlate').value = plateNumber || '';
+    const vehicleSel = document.getElementById('editRiderVehicle');
+    if (vehicleSel) vehicleSel.value = vehicleType || 'motorcycle';
+    // Set form action to the correct route
+    document.getElementById('editRiderForm').action = '/admin/riders/' + id;
+    openModal('editRiderModal');
+}
+
 function openRiderDetail(id) {
     const r = RIDERS.find(x => x.id === id);
     if (!r) return;
@@ -478,9 +479,9 @@ function filterByStatus(val) {
     });
 }
 
-function confirmRemoveRider(name) {
+function confirmRemoveRider(name, formEl) {
     if (confirm('Remove ' + name + ' from riders? This action cannot be undone.')) {
-        alert('Connect to DB to activate removal.');
+        formEl.submit();
     }
 }
 </script>
