@@ -1045,9 +1045,22 @@ if ($activeOrder) {
     }
 }
 $mapOrderStatus = $activeOrder ? $activeOrder->status : '';
+
+// All delivery customers to show as pins on map
+$allCustomerPins = $active->where('order_type', 'delivery')->map(function($o) {
+    return [
+        'name'    => $o->user->name,
+        'address' => $o->delivery_address,
+        'lat'     => $o->delivery_lat,
+        'lng'     => $o->delivery_lng,
+        'status'  => $o->status,
+        'order'   => $o->order_number,
+    ];
+})->values()->toArray();
 ?>
 const RESTAURANT_R    = [<?= $restaurantPos[0] ?>, <?= $restaurantPos[1] ?>];
 const CUSTOMER_R_INIT = <?= $customerPos ? json_encode($customerPos) : 'null' ?>;
+const ALL_CUSTOMER_PINS = <?= json_encode($allCustomerPins) ?>;
 const CUSTOMER_NAME   = <?= $customerName ? json_encode($customerName) : '"Customer"' ?>;
 const DELIVERY_ADDR   = <?= $deliveryAddr ? json_encode($deliveryAddr) : 'null' ?>;
 const ORDER_STATUS_R  = '<?= $mapOrderStatus ?? '' ?>';
@@ -1188,6 +1201,19 @@ async function initRiderMap() {
         html: `<div style="background:#facc15;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">🏪</span></div>`,
         className: '', iconSize: [42, 42], iconAnchor: [21, 42],
     }) }).addTo(riderMapL).bindPopup('<b>E.U.T Snack House</b>');
+
+    // Show ALL customer delivery pins immediately (even before picked up)
+    ALL_CUSTOMER_PINS.forEach(function(pin) {
+        if (!pin.lat || !pin.lng) return;
+        const isActive = pin.status === 'out_for_delivery';
+        const color = isActive ? '#ef4444' : '#f59e0b';
+        const border = isActive ? '#b91c1c' : '#d97706';
+        const icon = isActive ? '📍' : '📦';
+        L.marker([pin.lat, pin.lng], { icon: L.divIcon({
+            html: `<div style="background:${color};width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid ${border};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:16px;line-height:1;">${icon}</span></div>`,
+            className: '', iconSize: [36, 36], iconAnchor: [18, 36],
+        }) }).addTo(riderMapL).bindPopup(`<b>${pin.name}</b><br>${pin.order}<br>${pin.address || ''}`);
+    });
 
     // Rider marker – animated pulse with motorbike icon
     myMarker = L.marker(myPos, { icon: L.divIcon({
