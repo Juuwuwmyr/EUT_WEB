@@ -782,9 +782,8 @@ class AdminController extends Controller
 
         if (request()->expectsJson()) {
             return response()->json([
-                'success'     => true,
-                'message'     => "Order #{$order->order_number} accepted & sent to kitchen.",
-                'receipt_url' => route('chef.orders.receipt', $order->id),
+                'success' => true,
+                'message' => "Order #{$order->order_number} accepted & sent to kitchen.",
             ]);
         }
 
