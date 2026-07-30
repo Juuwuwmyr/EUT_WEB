@@ -17,12 +17,15 @@ class Order extends Model
         'notes', 'proof_photo', 'delivery_type',
         'cancel_reason',
         'accepted_at', 'prepared_at', 'assigned_at', 'picked_up_at', 'delivered_at', 'cancelled_at',
+        'is_archived', 'archived_at',
     ];
 
     protected $casts = [
         'subtotal'      => 'float',
         'delivery_fee'  => 'float',
         'total'         => 'float',
+        'is_archived'   => 'boolean',
+        'archived_at'   => 'datetime',
         'delivery_lat'  => 'float',
         'delivery_lng'  => 'float',
         'accepted_at'   => 'datetime',

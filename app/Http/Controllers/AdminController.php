@@ -641,6 +641,16 @@ class AdminController extends Controller
     {
         $query = \App\Models\Order::with(['user', 'rider.user', 'items']);
 
+        // Default: today's non-archived orders. Toggle with ?all=1 or ?archived=1
+        if ($request->boolean('archived')) {
+            $query->where('is_archived', true);
+        } else if ($request->boolean('all')) {
+            $query->where('is_archived', false);
+        } else {
+            // Default view: today's orders only (non-archived)
+            $query->whereDate('created_at', today())->where('is_archived', false);
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
@@ -669,6 +679,15 @@ class AdminController extends Controller
     public function ordersPoll(Request $request)
     {
         $query = \App\Models\Order::with(['user', 'rider.user', 'items']);
+
+        // Default: today's non-archived orders. Toggle with ?all=1 or ?archived=1
+        if ($request->boolean('archived')) {
+            $query->where('is_archived', true);
+        } else if ($request->boolean('all')) {
+            $query->where('is_archived', false);
+        } else {
+            $query->whereDate('created_at', today())->where('is_archived', false);
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -740,6 +759,7 @@ class AdminController extends Controller
                 'notes'            => $o->notes,
                 'date'             => $o->created_at->format('M d, Y g:i A'),
                 'date_short'       => $o->created_at->format('M d g:i A'),
+                'is_archived'      => (bool) $o->is_archived,
                 'accepted_at'      => $o->accepted_at?->format('g:i A'),
                 'prepared_at'      => $o->prepared_at ? true : false, // chef marked ready flag
                 'picked_up_at'     => $o->picked_up_at?->format('g:i A'),
@@ -866,6 +886,44 @@ class AdminController extends Controller
         }
 
         return back()->with('success', "Order #{$order->order_number} updated to \"{$request->status}\".");
+    }
+
+    public function archiveOrder(\App\Models\Order $order)
+    {
+        // Only allow archiving completed/cancelled orders
+        if (!in_array($order->status, ['delivered', 'cancelled'])) {
+            return request()->expectsJson()
+                ? response()->json(['success' => false, 'message' => 'Only completed or cancelled orders can be archived.'], 422)
+                : back()->with('error', 'Only completed or cancelled orders can be archived.');
+        }
+
+        $order->update([
+            'is_archived' => !$order->is_archived,
+            'archived_at' => $order->is_archived ? null : now(),
+        ]);
+
+        $label = $order->is_archived ? 'archived' : 'restored';
+        return request()->expectsJson()
+            ? response()->json(['success' => true, 'message' => "Order #{$order->order_number} {$label}.", 'is_archived' => $order->is_archived])
+            : back()->with('success', "Order #{$order->order_number} {$label}.");
+    }
+
+    public function deleteOrder(\App\Models\Order $order)
+    {
+        // Only allow deleting archived orders (safety check)
+        if (!$order->is_archived) {
+            return request()->expectsJson()
+                ? response()->json(['success' => false, 'message' => 'Archive the order first before deleting.'], 422)
+                : back()->with('error', 'Archive the order first before deleting.');
+        }
+
+        $orderNum = $order->order_number;
+        $order->items()->delete();
+        $order->delete();
+
+        return request()->expectsJson()
+            ? response()->json(['success' => true, 'message' => "Order {$orderNum} permanently deleted."])
+            : back()->with('success', "Order {$orderNum} permanently deleted.");
     }
 
     public function riderLocations()

@@ -64,10 +64,18 @@
                 <option value="cancelled">Cancelled</option>
             </select>
         </div>
+        {{-- Date range toggle --}}
+        <div style="display:flex;align-items:center;gap:.35rem;">
+            <button id="btnToday" onclick="applyDateFilter('today')" class="btn-primary" style="font-size:.72rem;padding:.3rem .7rem;">Today</button>
+            <button id="btnAll"   onclick="applyDateFilter('all')"   class="btn-ghost"  style="font-size:.72rem;padding:.3rem .7rem;">All Orders</button>
+            <button id="btnArchived" onclick="applyDateFilter('archived')" class="btn-ghost" style="font-size:.72rem;padding:.3rem .7rem;">
+                <i data-lucide="archive" style="width:.7rem;height:.7rem;stroke-width:2;vertical-align:middle;"></i> Archived
+            </button>
+        </div>
         <span id="clearFilter" style="display:none;">
             <a href="#" class="btn-ghost" onclick="applyStatusFilter('');return false;"
                style="display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;">
-                <i data-lucide="x" style="width:.75rem;height:.75rem;stroke-width:2.5;"></i> Show All
+                <i data-lucide="x" style="width:.75rem;height:.75rem;stroke-width:2.5;"></i> Clear
             </a>
         </span>
         <span id="orderCount" style="margin-left:auto;font-size:.72rem;color:var(--text-muted);"></span>
@@ -113,6 +121,7 @@ var POLL_URL     = '{{ route("admin.orders.poll") }}';
 var ORDERS_MAP   = {};
 var RIDERS       = [];
 var activeFilter = '{{ request("status","") }}';
+var dateFilter   = 'today'; // 'today' | 'all' | 'archived'
 var pollTimer    = null;
 var POLL_INTERVAL = 5000; // 5 seconds
 
@@ -214,7 +223,11 @@ async function fetchOrders() {
     if (dot) dot.style.background = '#f59e0b'; // yellow = fetching
 
     try {
-        var url = POLL_URL + (activeFilter ? '?status=' + activeFilter : '');
+        var params = [];
+        if (activeFilter) params.push('status=' + activeFilter);
+        if (dateFilter === 'all')      params.push('all=1');
+        if (dateFilter === 'archived') params.push('archived=1');
+        var url = POLL_URL + (params.length ? '?' + params.join('&') : '');
         var res = await fetch(url, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN } });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         var data = await res.json();
@@ -241,6 +254,16 @@ function applyStatusFilter(val) {
     if (sel) sel.value = val;
     var clr = document.getElementById('clearFilter');
     if (clr) clr.style.display = val ? 'inline' : 'none';
+    fetchOrders();
+}
+
+function applyDateFilter(mode) {
+    dateFilter = mode;
+    var btnMap = { today:'btnToday', all:'btnAll', archived:'btnArchived' };
+    Object.keys(btnMap).forEach(function(m) {
+        var btn = document.getElementById(btnMap[m]);
+        if (btn) btn.className = m === mode ? 'btn-primary' : 'btn-ghost';
+    });
     fetchOrders();
 }
 
@@ -349,6 +372,16 @@ function renderTable(orders) {
                 '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;" onclick="openManageModal(' + o.id + ')" title="Details">' +
                     '<i data-lucide="settings-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
                 '</button>' +
+                ((['delivered','cancelled'].includes(o.status))
+                    ? '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';" onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '">' +
+                        '<i data-lucide="' + (o.is_archived ? 'archive-restore' : 'archive') + '" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+                      '</button>'
+                    : '') +
+                (o.is_archived
+                    ? '<button class="btn-icon-delete" style="font-size:.72rem;padding:.35rem .55rem;" onclick="deleteOrder(' + o.id + ',\'' + escHtml(o.order_number) + '\',this)" title="Delete permanently">' +
+                        '<i data-lucide="trash-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+                      '</button>'
+                    : '') +
                 '</div>' +
             '</td>' +
             '</tr>';
@@ -495,6 +528,31 @@ async function quickAction(orderId, type, nextStatus, btn) {
 async function quickAccept(orderId, btn) {
     if (!confirm('Accept this order?')) return;
     await quickAction(orderId, 'accept', '', btn);
+
+async function archiveOrder(orderId, btn) {
+    var orig = btn.innerHTML;
+    btn.disabled = true;
+    try {
+        var url = '/admin/orders/' + orderId + '/archive';
+        var res = await fetch(url, { method:'PATCH', headers:{'X-CSRF-TOKEN':CSRF_TOKEN,'Accept':'application/json','Content-Type':'application/json'} });
+        var data = await res.json();
+        if (data.success) { await fetchOrders(); }
+        else { alert(data.message || 'Failed.'); btn.disabled = false; btn.innerHTML = orig; }
+    } catch(e) { alert('Network error.'); btn.disabled = false; btn.innerHTML = orig; }
+}
+
+async function deleteOrder(orderId, orderNum, btn) {
+    if (!confirm('Permanently delete order ' + orderNum + '? This cannot be undone.')) return;
+    var orig = btn.innerHTML;
+    btn.disabled = true;
+    try {
+        var url = '/admin/orders/' + orderId;
+        var res = await fetch(url, { method:'DELETE', headers:{'X-CSRF-TOKEN':CSRF_TOKEN,'Accept':'application/json','Content-Type':'application/json'} });
+        var data = await res.json();
+        if (data.success) { await fetchOrders(); }
+        else { alert(data.message || 'Failed.'); btn.disabled = false; btn.innerHTML = orig; }
+    } catch(e) { alert('Network error.'); btn.disabled = false; btn.innerHTML = orig; }
+}
 }
 async function handleModalAccept(orderId, btn) {
     await quickAction(orderId, 'accept', '', btn);
