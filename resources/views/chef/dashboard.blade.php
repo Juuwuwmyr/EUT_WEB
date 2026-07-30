@@ -1083,8 +1083,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Echo) {
         window.Echo.private('kitchen')
             .listen('.order.updated', (order) => {
-                // Auto-print kitchen ticket when admin accepts (pending → accepted)
-                if (order.status === 'accepted') {
+                // Auto-print kitchen ticket when chef marks order ready (prepared_at set)
+                if (order.status === 'preparing' && order.prepared_at) {
                     autoPrintKitchenTicket(order.id);
                 }
                 // Full kitchen refresh to re-categorise the order

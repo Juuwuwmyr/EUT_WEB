@@ -855,10 +855,15 @@ class AdminController extends Controller
         broadcast(new OrderStatusUpdated($order));
 
         if (request()->expectsJson()) {
-            return response()->json([
+            $response = [
                 'success' => true,
                 'message' => "Order #{$order->order_number} updated to \"{$request->status}\".",
-            ]);
+            ];
+            // Auto-print receipt when admin marks as complete (delivered)
+            if ($request->status === 'delivered') {
+                $response['receipt_url'] = route('chef.orders.receipt', $order->id);
+            }
+            return response()->json($response);
         }
 
         return back()->with('success', "Order #{$order->order_number} updated to \"{$request->status}\".");
