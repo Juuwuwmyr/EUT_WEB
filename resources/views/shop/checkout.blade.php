@@ -795,8 +795,15 @@ function retryCheckoutGps() {
 }
 
 function startCheckoutGps() {
+    // Geolocation requires HTTPS — skip silently on HTTP instead of blocking the user
+    if (location.protocol !== 'https:') {
+        const el = document.getElementById('gpsCheckoutStatus');
+        if (el) el.innerHTML = '<span style="color:#6b7280;">📍 GPS unavailable on HTTP — using saved address</span>';
+        return;
+    }
     if (!navigator.geolocation) {
-        showLocationGate(true, 'Your browser does not support GPS. Please use Chrome or Safari on your phone.');
+        const el = document.getElementById('gpsCheckoutStatus');
+        if (el) el.innerHTML = '<span style="color:#6b7280;">GPS not supported by browser</span>';
         return;
     }
     if (_gpsWatchCo !== null) navigator.geolocation.clearWatch(_gpsWatchCo);
@@ -813,32 +820,29 @@ function startCheckoutGps() {
         },
         err => {
             _gpsGranted = false;
+            // Don't block checkout — GPS is optional, delivery address is used as fallback
             const el = document.getElementById('gpsCheckoutStatus');
             if (err.code === 1) {
-                // Denied — show blocking gate
-                showLocationGate(true, 'Location access was denied. We need it to accurately pin your delivery location.');
-                if (el) el.innerHTML = '<span style="color:#ef4444;">⚠ Location denied</span>';
+                if (el) el.innerHTML = '<span style="color:#6b7280;">📍 Location not shared — using saved address</span>';
             } else {
-                // Unavailable / timeout — show gate with retry
-                showLocationGate(true, 'Could not get your location. Make sure GPS is on and try again.');
-                if (el) el.innerHTML = '<span style="color:#f59e0b;">⚠ Location unavailable — please retry</span>';
+                if (el) el.innerHTML = '<span style="color:#6b7280;">📍 GPS unavailable — using saved address</span>';
             }
         },
         { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
     );
 }
 
-// Check permission first, then start
-if (navigator.permissions) {
+// Check permission first, then start — never block checkout on GPS failure
+if (navigator.permissions && location.protocol === 'https:') {
     navigator.permissions.query({ name: 'geolocation' }).then(r => {
-        if (r.state === 'denied') {
-            showLocationGate(true, 'Location access is blocked for this site. Please enable it in your browser settings.');
-        } else {
+        if (r.state !== 'denied') {
             startCheckoutGps();
+        } else {
+            const el = document.getElementById('gpsCheckoutStatus');
+            if (el) el.innerHTML = '<span style="color:#6b7280;">📍 Location blocked — using saved address</span>';
         }
         r.onchange = () => {
             if (r.state === 'granted') { showLocationGate(false); startCheckoutGps(); }
-            if (r.state === 'denied')  { showLocationGate(true, 'Location access is blocked. Please enable it in your browser settings.'); }
         };
     });
 } else {
@@ -976,7 +980,10 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         </div>
         <button onclick="retryCheckoutGps()" style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(220,38,38,.4);display:flex;align-items:center;justify-content:center;gap:8px;">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg>
-            Allow Location & Continue
+            Try Again
+        </button>
+        <button onclick="showLocationGate(false)" style="width:100%;margin-top:10px;padding:13px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#9ca3af;font-size:14px;font-weight:600;cursor:pointer;">
+            Continue Without GPS
         </button>
         <p style="font-size:11px;color:#4b5563;margin:14px 0 0;line-height:1.6;">Location is only used to pin your delivery address.<br>We never track you outside this order.</p>
     </div>
