@@ -528,6 +528,7 @@ async function quickAction(orderId, type, nextStatus, btn) {
 async function quickAccept(orderId, btn) {
     if (!confirm('Accept this order?')) return;
     await quickAction(orderId, 'accept', '', btn);
+}
 
 async function archiveOrder(orderId, btn) {
     var orig = btn.innerHTML;
@@ -553,7 +554,7 @@ async function deleteOrder(orderId, orderNum, btn) {
         else { alert(data.message || 'Failed.'); btn.disabled = false; btn.innerHTML = orig; }
     } catch(e) { alert('Network error.'); btn.disabled = false; btn.innerHTML = orig; }
 }
-}
+
 async function handleModalAccept(orderId, btn) {
     await quickAction(orderId, 'accept', '', btn);
 }
