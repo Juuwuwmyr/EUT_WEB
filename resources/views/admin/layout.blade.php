@@ -443,6 +443,30 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ document.
         });
     };
 })();
+
+// ── Global Rider Pickup Auto-Print Listener ──────────────────────────────
+// Listen for rider pickup events across all admin pages and auto-print slip
+if (typeof window.Echo !== 'undefined' && window.Echo) {
+    window.Echo.channel('admin.riders')
+        .listen('.rider.picked-up', function(data) {
+            console.log('[Admin] Rider picked up order:', data);
+            // Trigger auto-print of pickup slip
+            if (data.order_id) {
+                fetch('/chef/orders/' + data.order_id + '/pickup-slip.html')
+                    .then(res => res.text())
+                    .then(html => {
+                        var win = window.open('', '_blank', 'width=800,height=600');
+                        win.document.write(html);
+                        win.document.close();
+                        setTimeout(() => {
+                            win.print();
+                            win.close();
+                        }, 300);
+                    })
+                    .catch(err => console.error('[Admin] Failed to fetch pickup slip:', err));
+            }
+        });
+}
 </script>
 @stack('scripts')
 </body>
