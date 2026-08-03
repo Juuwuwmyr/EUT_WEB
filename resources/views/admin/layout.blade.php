@@ -445,14 +445,15 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ document.
 })();
 
 // ── Global Rider Pickup Notification (Dialog Only) ──────────────────────────────
-// Listen for rider pickup events and show notification, admin prints manually
+// Listen for order status updates and detect rider pickup
 if (typeof window.Echo !== 'undefined' && window.Echo) {
-    window.Echo.channel('admin.riders')
-        .listen('.rider.picked-up', function(data) {
-            console.log('[Admin] Rider picked up order:', data);
+    window.Echo.channel('orders')
+        .listen('.order.status.updated', function(data) {
+            console.log('[Admin] Order status updated:', data);
             
-            if (data.order_id && data.order_number) {
-                // Show notification dialog on admin page
+            // Check if this is a rider pickup event
+            if (data.status === 'out_for_delivery' && data.picked_up_at && data.order_id && data.order_number) {
+                console.log('[Admin] Detected rider pickup for order:', data.order_number);
                 showAdminPickupNotification(data.order_id, data.order_number);
             }
         });
@@ -461,7 +462,7 @@ if (typeof window.Echo !== 'undefined' && window.Echo) {
 // Show pickup notification on admin dashboard
 function showAdminPickupNotification(orderId, orderNumber) {
     const notifHtml = `
-        <div style="position:fixed;bottom:24px;right:24px;z-index:9998;background:#fff;border-radius:12px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.2);border-left:5px solid #8b5cf6;max-width:400px;" onclick="this.remove();" id="pickup-notif-${orderId}">
+        <div style="position:fixed;bottom:24px;right:24px;z-index:9998;background:#fff;border-radius:12px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.2);border-left:5px solid #8b5cf6;max-width:400px;" onclick="event.stopPropagation();" id="pickup-notif-${orderId}">
             <div style="display:flex;align-items:flex-start;gap:12px;">
                 <div style="font-size:32px;flex-shrink:0;">📋</div>
                 <div style="flex:1;">
@@ -476,23 +477,35 @@ function showAdminPickupNotification(orderId, orderNumber) {
         </div>
     `;
     
+    // Remove any existing notification for this order
+    const existing = document.getElementById('pickup-notif-' + orderId);
+    if (existing) existing.remove();
+    
     const div = document.createElement('div');
     div.innerHTML = notifHtml;
     document.body.appendChild(div.firstElementChild);
     
-    // Auto-remove after 8 seconds if not dismissed
+    // Play notification sound
+    if (typeof NotificationSound !== 'undefined') {
+        NotificationSound.play();
+    }
+    
+    // Auto-remove after 15 seconds if not dismissed (longer time)
     setTimeout(() => {
         const el = document.getElementById('pickup-notif-' + orderId);
         if (el) el.remove();
-    }, 8000);
+    }, 15000);
 }
 
 // Open pickup slip in new window for admin to print
 function openAdminPickupSlip(orderId) {
     const slipUrl = '/chef/orders/' + orderId + '/pickup-slip.html';
-    const win = window.open(slipUrl, '_blank', 'width=800,height=600');
+    const win = window.open(slipUrl, 'pickup_slip_' + orderId, 'width=800,height=600,scrollbars=yes,resizable=yes');
     if (win) {
         win.focus();
+        console.log('Pickup slip opened for order:', orderId);
+    } else {
+        alert('Please allow popups to print pickup slips');
     }
 }
 </script>
