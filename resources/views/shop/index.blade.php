@@ -1177,4 +1177,4 @@ if (window.Echo) {
 
 @include('partials.pwa-register')
 </body>
-</html>
+</html>>
