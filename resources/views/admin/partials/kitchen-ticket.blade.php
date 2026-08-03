@@ -146,7 +146,11 @@ hr.double { border-top: 3px double #000; }
 </head>
 <body>
 
+@if($addonIds)
+<div class="kitchen-label" style="background:#000;color:#fff;letter-spacing:1px;">➕ ADD-ON ORDER ➕</div>
+@else
 <div class="kitchen-label">⬛ KITCHEN ⬛</div>
+@endif
 
 <div class="order-num">{{ $order->order_number }}</div>
 

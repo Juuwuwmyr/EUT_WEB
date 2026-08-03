@@ -594,6 +594,7 @@ let lastNewCount = 0; // not used but kept to avoid reference errors
 let orderDataMap = {};
 let fallbackTimer = null;
 let printedOrderIds = new Set();
+let printedItemIds = {}; // orderId -> Set of item IDs already printed
 let autoPrintEnabled = false;
 
 function testKitchenAPI() {
@@ -969,8 +970,11 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
-function autoPrintKitchenTicket(orderId) {
-    const url = `/chef/orders/${orderId}/kitchen-ticket`;
+function autoPrintKitchenTicket(orderId, addonIds) {
+    let url = `/chef/orders/${orderId}/kitchen-ticket`;
+    if (addonIds && addonIds.length > 0) {
+        url += '?addon_ids=' + addonIds.join(',');
+    }
 
     // ── Silent iframe print ────────────────────────────────────────────────
     // The ticket page always calls window.print() on load, then posts a
@@ -1131,8 +1135,20 @@ async function refreshKitchen(manual) {
             const printKey = 'accept_' + order.id + '_' + (order.updated_at || '');
             if (autoPrintEnabled && !printedOrderIds.has(printKey)) {
                 printedOrderIds.add(printKey);
-                console.log('🖨️ Auto-printing kitchen ticket for order', order.order_number);
-                setTimeout(() => autoPrintKitchenTicket(order.id), 500);
+
+                const currentItemIds = (order.items || []).map(i => i.id).filter(Boolean);
+                const alreadyPrinted = printedItemIds[order.id] || new Set();
+                const newItemIds = currentItemIds.filter(id => !alreadyPrinted.has(id));
+
+                // Update the printed set for this order
+                if (!printedItemIds[order.id]) printedItemIds[order.id] = new Set();
+                currentItemIds.forEach(id => printedItemIds[order.id].add(id));
+
+                console.log('\ud83d\udda8\ufe0f Auto-printing kitchen ticket for order', order.order_number,
+                    newItemIds.length < currentItemIds.length ? '(pahabol: ' + newItemIds.length + ' new items)' : '(full)');
+
+                const isAddon = newItemIds.length > 0 && newItemIds.length < currentItemIds.length;
+                setTimeout(() => autoPrintKitchenTicket(order.id, isAddon ? newItemIds : null), 500);
             }
         });
 
@@ -1313,6 +1329,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ->values()
                         ->all();
                     return [
+                        'id'        => $i->id,
                         'name'      => $i->item_name,
                         'qty'       => $i->quantity,
                         'price'     => (float) $i->unit_price,
@@ -1332,6 +1349,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Use versioned key (id + updated_at) to detect pahabol (add-on) orders
         if (['accepted','preparing','rider_assigned','out_for_delivery','delivered'].includes(o.status)) {
             printedOrderIds.add('accept_' + o.id + '_' + (o.updated_at || ''));
+            if (!printedItemIds[o.id]) printedItemIds[o.id] = new Set();
+            o.items.forEach(i => printedItemIds[o.id].add(i.id));
         }
         if (['rider_assigned','out_for_delivery','delivered'].includes(o.status)) {
             printedOrderIds.add('ready_' + o.id);
@@ -1357,9 +1376,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('[ECHO] Order updated:', order.id, order.status);
                     // ── AUTO-PRINT RULES ──────────────────────────────────────
                     if (autoPrintEnabled && order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id + '_' + (order.updated_at || ''))) {
-                        printedOrderIds.add('accept_' + order.id + '_' + (order.updated_at || ''));
-                        console.log('🖨️ Echo: Auto-printing kitchen ticket for order', order.order_number);
-                        setTimeout(() => autoPrintKitchenTicket(order.id), 400);
+                        const printKey = 'accept_' + order.id + '_' + (order.updated_at || '');
+                        printedOrderIds.add(printKey);
+
+                        const currentItemIds = (order.items || []).map(i => i.id).filter(Boolean);
+                        const alreadyPrinted = printedItemIds[order.id] || new Set();
+                        const newItemIds = currentItemIds.filter(id => !alreadyPrinted.has(id));
+
+                        if (!printedItemIds[order.id]) printedItemIds[order.id] = new Set();
+                        currentItemIds.forEach(id => printedItemIds[order.id].add(id));
+
+                        console.log('\ud83d\udda8\ufe0f Echo: Auto-printing kitchen ticket for order', order.order_number,
+                            newItemIds.length < currentItemIds.length ? '(pahabol: ' + newItemIds.length + ' new items)' : '(full)');
+
+                        const isAddon = newItemIds.length > 0 && newItemIds.length < currentItemIds.length;
+                        setTimeout(() => autoPrintKitchenTicket(order.id, isAddon ? newItemIds : null), 400);
                     }
                     if (autoPrintEnabled && order.status === 'preparing' && order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
                         printedOrderIds.add('ready_' + order.id);

@@ -183,10 +183,18 @@ class ChefController extends Controller
     /**
      * Get the kitchen ticket (no prices) for an order.
      */
-    public function kitchenTicket(Order $order)
+    public function kitchenTicket(Order $order, Request $request)
     {
         $order->load(['items', 'user']);
-        return view('admin.partials.kitchen-ticket', compact('order'));
+
+        // If addon_ids is passed, only show those specific item IDs (pahabol print)
+        $addonIds = null;
+        if ($request->filled('addon_ids')) {
+            $addonIds = array_map('intval', explode(',', $request->query('addon_ids')));
+            $order->setRelation('items', $order->items->whereIn('id', $addonIds)->values());
+        }
+
+        return view('admin.partials.kitchen-ticket', compact('order', 'addonIds'));
     }
 
     /**
@@ -279,6 +287,7 @@ class ChefController extends Controller
             'delivery_color'  => $delivery['color'],
             'delivery_bg'     => $delivery['bg'],
             'items'           => $order->items->map(fn ($i) => [
+                'id'        => $i->id,
                 'name'      => $i->item_name,
                 'qty'       => $i->quantity,
                 'price'     => (float) $i->unit_price,
