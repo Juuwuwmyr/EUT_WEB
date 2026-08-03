@@ -489,6 +489,7 @@ if (typeof window.Echo !== 'undefined' && window.Echo) {
         });
 }
 </script>
+<script src="/sounds/notification.js"></script>
 @stack('scripts')
 </body>
 </html>

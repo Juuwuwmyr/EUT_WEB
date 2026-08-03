@@ -93,7 +93,7 @@
             </tr>
         </thead>
         <tbody id="ordersTableBody">
-            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:3rem;">Loading…</td></tr>
+            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:3rem;">Loadingï¿½</td></tr>
         </tbody>
     </table>
 </div>
@@ -249,7 +249,7 @@ async function fetchOrders() {
             });
             window._adminFirstPollDone = true;
         } else {
-            // Subsequent poll — only print for orders that just transitioned
+            // Subsequent poll ï¿½ only print for orders that just transitioned
             data.orders.forEach(function(o) {
                 if (o.status === 'out_for_delivery' && !printedPickupIds.has(o.id)) {
                     printedPickupIds.add(o.id);
@@ -260,6 +260,14 @@ async function fetchOrders() {
         }
 
         renderTable(data.orders);
+        
+        // Play notification sound for new orders
+        if (hasNewOrders && typeof NotificationSound !== 'undefined') {
+            setTimeout(function() {
+                NotificationSound.play();
+                console.log('[Notification] New order sound played');
+            }, 200);
+        }
 
         if (dot)   dot.style.background   = '#10b981'; // green = ok
         if (label) label.textContent = 'Live';
@@ -294,7 +302,7 @@ function applyDateFilter(mode) {
 // Flow: Admin ACCEPTS (auto?preparing) ? Chef MARKS READY ? Admin DISPATCHES rider ? Rider PICKS UP ? Rider DELIVERS
 var INLINE_ACTIONS = {
     pending: { label:'Accept', icon:'check', btnClass:'btn-success', type:'accept' },
-    // preparing: handled dynamically — 'Dispatch' only when chef has marked ready (picked_up_at set on order data)
+    // preparing: handled dynamically ï¿½ 'Dispatch' only when chef has marked ready (picked_up_at set on order data)
 };
 
 function renderTable(orders) {
@@ -335,7 +343,7 @@ function renderTable(orders) {
         // preparing: behaviour depends on order type and whether kitchen marked ready
         if (o.status === 'preparing') {
             if (!o.prepared_at) {
-                // Kitchen still cooking — show pulsing badge, no action button
+                // Kitchen still cooking ï¿½ show pulsing badge, no action button
                 act = null;
                 actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(220,38,38,.1);color:#f87171;border:1px solid rgba(220,38,38,.25);white-space:nowrap;" title="Chef is cooking this order">' +
                     '<span style="width:6px;height:6px;border-radius:50%;background:#f87171;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
@@ -350,7 +358,7 @@ function renderTable(orders) {
             }
         }
 
-        // Dine-in/pickup accepted: kitchen hasn't started yet — admin waits, no Complete button
+        // Dine-in/pickup accepted: kitchen hasn't started yet ï¿½ admin waits, no Complete button
         // (chef must Start Cooking ? Mark Ready before admin can complete)
 
         if (act) {
@@ -456,7 +464,7 @@ async function assignRider(orderId, btn) {
 
     var orig = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '? Assigning…';
+    btn.innerHTML = '? Assigningï¿½';
 
     try {
         var url = '{{ route("admin.orders.assign-rider", ":id") }}'.replace(':id', orderId);
@@ -612,7 +620,7 @@ function openManageModal(id) {
             sp.btnClass  = 'btn-success';
             sp.chefAction = false;
         } else {
-            // Still cooking — keep chefAction true so the modal shows "awaiting kitchen" state
+            // Still cooking ï¿½ keep chefAction true so the modal shows "awaiting kitchen" state
             sp.next      = null;
             sp.nextLabel = null;
             sp.btnClass  = '';
@@ -839,7 +847,7 @@ function openManageModal(id) {
                 '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.625rem;">' +
                     '<div style="width:2rem;height:2rem;border-radius:50%;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg></div>' +
                     '<div><p style="font-size:.75rem;font-weight:700;color:#a78bfa;margin:0 0 .1rem;">Rider En Route to Customer</p>' +
-                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">Live tracking — only the rider can mark as delivered.</p></div>' +
+                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">Live tracking ï¿½ only the rider can mark as delivered.</p></div>' +
                 '</div>' +
                 '<div id="adminOrderMap-' + o.id + '" style="height:220px;width:100%;border-radius:.5rem;overflow:hidden;background:#0a0a14;"></div>' +
               '</div>'
@@ -970,11 +978,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Always start polling so orders refresh even without WebSockets
     startPolling();
 
-    // Echo: real-time nudge — fetch fresh data immediately on any order event
+    // Echo: real-time nudge ï¿½ fetch fresh data immediately on any order event
     if (window.Echo) {
         window.Echo.private('admin.orders')
             .listen('.order.updated', function(order) {
-                // If rider just picked up — print receipt immediately via Echo
+                // If rider just picked up ï¿½ print receipt immediately via Echo
                 if (order.status === 'out_for_delivery' && !printedPickupIds.has(order.id)) {
                     printedPickupIds.add(order.id);
                     var receiptUrl = '/chef/orders/' + order.id + '/pickup-slip';
