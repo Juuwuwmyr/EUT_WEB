@@ -200,45 +200,28 @@ hr.double { border-top: 3px double #000; }
 </div>
 
 <script>
-// More aggressive auto-print approach for kitchen tickets
+// Only auto-print when opened as a popup from the kitchen dashboard.
+// When loaded by WebApp Hardware Bridge (WAHB), printing is handled by the bridge itself — no dialog.
 document.addEventListener('DOMContentLoaded', function() {
     document.body.style.width = '185px';
     document.body.style.maxWidth = '185px';
-    
-    // Immediate print attempt for iframe context
-    if (window.parent && window.parent !== window) {
-        setTimeout(() => {
-            window.print();
-        }, 100);
-    }
 });
 
 window.onload = function () {
     document.body.style.width = '185px';
     document.body.style.maxWidth = '185px';
-    
-    // Multiple auto-print attempts with different timing
-    setTimeout(() => tryAutoPrint(), 200);
-    setTimeout(() => tryAutoPrint(), 1000);
-    setTimeout(() => tryAutoPrint(), 2000);
-};
 
-function tryAutoPrint() {
-    try {
-        // Force focus before printing
-        window.focus();
-        window.print();
-        
-        // Auto-close popup after print dialog
-        if (window.opener || window.name === 'kitchen_print') {
-            setTimeout(() => {
-                try { window.close(); } catch(e) {}
-            }, 3000);
-        }
-    } catch(e) {
-        console.log('Auto-print attempt failed:', e);
+    // Only print if opened as a popup (has opener) — not when fetched by WAHB
+    if (window.opener || window.name.startsWith('kitchen_print')) {
+        setTimeout(function() {
+            try {
+                window.focus();
+                window.print();
+                setTimeout(function() { try { window.close(); } catch(e) {} }, 3000);
+            } catch(e) {}
+        }, 300);
     }
-}
+};
 
 // Listen for print events to close popup after printing
 window.addEventListener('afterprint', function() {

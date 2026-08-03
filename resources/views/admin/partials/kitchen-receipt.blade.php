@@ -177,15 +177,14 @@ hr.solid {
 </div>
 
 <script>
-// iframe mode: do NOT auto-print here — parent calls iframe.contentWindow.print()
-// This script only runs if opened directly as a standalone page
-if (window.self === window.top) {
-    window.onload = function () {
-        document.body.style.width = '185px';
-        document.body.style.maxWidth = '185px';
+// Only auto-print when opened as a popup — not when fetched by WAHB bridge.
+window.onload = function () {
+    document.body.style.width = '185px';
+    document.body.style.maxWidth = '185px';
+    if (window.opener || window.name === 'receipt_print') {
         setTimeout(function() { window.print(); }, 300);
-    };
-}
+    }
+};
 </script>
 </body>
 </html>

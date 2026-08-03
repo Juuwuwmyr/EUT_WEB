@@ -492,6 +492,11 @@
         <button type="button" id="wahbStatusBtn" class="btn-primary" style="font-size:.75rem;" onclick="openWahbSettings()">
             <i data-lucide="printer" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Bridge Settings
         </button>
+        <button type="button" class="btn-ghost" style="font-size:.75rem;" onclick="toggleWahbConsole()">
+            <i data-lucide="terminal" style="width:.8rem;height:.8rem;stroke-width:2;"></i>
+            Console
+            <span id="wahbConsoleBadge" style="display:none;width:7px;height:7px;border-radius:50%;background:#ef4444;margin-left:2px;flex-shrink:0;"></span>
+        </button>
     </div>
 </div>
 
@@ -513,6 +518,41 @@
             <span>Bridge running at <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:3px;color:var(--text-body);">http://127.0.0.1:12212</code></span>
             <span>Add a printer with key <code style="background:rgba(99,102,241,.15);padding:2px 6px;border-radius:3px;color:#818cf8;font-weight:700;">RECEIPT</code> in Printers section</span>
         </div>
+    </div>
+</div>
+
+{{-- WAHB Console Log Panel (floating bottom-right) --}}
+<div id="wahbConsolePanel" style="display:none;position:fixed;bottom:1.25rem;right:1.25rem;width:480px;max-width:calc(100vw - 2rem);z-index:9998;border-radius:.875rem;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);border:1px solid rgba(99,102,241,.3);">
+    {{-- Header --}}
+    <div style="background:#0f0f23;padding:.65rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(99,102,241,.2);">
+        <div style="display:flex;align-items:center;gap:.5rem;">
+            <i data-lucide="terminal" style="width:.85rem;height:.85rem;color:#818cf8;stroke-width:2;"></i>
+            <span style="font-size:.75rem;font-weight:700;color:#c7d2fe;">Silent Print Console</span>
+            <span id="wahbConsoleCount" style="font-size:.6rem;background:rgba(99,102,241,.25);color:#818cf8;border-radius:99px;padding:1px 7px;font-weight:700;">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:.4rem;">
+            <button onclick="wahbRunDiagnostics()" style="font-size:.67rem;padding:.25rem .6rem;border-radius:.35rem;border:1px solid rgba(99,102,241,.4);background:rgba(99,102,241,.15);color:#818cf8;cursor:pointer;display:inline-flex;align-items:center;gap:.25rem;">
+                <i data-lucide="zap" style="width:.6rem;height:.6rem;stroke-width:2.5;"></i> Diagnose
+            </button>
+            <button onclick="wahbCopyConsole()" style="font-size:.67rem;padding:.25rem .6rem;border-radius:.35rem;border:1px solid rgba(255,255,255,.1);background:transparent;color:#94a3b8;cursor:pointer;display:inline-flex;align-items:center;gap:.25rem;">
+                <i data-lucide="copy" style="width:.6rem;height:.6rem;stroke-width:2;"></i> Copy
+            </button>
+            <button onclick="wahbClearConsole()" style="font-size:.67rem;padding:.25rem .6rem;border-radius:.35rem;border:1px solid rgba(255,255,255,.1);background:transparent;color:#94a3b8;cursor:pointer;display:inline-flex;align-items:center;gap:.25rem;">
+                <i data-lucide="trash-2" style="width:.6rem;height:.6rem;stroke-width:2;"></i> Clear
+            </button>
+            <button onclick="toggleWahbConsole()" style="background:transparent;border:none;color:#6b7280;cursor:pointer;padding:.2rem .3rem;border-radius:.3rem;">
+                <i data-lucide="x" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i>
+            </button>
+        </div>
+    </div>
+    {{-- Log body --}}
+    <div id="wahbConsoleBody" style="background:#0a0a1a;max-height:320px;overflow-y:auto;font-family:'Courier New',monospace;font-size:.69rem;line-height:1.7;padding:.5rem .75rem;">
+        <div style="color:#4b5563;font-style:italic;">Waiting for events… click Diagnose to run checks.</div>
+    </div>
+    {{-- Status bar --}}
+    <div style="background:#0f0f23;padding:.35rem 1rem;border-top:1px solid rgba(99,102,241,.15);display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+        <span style="font-size:.63rem;color:#4b5563;">ws://127.0.0.1:12212/printer</span>
+        <span id="wahbConsoleStatus" style="font-size:.63rem;color:#6b7280;font-weight:700;">● UNKNOWN</span>
     </div>
 </div>
 
@@ -996,19 +1036,15 @@ function autoPrintKitchenTicket(orderId) {
     // ── WAHB silent print ──────────────────────────────────────────────────
     if (window._wahbPrinter && window._wahbPrinter.isConnected()) {
         const sent = window._wahbPrinter.printReceiptUrl(url);
-        if (sent) {
-            showToast('🖨️ Printing silently…', 'success', 1800);
-            return;
-        }
+        wahbLog(sent ? 'success' : 'error', 'Print', sent ? 'Ticket sent to bridge ✓' : 'Send FAILED', 'orderId=' + orderId + ' url=' + url);
+        if (sent) { showToast('🖨️ Printing silently…', 'success', 1800); return; }
+    } else {
+        wahbLog('warn', 'Print', 'WAHB not connected — using popup fallback', 'orderId=' + orderId);
     }
 
-    // ── Fallback: popup (no iframe.print() — avoids browser dialog on iframe) ──
+    // ── Fallback: popup ────────────────────────────────────────────────────
     const w = window.open(url, 'kitchen_print_' + orderId, 'width=300,height=500,left=0,top=0,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
-    if (w) {
-        showToast('🖨️ Kitchen ticket printing...', 'success', 2000);
-        return;
-    }
-
+    if (w) { showToast('🖨️ Kitchen ticket printing...', 'success', 2000); return; }
     showToast('⚠️ Popup blocked — connect Bridge Settings for silent print', 'error', 5000);
 }
 
@@ -1016,7 +1052,10 @@ function printReceipt(receiptUrl) {
     // ── WAHB silent print ──────────────────────────────────────────────────
     if (window._wahbPrinter && window._wahbPrinter.isConnected()) {
         const sent = window._wahbPrinter.printReceiptUrl(receiptUrl);
+        wahbLog(sent ? 'success' : 'error', 'Print', sent ? 'Receipt sent to bridge ✓' : 'Send FAILED', receiptUrl);
         if (sent) return;
+    } else {
+        wahbLog('warn', 'Print', 'WAHB not connected — using popup fallback', receiptUrl);
     }
 
     // ── Fallback: popup ────────────────────────────────────────────────────
@@ -1031,10 +1070,13 @@ function kitchenAutoPrint(receiptUrl) {
     // ── WAHB silent print ──────────────────────────────────────────────────
     if (window._wahbPrinter && window._wahbPrinter.isConnected()) {
         const sent = window._wahbPrinter.printReceiptUrl(receiptUrl);
+        wahbLog(sent ? 'success' : 'error', 'Print', sent ? 'Auto-receipt sent to bridge ✓' : 'Send FAILED', receiptUrl);
         if (sent) return;
+    } else {
+        wahbLog('warn', 'Print', 'WAHB not connected — using popup fallback', receiptUrl);
     }
 
-    // ── Fallback: popup only (no iframe.print()) ───────────────────────────
+    // ── Fallback: popup only ───────────────────────────────────────────────
     const win = window.open(receiptUrl, 'kitchen_receipt_print', 'width=300,height=600,left=0,top=0,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
     if (!win) window.open(receiptUrl, '_blank');
 }
@@ -1223,25 +1265,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedKey = localStorage.getItem('wahb_printer_key') || 'RECEIPT';
         const savedUrl = localStorage.getItem('wahb_bridge_url')  || 'ws://127.0.0.1:12212/printer';
         window._wahbPrinter = new WAHBPrinter({ url: savedUrl, printerKey: savedKey });
-        window._wahbPrinter.onStatusChange(status => {
-            // Update the Bridge Settings button label to show status
-            const btn = document.getElementById('wahbStatusBtn');
-            if (!btn) return;
-            const cfg = {
-                connected:    { text:'🟢 Bridge Connected',    color:'#10b981' },
-                connecting:   { text:'🟡 Bridge Connecting…',  color:'#f59e0b' },
-                disconnected: { text:'🔴 Bridge Settings',     color:null       },
-            };
-            const c = cfg[status] || cfg.disconnected;
-            btn.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = ' ' + (c.text.split(' ').slice(1).join(' ')); });
-            if (c.color) btn.style.borderColor = c.color;
-            else         btn.style.borderColor = '';
-
-            if (status === 'connected') {
-                localStorage.setItem('wahb_printer_key', savedKey);
-                localStorage.setItem('wahb_bridge_url',  savedUrl);
-            }
-        });
+        _patchWahbLogging();
+        wahbLog('info', 'Init', 'WAHBPrinter initializing…', 'key=' + savedKey + ' url=' + savedUrl);
     }
 
     // Verify critical elements exist
@@ -1435,11 +1460,9 @@ function openWahbSettings() {
     const modal  = document.getElementById('wahbModal');
     const iframe = document.getElementById('wahbIframe');
     if (!modal || !iframe) return;
-    
     iframe.src = 'http://127.0.0.1:12212';
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
-    
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
@@ -1447,12 +1470,184 @@ function closeWahbSettings() {
     const modal  = document.getElementById('wahbModal');
     const iframe = document.getElementById('wahbIframe');
     if (!modal || !iframe) return;
-    
     modal.style.display = 'none';
     document.body.style.overflow = '';
-    iframe.src = ''; // Stop loading/clear
+    iframe.src = '';
 }
 
+// ── WAHB Console Log ──────────────────────────────────────────────────────
+const _wahbLogs = [];
+
+const _wahbColors = {
+    error:   { text: '#f87171', label: 'ERR ' },
+    warn:    { text: '#fbbf24', label: 'WARN' },
+    success: { text: '#34d399', label: ' OK ' },
+    info:    { text: '#94a3b8', label: 'INFO' },
+};
+
+function wahbLog(level, context, message, detail) {
+    const ts = new Date().toLocaleTimeString('en-US', { hour12: false });
+    const entry = { ts, level, context, message, detail: detail || '' };
+    _wahbLogs.push(entry);
+
+    // Red badge on Console button for errors
+    const badge = document.getElementById('wahbConsoleBadge');
+    if (badge && (level === 'error' || level === 'warn')) badge.style.display = 'inline-block';
+
+    // Update count
+    const cnt = document.getElementById('wahbConsoleCount');
+    if (cnt) cnt.textContent = _wahbLogs.length;
+
+    // Append row
+    const body = document.getElementById('wahbConsoleBody');
+    if (!body) return;
+    if (_wahbLogs.length === 1) body.innerHTML = '';
+
+    const c = _wahbColors[level] || _wahbColors.info;
+    const row = document.createElement('div');
+    row.style.cssText = 'padding:1px 0;display:flex;gap:.5rem;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.03);';
+    row.innerHTML =
+        `<span style="color:#374151;flex-shrink:0;">${ts}</span>` +
+        `<span style="color:${c.text};font-weight:700;flex-shrink:0;letter-spacing:.03em;">[${c.label}]</span>` +
+        `<span style="color:#6d7fcc;flex-shrink:0;min-width:72px;">${escapeHtml(context)}</span>` +
+        `<span style="color:${c.text};">${escapeHtml(message)}` +
+        (detail ? `<br><span style="color:#4b5563;font-size:.63rem;">${escapeHtml(String(detail))}</span>` : '') +
+        `</span>`;
+    body.appendChild(row);
+    body.scrollTop = body.scrollHeight;
+
+    // Update status bar
+    const statusEl = document.getElementById('wahbConsoleStatus');
+    if (statusEl) {
+        if (level === 'error')        { statusEl.textContent = '● ERROR';       statusEl.style.color = '#f87171'; }
+        else if (level === 'success') { statusEl.textContent = '● CONNECTED';   statusEl.style.color = '#34d399'; }
+        else if (level === 'warn')    { statusEl.textContent = '● WARNING';      statusEl.style.color = '#fbbf24'; }
+    }
+}
+
+function toggleWahbConsole() {
+    const panel = document.getElementById('wahbConsolePanel');
+    if (!panel) return;
+    panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+    panel.style.flexDirection = 'column';
+    // Clear red badge
+    const badge = document.getElementById('wahbConsoleBadge');
+    if (badge) badge.style.display = 'none';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function wahbCopyConsole() {
+    if (!_wahbLogs.length) return;
+    const text = _wahbLogs.map(e =>
+        `[${e.ts}] [${e.level.toUpperCase().padEnd(4)}] [${e.context}] ${e.message}` +
+        (e.detail ? ` | ${e.detail}` : '')
+    ).join('\n');
+    navigator.clipboard.writeText(text).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px;';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); ta.remove();
+    }).then(() => {
+        const btn = document.querySelector('#wahbConsolePanel button:nth-child(2)');
+        if (btn) { const o = btn.innerHTML; btn.textContent = '✓ Copied!'; setTimeout(() => { btn.innerHTML = o; if(lucide) lucide.createIcons(); }, 1500); }
+    });
+}
+
+function wahbClearConsole() {
+    _wahbLogs.length = 0;
+    const body = document.getElementById('wahbConsoleBody');
+    const cnt  = document.getElementById('wahbConsoleCount');
+    const st   = document.getElementById('wahbConsoleStatus');
+    if (body) body.innerHTML = '<div style="color:#4b5563;font-style:italic;">Cleared — waiting for events…</div>';
+    if (cnt)  cnt.textContent = '0';
+    if (st)   { st.textContent = '● UNKNOWN'; st.style.color = '#6b7280'; }
+}
+
+function wahbRunDiagnostics() {
+    // Open console if hidden
+    const panel = document.getElementById('wahbConsolePanel');
+    if (panel) { panel.style.display = 'flex'; panel.style.flexDirection = 'column'; }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    wahbLog('info', 'Diag', '── Running diagnostics ──');
+
+    // 1. Script loaded?
+    if (typeof WAHBPrinter === 'undefined') {
+        wahbLog('error', 'Diag', 'wahb-printer.js NOT loaded', 'Check if public/js/wahb-printer.js exists and script tag is present');
+        return;
+    }
+    wahbLog('success', 'Diag', 'wahb-printer.js loaded ✓');
+
+    // 2. Instance created?
+    if (!window._wahbPrinter) {
+        wahbLog('error', 'Diag', '_wahbPrinter instance is NULL', 'DOMContentLoaded may not have fired or WAHBPrinter init failed');
+        return;
+    }
+    wahbLog('success', 'Diag', '_wahbPrinter instance exists ✓');
+
+    // 3. Connection status
+    const connected = window._wahbPrinter.isConnected();
+    if (!connected) {
+        wahbLog('error', 'Diag', 'WebSocket NOT connected', 'WAHB app may not be running on this PC — open http://127.0.0.1:12212');
+        wahbLog('warn',  'Diag', 'Fallback active', 'Prints will use popup window with browser dialog');
+    } else {
+        wahbLog('success', 'Diag', 'WebSocket CONNECTED ✓', 'ws://127.0.0.1:12212/printer');
+    }
+
+    // 4. Printer key
+    const key = window._wahbPrinter.getPrinterKey ? window._wahbPrinter.getPrinterKey() : '(unknown)';
+    wahbLog('info', 'Diag', 'Printer key: ' + key, 'Must match key in WAHB Web UI → Printers');
+
+    // 5. Origin (important for WAHB URL building)
+    wahbLog('info', 'Diag', 'Site origin: ' + window.location.origin);
+
+    // 6. Test send
+    if (connected) {
+        wahbLog('info', 'Diag', 'Sending test print job…');
+        const testUrl = window.location.origin + '/chef/orders/1/receipt';
+        const sent = window._wahbPrinter.printReceiptUrl(testUrl);
+        if (sent) {
+            wahbLog('success', 'Diag', 'Test job SENT ✓', 'URL: ' + testUrl);
+            wahbLog('info',    'Diag', 'Check WAHB log at http://127.0.0.1:12212 to see if it was received');
+        } else {
+            wahbLog('error', 'Diag', 'Test job FAILED to send', 'WebSocket send() returned false');
+        }
+    }
+
+    wahbLog('info', 'Diag', '── Done ──');
+}
+
+// ── WAHB Console ─────────────────────────────────────────────────────────
+// Patch WAHBPrinter after init to pipe all status changes to console
+function _patchWahbLogging() {
+    if (!window._wahbPrinter) return;
+    const orig = window._wahbPrinter.onStatusChange.bind(window._wahbPrinter);
+    window._wahbPrinter.onStatusChange(status => {
+        const map = {
+            connected:    ['success', 'Connect', 'WebSocket CONNECTED ✓',    'ws://127.0.0.1:12212/printer'],
+            connecting:   ['info',    'Connect', 'Connecting to bridge…',     'ws://127.0.0.1:12212/printer'],
+            disconnected: ['error',   'Connect', 'WebSocket DISCONNECTED',    'Bridge may not be running'],
+        };
+        const args = map[status] || ['info', 'Connect', status];
+        wahbLog(...args);
+
+        // Also run the original status callback (button update)
+        const btn = document.getElementById('wahbStatusBtn');
+        if (btn) {
+            const cfg = {
+                connected:    { text:'🟢 Bridge Connected',   color:'#10b981' },
+                connecting:   { text:'🟡 Bridge Connecting…', color:'#f59e0b' },
+                disconnected: { text:'🔴 Bridge Settings',    color:null      },
+            };
+            const c = cfg[status] || cfg.disconnected;
+            const span = btn.querySelector('span') || btn;
+            btn.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = ' ' + c.text.replace(/^\S+\s/, ''); });
+            if (c.color) btn.style.outlineColor = c.color;
+        }
+    });
+}
+
+// ── WAHB Console ─────────────────────────────────────────────────────────
 // Close modal on Escape key
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
@@ -1460,6 +1655,5 @@ document.addEventListener('keydown', e => {
         if (modal && modal.style.display === 'block') closeWahbSettings();
     }
 });
-
 </script>
 @endpush
