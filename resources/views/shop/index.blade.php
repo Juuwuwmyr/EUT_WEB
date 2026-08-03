@@ -775,13 +775,90 @@ function updateCount(n) {
 }
 
 // ── Mobile back button guard ──────────────────────────────
-// Push a dummy state so the back button hits our handler first
-// instead of going to a previous unrelated page.
 history.pushState({ page: 'shop' }, '', window.location.href);
 window.addEventListener('popstate', function(e) {
-    // When back is pressed, just reload/stay on the menu page
     history.pushState({ page: 'shop' }, '', window.location.href);
 });
+
+@auth
+// ── Echo: live order status banner ───────────────────────
+(function() {
+    const STATUS_LABELS = {
+        pending:          '⏳ Order Placed',
+        accepted:         '✅ Order Accepted!',
+        preparing:        '👨‍🍳 Kitchen is Cooking',
+        rider_assigned:   '🏍️ Rider Assigned',
+        out_for_delivery: '🚀 Out for Delivery!',
+        delivered:        '🎉 Order Delivered!',
+        cancelled:        '❌ Order Cancelled',
+    };
+    const ACTIVE = ['pending','accepted','preparing','rider_assigned','out_for_delivery'];
+
+    function showOrderBanner(order) {
+        let banner = document.getElementById('echoOrderBanner');
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'echoOrderBanner';
+            Object.assign(banner.style, {
+                position:'fixed', bottom:'90px', left:'50%',
+                transform:'translateX(-50%) translateY(20px)',
+                zIndex:'9998', maxWidth:'360px', width:'calc(100% - 32px)',
+                background:'linear-gradient(135deg,#0d1f17,#091510)',
+                border:'1px solid rgba(74,222,128,.35)',
+                borderRadius:'16px', padding:'12px 16px',
+                display:'flex', alignItems:'center', gap:'12px',
+                boxShadow:'0 8px 32px rgba(0,0,0,.6)',
+                cursor:'pointer', transition:'all .35s cubic-bezier(.32,.72,0,1)',
+                opacity:'0',
+            });
+            banner.addEventListener('click', () => {
+                window.location.href = '{{ route("shop.tracking") }}';
+            });
+            document.body.appendChild(banner);
+        }
+
+        const label = STATUS_LABELS[order.status] || order.status_label || order.status;
+        const isActive = ACTIVE.includes(order.status);
+        const color = order.status === 'delivered' ? '#4ade80'
+                    : order.status === 'cancelled' ? '#f87171' : '#4ade80';
+
+        banner.innerHTML = `
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">
+                ${order.status === 'delivered' ? '🎉' : order.status === 'cancelled' ? '❌' : order.status === 'out_for_delivery' ? '🛵' : '🍔'}
+            </div>
+            <div style="flex:1;min-width:0;">
+                <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${label}</p>
+                <p style="font-size:11px;color:#6b7280;margin:0;">#${order.order_number} · Tap to track</p>
+            </div>
+            <svg width="14" height="14" fill="none" stroke="#6b7280" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        `;
+
+        // Animate in
+        requestAnimationFrame(() => {
+            banner.style.opacity = '1';
+            banner.style.transform = 'translateX(-50%) translateY(0)';
+        });
+
+        // Auto-hide after 6 seconds (keep visible for delivered/cancelled)
+        if (order.status !== 'delivered' && order.status !== 'cancelled') {
+            clearTimeout(banner._hideTimer);
+            banner._hideTimer = setTimeout(() => {
+                banner.style.opacity = '0';
+                banner.style.transform = 'translateX(-50%) translateY(20px)';
+            }, 6000);
+        }
+    }
+
+    if (window.Echo) {
+        window.Echo.private('orders.{{ auth()->id() }}')
+            .listen('.order.updated', (order) => {
+                showOrderBanner(order);
+                // Update cart badge if needed
+                updateCartBadge();
+            });
+    }
+})();
+@endauth
 </script>
 
 {{-- PWA Install Banner --}}

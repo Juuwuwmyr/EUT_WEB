@@ -974,6 +974,65 @@ history.pushState({ page: 'cart' }, '', window.location.href);
 window.addEventListener('popstate', function() {
     history.pushState({ page: 'cart' }, '', window.location.href);
 });
+
+@auth
+// ── Echo: live order status toast while on cart page ─────
+(function() {
+    const STATUS_LABELS = {
+        accepted:         '✅ Order Accepted! Kitchen is on it.',
+        preparing:        '👨‍🍳 Your food is being prepared.',
+        rider_assigned:   '🏍️ Rider assigned to your order.',
+        out_for_delivery: '🚀 Your order is on the way!',
+        delivered:        '🎉 Your order has been delivered!',
+        cancelled:        '❌ Your order was cancelled.',
+    };
+
+    function showOrderToast(order) {
+        const msg = STATUS_LABELS[order.status];
+        if (!msg) return;
+
+        const existing = document.getElementById('echoOrderToast');
+        if (existing) existing.remove();
+
+        const t = document.createElement('div');
+        t.id = 'echoOrderToast';
+        const isGood = !['cancelled'].includes(order.status);
+        Object.assign(t.style, {
+            position: 'fixed', bottom: '100px', left: '50%',
+            transform: 'translateX(-50%) translateY(20px)',
+            background: isGood ? '#0d1f17' : '#1e0a0a',
+            border: `1px solid ${isGood ? 'rgba(74,222,128,.35)' : 'rgba(239,68,68,.35)'}`,
+            color: isGood ? '#4ade80' : '#f87171',
+            padding: '12px 20px', borderRadius: '14px',
+            fontSize: '13px', fontWeight: '600',
+            zIndex: '9999', boxShadow: '0 4px 24px rgba(0,0,0,.5)',
+            display: 'flex', alignItems: 'center', gap: '8px',
+            maxWidth: '90vw', textAlign: 'left', cursor: 'pointer',
+            transition: 'all .35s cubic-bezier(.32,.72,0,1)', opacity: '0',
+        });
+        t.innerHTML = `<span>${msg}</span><a href="{{ route('shop.tracking') }}" style="color:#facc15;font-weight:700;white-space:nowrap;margin-left:6px;text-decoration:none;">Track →</a>`;
+        document.body.appendChild(t);
+
+        requestAnimationFrame(() => {
+            t.style.opacity = '1';
+            t.style.transform = 'translateX(-50%) translateY(0)';
+        });
+        t.addEventListener('click', () => window.location.href = '{{ route("shop.tracking") }}');
+        setTimeout(() => {
+            t.style.opacity = '0';
+            t.style.transform = 'translateX(-50%) translateY(20px)';
+            setTimeout(() => t.remove(), 400);
+        }, 6000);
+    }
+
+    if (window.Echo) {
+        window.Echo.private('orders.{{ auth()->id() }}')
+            .listen('.order.updated', (order) => {
+                showOrderToast(order);
+            });
+    }
+})();
+@endauth
 </script>
 @include('partials.pwa-register')
 </body>

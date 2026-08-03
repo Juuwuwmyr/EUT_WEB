@@ -735,6 +735,26 @@ document.addEventListener('DOMContentLoaded',()=>{
                         }
                     }
                 }
+            })
+            .listen('.rider.location', (data) => {
+                // Live rider GPS update — move map marker without a full poll
+                if (data.lat && data.lng) {
+                    // Find the order this rider belongs to
+                    const riderOrder = allOrders.find(o =>
+                        o.rider && ['rider_assigned','out_for_delivery'].includes(o.status)
+                    );
+                    if (riderOrder) {
+                        // Update rider coords in memory
+                        if (riderOrder.rider) {
+                            riderOrder.rider.lat = data.lat;
+                            riderOrder.rider.lng = data.lng;
+                        }
+                        // Move the map marker live
+                        if (typeof updateMapRiderPos === 'function') {
+                            updateMapRiderPos(riderOrder.id, data.lat, data.lng);
+                        }
+                    }
+                }
             });
     } else {
         // Fallback: poll every 15s if Echo isn't available — pause when tab is hidden

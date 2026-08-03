@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\Order;
 use App\Models\Rider;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -17,9 +18,18 @@ class RiderLocationUpdated implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('admin.riders'),
-        ];
+        $channels = [new PrivateChannel('admin.riders')];
+
+        // Also broadcast to customers who have an active delivery with this rider
+        $activeOrders = Order::where('rider_id', $this->rider->id)
+            ->whereIn('status', ['rider_assigned', 'out_for_delivery'])
+            ->pluck('user_id');
+
+        foreach ($activeOrders as $userId) {
+            $channels[] = new PrivateChannel('orders.' . $userId);
+        }
+
+        return $channels;
     }
 
     public function broadcastAs(): string

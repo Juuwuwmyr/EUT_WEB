@@ -687,6 +687,48 @@ history.pushState({ page: 'profile' }, '', window.location.href);
 window.addEventListener('popstate', function() {
     history.pushState({ page: 'profile' }, '', window.location.href);
 });
+
+@auth
+// ── Echo: live order count on profile stats ───────────────
+if (window.Echo) {
+    window.Echo.private('orders.{{ auth()->id() }}')
+        .listen('.order.updated', (order) => {
+            // Refresh order stats without a full page reload
+            fetch('/orders', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' } })
+                .then(r => r.json())
+                .then(data => {
+                    const orders = Array.isArray(data) ? data : (data.orders || []);
+                    const total     = orders.length;
+                    const delivered = orders.filter(o => o.status === 'delivered').length;
+                    const active    = orders.filter(o => !['delivered','cancelled'].includes(o.status)).length;
+                    // Update stat chips if they exist (blade renders them server-side but we can update the numbers)
+                    document.querySelectorAll('[data-stat="total"]').forEach(el => el.textContent = total);
+                    document.querySelectorAll('[data-stat="delivered"]').forEach(el => el.textContent = delivered);
+                    document.querySelectorAll('[data-stat="active"]').forEach(el => el.textContent = active);
+
+                    // Show a subtle toast for status changes
+                    if (['delivered','cancelled','out_for_delivery'].includes(order.status)) {
+                        const msgs = {
+                            delivered: '🎉 Your order was delivered!',
+                            cancelled: '❌ Order was cancelled.',
+                            out_for_delivery: '🛵 Your order is on the way!',
+                        };
+                        const t = document.createElement('div');
+                        Object.assign(t.style, {
+                            position:'fixed', bottom:'90px', left:'50%', transform:'translateX(-50%)',
+                            background:'#0d1f17', border:'1px solid rgba(74,222,128,.3)', color:'#4ade80',
+                            padding:'12px 22px', borderRadius:'99px', fontSize:'13px', fontWeight:'700',
+                            zIndex:'9999', boxShadow:'0 4px 24px rgba(0,0,0,.5)',
+                        });
+                        t.textContent = msgs[order.status] || order.status_label;
+                        document.body.appendChild(t);
+                        setTimeout(() => t.remove(), 3000);
+                    }
+                })
+                .catch(() => {});
+        });
+}
+@endauth
 </script>
 </body>
 </html>
