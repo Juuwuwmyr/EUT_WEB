@@ -70,15 +70,18 @@ Route::prefix('rider')->name('rider.')->middleware(['auth', 'rider'])->group(fun
 // Chef / Kitchen panel
 // -------------------------------------------------------
 Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(function () {
-    Route::get('/dashboard',                        [\App\Http\Controllers\ChefController::class, 'dashboard'])->name('dashboard');
-    Route::get('/orders',                           [\App\Http\Controllers\ChefController::class, 'getOrders'])->name('orders');
-    Route::post('/orders/{order}/accept',           [\App\Http\Controllers\ChefController::class, 'acceptOrder'])->name('orders.accept');
-    Route::post('/orders/{order}/start',            [\App\Http\Controllers\ChefController::class, 'startCooking'])->name('orders.start');
-    Route::post('/orders/{order}/ready',            [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.ready');
-    Route::post('/orders/{order}/assign-rider',     [\App\Http\Controllers\ChefController::class, 'assignRider'])->name('orders.assign-rider');
-    Route::get('/orders/{order}/receipt',           [\App\Http\Controllers\ChefController::class, 'receipt'])->name('orders.receipt');
-    Route::get('/orders/{order}/table-receipt',     [\App\Http\Controllers\ChefController::class, 'tableReceipt'])->name('orders.table-receipt');
-    Route::get('/orders/{order}/kitchen-ticket',    [\App\Http\Controllers\ChefController::class, 'kitchenTicket'])->name('orders.kitchen-ticket');
+    Route::get('/dashboard',                            [\App\Http\Controllers\ChefController::class, 'dashboard'])->name('dashboard');
+    Route::get('/orders',                               [\App\Http\Controllers\ChefController::class, 'getOrders'])->name('orders');
+    Route::post('/orders/{order}/accept',               [\App\Http\Controllers\ChefController::class, 'acceptOrder'])->name('orders.accept');
+    Route::post('/orders/{order}/start',                [\App\Http\Controllers\ChefController::class, 'startCooking'])->name('orders.start');
+    Route::post('/orders/{order}/ready',                [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.ready');
+    Route::post('/orders/{order}/assign-rider',         [\App\Http\Controllers\ChefController::class, 'assignRider'])->name('orders.assign-rider');
+    Route::get('/orders/{order}/receipt',               [\App\Http\Controllers\ChefController::class, 'receipt'])->name('orders.receipt');
+    Route::get('/orders/{order}/receipt.html',          [\App\Http\Controllers\ChefController::class, 'receipt']);
+    Route::get('/orders/{order}/table-receipt',         [\App\Http\Controllers\ChefController::class, 'tableReceipt'])->name('orders.table-receipt');
+    Route::get('/orders/{order}/table-receipt.html',    [\App\Http\Controllers\ChefController::class, 'tableReceipt']);
+    Route::get('/orders/{order}/kitchen-ticket',        [\App\Http\Controllers\ChefController::class, 'kitchenTicket'])->name('orders.kitchen-ticket');
+    Route::get('/orders/{order}/kitchen-ticket.html',   [\App\Http\Controllers\ChefController::class, 'kitchenTicket']);
 });
 
 // -------------------------------------------------------
