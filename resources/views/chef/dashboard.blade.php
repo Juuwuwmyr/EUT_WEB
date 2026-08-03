@@ -489,7 +489,7 @@
         <button type="button" class="btn-ghost" style="font-size:.75rem;" onclick="toggleKitchenFullscreen()">
             <i data-lucide="maximize-2" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Fullscreen
         </button>
-        <button type="button" class="btn-primary" style="font-size:.75rem;" onclick="openWahbSettings()">
+        <button type="button" id="wahbStatusBtn" class="btn-primary" style="font-size:.75rem;" onclick="openWahbSettings()">
             <i data-lucide="printer" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Bridge Settings
         </button>
     </div>
@@ -595,6 +595,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/wahb-printer.js') }}"></script>
 <script>
 const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
 const IS_ADMIN   = {{ auth()->user()->isAdmin() ? 'true' : 'false' }};
@@ -991,58 +992,34 @@ function escapeHtml(str) {
 
 function autoPrintKitchenTicket(orderId) {
     const url = `/chef/orders/${orderId}/kitchen-ticket`;
-    
-    // Try popup first - most reliable for printing
+
+    // ── WAHB silent print ──────────────────────────────────────────────────
+    if (window._wahbPrinter && window._wahbPrinter.isConnected()) {
+        const sent = window._wahbPrinter.printReceiptUrl(url);
+        if (sent) {
+            showToast('🖨️ Printing silently…', 'success', 1800);
+            return;
+        }
+    }
+
+    // ── Fallback: popup (no iframe.print() — avoids browser dialog on iframe) ──
     const w = window.open(url, 'kitchen_print_' + orderId, 'width=300,height=500,left=0,top=0,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
-    
     if (w) {
-        // Popup opened successfully
-        console.log('✓ Auto-printing kitchen ticket for order', orderId);
         showToast('🖨️ Kitchen ticket printing...', 'success', 2000);
         return;
     }
-    
-    // Popup blocked - try iframe method
-    console.log('Popup blocked, trying iframe method for order', orderId);
-    showToast('🖨️ Printing ticket (allow popups for better experience)', 'info', 3000);
-    
-    const old = document.getElementById('kitchenPrintFrame_' + orderId);
-    if (old) old.remove();
-    
-    const iframe = document.createElement('iframe');
-    iframe.id = 'kitchenPrintFrame_' + orderId;
-    iframe.src = url;
-    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:300px;height:500px;border:none;opacity:0;';
-    document.body.appendChild(iframe);
-    
-    iframe.onload = function() {
-        setTimeout(() => {
-            try { 
-                iframe.contentWindow.focus(); 
-                iframe.contentWindow.print(); 
-                console.log('✓ Iframe auto-print triggered for order', orderId);
-            } catch(e) { 
-                console.warn('Iframe auto-print failed:', e);
-                showToast('⚠️ Auto-print failed - please manually print', 'error', 4000);
-            }
-        }, 500);
-        
-        // Clean up iframe after 30 seconds
-        setTimeout(() => {
-            try { iframe.remove(); } catch(e) {}
-        }, 30000);
-    };
-    
-    iframe.onerror = function() {
-        console.error('Failed to load kitchen ticket for order', orderId);
-        showToast('❌ Failed to load kitchen ticket', 'error', 4000);
-        setTimeout(() => {
-            try { iframe.remove(); } catch(e) {}
-        }, 5000);
-    };
+
+    showToast('⚠️ Popup blocked — connect Bridge Settings for silent print', 'error', 5000);
 }
 
 function printReceipt(receiptUrl) {
+    // ── WAHB silent print ──────────────────────────────────────────────────
+    if (window._wahbPrinter && window._wahbPrinter.isConnected()) {
+        const sent = window._wahbPrinter.printReceiptUrl(receiptUrl);
+        if (sent) return;
+    }
+
+    // ── Fallback: popup ────────────────────────────────────────────────────
     const w = 220, h = 800;
     const left = Math.round((screen.width - w) / 2);
     const top  = Math.round((screen.height - h) / 2);
@@ -1051,17 +1028,15 @@ function printReceipt(receiptUrl) {
 }
 
 function kitchenAutoPrint(receiptUrl) {
-    const old = document.getElementById('kitchenReceiptPrintFrame');
-    if (old) old.remove();
-    const iframe = document.createElement('iframe');
-    iframe.id  = 'kitchenReceiptPrintFrame';
-    iframe.src = receiptUrl;
-    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
-    document.body.appendChild(iframe);
-    iframe.onload = function() {
-        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) { console.warn('Auto-print receipt failed:', e); }
-        setTimeout(() => iframe.remove(), 30000);
-    };
+    // ── WAHB silent print ──────────────────────────────────────────────────
+    if (window._wahbPrinter && window._wahbPrinter.isConnected()) {
+        const sent = window._wahbPrinter.printReceiptUrl(receiptUrl);
+        if (sent) return;
+    }
+
+    // ── Fallback: popup only (no iframe.print()) ───────────────────────────
+    const win = window.open(receiptUrl, 'kitchen_receipt_print', 'width=300,height=600,left=0,top=0,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
+    if (!win) window.open(receiptUrl, '_blank');
 }
 
 async function kitchenAction(action, orderId, btn) {
@@ -1242,12 +1217,38 @@ function toggleKitchenFullscreen() {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[INIT] DOM loaded, initializing kitchen dashboard...');
-    
+
+    // ── Init WAHB silent printer ───────────────────────────────────────────
+    if (typeof WAHBPrinter !== 'undefined') {
+        const savedKey = localStorage.getItem('wahb_printer_key') || 'RECEIPT';
+        const savedUrl = localStorage.getItem('wahb_bridge_url')  || 'ws://127.0.0.1:12212/printer';
+        window._wahbPrinter = new WAHBPrinter({ url: savedUrl, printerKey: savedKey });
+        window._wahbPrinter.onStatusChange(status => {
+            // Update the Bridge Settings button label to show status
+            const btn = document.getElementById('wahbStatusBtn');
+            if (!btn) return;
+            const cfg = {
+                connected:    { text:'🟢 Bridge Connected',    color:'#10b981' },
+                connecting:   { text:'🟡 Bridge Connecting…',  color:'#f59e0b' },
+                disconnected: { text:'🔴 Bridge Settings',     color:null       },
+            };
+            const c = cfg[status] || cfg.disconnected;
+            btn.childNodes.forEach(n => { if (n.nodeType === 3) n.textContent = ' ' + (c.text.split(' ').slice(1).join(' ')); });
+            if (c.color) btn.style.borderColor = c.color;
+            else         btn.style.borderColor = '';
+
+            if (status === 'connected') {
+                localStorage.setItem('wahb_printer_key', savedKey);
+                localStorage.setItem('wahb_bridge_url',  savedUrl);
+            }
+        });
+    }
+
     // Verify critical elements exist
     const statusEl = document.getElementById('wsStatusText');
     const dotEl = document.querySelector('.live-dot');
     const wsEl = document.getElementById('wsStatus');
-    
+
     console.log('[INIT] Critical elements check:', {
         statusEl: !!statusEl,
         dotEl: !!dotEl,
