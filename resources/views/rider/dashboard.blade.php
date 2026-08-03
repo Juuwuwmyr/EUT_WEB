@@ -1471,16 +1471,37 @@ function startPickupPolling() {
                         if (slipRes.ok) {
                             const html = await slipRes.text();
                             
-                            // Open in new window and auto-print
-                            const win = window.open('', '_blank', 'width=800,height=600');
-                            win.document.write(html);
-                            win.document.close();
+                            // Create iframe for printing (better compatibility than window.open)
+                            const iframe = document.createElement('iframe');
+                            iframe.style.display = 'none';
+                            iframe.style.position = 'absolute';
+                            iframe.style.width = '0';
+                            iframe.style.height = '0';
+                            document.body.appendChild(iframe);
                             
-                            // Print after short delay to ensure page is loaded
-                            setTimeout(() => {
-                                win.print();
-                                win.close();
-                            }, 300);
+                            const doc = iframe.contentDocument || iframe.contentWindow.document;
+                            doc.open();
+                            doc.write(html);
+                            doc.close();
+                            
+                            // Wait for content to load, then trigger print
+                            iframe.onload = function() {
+                                setTimeout(() => {
+                                    try {
+                                        iframe.contentWindow.focus();
+                                        iframe.contentWindow.print();
+                                        console.log('[Rider Polling] Print dialog opened for order:', pickup.order_number);
+                                    } catch(e) {
+                                        console.error('[Rider Polling] Print error:', e);
+                                    }
+                                    // Remove iframe after print
+                                    setTimeout(() => {
+                                        if (document.body.contains(iframe)) {
+                                            document.body.removeChild(iframe);
+                                        }
+                                    }, 1500);
+                                }, 500);
+                            };
                             
                             // Mark as printed in backend (prevent future polling)
                             await fetch('{{ route("rider.pickups.mark-printed", ":orderId") }}'.replace(':orderId', pickup.id), {

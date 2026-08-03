@@ -455,13 +455,34 @@ if (typeof window.Echo !== 'undefined' && window.Echo) {
                 fetch('/chef/orders/' + data.order_id + '/pickup-slip.html')
                     .then(res => res.text())
                     .then(html => {
-                        var win = window.open('', '_blank', 'width=800,height=600');
-                        win.document.write(html);
-                        win.document.close();
-                        setTimeout(() => {
-                            win.print();
-                            win.close();
-                        }, 300);
+                        // Create iframe instead of window for better print compatibility
+                        var iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.style.position = 'absolute';
+                        iframe.style.width = '0';
+                        iframe.style.height = '0';
+                        document.body.appendChild(iframe);
+                        
+                        var doc = iframe.contentDocument || iframe.contentWindow.document;
+                        doc.open();
+                        doc.write(html);
+                        doc.close();
+                        
+                        // Wait for content to load, then trigger print
+                        iframe.onload = function() {
+                            setTimeout(() => {
+                                try {
+                                    iframe.contentWindow.focus();
+                                    iframe.contentWindow.print();
+                                } catch(e) {
+                                    console.error('[Admin] Print error:', e);
+                                }
+                                // Remove iframe after print dialog closes
+                                setTimeout(() => {
+                                    document.body.removeChild(iframe);
+                                }, 1000);
+                            }, 500);
+                        };
                     })
                     .catch(err => console.error('[Admin] Failed to fetch pickup slip:', err));
             }

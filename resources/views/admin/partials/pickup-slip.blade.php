@@ -178,19 +178,50 @@ hr.double { border-top: 3px double #000; }
 
 <script>
 function _fixW() { document.body.style.width = '185px'; document.body.style.maxWidth = '185px'; }
-document.addEventListener('DOMContentLoaded', _fixW);
-window.onload = function () {
+document.addEventListener('DOMContentLoaded', function() {
     _fixW();
-    setTimeout(function () { try { window.focus(); window.print(); } catch(e) {} }, 300);
-};
-window.addEventListener('afterprint', function () {
-    if (window.opener) {
-        setTimeout(function () { try { window.close(); } catch(e) {} }, 500);
-    } else if (window.parent && window.parent !== window) {
-        try { window.parent.postMessage({ type: 'pickup_slip_printed' }, '*'); } catch(e) {}
+    // Auto-print after DOM is fully loaded
+    setTimeout(function () { 
+        try { 
+            window.focus();
+            // Use setTimeout to ensure print is called after focus
+            setTimeout(function() {
+                window.print();
+            }, 100);
+        } catch(e) { 
+            console.error('Print error:', e);
+        } 
+    }, 200);
+});
+window.addEventListener('load', function() {
+    _fixW();
+    // Backup auto-print on full page load
+    if (window.opener || (window.parent && window.parent !== window)) {
+        setTimeout(function() {
+            try { window.print(); } catch(e) {}
+        }, 300);
     }
 });
-if (window.opener) { setTimeout(function () { try { window.close(); } catch(e) {} }, 10000); }
+window.addEventListener('afterprint', function () {
+    console.log('Print completed, closing window...');
+    if (window.opener) {
+        setTimeout(function () { 
+            try { window.close(); } catch(e) { 
+                console.log('Could not auto-close, user must close manually');
+            } 
+        }, 500);
+    } else if (window.parent && window.parent !== window) {
+        try { 
+            window.parent.postMessage({ type: 'pickup_slip_printed' }, '*'); 
+        } catch(e) {}
+    }
+});
+// Fallback close after 15 seconds if user doesn't interact
+if (window.opener) { 
+    setTimeout(function () { 
+        try { window.close(); } catch(e) {} 
+    }, 15000); 
+}
 </script>
 </body>
 </html>
