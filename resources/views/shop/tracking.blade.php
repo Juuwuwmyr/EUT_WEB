@@ -242,7 +242,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
     </div>
 
     <div id="view-all">
-        <div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg></div><p class="empty-title">Loading…</p></div>
+        <div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg></div><p class="empty-title">Loadingï¿½</p></div>
     </div>
     <div id="view-past"      style="display:none;"></div>
     <div id="view-cancelled" style="display:none;"></div>
@@ -403,10 +403,10 @@ function renderAll() {
         document.getElementById('ssc-active').style.borderColor = active.length > 0 ? 'rgba(250,204,21,.35)' : '';
     }
 
-    // Tab dot on All tab — blink when there are active orders
+    // Tab dot on All tab ï¿½ blink when there are active orders
     document.getElementById('allDot').style.display = active.length ? 'inline-block' : 'none';
 
-    // All tab — shows active/in-progress orders only
+    // All tab ï¿½ shows active/in-progress orders only
     // -- Dine-in table session banner --
     // Group active dine-in orders by table; show a combined total banner when >1 order for same table
     var tableSessionHtml = '';
@@ -427,10 +427,10 @@ function renderAll() {
                 '<div style="margin-bottom:12px;padding:14px 16px;border-radius:14px;background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.25);">' +
                 '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
                 '<svg width="16" height="16" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 6h18M3 14h18M3 18h18"/></svg>' +
-                '<span style="font-size:13px;font-weight:700;color:#facc15;">Table ' + escHtml(tbl) + ' — Session Total</span>' +
+                '<span style="font-size:13px;font-weight:700;color:#facc15;">Table ' + escHtml(tbl) + ' ï¿½ Session Total</span>' +
                 '</div>' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                '<span style="font-size:12px;color:#9ca3af;">' + grp.length + ' orders · ' + totalItems + ' items<br><span style="font-size:11px;color:#6b7280;">' + orderNums + '</span></span>' +
+                '<span style="font-size:12px;color:#9ca3af;">' + grp.length + ' orders ï¿½ ' + totalItems + ' items<br><span style="font-size:11px;color:#6b7280;">' + orderNums + '</span></span>' +
                 '<span style="font-size:20px;font-weight:800;color:#facc15;">?' + sessionTotal.toLocaleString() + '</span>' +
                 '</div>' +
                 '</div>';
@@ -449,7 +449,7 @@ function renderAll() {
     // Cancelled tab
     document.getElementById('view-cancelled').innerHTML = cancelled.length
         ? cancelled.map(o=>buildOrderCard(o)).join('')
-        : emptyState('<svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>','No cancelled orders','Great — you haven&#39;t cancelled anything.',false);
+        : emptyState('<svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>','No cancelled orders','Great ï¿½ you haven&#39;t cancelled anything.',false);
 }
 
 /* --------------------------------
@@ -507,7 +507,7 @@ function buildDetailBody(o) {
                 <span class="step-label ${isPlaced?'now':!isPlaced?'done':''}">Placed</span>
                 <span class="step-label ${isPreparing?'now':(isOnWay||isDelivered)?'done':''}">Preparing</span>
                 ${isDelivery ? `<span class="step-label ${isOnWay?'now':isDelivered?'done':''}">On the way</span>` : ''}
-                <span class="step-label ${isDelivered?'done':''}">${!isDelivery ? (o.order_type === 'pickup' ? 'Picked Up' : 'Completed') : 'Delivered'}</span>
+                <span class="step-label ${isDelivered?'done':''}">${!isDelivery ? 'Completed' : 'Delivered'}</span>
             </div>
         </div>
         <div class="sheet-divider" style="margin-top:14px;"></div>` : '';
@@ -532,7 +532,7 @@ function buildDetailBody(o) {
                 delivered:        o.delivered_at  || null,
             };
             let label = STATUS_CFG[s]?.label||s;
-            if(s === 'delivered' && !isDelivery) label = o.order_type === 'pickup' ? 'Picked Up' : 'Completed';
+            if(s === 'delivered' && !isDelivery) label = 'Completed';
             return {key:s,label:label,time:timeMap[s]||'',done:isDone,isNow,future:!isDone&&!isNow};
         });
 
@@ -596,7 +596,7 @@ function buildDetailBody(o) {
         </div>
         ${o.rider?`<div class="irow">
             <div class="irow-icon" style="background:rgba(167,139,250,.1);"><svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
-            <div><p class="irow-label">Rider</p><p class="irow-val">${escHtml(o.rider.name)}</p><p class="irow-sub"><svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> ${o.rider.rating} · ${escHtml(o.rider.phone)}</p></div>
+            <div><p class="irow-label">Rider</p><p class="irow-val">${escHtml(o.rider.name)}</p><p class="irow-sub"><svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> ${o.rider.rating} ï¿½ ${escHtml(o.rider.phone)}</p></div>
         </div>`:''}`;
 
     // -- Map (active delivery only) --
@@ -604,7 +604,7 @@ function buildDetailBody(o) {
         <div class="sheet-divider" style="margin-top:4px;"></div>
         <div style="padding:12px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
             <p style="font-size:13px;font-weight:700;color:#fff;">${isOnWay?'<svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg> Live Rider Tracking':'<svg width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg> Order Location'}</p>
-            <p style="font-size:11px;color:#4b5563;" id="riderEtaText-${o.id}">${isOnWay?'Fetching route…':'Locating…'}</p>
+            <p style="font-size:11px;color:#4b5563;" id="riderEtaText-${o.id}">${isOnWay?'Fetching routeï¿½':'Locatingï¿½'}</p>
         </div>
         <div id="trackingMap-${o.id}" style="height:220px;width:100%;background:#0a0a14;"></div>` : '';
 
@@ -640,7 +640,7 @@ async function loadAllOrders() {
         const res = await fetch('/orders', {headers:{'Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'}});
         const raw = await res.text();
         if(!res.ok){
-            document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><p class="empty-title">Could not load orders</p><p class="empty-sub">HTTP ${res.status} — please try refreshing.</p></div>`;
+            document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><p class="empty-title">Could not load orders</p><p class="empty-sub">HTTP ${res.status} ï¿½ please try refreshing.</p></div>`;
             return;
         }
         let data;
@@ -666,7 +666,7 @@ async function loadAllOrders() {
                 const statusChanged = prevStatus !== null && prevStatus !== updated.status;
 
                 if (statusChanged) {
-                    // Status changed — rebuild sheet + map so timeline/progress update
+                    // Status changed ï¿½ rebuild sheet + map so timeline/progress update
                     if (activeMaps[detailOrderId]) {
                         try { activeMaps[detailOrderId].map.remove(); } catch(e) {}
                         delete activeMaps[detailOrderId];
@@ -676,7 +676,7 @@ async function loadAllOrders() {
                         setTimeout(() => { if(typeof initOrderMap==='function') initOrderMap(updated); }, 300);
                     }
                 } else {
-                    // Status unchanged — only move the rider marker, no full rebuild
+                    // Status unchanged ï¿½ only move the rider marker, no full rebuild
                     if (updated.rider && updated.rider.lat && updated.rider.lng) {
                         updateMapRiderPos(updated.id, updated.rider.lat, updated.rider.lng);
                     }
@@ -722,7 +722,7 @@ async function submitCancel(){
     const errEl=document.getElementById('cancelModalError');
     const btn=document.getElementById('confirmCancelBtn');
     if(!sel){errEl.textContent='<svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg> Please select a reason.';errEl.style.display='block';return;}
-    errEl.style.display='none';btn.textContent='Cancelling…';btn.disabled=true;
+    errEl.style.display='none';btn.textContent='Cancellingï¿½';btn.disabled=true;
     try{
         const r=await fetch(`/orders/${currentCancelOrderId}/cancel`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({reason:sel.value})});
         const d=await r.json();
@@ -737,7 +737,7 @@ function showToast(msg){const t=document.createElement('div');t.textContent=msg;
 let pollTimer = null;
 function startPolling() {
     if (pollTimer) return;
-    pollTimer = setInterval(loadAllOrders, 15000);
+    pollTimer = setInterval(loadAllOrders, 3000);
 }
 function stopPolling() {
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
@@ -772,9 +772,9 @@ function handleOrderUpdate(order) {
         const toastMsgs = {
             accepted:         '? Order accepted!',
             preparing:        '????? Kitchen is preparing your order',
-            rider_assigned:   '??? Rider assigned — heading to restaurant',
+            rider_assigned:   '??? Rider assigned ï¿½ heading to restaurant',
             out_for_delivery: '?? Your order is on the way!',
-            delivered:        '?? Order delivered!',
+            delivered:        order.order_type === 'pickup' ? '? Order completed! Enjoy your food!' : '?? Order delivered!',
             cancelled:        '? Order was cancelled',
         };
         if (toastMsgs[order.status]) showToast(toastMsgs[order.status]);
@@ -791,20 +791,20 @@ document.addEventListener('DOMContentLoaded',()=>{
     // Initial load
     loadAllOrders();
 
-    // Always poll every 10s as fallback — pauses when tab is hidden
+    // Always poll every 10s as fallback ï¿½ pauses when tab is hidden
     startPolling();
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) { stopPolling(); } else { loadAllOrders(); startPolling(); }
     });
 
-    // Echo: real-time updates (primary — fires instantly when status changes)
+    // Echo: real-time updates (primary ï¿½ fires instantly when status changes)
     if (window.Echo) {
         window.Echo.private('orders.{{ auth()->id() }}')
             .listen('.order.updated', (order) => {
                 handleOrderUpdate(order);
             })
             .listen('.rider.location', (data) => {
-                // Live rider GPS — move map marker without full reload
+                // Live rider GPS ï¿½ move map marker without full reload
                 if (!data.lat || !data.lng) return;
                 const riderOrder = allOrders.find(o =>
                     o.rider && ['rider_assigned','out_for_delivery'].includes(o.status)
@@ -818,14 +818,14 @@ document.addEventListener('DOMContentLoaded',()=>{
                 }
             });
     } else {
-        // No Echo — polling every 10s is the only mechanism
+        // No Echo ï¿½ polling every 10s is the only mechanism
     }
 });
 </script>
 
 <script>
-/* -- Map (Leaflet + OSRM) — only initialised inside the detail sheet -- */
-const RESTAURANT_POS = [13.321512, 121.302098]; // EUT Snack House — verified Google Maps coordinates
+/* -- Map (Leaflet + OSRM) ï¿½ only initialised inside the detail sheet -- */
+const RESTAURANT_POS = [13.321512, 121.302098]; // EUT Snack House ï¿½ verified Google Maps coordinates
 
 async function fetchOSRMRoute(from, to) {
     const url = 'https://router.project-osrm.org/route/v1/driving/'
@@ -902,7 +902,7 @@ async function initOrderMap(order) {
 
     // Geocode fallback if coords missing
     if (!customerPos && order.delivery_address) {
-        if (etaEl) etaEl.textContent = 'Locating address…';
+        if (etaEl) etaEl.textContent = 'Locating addressï¿½';
         customerPos = await geocodeDeliveryAddr(order.delivery_address);
         // Save back so next time is instant
         if (customerPos) {
@@ -935,7 +935,7 @@ async function initOrderMap(order) {
     // Store destination on map state for re-routing
     activeMaps[order.id].destLatLng = dest;
 
-    // Rider marker — animated pulse circle with motorbike icon
+    // Rider marker ï¿½ animated pulse circle with motorbike icon
     const rM = L.marker(riderPos, { icon: L.divIcon({
         html: `<div style="background:#10b981;width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 10px rgba(16,185,129,.8);">??</div>`,
         className: '', iconSize: [42, 42], iconAnchor: [21, 21],
@@ -973,8 +973,8 @@ async function initOrderMap(order) {
     if (!hasRider) simulateMapRider(order.id, dest);
 }
 
-/* Called on every poll — moves the marker, trims the route, re-routes if rider is off-route */
-const REROUTE_THRESHOLD_DEG = 0.0015; // ~150m — if rider is further than this from the route, re-route
+/* Called on every poll ï¿½ moves the marker, trims the route, re-routes if rider is off-route */
+const REROUTE_THRESHOLD_DEG = 0.0015; // ~150m ï¿½ if rider is further than this from the route, re-route
 const REROUTE_COOLDOWN_MS   = 20000;  // re-fetch OSRM at most every 20s
 
 async function updateMapRiderPos(orderId, lat, lng) {
@@ -1001,7 +1001,7 @@ async function updateMapRiderPos(orderId, lat, lng) {
         const canReroute = (now - (s._lastReroute || 0)) > REROUTE_COOLDOWN_MS;
 
         if (distFromRoute > REROUTE_THRESHOLD_DEG && canReroute && s.destLatLng) {
-            // Rider is off-route — fetch a fresh OSRM route from current position
+            // Rider is off-route ï¿½ fetch a fresh OSRM route from current position
             s._lastReroute = now;
             const fresh = await fetchOSRMRoute(newPos, s.destLatLng);
             if (fresh && fresh.length > 1) {
@@ -1009,12 +1009,12 @@ async function updateMapRiderPos(orderId, lat, lng) {
                 s.routeLine.setLatLngs(fresh);
                 if (etaEl) etaEl.textContent = '~' + Math.max(1, Math.round(fresh.length / 30)) + ' min away';
             } else {
-                // OSRM failed — fall back to straight line
+                // OSRM failed ï¿½ fall back to straight line
                 s.routeLine.setLatLngs([newPos, s.destLatLng]);
                 if (etaEl) etaEl.textContent = 'On the way';
             }
         } else {
-            // On-route — trim the polyline to start from the rider's current position
+            // On-route ï¿½ trim the polyline to start from the rider's current position
             s.routeLine.setLatLngs(s.roadPoints.slice(closest));
             const remaining = s.roadPoints.length - closest;
             if (etaEl) {
@@ -1023,7 +1023,7 @@ async function updateMapRiderPos(orderId, lat, lng) {
             }
         }
     } else if (s.destLatLng) {
-        // No road points yet — just draw straight line
+        // No road points yet ï¿½ just draw straight line
         s.routeLine.setLatLngs([newPos, s.destLatLng]);
     }
 }
