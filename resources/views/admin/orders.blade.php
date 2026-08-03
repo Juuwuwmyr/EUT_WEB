@@ -414,7 +414,7 @@ function adminPrintPickupSlip(orderId) {
     iframe.id = '_adminPickupPrintFrame';
     iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;opacity:0;pointer-events:none;';
     document.body.appendChild(iframe);
-    iframe.src = '/chef/orders/' + orderId + '/pickup-slip';
+    iframe.src = '/admin/orders/' + orderId + '/pickup-slip';
 
     iframe.onload = function() {
         setTimeout(function() {
