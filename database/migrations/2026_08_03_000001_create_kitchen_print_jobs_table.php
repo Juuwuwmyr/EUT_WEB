@@ -10,13 +10,14 @@ return new class extends Migration
     {
         Schema::create('kitchen_print_jobs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('order_id');
             $table->string('type')->default('ticket'); // 'ticket' or 'receipt'
             $table->boolean('printed')->default(false);
             $table->timestamp('printed_at')->nullable();
             $table->timestamps();
 
             $table->index(['printed', 'created_at']);
+            $table->index('order_id');
         });
     }
 
