@@ -1040,9 +1040,6 @@ async function pickedUpAjax(btn, orderId) {
             Mark as Delivered
         </button>`;
 
-        // Auto-print pickup slip via hidden iframe
-        printPickupSlip(orderId);
-
     } catch(err) {
         alert('Error: ' + err.message + '. Please try again.');
         btn.disabled = false;

@@ -397,6 +397,11 @@ function renderTable(orders) {
                 '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;" onclick="openManageModal(' + o.id + ')" title="Details">' +
                     '<i data-lucide="settings-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
                 '</button>' +
+                (o.order_type === 'delivery'
+                    ? '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#60a5fa;" onclick="adminPrintPickupSlip(' + o.id + ')" title="Print Pickup Slip">' +
+                        '<i data-lucide="printer" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+                      '</button>'
+                    : '') +
                 ((['delivered','cancelled'].includes(o.status))
                     ? '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';" onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '">' +
                         '<i data-lucide="' + (o.is_archived ? 'archive-restore' : 'archive') + '" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
@@ -410,6 +415,7 @@ function renderTable(orders) {
                 '</div>' +
             '</td>' +
             '</tr>';
+
     });
 
     tbody.innerHTML = html;
@@ -419,6 +425,29 @@ function renderTable(orders) {
 function escHtml(str) {
     if (!str) return '';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// -- Print pickup slip (delivery orders only) --------------
+function adminPrintPickupSlip(orderId) {
+    var old = document.getElementById('_adminPickupPrintFrame');
+    if (old) old.remove();
+
+    var iframe = document.createElement('iframe');
+    iframe.id = '_adminPickupPrintFrame';
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;opacity:0;pointer-events:none;';
+    document.body.appendChild(iframe);
+    iframe.src = '/chef/orders/' + orderId + '/pickup-slip';
+
+    iframe.onload = function() {
+        setTimeout(function() {
+            try {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            } catch(e) { console.warn('Print failed', e); }
+            setTimeout(function() { try { iframe.remove(); } catch(e) {} }, 60000);
+        }, 500);
+    };
+    iframe.onerror = function() { iframe.remove(); };
 }
 
 // -- Rider card selection ----------------------------------
