@@ -1432,15 +1432,16 @@ if (location.protocol !== 'https:') {
 }
 
 /* ────────────────────────────────────────────────────────
-   PICKUP SLIP AUTO-PRINT POLLING (Rider Side)
+   PICKUP SLIP DIALOG NOTIFICATION (Rider Side)
+   Shows dialog when pickup happens, admin prints manually
    ──────────────────────────────────────────────────────── */
 let _pickupPollInterval = null;
-let _printedPickups = new Set(); // Track already printed to avoid duplicates
+let _shownPickupDialogs = new Set(); // Track shown dialogs to avoid duplicates
 
 function startPickupPolling() {
     if (_pickupPollInterval) return; // Already polling
     
-    console.log('[Rider Polling] Starting pickup slip polling...');
+    console.log('[Rider Polling] Starting pickup notification polling...');
     
     // Poll every 3 seconds for pending pickups
     _pickupPollInterval = setInterval(async () => {
@@ -1455,63 +1456,15 @@ function startPickupPolling() {
             if (data.pending_pickups && data.pending_pickups.length > 0) {
                 console.log('[Rider Polling] Found', data.count, 'pending pickups');
                 
-                data.pending_pickups.forEach(async (pickup) => {
-                    // Skip if already printed
-                    if (_printedPickups.has(pickup.id)) return;
+                data.pending_pickups.forEach((pickup) => {
+                    // Skip if already shown
+                    if (_shownPickupDialogs.has(pickup.id)) return;
                     
-                    console.log('[Rider Polling] Printing pickup slip for order:', pickup.order_number);
-                    _printedPickups.add(pickup.id);
+                    console.log('[Rider Polling] Showing pickup slip for order:', pickup.order_number);
+                    _shownPickupDialogs.add(pickup.id);
                     
-                    // Fetch pickup slip HTML
-                    try {
-                        const slipRes = await fetch('/chef/orders/' + pickup.id + '/pickup-slip.html', {
-                            headers: { 'Accept': 'text/html' },
-                        });
-                        
-                        if (slipRes.ok) {
-                            const html = await slipRes.text();
-                            
-                            // Create iframe for printing (better compatibility than window.open)
-                            const iframe = document.createElement('iframe');
-                            iframe.style.display = 'none';
-                            iframe.style.position = 'absolute';
-                            iframe.style.width = '0';
-                            iframe.style.height = '0';
-                            document.body.appendChild(iframe);
-                            
-                            const doc = iframe.contentDocument || iframe.contentWindow.document;
-                            doc.open();
-                            doc.write(html);
-                            doc.close();
-                            
-                            // Wait for content to load, then trigger print
-                            iframe.onload = function() {
-                                setTimeout(() => {
-                                    try {
-                                        iframe.contentWindow.focus();
-                                        iframe.contentWindow.print();
-                                        console.log('[Rider Polling] Print dialog opened for order:', pickup.order_number);
-                                    } catch(e) {
-                                        console.error('[Rider Polling] Print error:', e);
-                                    }
-                                    // Remove iframe after print
-                                    setTimeout(() => {
-                                        if (document.body.contains(iframe)) {
-                                            document.body.removeChild(iframe);
-                                        }
-                                    }, 1500);
-                                }, 500);
-                            };
-                            
-                            // Mark as printed in backend (prevent future polling)
-                            await fetch('{{ route("rider.pickups.mark-printed", ":orderId") }}'.replace(':orderId', pickup.id), {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                            }).catch(err => console.error('[Rider Polling] Mark printed failed:', err));
-                        }
-                    } catch (err) {
-                        console.error('[Rider Polling] Failed to fetch/print slip:', err);
-                    }
+                    // Show dialog notification (no auto-print)
+                    showPickupReadyDialog(pickup);
                 });
             }
         } catch (err) {
@@ -1524,7 +1477,43 @@ function stopPickupPolling() {
     if (_pickupPollInterval) {
         clearInterval(_pickupPollInterval);
         _pickupPollInterval = null;
-        console.log('[Rider Polling] Stopped pickup slip polling');
+        console.log('[Rider Polling] Stopped pickup notification polling');
+    }
+}
+
+// Show pickup ready dialog (admin must print manually)
+function showPickupReadyDialog(pickup) {
+    const dialogHtml = `
+        <div style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px;" onclick="this.style.display='none';">
+            <div style="background:#fff;border-radius:12px;padding:24px;max-width:400px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);" onclick="event.stopPropagation();">
+                <div style="font-size:48px;margin-bottom:16px;">📋</div>
+                <h2 style="margin:0 0 8px;color:#000;font-size:20px;font-weight:700;">Pickup Slip Ready</h2>
+                <p style="margin:0 0 16px;color:#666;font-size:14px;">Order <strong>#${pickup.order_number}</strong></p>
+                <p style="margin:0 0 24px;color:#888;font-size:13px;">Rider has picked up the order. Admin can now print the slip.</p>
+                <div style="display:flex;gap:12px;justify-content:center;">
+                    <button onclick="this.closest('div').parentElement.style.display='none'" style="padding:10px 20px;background:#f0f0f0;border:none;border-radius:8px;cursor:pointer;color:#333;font-weight:600;">Close</button>
+                    <button onclick="openPickupSlipForPrint(${pickup.id}); this.closest('div').parentElement.style.display='none';" style="padding:10px 20px;background:#8b5cf6;border:none;border-radius:8px;cursor:pointer;color:#fff;font-weight:600;">View Slip</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const div = document.createElement('div');
+    div.innerHTML = dialogHtml;
+    document.body.appendChild(div.firstElementChild);
+    
+    // Play sound
+    if (typeof NotificationSound !== 'undefined') {
+        NotificationSound.play();
+    }
+}
+
+// Open pickup slip in new window (admin clicks to view/print)
+function openPickupSlipForPrint(orderId) {
+    const slipUrl = '/chef/orders/' + orderId + '/pickup-slip.html';
+    const win = window.open(slipUrl, '_blank', 'width=800,height=600');
+    if (win) {
+        win.focus();
     }
 }
 

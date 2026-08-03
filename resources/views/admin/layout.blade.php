@@ -444,49 +444,56 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ document.
     };
 })();
 
-// ── Global Rider Pickup Auto-Print Listener ──────────────────────────────
-// Listen for rider pickup events across all admin pages and auto-print slip
+// ── Global Rider Pickup Notification (Dialog Only) ──────────────────────────────
+// Listen for rider pickup events and show notification, admin prints manually
 if (typeof window.Echo !== 'undefined' && window.Echo) {
     window.Echo.channel('admin.riders')
         .listen('.rider.picked-up', function(data) {
             console.log('[Admin] Rider picked up order:', data);
-            // Trigger auto-print of pickup slip
-            if (data.order_id) {
-                fetch('/chef/orders/' + data.order_id + '/pickup-slip.html')
-                    .then(res => res.text())
-                    .then(html => {
-                        // Create iframe instead of window for better print compatibility
-                        var iframe = document.createElement('iframe');
-                        iframe.style.display = 'none';
-                        iframe.style.position = 'absolute';
-                        iframe.style.width = '0';
-                        iframe.style.height = '0';
-                        document.body.appendChild(iframe);
-                        
-                        var doc = iframe.contentDocument || iframe.contentWindow.document;
-                        doc.open();
-                        doc.write(html);
-                        doc.close();
-                        
-                        // Wait for content to load, then trigger print
-                        iframe.onload = function() {
-                            setTimeout(() => {
-                                try {
-                                    iframe.contentWindow.focus();
-                                    iframe.contentWindow.print();
-                                } catch(e) {
-                                    console.error('[Admin] Print error:', e);
-                                }
-                                // Remove iframe after print dialog closes
-                                setTimeout(() => {
-                                    document.body.removeChild(iframe);
-                                }, 1000);
-                            }, 500);
-                        };
-                    })
-                    .catch(err => console.error('[Admin] Failed to fetch pickup slip:', err));
+            
+            if (data.order_id && data.order_number) {
+                // Show notification dialog on admin page
+                showAdminPickupNotification(data.order_id, data.order_number);
             }
         });
+}
+
+// Show pickup notification on admin dashboard
+function showAdminPickupNotification(orderId, orderNumber) {
+    const notifHtml = `
+        <div style="position:fixed;bottom:24px;right:24px;z-index:9998;background:#fff;border-radius:12px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.2);border-left:5px solid #8b5cf6;max-width:400px;" onclick="this.remove();" id="pickup-notif-${orderId}">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+                <div style="font-size:32px;flex-shrink:0;">📋</div>
+                <div style="flex:1;">
+                    <p style="margin:0 0 4px;color:#000;font-weight:700;font-size:15px;">Pickup Slip Ready</p>
+                    <p style="margin:0 0 12px;color:#666;font-size:13px;">Order <strong>#${orderNumber}</strong></p>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="document.getElementById('pickup-notif-${orderId}').remove()" style="padding:6px 12px;background:#f0f0f0;border:none;border-radius:6px;cursor:pointer;color:#333;font-weight:600;font-size:12px;">Dismiss</button>
+                        <button onclick="openAdminPickupSlip(${orderId}); document.getElementById('pickup-notif-${orderId}').remove();" style="padding:6px 12px;background:#8b5cf6;border:none;border-radius:6px;cursor:pointer;color:#fff;font-weight:600;font-size:12px;">Print</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const div = document.createElement('div');
+    div.innerHTML = notifHtml;
+    document.body.appendChild(div.firstElementChild);
+    
+    // Auto-remove after 8 seconds if not dismissed
+    setTimeout(() => {
+        const el = document.getElementById('pickup-notif-' + orderId);
+        if (el) el.remove();
+    }, 8000);
+}
+
+// Open pickup slip in new window for admin to print
+function openAdminPickupSlip(orderId) {
+    const slipUrl = '/chef/orders/' + orderId + '/pickup-slip.html';
+    const win = window.open(slipUrl, '_blank', 'width=800,height=600');
+    if (win) {
+        win.focus();
+    }
 }
 </script>
 <script src="/sounds/notification.js"></script>
