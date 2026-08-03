@@ -25,36 +25,36 @@
         }
         .qr-label {
             text-align: center;
-            margin: 2mm 0;
+            margin: 1.5mm 0;
             border: 1px dashed #999;
-            padding: 3mm;
+            padding: 2mm;
             page-break-inside: avoid;
         }
         .table-number {
-            font-size: 14px;
+            font-size: 11px;
             font-weight: bold;
-            margin: 2mm 0 1mm;
+            margin: 1mm 0 0.5mm;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
         .qr-code {
             display: flex;
             justify-content: center;
-            margin: 2mm 0;
+            margin: 1mm 0;
             width: 100%;
         }
         .qr-code canvas,
         .qr-code svg {
             max-width: 100% !important;
-            max-height: 45mm !important;
-            width: 45mm !important;
-            height: 45mm !important;
+            max-height: 15mm !important;
+            width: 15mm !important;
+            height: 15mm !important;
         }
         .subtitle {
-            font-size: 8px;
+            font-size: 7px;
             color: #666;
-            margin-top: 1mm;
-            letter-spacing: 0.5px;
+            margin-top: 0.5mm;
+            letter-spacing: 0.3px;
         }
         @media print {
             body {
@@ -136,12 +136,12 @@
     </div>
 
     <script>
-        // Generate all QR codes - sized for 58mm thermal printer (45mm QR is optimal)
+        // Generate all QR codes - 15mm size (half of previous)
         @foreach($tables as $tableNum)
         new QRCode(document.getElementById('qr-{{ $tableNum }}'), {
             text: 'TABLE {{ $tableNum }}',
-            width: 180,
-            height: 180,
+            width: 120,
+            height: 120,
             colorDark: '#000000',
             colorLight: '#ffffff',
             correctLevel: QRCode.CorrectLevel.H
