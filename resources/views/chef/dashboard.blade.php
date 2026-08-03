@@ -567,6 +567,38 @@ let fallbackTimer = null;
 let printedOrderIds = new Set();
 let autoPrintUnlocked = true; // always enabled — browser allows iframe print after any page interaction
 
+function unlockAutoPrint() {
+    autoPrintUnlocked = true;
+    const banner = document.getElementById('autoPrintBanner');
+    if (banner) {
+        banner.style.background = 'rgba(16,185,129,.1)';
+        banner.style.borderColor = 'rgba(16,185,129,.35)';
+        banner.innerHTML = `
+            <div style="display:flex;align-items:center;gap:.6rem;">
+                <i data-lucide="check-circle-2" style="width:1.1rem;height:1.1rem;color:#10b981;stroke-width:2;flex-shrink:0;"></i>
+                <p style="font-size:.8rem;font-weight:700;color:#10b981;margin:0;">✓ Auto-Print enabled — kitchen ticket will print automatically on every accepted order</p>
+            </div>`;
+        if (window.lucide) lucide.createIcons();
+        setTimeout(() => { if (banner) banner.style.display = 'none'; }, 4000);
+    }
+    // Mark all currently queued/cooking orders as already printed
+    // so only NEW orders after this point trigger a print
+    document.querySelectorAll('.k-order-card[data-order-id]').forEach(card => {
+        const id = card.dataset.orderId;
+        if (id) {
+            printedOrderIds.add('accept_' + id);
+            printedOrderIds.add('ready_' + id);
+            printedOrderIds.add('pickup_' + id);
+        }
+    });
+    // Also mark from orderDataMap
+    Object.keys(orderDataMap).forEach(id => {
+        printedOrderIds.add('accept_' + id);
+        printedOrderIds.add('ready_' + id);
+        printedOrderIds.add('pickup_' + id);
+    });
+}
+
 function elapsedBadge(mins) {
     let bg, color, label;
     if (mins >= 20)      { bg = 'rgba(239,68,68,.15)';  color = '#ef4444'; label = mins + 'm — URGENT'; }
@@ -823,94 +855,38 @@ function escapeHtml(str) {
 }
 
 function autoPrintKitchenTicket(orderId) {
-    if (!autoPrintUnlocked) {
-        console.log('[AutoPrint] Not unlocked yet — skipping print for order', orderId);
-        return;
-    }
     const url = `/chef/orders/${orderId}/kitchen-ticket`;
-
-    // Remove any existing print iframe
     const old = document.getElementById('kitchenPrintFrame');
     if (old) old.remove();
-
-    // Create a hidden iframe — no popup, no user click needed
     const iframe = document.createElement('iframe');
     iframe.id  = 'kitchenPrintFrame';
     iframe.src = url;
     iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
     document.body.appendChild(iframe);
-
-    // Once loaded, trigger print silently inside the iframe
     iframe.onload = function() {
-        try {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-        } catch(e) {
-            console.warn('Auto-print failed:', e);
-        }
-        // Clean up after 30 seconds
-        setTimeout(() => iframe.remove(), 30000);
-    };
-}
-
-    // Remove any existing print iframe
-    const old = document.getElementById('kitchenPrintFrame');
-    if (old) old.remove();
-
-    // Create a hidden iframe — no popup, no user click needed
-    const iframe = document.createElement('iframe');
-    iframe.id  = 'kitchenPrintFrame';
-    iframe.src = url;
-    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
-    document.body.appendChild(iframe);
-
-    // Once loaded, trigger print silently inside the iframe
-    iframe.onload = function() {
-        try {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-        } catch(e) {
-            console.warn('Auto-print failed:', e);
-        }
-        // Clean up after 30 seconds
+        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) { console.warn('Auto-print failed:', e); }
         setTimeout(() => iframe.remove(), 30000);
     };
 }
 
 function printReceipt(receiptUrl) {
-    const w    = 220; // 200px content + padding buffer
-    const h    = 800;
-    const left = Math.round((screen.width  - w) / 2);
+    const w = 220, h = 800;
+    const left = Math.round((screen.width - w) / 2);
     const top  = Math.round((screen.height - h) / 2);
-
-    const win = window.open(
-        receiptUrl,
-        'receipt_print',
-        `width=${w},height=${h},left=${left},top=${top},toolbar=0,scrollbars=0,status=0,menubar=0,location=0`
-    );
-    if (!win) {
-        window.open(receiptUrl, '_blank');
-    }
+    const win = window.open(receiptUrl, 'receipt_print', `width=${w},height=${h},left=${left},top=${top},toolbar=0,scrollbars=0,status=0,menubar=0,location=0`);
+    if (!win) window.open(receiptUrl, '_blank');
 }
 
 function kitchenAutoPrint(receiptUrl) {
-    // Remove any existing auto-print iframe for receipts
-    const oldReceipt = document.getElementById('kitchenReceiptPrintFrame');
-    if (oldReceipt) oldReceipt.remove();
-
+    const old = document.getElementById('kitchenReceiptPrintFrame');
+    if (old) old.remove();
     const iframe = document.createElement('iframe');
-    iframe.id = 'kitchenReceiptPrintFrame';
+    iframe.id  = 'kitchenReceiptPrintFrame';
     iframe.src = receiptUrl;
     iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
     document.body.appendChild(iframe);
-
     iframe.onload = function() {
-        try {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-        } catch(e) {
-            console.warn('Auto-print receipt failed:', e);
-        }
+        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) { console.warn('Auto-print receipt failed:', e); }
         setTimeout(() => iframe.remove(), 30000);
     };
 }
