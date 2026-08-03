@@ -1126,10 +1126,11 @@ async function refreshKitchen(manual) {
         renderColumn('queued',  data.queued  || []);
         renderColumn('cooking', data.cooking || []);
 
-        // Auto-print newly accepted orders (queued column) — ALL order types
+        // Auto-print newly accepted orders OR re-accepted/updated accepted orders
         (data.queued || []).forEach(order => {
-            if (autoPrintEnabled && !printedOrderIds.has('accept_' + order.id)) {
-                printedOrderIds.add('accept_' + order.id);
+            const printKey = 'accept_' + order.id + '_' + (order.updated_at || '');
+            if (autoPrintEnabled && !printedOrderIds.has(printKey)) {
+                printedOrderIds.add(printKey);
                 console.log('🖨️ Auto-printing kitchen ticket for order', order.order_number);
                 setTimeout(() => autoPrintKitchenTicket(order.id), 500);
             }
@@ -1328,8 +1329,9 @@ document.addEventListener('DOMContentLoaded', () => {
     _kitchenSeed.forEach(o => {
         orderDataMap[o.id] = o;
         // Seed all namespaced keys so page reload never re-prints existing orders
+        // Use versioned key (id + updated_at) to detect pahabol (add-on) orders
         if (['accepted','preparing','rider_assigned','out_for_delivery','delivered'].includes(o.status)) {
-            printedOrderIds.add('accept_' + o.id);
+            printedOrderIds.add('accept_' + o.id + '_' + (o.updated_at || ''));
         }
         if (['rider_assigned','out_for_delivery','delivered'].includes(o.status)) {
             printedOrderIds.add('ready_' + o.id);
@@ -1354,8 +1356,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 .listen('.order.updated', (order) => {
                     console.log('[ECHO] Order updated:', order.id, order.status);
                     // ── AUTO-PRINT RULES ──────────────────────────────────────
-                    if (autoPrintEnabled && order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id)) {
-                        printedOrderIds.add('accept_' + order.id);
+                    if (autoPrintEnabled && order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id + '_' + (order.updated_at || ''))) {
+                        printedOrderIds.add('accept_' + order.id + '_' + (order.updated_at || ''));
                         console.log('🖨️ Echo: Auto-printing kitchen ticket for order', order.order_number);
                         setTimeout(() => autoPrintKitchenTicket(order.id), 400);
                     }

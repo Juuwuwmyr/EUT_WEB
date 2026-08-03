@@ -254,6 +254,7 @@ class ChefController extends Controller
             'id'              => $order->id,
             'order_number'    => $order->order_number,
             'status'          => $order->status,
+            'updated_at'      => $order->updated_at?->toISOString(),
             'order_type'      => $order->order_type,
             'order_type_label'=> $order->order_type_label,
             'order_type_icon' => $order->order_type_icon,
