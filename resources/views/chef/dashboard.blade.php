@@ -998,17 +998,16 @@ function updateWSStatus(connected) {
     if (connected) {
         if (statusEl) statusEl.textContent = 'Live';
         if (dotEl) dotEl.style.background = '#22c55e';
-        // Clear fallback polling when WebSocket is active
-        if (fallbackTimer) {
-            clearInterval(fallbackTimer);
-            fallbackTimer = null;
+        // Even with WebSocket, keep a 3s poll as safety net for missed events
+        if (!fallbackTimer) {
+            fallbackTimer = setInterval(() => refreshKitchen(false), 3000);
         }
     } else {
         if (statusEl) statusEl.textContent = 'Reconnecting...';
         if (dotEl) dotEl.style.background = '#f59e0b';
-        // Start fallback polling every 30 seconds
+        // No WebSocket — poll every 1 second
         if (!fallbackTimer) {
-            fallbackTimer = setInterval(() => refreshKitchen(false), 30000);
+            fallbackTimer = setInterval(() => refreshKitchen(false), 1000);
         }
     }
 }
@@ -1135,8 +1134,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     } else {
-        // WebSocket not available, use fallback polling every 30 seconds
+        // WebSocket not available — fallback polling every 3 seconds starts immediately
         updateWSStatus(false);
+    }
+
+    // Always start polling immediately on load (3s interval, regardless of WS)
+    if (!fallbackTimer) {
+        refreshKitchen(false);
+        fallbackTimer = setInterval(() => refreshKitchen(false), 3000);
     }
 });
 </script>
