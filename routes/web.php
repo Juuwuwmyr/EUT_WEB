@@ -113,7 +113,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/addresses/{address}',            [\App\Http\Controllers\AddressController::class, 'destroy'])->name('addresses.destroy');
 });
 
-Route::post('/auth/login',  [AuthController::class, 'login'])->name('auth.login');
+// -------------------------------------------------------
+// Print Server API — used by kitchen print agent
+// -------------------------------------------------------
+Route::prefix('api/print-server')->middleware(['auth.printserver'])->group(function () {
+    Route::get('/pending-prints', [\App\Http\Controllers\PrintServerController::class, 'pendingPrints']);
+    Route::post('/mark-printed/{id}', [\App\Http\Controllers\PrintServerController::class, 'markPrinted']);
+});
 Route::post('/auth/signup', [AuthController::class, 'signup'])->name('auth.signup');
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout')->middleware('auth');
 

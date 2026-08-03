@@ -16,9 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
 
         $middleware->alias([
-            'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            'rider' => \App\Http\Middleware\RiderMiddleware::class,
-            'chef'  => \App\Http\Middleware\ChefMiddleware::class,
+            'admin'            => \App\Http\Middleware\AdminMiddleware::class,
+            'rider'            => \App\Http\Middleware\RiderMiddleware::class,
+            'chef'             => \App\Http\Middleware\ChefMiddleware::class,
+            'auth.printserver' => \App\Http\Middleware\PrintServerMiddleware::class,
         ]);
 
         // This project uses a modal-based login on the home page,
