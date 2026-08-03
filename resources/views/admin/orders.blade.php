@@ -260,14 +260,6 @@ async function fetchOrders() {
         }
 
         renderTable(data.orders);
-        
-        // Play notification sound for new orders
-        if (hasNewOrders && typeof NotificationSound !== 'undefined') {
-            setTimeout(function() {
-                NotificationSound.play();
-                console.log('[Notification] New order sound played');
-            }, 200);
-        }
 
         if (dot)   dot.style.background   = '#10b981'; // green = ok
         if (label) label.textContent = 'Live';
