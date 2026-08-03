@@ -26,8 +26,17 @@ class ChefController extends Controller
 
         $availableRiders = Rider::with('user')
             ->where('is_available', true)
+            ->withCount(['orders as active_orders' => function ($q) {
+                $q->whereIn('status', ['rider_assigned', 'out_for_delivery']);
+            }])
+            ->orderBy('active_orders') // free riders first, busy riders second
             ->get()
-            ->map(fn($r) => ['id' => $r->id, 'name' => $r->user->name, 'phone' => $r->phone]);
+            ->map(fn($r) => [
+                'id'    => $r->id,
+                'name'  => $r->user->name . ($r->active_orders > 0 ? ' 🏍️ On delivery' : ''),
+                'phone' => $r->phone,
+                'busy'  => $r->active_orders > 0,
+            ]);
 
         $todayOrders    = \App\Models\Order::whereDate('created_at', today())->count();
         $deliveredToday = \App\Models\Order::where('status', 'delivered')->whereDate('delivered_at', today())->count();

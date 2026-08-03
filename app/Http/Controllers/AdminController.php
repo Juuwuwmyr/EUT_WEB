@@ -667,9 +667,10 @@ class AdminController extends Controller
 
         $availableRiders = \App\Models\Rider::with('user')
             ->where('is_available', true)
-            ->whereDoesntHave('orders', function ($q) {
+            ->withCount(['orders as active_orders' => function ($q) {
                 $q->whereIn('status', ['rider_assigned', 'out_for_delivery']);
-            })
+            }])
+            ->orderBy('active_orders') // free riders first
             ->get();
 
         return view('admin.orders', compact('orders', 'statusCounts', 'availableRiders'));
