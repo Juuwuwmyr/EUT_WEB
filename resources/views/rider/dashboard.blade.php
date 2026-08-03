@@ -1023,17 +1023,20 @@ function dismissSuccess() {
             <svg width="36" height="36" fill="none" stroke="#f59e0b" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5" stroke-width="1.75"/></svg>
         </div>
         <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin:0 0 10px;">Location Required</h2>
-        <p style="font-size:14px;font-weight:600;color:#f59e0b;margin:0 0 8px;">You can't accept deliveries without GPS.</p>
+        <p style="font-size:14px;font-weight:600;color:#f59e0b;margin:0 0 8px;">GPS helps customers and dispatch track you in real time.</p>
         <p id="gpsGateMsg" style="font-size:13px;color:#9ca3af;line-height:1.7;margin:0 0 8px;">Enable location access so customers and dispatch can track you in real time.</p>
-        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px 16px;margin:16px 0 24px;text-align:left;">
-            <p style="font-size:12px;font-weight:700;color:#fbbf24;margin:0 0 8px;">?? How to enable:</p>
-            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">� <strong>Chrome:</strong> Tap the lock icon ? Site settings ? Location ? Allow</p>
-            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">� <strong>Safari:</strong> Settings ? Safari ? Location ? Allow</p>
-            <p style="font-size:11px;color:#d97706;margin:0;line-height:1.6;">� <strong>Phone:</strong> Settings ? Apps ? Browser ? Permissions ? Location ? Allow</p>
+        <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px 16px;margin:16px 0 18px;text-align:left;">
+            <p style="font-size:12px;font-weight:700;color:#fbbf24;margin:0 0 8px;">📱 How to enable:</p>
+            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">• <strong>Chrome:</strong> Tap the lock icon → Site settings → Location → Allow</p>
+            <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">• <strong>Safari:</strong> Settings → Safari → Location → Allow</p>
+            <p style="font-size:11px;color:#d97706;margin:0;line-height:1.6;">• <strong>Phone:</strong> Settings → Apps → Browser → Permissions → Location → Allow</p>
         </div>
-        <button onclick="retryGps()" style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(245,158,11,.4);display:flex;align-items:center;justify-content:center;gap:8px;">
+        <button onclick="retryGps()" style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(245,158,11,.4);display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg>
             Enable Location & Continue
+        </button>
+        <button onclick="showGpsBanner(false)" style="width:100%;padding:13px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#9ca3af;font-size:14px;font-weight:600;cursor:pointer;">
+            Continue Without GPS
         </button>
         <p style="font-size:11px;color:#4b5563;margin:14px 0 0;line-height:1.6;">Your location is only shared during active deliveries.<br>It stops when you go offline.</p>
     </div>
@@ -1333,6 +1336,13 @@ let _lastUserMove  = 0;   // timestamp of last manual map interaction
 
 
 function startGpsWatch() {
+    // On HTTP (no SSL), geolocation is blocked by browsers — bypass the gate
+    if (location.protocol !== 'https:') {
+        showGpsBanner(false);
+        setGpsLabel(false, 'GPS needs HTTPS');
+        return;
+    }
+
     if (!navigator.geolocation) {
         setGpsLabel(false, 'GPS not supported');
         showGpsBanner(true);
@@ -1355,7 +1365,7 @@ function startGpsWatch() {
             myPos = [lat, lng];
             if (myMarker) myMarker.setLatLng(myPos);
 
-            // Auto-recenter � only if rider hasn't manually panned in the last 8 seconds
+            // Auto-recenter — only if rider hasn't manually panned in the last 8 seconds
             if (riderMapL) {
                 const idleMs = Date.now() - _lastUserMove;
                 if (idleMs > 8000) {
@@ -1369,7 +1379,7 @@ function startGpsWatch() {
             }
             updateRiderDist();
 
-            // Refresh OSRM route � throttled to once per 20 seconds
+            // Refresh OSRM route — throttled to once per 20 seconds
             if (CUSTOMER_R && now - _lastRoute > 20000) {
                 _lastRoute = now;
                 const fresh = await fetchOSRMRoute(myPos, CUSTOMER_R);
@@ -1379,7 +1389,7 @@ function startGpsWatch() {
                 }
             }
 
-            // Ping server � throttled to once per 10 seconds
+            // Ping server — throttled to once per 10 seconds
             if (now - _lastPing >= 10000) {
                 _lastPing = now;
                 pingLocation(lat, lng);
@@ -1392,6 +1402,8 @@ function startGpsWatch() {
                 3: 'GPS timed out. Move to an open area and try again.',
             };
             setGpsLabel(false, msgs[err.code] || 'GPS error');
+            // Only show blocking gate for permission denied (code 1)
+            // For unavailable/timeout, show but allow bypass
             showGpsBanner(true, msgs[err.code]);
         },
         { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
@@ -1399,13 +1411,16 @@ function startGpsWatch() {
 }
 
 // Check permission state immediately and start watching
-if (navigator.permissions) {
+if (location.protocol !== 'https:') {
+    // HTTP — geolocation blocked by browser, skip the gate entirely
+    setGpsLabel(false, 'GPS needs HTTPS');
+} else if (navigator.permissions) {
     navigator.permissions.query({ name: 'geolocation' }).then(result => {
         if (result.state === 'denied') {
-            setGpsLabel(false, 'Location denied � tap to enable');
+            setGpsLabel(false, 'Location denied — tap to enable');
             showGpsBanner(true);
         } else {
-            startGpsWatch(); // 'granted' or 'prompt' � start watching (will trigger browser prompt if needed)
+            startGpsWatch(); // 'granted' or 'prompt' — triggers browser prompt if needed
         }
         result.onchange = () => {
             if (result.state === 'granted') { showGpsBanner(false); startGpsWatch(); }
