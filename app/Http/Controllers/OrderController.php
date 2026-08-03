@@ -130,7 +130,7 @@ class OrderController extends Controller
                 $existingOrder = Order::where('user_id', auth()->id())
                     ->where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
-                    ->whereIn('status', ['pending', 'accepted', 'preparing'])
+                    ->whereIn('status', ['pending'])
                     ->latest()
                     ->first();
 

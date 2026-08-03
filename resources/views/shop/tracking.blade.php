@@ -407,8 +407,38 @@ function renderAll() {
     document.getElementById('allDot').style.display = active.length ? 'inline-block' : 'none';
 
     // All tab — shows active/in-progress orders only
+    // ── Dine-in table session banner ──
+    // Group active dine-in orders by table; show a combined total banner when >1 order for same table
+    var tableSessionHtml = '';
+    if (active.length > 1) {
+        var dineInActive = active.filter(o => o.order_type === 'dine_in' && o.table_number);
+        var tableGroups  = {};
+        dineInActive.forEach(function(o) {
+            if (!tableGroups[o.table_number]) tableGroups[o.table_number] = [];
+            tableGroups[o.table_number].push(o);
+        });
+        Object.keys(tableGroups).forEach(function(tbl) {
+            var grp = tableGroups[tbl];
+            if (grp.length < 2) return;
+            var sessionTotal    = grp.reduce(function(s,o){ return s + (parseFloat(o.total)||0); }, 0);
+            var totalItems      = grp.reduce(function(s,o){ return s + o.items.length; }, 0);
+            var orderNums       = grp.map(function(o){ return '#'+escHtml(o.order_number); }).join(', ');
+            tableSessionHtml +=
+                '<div style="margin-bottom:12px;padding:14px 16px;border-radius:14px;background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.25);">' +
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
+                '<svg width="16" height="16" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 6h18M3 14h18M3 18h18"/></svg>' +
+                '<span style="font-size:13px;font-weight:700;color:#facc15;">Table ' + escHtml(tbl) + ' — Session Total</span>' +
+                '</div>' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                '<span style="font-size:12px;color:#9ca3af;">' + grp.length + ' orders · ' + totalItems + ' items<br><span style="font-size:11px;color:#6b7280;">' + orderNums + '</span></span>' +
+                '<span style="font-size:20px;font-weight:800;color:#facc15;">₱' + sessionTotal.toLocaleString() + '</span>' +
+                '</div>' +
+                '</div>';
+        });
+    }
+
     document.getElementById('view-all').innerHTML = active.length
-        ? active.map(o=>buildOrderCard(o)).join('')
+        ? tableSessionHtml + active.map(o=>buildOrderCard(o)).join('')
         : emptyState('<svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>','No active orders','Place an order and track it here.',true);
 
     // Past tab
