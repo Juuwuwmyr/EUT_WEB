@@ -1430,6 +1430,92 @@ if (location.protocol !== 'https:') {
 } else {
     startGpsWatch(); // fallback for browsers without Permissions API
 }
+
+/* ────────────────────────────────────────────────────────
+   PICKUP SLIP AUTO-PRINT POLLING (Rider Side)
+   ──────────────────────────────────────────────────────── */
+let _pickupPollInterval = null;
+let _printedPickups = new Set(); // Track already printed to avoid duplicates
+
+function startPickupPolling() {
+    if (_pickupPollInterval) return; // Already polling
+    
+    console.log('[Rider Polling] Starting pickup slip polling...');
+    
+    // Poll every 3 seconds for pending pickups
+    _pickupPollInterval = setInterval(async () => {
+        try {
+            const res = await fetch('{{ route("rider.pickups.pending") }}', {
+                method: 'GET',
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            });
+            
+            const data = await res.json();
+            
+            if (data.pending_pickups && data.pending_pickups.length > 0) {
+                console.log('[Rider Polling] Found', data.count, 'pending pickups');
+                
+                data.pending_pickups.forEach(async (pickup) => {
+                    // Skip if already printed
+                    if (_printedPickups.has(pickup.id)) return;
+                    
+                    console.log('[Rider Polling] Printing pickup slip for order:', pickup.order_number);
+                    _printedPickups.add(pickup.id);
+                    
+                    // Fetch pickup slip HTML
+                    try {
+                        const slipRes = await fetch('/chef/orders/' + pickup.id + '/pickup-slip.html', {
+                            headers: { 'Accept': 'text/html' },
+                        });
+                        
+                        if (slipRes.ok) {
+                            const html = await slipRes.text();
+                            
+                            // Open in new window and auto-print
+                            const win = window.open('', '_blank', 'width=800,height=600');
+                            win.document.write(html);
+                            win.document.close();
+                            
+                            // Print after short delay to ensure page is loaded
+                            setTimeout(() => {
+                                win.print();
+                                win.close();
+                            }, 300);
+                            
+                            // Mark as printed in backend (prevent future polling)
+                            await fetch('{{ route("rider.pickups.mark-printed", ":orderId") }}'.replace(':orderId', pickup.id), {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                            }).catch(err => console.error('[Rider Polling] Mark printed failed:', err));
+                        }
+                    } catch (err) {
+                        console.error('[Rider Polling] Failed to fetch/print slip:', err);
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('[Rider Polling] Pickup polling error:', err);
+        }
+    }, 3000);
+}
+
+function stopPickupPolling() {
+    if (_pickupPollInterval) {
+        clearInterval(_pickupPollInterval);
+        _pickupPollInterval = null;
+        console.log('[Rider Polling] Stopped pickup slip polling');
+    }
+}
+
+// Start polling on page load
+document.addEventListener('DOMContentLoaded', () => {
+    startPickupPolling();
+});
+
+// Stop polling when leaving page
+window.addEventListener('beforeunload', () => {
+    stopPickupPolling();
+});
 </script>
 @include('partials.pwa-register')
 </body>

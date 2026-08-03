@@ -186,6 +186,37 @@ class RiderController extends Controller
         ]);
     }
 
+    // ── GET /rider/pickups/pending ─────────────────────────
+    // Polling endpoint for rider dashboard to detect pickups
+    public function pendingPickups()
+    {
+        $rider = auth()->user()->rider;
+        
+        // Get recently picked-up orders (last 2 minutes)
+        $pickups = Order::where('rider_id', $rider->id)
+            ->where('status', 'out_for_delivery')
+            ->where('picked_up_at', '>=', now()->subMinutes(2))
+            ->whereNull('pickup_slip_printed_at')
+            ->get(['id', 'order_number', 'picked_up_at']);
+
+        return response()->json([
+            'pending_pickups' => $pickups,
+            'count' => $pickups->count(),
+        ]);
+    }
+
+    // ── POST /rider/pickups/{order}/mark-printed ──────────
+    // Mark pickup slip as printed
+    public function markPickupPrinted(Order $order)
+    {
+        $rider = auth()->user()->rider;
+        $this->authorizeRiderOrder($order, $rider);
+
+        $order->update(['pickup_slip_printed_at' => now()]);
+
+        return response()->json(['success' => true]);
+    }
+
     // ── Private ────────────────────────────────────────────
     private function authorizeRiderOrder(Order $order, Rider $rider): void
     {

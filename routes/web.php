@@ -65,6 +65,8 @@ Route::prefix('rider')->name('rider.')->middleware(['auth', 'rider'])->group(fun
     Route::post('/orders/{order}/picked-up',        [\App\Http\Controllers\RiderController::class, 'pickedUp'])->name('orders.picked-up');
     Route::post('/orders/{order}/delivered',        [\App\Http\Controllers\RiderController::class, 'delivered'])->name('orders.delivered');
     Route::get('/earnings',                         [\App\Http\Controllers\RiderController::class, 'earnings'])->name('earnings');
+    Route::get('/pickups/pending',                  [\App\Http\Controllers\RiderController::class, 'pendingPickups'])->name('pickups.pending');
+    Route::post('/pickups/{order}/mark-printed',    [\App\Http\Controllers\RiderController::class, 'markPickupPrinted'])->name('pickups.mark-printed');
 });
 
 // -------------------------------------------------------
