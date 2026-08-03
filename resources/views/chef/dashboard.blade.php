@@ -579,11 +579,43 @@ const ACCEPT_URL  = id => IS_ADMIN ? `/admin/orders/${id}/accept` : `/chef/order
 const START_URL   = id => `/chef/orders/${id}/start`;
 const READY_URL   = id => `/chef/orders/${id}/ready`;
 
+console.log('[INIT] Constants:', {
+    CSRF_TOKEN: !!CSRF_TOKEN,
+    IS_ADMIN,
+    KITCHEN_URL,
+    currentUser: '{{ auth()->user()->name ?? "Unknown" }}'
+});
+
 let lastNewCount = 0; // not used but kept to avoid reference errors
 let orderDataMap = {};
 let fallbackTimer = null;
 let printedOrderIds = new Set();
 let autoPrintEnabled = false;
+
+function testKitchenAPI() {
+    console.log('[TEST] Testing kitchen API endpoint...');
+    fetch(KITCHEN_URL, { 
+        headers: { 'Accept': 'application/json' } 
+    })
+    .then(res => {
+        console.log('[TEST] Response status:', res.status);
+        console.log('[TEST] Response headers:', Array.from(res.headers.entries()));
+        return res.text();
+    })
+    .then(text => {
+        console.log('[TEST] Raw response:', text.substring(0, 200));
+        try {
+            const data = JSON.parse(text);
+            console.log('[TEST] Parsed JSON:', data);
+        } catch (e) {
+            console.error('[TEST] JSON parse error:', e);
+        }
+    })
+    .catch(err => console.error('[TEST] Fetch error:', err));
+}
+
+// Make it available globally for testing
+window.testKitchenAPI = testKitchenAPI;
 
 function enableAutoPrint() {
     autoPrintEnabled = true;
@@ -1053,7 +1085,7 @@ async function kitchenAction(action, orderId, btn) {
 }
 
 async function refreshKitchen(manual) {
-    console.log('[KITCHEN] Starting refresh...');
+    console.log('[KITCHEN] Starting refresh...', { manual, url: KITCHEN_URL });
     
     try {
         console.log('[KITCHEN] Fetching from:', KITCHEN_URL);
@@ -1070,7 +1102,8 @@ async function refreshKitchen(manual) {
         });
         clearTimeout(timer);
         
-        console.log('[KITCHEN] Response:', res.status, res.statusText);
+        console.log('[KITCHEN] Response status:', res.status, res.statusText);
+        console.log('[KITCHEN] Response headers:', Array.from(res.headers.entries()));
 
         if (!res.ok) throw new Error('HTTP ' + res.status);
 
@@ -1086,13 +1119,17 @@ async function refreshKitchen(manual) {
         }
 
         const data = await res.json();
-        console.log('[KITCHEN] Parsed data:', data);
+        console.log('[KITCHEN] Parsed data keys:', Object.keys(data));
+        console.log('[KITCHEN] Data counts:', {
+            queued: data.queued?.length || 0,
+            cooking: data.cooking?.length || 0
+        });
 
         // Mark live BEFORE rendering so it always updates even if render throws
-        console.log('[KITCHEN] Setting status to live');
+        console.log('[KITCHEN] About to set status to live...');
         setPollingStatus(true);
+        console.log('[KITCHEN] Status set to live, now rendering...');
 
-        console.log('[KITCHEN] Rendering columns...');
         renderColumn('queued',  data.queued  || []);
         renderColumn('cooking', data.cooking || []);
 
@@ -1187,6 +1224,25 @@ function toggleKitchenFullscreen() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('[INIT] DOM loaded, initializing kitchen dashboard...');
+    
+    // Verify critical elements exist
+    const statusEl = document.getElementById('wsStatusText');
+    const dotEl = document.querySelector('.live-dot');
+    const wsEl = document.getElementById('wsStatus');
+    
+    console.log('[INIT] Critical elements check:', {
+        statusEl: !!statusEl,
+        dotEl: !!dotEl,
+        wsEl: !!wsEl
+    });
+    
+    if (!statusEl) {
+        console.error('[INIT] wsStatusText element not found!');
+    } else {
+        console.log('[INIT] Initial status text:', statusEl.textContent);
+    }
+    
     if (window.lucide) lucide.createIcons();
 
     // Check if auto-print was previously enabled
@@ -1219,6 +1275,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (n) n.style.display = 'none';
     }
 
+    console.log('[INIT] Seeding orderDataMap with initial data...');
     // Seed orderDataMap from initial server-rendered data
     @php
         $allKitchenOrders = array_merge(
@@ -1272,6 +1329,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     @endphp
     const _kitchenSeed = @json($kitchenSeed);
+    console.log('[INIT] Kitchen seed data:', _kitchenSeed.length, 'orders');
     _kitchenSeed.forEach(o => {
         orderDataMap[o.id] = o;
         // Seed all namespaced keys so page reload never re-prints existing orders
@@ -1293,11 +1351,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    console.log('[INIT] Setting up Echo subscriptions...');
     // Echo: subscribe to kitchen channel for real-time order updates
     if (window.Echo) {
         try {
             window.Echo.private('kitchen')
                 .listen('.order.updated', (order) => {
+                    console.log('[ECHO] Order updated:', order.id, order.status);
                     // ── AUTO-PRINT RULES ──────────────────────────────────────
                     if (autoPrintEnabled && order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id)) {
                         printedOrderIds.add('accept_' + order.id);
@@ -1319,6 +1379,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Listen to actual WebSocket connection events — don't assume connected
             if (window.Echo.connector?.pusher) {
                 window.Echo.connector.pusher.connection.bind('connected', () => {
+                    console.log('[ECHO] WebSocket connected');
                     updateWSStatus(true);
                 });
                 // Disconnected/unavailable: polling will handle status — no "Reconnecting..." shown
@@ -1326,14 +1387,29 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             console.warn('Echo subscription failed:', e);
         }
+    } else {
+        console.log('[INIT] Echo not available, relying on polling only');
     }
     // No else needed — polling heartbeat sets status green once it succeeds
 
+    console.log('[INIT] Starting polling system...');
     // Always start polling immediately on load (3s interval, regardless of WS)
     if (!fallbackTimer) {
+        console.log('[INIT] Initial refresh call...');
         refreshKitchen(false);
+        console.log('[INIT] Setting up 3-second interval...');
         fallbackTimer = setInterval(() => refreshKitchen(false), 3000);
+        console.log('[INIT] Polling system started');
     }
+    
+    // Fallback: Force status check after a short delay to ensure it's not stuck
+    setTimeout(() => {
+        const statusEl = document.getElementById('wsStatusText');
+        if (statusEl && statusEl.textContent === 'Loading...') {
+            console.warn('[FALLBACK] Status still shows Loading, forcing manual refresh...');
+            refreshKitchen(true);
+        }
+    }, 5000);
 });
 </script>
 @endpush
