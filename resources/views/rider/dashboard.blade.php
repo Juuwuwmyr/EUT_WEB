@@ -1048,46 +1048,23 @@ async function pickedUpAjax(btn, orderId) {
 }
 
 /* ══════════════════════════════════════════════════════
-   PRINT PICKUP SLIP — iframe method, no page nav
+   PRINT TAKEOUT SLIP — opens popup, page handles own print
    Opens print dialog without leaving the rider dashboard
 ══════════════════════════════════════════════════════ */
 function printPickupSlip(orderId) {
-    // Remove any stale iframe
-    const old = document.getElementById('_pickupPrintFrame');
-    if (old) old.remove();
-
-    const iframe = document.createElement('iframe');
-    iframe.id = '_pickupPrintFrame';
-    // Hidden off-screen
-    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;opacity:0;pointer-events:none;';
-    document.body.appendChild(iframe);
-
-    // The pickup slip URL
-    iframe.src = `/chef/orders/${orderId}/pickup-slip`;
-
-    iframe.onload = function() {
-        try {
-            // Give browser a moment to render the receipt content
-            setTimeout(function() {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-                // Mark as printed in backend after print dialog
-                fetch(`/rider/pickups/${orderId}/mark-printed`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                }).catch(() => {});
-                // Clean up iframe after 60s
-                setTimeout(() => { try { iframe.remove(); } catch(e) {} }, 60000);
-            }, 600);
-        } catch(e) {
-            console.warn('Print failed:', e);
-        }
-    };
-
-    iframe.onerror = function() {
-        console.warn('Failed to load pickup slip for printing.');
-        iframe.remove();
-    };
+    const url = `/chef/orders/${orderId}/takeout-slip`;
+    const win = window.open(url, '_blank', 'width=320,height=620,menubar=no,toolbar=no,location=no,status=no');
+    if (!win) {
+        window.open(url, '_blank');
+        return;
+    }
+    // Mark as printed in backend after a short delay
+    win.addEventListener('load', function() {
+        fetch(`/rider/pickups/${orderId}/mark-printed`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+        }).catch(() => {});
+    });
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1550,7 +1527,7 @@ if (location.protocol !== 'https:') {
 }
 
 /* ────────────────────────────────────────────────────────
-   PICKUP SLIP DIALOG NOTIFICATION (Rider Side)
+   TAKEOUT SLIP DIALOG NOTIFICATION (Rider Side)
    Shows dialog when pickup happens, admin prints manually
    ──────────────────────────────────────────────────────── */
 let _pickupPollInterval = null;
@@ -1605,7 +1582,7 @@ function showPickupReadyDialog(pickup) {
         <div style="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px;" onclick="this.style.display='none';">
             <div style="background:#fff;border-radius:12px;padding:24px;max-width:400px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);" onclick="event.stopPropagation();">
                 <div style="font-size:48px;margin-bottom:16px;">📋</div>
-                <h2 style="margin:0 0 8px;color:#000;font-size:20px;font-weight:700;">Pickup Slip Ready</h2>
+                <h2 style="margin:0 0 8px;color:#000;font-size:20px;font-weight:700;">Takeout Slip Ready</h2>
                 <p style="margin:0 0 16px;color:#666;font-size:14px;">Order <strong>#${pickup.order_number}</strong></p>
                 <p style="margin:0 0 24px;color:#888;font-size:13px;">Rider has picked up the order. Admin can now print the slip.</p>
                 <div style="display:flex;gap:12px;justify-content:center;">
@@ -1626,12 +1603,14 @@ function showPickupReadyDialog(pickup) {
     }
 }
 
-// Open pickup slip in new window (admin clicks to view/print)
+// Open takeout slip in new window (admin clicks to view/print)
 function openPickupSlipForPrint(orderId) {
-    const slipUrl = '/chef/orders/' + orderId + '/pickup-slip.html';
-    const win = window.open(slipUrl, '_blank', 'width=800,height=600');
+    const slipUrl = '/chef/orders/' + orderId + '/takeout-slip.html';
+    const win = window.open(slipUrl, '_blank', 'width=320,height=620,menubar=no,toolbar=no,location=no,status=no');
     if (win) {
         win.focus();
+    } else {
+        window.open(slipUrl, '_blank');
     }
 }
 

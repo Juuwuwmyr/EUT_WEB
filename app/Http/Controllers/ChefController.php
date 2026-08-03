@@ -198,13 +198,13 @@ class ChefController extends Controller
     }
 
     /**
-     * Pickup slip — printed when rider confirms pickup (out_for_delivery).
+     * Takeout slip — printed when rider confirms pickup (out_for_delivery).
      * Shows full receipt with rider name, items + prices, and total.
      */
-    public function pickupSlip(Order $order)
+    public function takeoutSlip(Order $order)
     {
         $order->load(['items', 'user', 'rider.user']);
-        return view('admin.partials.pickup-slip', compact('order'));
+        return view('admin.partials.takeout-slip', compact('order'));
     }
 
 

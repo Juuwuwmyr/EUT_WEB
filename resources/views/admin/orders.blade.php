@@ -376,7 +376,7 @@ function renderTable(orders) {
                     '<i data-lucide="settings-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
                 '</button>' +
                 (o.order_type === 'delivery'
-                    ? '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#60a5fa;" onclick="adminPrintPickupSlip(' + o.id + ')" title="Print Pickup Slip">' +
+                    ? '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#60a5fa;" onclick="adminPrintTakeoutSlip(' + o.id + ')" title="Print Takeout Slip">' +
                         '<i data-lucide="printer" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
                       '</button>'
                     : '') +
@@ -405,9 +405,9 @@ function escHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// -- Print pickup slip (delivery orders only) --------------
-function adminPrintPickupSlip(orderId) {
-    var url = '/admin/orders/' + orderId + '/pickup-slip';
+// -- Print takeout slip (delivery orders only) --------------
+function adminPrintTakeoutSlip(orderId) {
+    var url = '/admin/orders/' + orderId + '/takeout-slip';
     var win = window.open(url, '_blank', 'width=320,height=620,menubar=no,toolbar=no,location=no,status=no');
     if (!win) {
         // Popup blocked — open in new tab so user can print manually
@@ -968,10 +968,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.Echo) {
         window.Echo.private('admin.orders')
             .listen('.order.updated', function(order) {
-                // If rider just picked up � print receipt immediately via Echo
+                // If rider just picked up — print receipt immediately via Echo
                 if (order.status === 'out_for_delivery' && !printedPickupIds.has(order.id)) {
                     printedPickupIds.add(order.id);
-                    var receiptUrl = '/chef/orders/' + order.id + '/pickup-slip';
+                    var receiptUrl = '/chef/orders/' + order.id + '/takeout-slip';
                     setTimeout(function() { kitchenAutoPrint(receiptUrl); }, 300);
                 }
                 fetchOrders(); // pull full fresh snapshot from server

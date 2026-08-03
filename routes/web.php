@@ -85,8 +85,8 @@ Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(functi
     Route::get('/orders/{order}/table-receipt.html',    [\App\Http\Controllers\ChefController::class, 'tableReceipt']);
     Route::get('/orders/{order}/kitchen-ticket',        [\App\Http\Controllers\ChefController::class, 'kitchenTicket'])->name('orders.kitchen-ticket');
     Route::get('/orders/{order}/kitchen-ticket.html',   [\App\Http\Controllers\ChefController::class, 'kitchenTicket']);
-    Route::get('/orders/{order}/pickup-slip',           [\App\Http\Controllers\ChefController::class, 'pickupSlip'])->name('orders.pickup-slip');
-    Route::get('/orders/{order}/pickup-slip.html',      [\App\Http\Controllers\ChefController::class, 'pickupSlip']);
+    Route::get('/orders/{order}/takeout-slip',          [\App\Http\Controllers\ChefController::class, 'takeoutSlip'])->name('orders.takeout-slip');
+    Route::get('/orders/{order}/takeout-slip.html',     [\App\Http\Controllers\ChefController::class, 'takeoutSlip']);
 });
 
 // -------------------------------------------------------
@@ -185,7 +185,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::patch('/orders/{order}/status',          [AdminController::class, 'updateOrderStatus'])->name('orders.status');
     Route::patch('/orders/{order}/archive',         [AdminController::class, 'archiveOrder'])->name('orders.archive');
     Route::delete('/orders/{order}',                [AdminController::class, 'deleteOrder'])->name('orders.delete');
-    Route::get('/orders/{order}/pickup-slip',       [\App\Http\Controllers\ChefController::class, 'pickupSlip'])->name('orders.pickup-slip');
+    Route::get('/orders/{order}/takeout-slip',       [\App\Http\Controllers\ChefController::class, 'takeoutSlip'])->name('orders.takeout-slip');
     Route::get('/riders/locations',                 [AdminController::class, 'riderLocations'])->name('riders.locations');
 
     // ── Riders ─────────────────────────────────────────────

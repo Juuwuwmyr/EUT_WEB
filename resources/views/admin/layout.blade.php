@@ -466,7 +466,7 @@ function showAdminPickupNotification(orderId, orderNumber) {
             <div style="display:flex;align-items:flex-start;gap:12px;">
                 <div style="font-size:32px;flex-shrink:0;">📋</div>
                 <div style="flex:1;">
-                    <p style="margin:0 0 4px;color:#000;font-weight:700;font-size:15px;">Pickup Slip Ready</p>
+                    <p style="margin:0 0 4px;color:#000;font-weight:700;font-size:15px;">Takeout Slip Ready</p>
                     <p style="margin:0 0 12px;color:#666;font-size:13px;">Order <strong>#${orderNumber}</strong></p>
                     <div style="display:flex;gap:8px;">
                         <button onclick="document.getElementById('pickup-notif-${orderId}').remove()" style="padding:6px 12px;background:#f0f0f0;border:none;border-radius:6px;cursor:pointer;color:#333;font-weight:600;font-size:12px;">Dismiss</button>
@@ -497,15 +497,14 @@ function showAdminPickupNotification(orderId, orderNumber) {
     }, 15000);
 }
 
-// Open pickup slip in new window for admin to print
+// Open takeout slip in new window for admin to print
 function openAdminPickupSlip(orderId) {
-    const slipUrl = '/chef/orders/' + orderId + '/pickup-slip.html';
-    const win = window.open(slipUrl, 'pickup_slip_' + orderId, 'width=800,height=600,scrollbars=yes,resizable=yes');
+    const slipUrl = '/chef/orders/' + orderId + '/takeout-slip.html';
+    const win = window.open(slipUrl, 'takeout_slip_' + orderId, 'width=320,height=620,menubar=no,toolbar=no,location=no,status=no');
     if (win) {
         win.focus();
-        console.log('Pickup slip opened for order:', orderId);
     } else {
-        alert('Please allow popups to print pickup slips');
+        window.open(slipUrl, '_blank');
     }
 }
 </script>

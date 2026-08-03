@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=185, initial-scale=1.0, maximum-scale=1.0">
-<title>Pickup Slip {{ $order->order_number }}</title>
+<title>Takeout Slip {{ $order->order_number }}</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body {
@@ -22,7 +22,7 @@ hr.double { border-top: 3px double #000; }
 .store-name { font-size: 13px; font-weight: bold; text-align: center; letter-spacing: 1px; margin-bottom: 1px; }
 .store-sub  { font-size: 8px; text-align: center; margin-bottom: 3px; }
 
-.pickup-label {
+.takeout-label {
     font-size: 15px;
     font-weight: bold;
     letter-spacing: 2px;
@@ -84,7 +84,7 @@ hr.double { border-top: 3px double #000; }
 <div class="store-sub">Naujan, Oriental Mindoro</div>
 <hr class="solid">
 
-<div class="pickup-label">🛵 PICKUP SLIP 🛵</div>
+<div class="takeout-label">🛵 TAKEOUT SLIP 🛵</div>
 <div class="order-num">{{ $order->order_number }}</div>
 <hr>
 
@@ -142,16 +142,6 @@ hr.double { border-top: 3px double #000; }
 
 <hr class="double">
 
-<div class="total-row">
-    <span>Subtotal</span>
-    <span>₱{{ number_format($order->subtotal ?? $subtotalCalc, 2) }}</span>
-</div>
-@if(($order->delivery_fee ?? 0) > 0)
-<div class="total-row">
-    <span>Delivery Fee</span>
-    <span>₱{{ number_format($order->delivery_fee, 2) }}</span>
-</div>
-@endif
 <div class="total-row grand">
     <span>TOTAL</span>
     <span>₱{{ number_format($order->total, 2) }}</span>
@@ -171,8 +161,8 @@ hr.double { border-top: 3px double #000; }
 @endif
 
 <div class="footer">
-    <div>Picked up: {{ now()->format('M d, Y · g:i A') }}</div>
-    <div style="margin-top:2px;font-weight:bold;">*** PICKUP / DELIVERY COPY ***</div>
+    <div>Printed: {{ now()->format('M d, Y · g:i A') }}</div>
+    <div style="margin-top:2px;font-weight:bold;">*** TAKEOUT / DELIVERY COPY ***</div>
     <div style="margin-top:1px;">Thank you! 🙏</div>
 </div>
 
@@ -193,4 +183,3 @@ window.addEventListener('afterprint', function () {
 </script>
 </body>
 </html>
-
