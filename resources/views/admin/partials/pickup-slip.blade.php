@@ -178,50 +178,41 @@ hr.double { border-top: 3px double #000; }
 
 <script>
 function _fixW() { document.body.style.width = '185px'; document.body.style.maxWidth = '185px'; }
+var _inIframe = (window.parent && window.parent !== window);
+
 document.addEventListener('DOMContentLoaded', function() {
     _fixW();
-    // Auto-print after DOM is fully loaded
-    setTimeout(function () { 
-        try { 
-            window.focus();
-            // Use setTimeout to ensure print is called after focus
-            setTimeout(function() {
-                window.print();
-            }, 100);
-        } catch(e) { 
-            console.error('Print error:', e);
-        } 
-    }, 200);
+    // Only auto-print when opened as a standalone popup, NOT when embedded in iframe
+    // (when in iframe, the parent calls contentWindow.print() after onload)
+    if (!_inIframe) {
+        setTimeout(function () {
+            try {
+                window.focus();
+                setTimeout(function() { window.print(); }, 100);
+            } catch(e) { console.error('Print error:', e); }
+        }, 200);
+    }
 });
+
 window.addEventListener('load', function() {
     _fixW();
-    // Backup auto-print on full page load
-    if (window.opener || (window.parent && window.parent !== window)) {
+    // Backup auto-print only for standalone popup (not iframe)
+    if (!_inIframe && window.opener) {
         setTimeout(function() {
             try { window.print(); } catch(e) {}
         }, 300);
     }
 });
+
 window.addEventListener('afterprint', function () {
-    console.log('Print completed, closing window...');
+    // Only close/back when opened as standalone popup
     if (window.opener) {
-        setTimeout(function () { 
-            try { window.close(); } catch(e) { 
-                console.log('Could not auto-close, user must close manually');
-            } 
+        setTimeout(function () {
+            try { window.close(); } catch(e) {}
         }, 500);
-    } else if (window.parent && window.parent !== window) {
-        try { 
-            window.parent.postMessage({ type: 'pickup_slip_printed' }, '*'); 
-        } catch(e) {}
     }
+    // No postMessage, no history.back — let the parent iframe handle cleanup
 });
-// Fallback close after 15 seconds if user doesn't interact
-if (window.opener) { 
-    setTimeout(function () { 
-        try { window.close(); } catch(e) {} 
-    }, 15000); 
-}
 </script>
 </body>
 </html>
