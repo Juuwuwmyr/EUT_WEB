@@ -77,6 +77,7 @@ Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(functi
     Route::post('/orders/{order}/ready',            [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.ready');
     Route::post('/orders/{order}/assign-rider',     [\App\Http\Controllers\ChefController::class, 'assignRider'])->name('orders.assign-rider');
     Route::get('/orders/{order}/receipt',           [\App\Http\Controllers\ChefController::class, 'receipt'])->name('orders.receipt');
+    Route::get('/orders/{order}/table-receipt',     [\App\Http\Controllers\ChefController::class, 'tableReceipt'])->name('orders.table-receipt');
     Route::get('/orders/{order}/kitchen-ticket',    [\App\Http\Controllers\ChefController::class, 'kitchenTicket'])->name('orders.kitchen-ticket');
 });
 

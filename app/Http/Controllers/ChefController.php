@@ -141,12 +141,43 @@ class ChefController extends Controller
     }
 
     /**
-     * Get the kitchen receipt for an order.
+     * Get the kitchen receipt for a single order.
      */
     public function receipt(Order $order)
     {
         $order->load(['items', 'user']);
         return view('admin.partials.kitchen-receipt', compact('order'));
+    }
+
+    /**
+     * Get a combined receipt for all delivered dine-in orders at the same table.
+     * Falls back to a single-order receipt if the order has no table number.
+     */
+    public function tableReceipt(Order $order)
+    {
+        $order->load(['items', 'user']);
+
+        if (!$order->table_number) {
+            return view('admin.partials.kitchen-receipt', compact('order'));
+        }
+
+        // Gather all delivered orders for this table from today (same table session)
+        $orders = Order::with(['items'])
+            ->where('order_type', 'dine_in')
+            ->where('table_number', $order->table_number)
+            ->where('status', 'delivered')
+            ->whereDate('created_at', $order->created_at->toDateString())
+            ->oldest()
+            ->get();
+
+        // Safety: if somehow empty, fall back to the single order
+        if ($orders->isEmpty()) {
+            $orders = collect([$order]);
+        }
+
+        $tableNumber = $order->table_number;
+
+        return view('admin.partials.table-receipt', compact('orders', 'tableNumber'));
     }
 
     /**

@@ -338,6 +338,11 @@ function renderTable(orders) {
             act = { label: o.order_type === 'pickup' ? 'Picked Up' : 'Complete', icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
         }
 
+        // Dine-in accepted: new items may have been merged in — show Complete so admin can close the table
+        if (o.status === 'accepted' && o.order_type === 'dine_in') {
+            act = { label:'Complete', icon:'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
+        }
+
         if (act) {
             actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;white-space:nowrap;" ' +
                 'onclick="quickAction(' + o.id + ',\'' + act.type + '\',\'' + (act.next || '') + '\',this)">' +

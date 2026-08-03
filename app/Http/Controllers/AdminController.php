@@ -880,7 +880,13 @@ class AdminController extends Controller
             ];
             // Auto-print receipt when admin marks as complete (delivered)
             if ($request->status === 'delivered') {
-                $response['receipt_url'] = route('chef.orders.receipt', $order->id);
+                // Dine-in with a table number → combined table receipt (all orders at that table)
+                // Everything else → single-order receipt
+                if ($order->order_type === 'dine_in' && $order->table_number) {
+                    $response['receipt_url'] = route('chef.orders.table-receipt', $order->id);
+                } else {
+                    $response['receipt_url'] = route('chef.orders.receipt', $order->id);
+                }
             }
             return response()->json($response);
         }
