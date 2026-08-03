@@ -328,6 +328,18 @@
             </div>
         </div>
 
+        <!-- Dine-in Location Warning (only shown when not at restaurant) -->
+        <div id="dineInLocationWarning" style="display:none;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.25rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:.75rem;margin-bottom:1rem;flex-wrap:wrap;flex-direction:column;text-align:center;">
+            <div style="display:flex;align-items:center;gap:.6rem;width:100%;justify-content:center;">
+                <svg width="1.1rem" height="1.1rem" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/>
+                    <circle cx="12" cy="9" r="2.5" stroke-width="1.75"/>
+                </svg>
+                <p style="font-size:.8rem;font-weight:700;color:#ef4444;margin:0;">Dine-in orders require you to be at our restaurant location</p>
+            </div>
+            <p style="font-size:.75rem;color:#9ca3af;margin:0;width:100;">Please visit us in person to place a dine-in order.</p>
+        </div>
+
         <!-- Payment Method -->
         <div class="card" id="paymentMethodCard">
             <div class="card-header">
@@ -630,11 +642,50 @@ function selectOrderType(el, type){
     const tableInput = document.getElementById('tableNumberInput');
     if (tableInput) tableInput.required = (type === 'dine_in');
 
+    // Show dine-in location warning if not at restaurant
+    const dineInWarning = document.getElementById('dineInLocationWarning');
+    if (dineInWarning) {
+        if (type === 'dine_in') {
+            const atRestaurant = checkIfAtRestaurant();
+            dineInWarning.style.display = atRestaurant ? 'none' : 'flex';
+        } else {
+            dineInWarning.style.display = 'none';
+        }
+    }
+
     // Hide/Show payment method card — only visible for delivery
     const paymentCard = document.getElementById('paymentMethodCard');
     if(paymentCard) {
         paymentCard.style.display = type === 'delivery' ? 'block' : 'none';
     }
+}
+
+function checkIfAtRestaurant() {
+    // Restaurant coords
+    const restLat = 13.321512;
+    const restLng = 121.302098;
+    const maxDist = 500; // meters
+    const earthR = 6371;
+
+    // Get customer's current location
+    const cLat = _gpsLat || (function() {
+        try { const c = JSON.parse(sessionStorage.getItem('eut_geo_ok') || 'null'); return c?.lat || null; } catch(e) { return null; }
+    })();
+    const cLng = _gpsLng || (function() {
+        try { const c = JSON.parse(sessionStorage.getItem('eut_geo_ok') || 'null'); return c?.lng || null; } catch(e) { return null; }
+    })();
+
+    if (!cLat || !cLng) return false; // No location data
+
+    // Calculate distance using Haversine
+    const dLat = (Math.PI / 180) * (cLat - restLat);
+    const dLng = (Math.PI / 180) * (cLng - restLng);
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2)
+            + Math.cos((Math.PI / 180) * restLat) * Math.cos((Math.PI / 180) * cLat)
+            * Math.sin(dLng/2) * Math.sin(dLng/2);
+    const distMeters = earthR * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 1000;
+
+    return distMeters <= maxDist;
 }
 
 /* ═══════════════════════════════════
