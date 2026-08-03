@@ -124,6 +124,7 @@ var activeFilter = '{{ request("status","") }}';
 var dateFilter   = 'today'; // 'today' | 'all' | 'archived'
 var pollTimer    = null;
 var POLL_INTERVAL = 5000; // 5 seconds
+var printedPickupIds = new Set(); // track which orders already auto-printed on pickup
 
 // ── Error Log ────────────────────────────────────────────
 var errorLogEntries = [];
@@ -235,6 +236,15 @@ async function fetchOrders() {
         ORDERS_MAP = {};
         data.orders.forEach(function(o) { ORDERS_MAP[o.id] = o; });
         RIDERS = data.riders || [];
+
+        // Auto-print receipt when an order transitions to out_for_delivery (rider pickup)
+        data.orders.forEach(function(o) {
+            if (o.status === 'out_for_delivery' && !printedPickupIds.has(o.id)) {
+                printedPickupIds.add(o.id);
+                var receiptUrl = '/chef/orders/' + o.id + '/receipt';
+                setTimeout(function() { kitchenAutoPrint(receiptUrl); }, 400);
+            }
+        });
 
         renderTable(data.orders);
 
@@ -891,6 +901,20 @@ async function initAdminRiderMap(o) {
     }
 }
 
+function kitchenAutoPrint(receiptUrl) {
+    var old = document.getElementById('adminPickupPrintFrame');
+    if (old) old.remove();
+    var iframe = document.createElement('iframe');
+    iframe.id = 'adminPickupPrintFrame';
+    iframe.src = receiptUrl;
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
+    document.body.appendChild(iframe);
+    iframe.onload = function() {
+        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) { console.warn('Auto-print pickup receipt failed:', e); }
+        setTimeout(function() { iframe.remove(); }, 30000);
+    };
+}
+
 function printReceipt(receiptUrl) {
     const w    = 220; // 200px content + padding buffer
     const h    = 800;
@@ -923,10 +947,26 @@ document.addEventListener('DOMContentLoaded', function() {
     // Always start polling so orders refresh even without WebSockets
     startPolling();
 
+    // Seed printedPickupIds with orders already in out_for_delivery/delivered
+    // so page reload doesn't re-trigger prints for old orders
+    setTimeout(function() {
+        Object.values(ORDERS_MAP).forEach(function(o) {
+            if (['out_for_delivery','delivered'].includes(o.status)) {
+                printedPickupIds.add(o.id);
+            }
+        });
+    }, 2000); // after first fetchOrders completes
+
     // Echo: real-time nudge — fetch fresh data immediately on any order event
     if (window.Echo) {
         window.Echo.private('admin.orders')
-            .listen('.order.updated', function() {
+            .listen('.order.updated', function(order) {
+                // If rider just picked up — print receipt immediately via Echo
+                if (order.status === 'out_for_delivery' && !printedPickupIds.has(order.id)) {
+                    printedPickupIds.add(order.id);
+                    var receiptUrl = '/chef/orders/' + order.id + '/receipt';
+                    setTimeout(function() { kitchenAutoPrint(receiptUrl); }, 300);
+                }
                 fetchOrders(); // pull full fresh snapshot from server
             });
     }
