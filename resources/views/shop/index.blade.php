@@ -607,6 +607,7 @@
 
 
 <!-- CLOSED BANNER -->
+@if(false) {{-- Shop is always open (controlled by Echo) --}}
 <div id="shopClosedBanner" style="background:linear-gradient(135deg,#7f1d1d,#991b1b);border-bottom:1px solid rgba(239,68,68,.4);padding:12px 16px;text-align:center;position:relative;z-index:200;">
     <p style="font-size:13px;font-weight:700;color:#fca5a5;margin:0;display:flex;align-items:center;justify-content:center;gap:8px;">
         <svg width="16" height="16" fill="none" stroke="#fca5a5" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
