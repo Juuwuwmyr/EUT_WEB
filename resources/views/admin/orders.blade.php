@@ -407,25 +407,19 @@ function escHtml(str) {
 
 // -- Print pickup slip (delivery orders only) --------------
 function adminPrintPickupSlip(orderId) {
-    var old = document.getElementById('_adminPickupPrintFrame');
-    if (old) old.remove();
-
-    var iframe = document.createElement('iframe');
-    iframe.id = '_adminPickupPrintFrame';
-    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;opacity:0;pointer-events:none;';
-    document.body.appendChild(iframe);
-    iframe.src = '/admin/orders/' + orderId + '/pickup-slip';
-
-    iframe.onload = function() {
+    var url  = '/admin/orders/' + orderId + '/pickup-slip';
+    var win  = window.open(url, '_blank', 'width=320,height=600,menubar=no,toolbar=no,location=no,status=no');
+    if (!win) {
+        // Popup was blocked — fall back to a plain new tab
+        window.open(url, '_blank');
+        return;
+    }
+    win.addEventListener('load', function() {
         setTimeout(function() {
-            try {
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-            } catch(e) { console.warn('Print failed', e); }
-            setTimeout(function() { try { iframe.remove(); } catch(e) {} }, 60000);
-        }, 500);
-    };
-    iframe.onerror = function() { iframe.remove(); };
+            win.focus();
+            win.print();
+        }, 400);
+    });
 }
 
 // -- Rider card selection ----------------------------------
