@@ -596,6 +596,7 @@ let fallbackTimer = null;
 let printedOrderIds = new Set();
 let printedItemIds = {}; // orderId -> Set of item IDs already printed
 let autoPrintEnabled = false;
+let columnSignatures = {}; // col -> last rendered signature (for smart diff)
 
 function testKitchenAPI() {
     console.log('[TEST] Testing kitchen API endpoint...');
@@ -755,6 +756,13 @@ function renderColumn(col, orders) {
     const countEl = document.getElementById('count-' + col);
     if (!el) return;
 
+    // ── Smart diff: skip re-render if nothing actually changed ────────────────
+    // Build a lightweight signature from order IDs + updated_at timestamps.
+    // If it matches the last render, skip innerHTML to prevent flicker.
+    const sig = orders.map(o => o.id + ':' + (o.updated_at || o.elapsed_mins || '')).join('|');
+    const countChanged = countEl.textContent != orders.length;
+    if (!countChanged && columnSignatures[col] === sig) return; // nothing changed
+    columnSignatures[col] = sig;
     countEl.textContent = orders.length;
 
     if (!orders.length) {
@@ -1421,13 +1429,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // No else needed — polling heartbeat sets status green once it succeeds
 
     console.log('[INIT] Starting polling system...');
-    // Always start polling immediately on load (3s interval, regardless of WS)
+    // Echo is the primary real-time driver.
+    // Polling runs every 30s as a slow-sync fallback only (not for real-time updates).
+    // This eliminates the 3-second flicker caused by full DOM rebuilds.
     if (!fallbackTimer) {
         console.log('[INIT] Initial refresh call...');
         refreshKitchen(false);
-        console.log('[INIT] Setting up 3-second interval...');
-        fallbackTimer = setInterval(() => refreshKitchen(false), 3000);
-        console.log('[INIT] Polling system started');
+        console.log('[INIT] Setting up 30-second slow-sync interval (Echo is primary)...');
+        fallbackTimer = setInterval(() => refreshKitchen(false), 30000);
+        console.log('[INIT] Slow-sync fallback started');
     }
     
     // Fallback: Force status check after a short delay to ensure it's not stuck

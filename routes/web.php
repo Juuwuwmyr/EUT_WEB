@@ -82,6 +82,8 @@ Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(functi
     Route::get('/orders/{order}/table-receipt.html',    [\App\Http\Controllers\ChefController::class, 'tableReceipt']);
     Route::get('/orders/{order}/kitchen-ticket',        [\App\Http\Controllers\ChefController::class, 'kitchenTicket'])->name('orders.kitchen-ticket');
     Route::get('/orders/{order}/kitchen-ticket.html',   [\App\Http\Controllers\ChefController::class, 'kitchenTicket']);
+    Route::get('/orders/{order}/pickup-slip',           [\App\Http\Controllers\ChefController::class, 'pickupSlip'])->name('orders.pickup-slip');
+    Route::get('/orders/{order}/pickup-slip.html',      [\App\Http\Controllers\ChefController::class, 'pickupSlip']);
 });
 
 // -------------------------------------------------------

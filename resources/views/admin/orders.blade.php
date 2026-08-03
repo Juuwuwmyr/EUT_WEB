@@ -253,7 +253,7 @@ async function fetchOrders() {
             data.orders.forEach(function(o) {
                 if (o.status === 'out_for_delivery' && !printedPickupIds.has(o.id)) {
                     printedPickupIds.add(o.id);
-                    var receiptUrl = '/chef/orders/' + o.id + '/receipt';
+                    var receiptUrl = '/chef/orders/' + o.id + '/pickup-slip';
                     setTimeout(function() { kitchenAutoPrint(receiptUrl); }, 400);
                 }
             });
@@ -977,7 +977,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // If rider just picked up — print receipt immediately via Echo
                 if (order.status === 'out_for_delivery' && !printedPickupIds.has(order.id)) {
                     printedPickupIds.add(order.id);
-                    var receiptUrl = '/chef/orders/' + order.id + '/receipt';
+                    var receiptUrl = '/chef/orders/' + order.id + '/pickup-slip';
                     setTimeout(function() { kitchenAutoPrint(receiptUrl); }, 300);
                 }
                 fetchOrders(); // pull full fresh snapshot from server
