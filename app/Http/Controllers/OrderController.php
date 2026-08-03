@@ -124,14 +124,14 @@ class OrderController extends Controller
             $total = round($subtotal + $deliveryFee, 2);
 
             // ── Dine-in: merge into existing active order for same table ────
-            // Only merge when the existing order is still 'pending' (not yet accepted).
-            // If it's already accepted/preparing the kitchen is working on it — create a
-            // new pending order so the admin must accept it and the kitchen prints a new ticket.
+            // Always merge new items into the active table order (same table number, any user).
+            // If the order was already accepted/preparing, reset it to 'pending' so the
+            // admin must re-accept and the kitchen gets a new print for the added items.
             if ($request->order_type === 'dine_in' && $request->table_number) {
-                $existingOrder = Order::where('user_id', auth()->id())
-                    ->where('order_type', 'dine_in')
+                $existingOrder = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
-                    ->where('status', 'pending')
+                    ->whereIn('status', ['pending', 'accepted', 'preparing'])
+                    ->whereDate('created_at', today())
                     ->latest()
                     ->first();
 
@@ -143,16 +143,26 @@ class OrderController extends Controller
 
                     // Recalculate totals from all items
                     $newSubtotal = $existingOrder->items()->sum('subtotal');
-                    $existingOrder->update([
+
+                    $updateData = [
                         'subtotal' => round($newSubtotal, 2),
                         'total'    => round($newSubtotal, 2), // dine-in has no delivery fee
-                        // Append new notes if any
                         'notes'    => $request->notes
                             ? ($existingOrder->notes
                                 ? $existingOrder->notes . ' | ' . $request->notes
                                 : $request->notes)
                             : $existingOrder->notes,
-                    ]);
+                    ];
+
+                    // If already in kitchen (accepted/preparing), push back to pending
+                    // so admin must re-accept — this triggers a new kitchen ticket print
+                    if (in_array($existingOrder->status, ['accepted', 'preparing'])) {
+                        $updateData['status']      = 'pending';
+                        $updateData['accepted_at'] = null;
+                        $updateData['prepared_at'] = null;
+                    }
+
+                    $existingOrder->update($updateData);
 
                     DB::commit();
                     broadcast(new OrderStatusUpdated($existingOrder))->toOthers();
@@ -162,8 +172,8 @@ class OrderController extends Controller
                         'order_id'     => $existingOrder->id,
                         'order_number' => $existingOrder->order_number,
                         'total'        => round($newSubtotal, 2),
-                        'merged'       => true, // let frontend know it was merged
-                        'message'      => 'Items added to your existing table order.',
+                        'merged'       => true,
+                        'message'      => 'Items added to your table order.',
                     ]);
                 }
             }
