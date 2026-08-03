@@ -492,6 +492,22 @@
     </div>
 </div>
 
+{{-- Auto-print unlock banner — shown until chef clicks once --}}
+<div id="autoPrintBanner" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1.25rem;background:rgba(217,119,6,.1);border:1px solid rgba(217,119,6,.35);border-radius:.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:.6rem;">
+        <i data-lucide="printer" style="width:1.1rem;height:1.1rem;color:#d97706;stroke-width:2;flex-shrink:0;"></i>
+        <div>
+            <p style="font-size:.8rem;font-weight:700;color:#d97706;margin:0 0 .1rem;">Auto-Print is ready — click once to activate</p>
+            <p style="font-size:.72rem;color:var(--text-muted);margin:0;">Browser requires one interaction before silent printing works. Click the button to unlock.</p>
+        </div>
+    </div>
+    <button type="button" onclick="unlockAutoPrint()" id="unlockPrintBtn"
+        style="display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.2rem;border-radius:.5rem;background:linear-gradient(135deg,#d97706,#f59e0b);border:none;color:#000;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+        <i data-lucide="printer" style="width:.85rem;height:.85rem;stroke-width:2.5;"></i>
+        Enable Auto-Print
+    </button>
+</div>
+
 <div class="kitchen-board" id="kitchenBoard">
     {{-- Queue (accepted by admin) --}}
     <div class="kitchen-col" data-col="queued">
@@ -565,6 +581,29 @@ let lastNewCount = 0; // not used but kept to avoid reference errors
 let orderDataMap = {};
 let fallbackTimer = null;
 let printedOrderIds = new Set();
+let autoPrintUnlocked = false; // requires one user interaction to unlock
+
+function unlockAutoPrint() {
+    autoPrintUnlocked = true;
+    const banner = document.getElementById('autoPrintBanner');
+    if (banner) {
+        banner.style.background = 'rgba(16,185,129,.1)';
+        banner.style.borderColor = 'rgba(16,185,129,.35)';
+        banner.innerHTML = `
+            <div style="display:flex;align-items:center;gap:.6rem;">
+                <i data-lucide="check-circle-2" style="width:1.1rem;height:1.1rem;color:#10b981;stroke-width:2;flex-shrink:0;"></i>
+                <p style="font-size:.8rem;font-weight:700;color:#10b981;margin:0;">✓ Auto-Print enabled — receipts will print automatically on every new order</p>
+            </div>`;
+        if (window.lucide) lucide.createIcons();
+        setTimeout(() => { if (banner) banner.style.display = 'none'; }, 3000);
+    }
+    // Do a test print with an invisible iframe to warm up the print context
+    const warmup = document.createElement('iframe');
+    warmup.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
+    warmup.srcdoc = '<html><body></body></html>';
+    document.body.appendChild(warmup);
+    warmup.onload = () => { try { warmup.contentWindow.print(); } catch(e){} setTimeout(() => warmup.remove(), 5000); };
+}
 
 function elapsedBadge(mins) {
     let bg, color, label;
@@ -822,6 +861,10 @@ function escapeHtml(str) {
 }
 
 function autoPrintKitchenTicket(orderId) {
+    if (!autoPrintUnlocked) {
+        console.log('[AutoPrint] Not unlocked yet — skipping print for order', orderId);
+        return;
+    }
     const url = `/chef/orders/${orderId}/kitchen-ticket`;
 
     // Remove any existing print iframe
@@ -865,6 +908,10 @@ function printReceipt(receiptUrl) {
 }
 
 function kitchenAutoPrint(receiptUrl) {
+    if (!autoPrintUnlocked) {
+        console.log('[AutoPrint] Not unlocked yet — skipping receipt print');
+        return;
+    }
     // Remove any existing auto-print iframe for receipts
     const oldReceipt = document.getElementById('kitchenReceiptPrintFrame');
     if (oldReceipt) oldReceipt.remove();
