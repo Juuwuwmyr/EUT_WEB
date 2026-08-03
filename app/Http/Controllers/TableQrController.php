@@ -19,4 +19,11 @@ class TableQrController extends Controller
         $tables = range(1, 30);
         return view('admin.table-qrcodes-print', compact('tables'));
     }
+
+    // ── GET /admin/table-qrcodes/coupon — print QR codes for coupon bond ──
+    public function coupon()
+    {
+        $tables = range(1, 20);
+        return view('admin.table-qrcodes-coupon', compact('tables'));
+    }
 }

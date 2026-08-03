@@ -200,4 +200,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // ── Table QR Codes ─────────────────────────────────────
     Route::get('/table-qrcodes',      [TableQrController::class, 'index'])->name('table-qrcodes');
     Route::get('/table-qrcodes/print', [TableQrController::class, 'print'])->name('table-qrcodes.print');
+    Route::get('/table-qrcodes/coupon', [TableQrController::class, 'coupon'])->name('table-qrcodes.coupon');
 });
