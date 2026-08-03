@@ -449,6 +449,14 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
     renderSummary();
     @auth loadAddresses(); @endauth
+
+    // Restore order type selected on shop menu page
+    const savedType = localStorage.getItem('eutOrderType') || 'delivery';
+    const savedLabel = document.querySelector(`.pay-option input[value="${savedType}"]`);
+    if (savedLabel) {
+        const label = savedLabel.closest('.pay-option');
+        if (label) selectOrderType(label, savedType);
+    }
 });
 
 /* ── Helpers ── */
@@ -527,6 +535,7 @@ function selectPay(el){document.querySelectorAll('.pay-option').forEach(l=>l.cla
 /* ── Order Type highlight ── */
 let currentOrderType = 'delivery';
 function selectOrderType(el, type){
+    localStorage.setItem('eutOrderType', type); // persist selection across pages
     const container = el.closest('.card-body');
     container.querySelectorAll('.pay-option').forEach(l=>l.classList.remove('selected'));
     el.classList.add('selected');

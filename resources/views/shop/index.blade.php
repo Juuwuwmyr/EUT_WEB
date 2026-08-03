@@ -122,7 +122,7 @@
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
         .hero-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 6px; line-height: 1.2; }
         .hero-sub { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
-        .hero-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .hero-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
         .hero-pill {
             display: flex; align-items: center; gap: 5px;
             background: rgba(255,255,255,0.05);
@@ -130,6 +130,32 @@
             border-radius: 99px; padding: 5px 12px;
             font-size: 11px; color: #9ca3af; font-weight: 500;
         }
+
+        /* -- ORDER TYPE SWITCHER -- */
+        .order-type-switcher {
+            display: flex; gap: 6px; flex-wrap: nowrap;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 4px;
+            width: fit-content; max-width: 100%;
+        }
+        .ot-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 14px; border-radius: 9px; border: none;
+            background: transparent; color: #6b7280;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .ot-btn:hover { color: #d1d5db; background: rgba(255,255,255,0.06); }
+        .ot-btn.active {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(220,38,38,0.4);
+        }
+        .ot-btn.active svg { stroke: #fff; }
+        .light-mode .order-type-switcher { background: rgba(0,0,0,0.06) !important; border-color: rgba(0,0,0,0.1) !important; }
+        .light-mode .ot-btn { color: #6b7280 !important; }
+        .light-mode .ot-btn.active { background: linear-gradient(135deg,#dc2626,#ef4444) !important; color: #fff !important; }
         .hero-img {
             position: absolute;
             right: -30px; bottom: 0;
@@ -431,6 +457,22 @@
                 <span class="hero-pill"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.9 Rating</span>
                 <span class="hero-pill"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Metro Naujan</span>
             </div>
+
+            <!-- ── ORDER TYPE SWITCHER ── -->
+            <div class="order-type-switcher" id="orderTypeSwitcher">
+                <button class="ot-btn active" data-type="delivery" onclick="setOrderType('delivery')">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg>
+                    Delivery
+                </button>
+                <button class="ot-btn" data-type="pickup" onclick="setOrderType('pickup')">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                    Pickup
+                </button>
+                <button class="ot-btn" data-type="dine_in" onclick="setOrderType('dine_in')">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18M3 7h18M3 11h18M3 15h12M3 19h8"/></svg>
+                    Dine In
+                </button>
+            </div>
         </div>
         <img src="{{ asset('images/DeliveryPanda.webp') }}" alt="Delivery Panda" class="hero-img">
     </div>
@@ -560,6 +602,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     updateCartBadge();
     updateCount();
+
+    // Restore saved order type
+    const savedType = localStorage.getItem('eutOrderType') || 'delivery';
+    setOrderType(savedType, false); // false = don't save again on init
 });
 
 /* -- Cart badge -- */
@@ -569,6 +615,18 @@ function updateCartBadge() {
     const badge = document.getElementById('cartBadge');
     badge.textContent = total;
     badge.style.display = total > 0 ? 'flex' : 'none';
+}
+
+/* -- Order type switcher -- */
+function setOrderType(type, save = true) {
+    if (save) localStorage.setItem('eutOrderType', type);
+    document.querySelectorAll('.ot-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === type);
+    });
+    // Update a visible label in the cart/checkout CTA if present
+    const label = document.getElementById('orderTypeLabel');
+    const labels = { delivery: '🛵 Delivery', pickup: '📦 Pickup', dine_in: '🪑 Dine In' };
+    if (label) label.textContent = labels[type] || labels.delivery;
 }
 
 
