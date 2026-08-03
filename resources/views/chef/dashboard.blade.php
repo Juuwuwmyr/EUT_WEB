@@ -489,6 +489,30 @@
         <button type="button" class="btn-ghost" style="font-size:.75rem;" onclick="toggleKitchenFullscreen()">
             <i data-lucide="maximize-2" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Fullscreen
         </button>
+        <button type="button" class="btn-primary" style="font-size:.75rem;" onclick="openWahbSettings()">
+            <i data-lucide="printer" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Bridge Settings
+        </button>
+    </div>
+</div>
+
+{{-- WAHB Web UI Modal --}}
+<div id="wahbModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);z-index:9999;padding:1.5rem;backdrop-filter:blur(4px);">
+    <div style="max-width:1400px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:var(--bg-primary);border-radius:1rem;box-shadow:0 20px 60px rgba(0,0,0,.4);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--border-card);background:var(--bg-filter);">
+            <div style="display:flex;align-items:center;gap:.6rem;">
+                <i data-lucide="printer" style="width:1.1rem;height:1.1rem;color:#818cf8;stroke-width:2;"></i>
+                <h2 style="margin:0;font-size:1rem;font-weight:700;color:var(--text-strong);">WebApp Hardware Bridge Settings</h2>
+                <span style="font-size:.7rem;color:var(--text-muted);margin-left:.5rem;">Configure printer mappings for silent printing</span>
+            </div>
+            <button onclick="closeWahbSettings()" style="width:2rem;height:2rem;border-radius:.5rem;border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;" onmouseover="this.style.background='var(--bg-card)'" onmouseout="this.style.background='transparent'">
+                <i data-lucide="x" style="width:1rem;height:1rem;stroke-width:2.5;"></i>
+            </button>
+        </div>
+        <iframe id="wahbIframe" src="" style="flex:1;border:none;width:100%;background:#fff;"></iframe>
+        <div style="padding:.75rem 1.5rem;border-top:1px solid var(--border-card);background:var(--bg-filter);font-size:.7rem;color:var(--text-muted);display:flex;align-items:center;justify-content:space-between;">
+            <span>Bridge running at <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:3px;color:var(--text-body);">http://127.0.0.1:12212</code></span>
+            <span>Add a printer with key <code style="background:rgba(99,102,241,.15);padding:2px 6px;border-radius:3px;color:#818cf8;font-weight:700;">RECEIPT</code> in Printers section</span>
+        </div>
     </div>
 </div>
 
@@ -1404,5 +1428,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 5000);
 });
+
+// ── WAHB Web UI Modal ───────────────────────────────────────────────────────
+function openWahbSettings() {
+    const modal  = document.getElementById('wahbModal');
+    const iframe = document.getElementById('wahbIframe');
+    if (!modal || !iframe) return;
+    
+    iframe.src = 'http://127.0.0.1:12212';
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function closeWahbSettings() {
+    const modal  = document.getElementById('wahbModal');
+    const iframe = document.getElementById('wahbIframe');
+    if (!modal || !iframe) return;
+    
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    iframe.src = ''; // Stop loading/clear
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('wahbModal');
+        if (modal && modal.style.display === 'block') closeWahbSettings();
+    }
+});
+
 </script>
 @endpush
