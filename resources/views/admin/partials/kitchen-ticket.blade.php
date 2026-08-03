@@ -154,6 +154,9 @@ hr.double { border-top: 3px double #000; }
 
 <div class="row"><span class="label">Customer:</span> <span class="val">{{ $order->user?->name ?? 'Guest' }}</span></div>
 <div class="row"><span class="label">Time:</span> <span class="val">{{ $order->created_at->format('g:i A') }}</span></div>
+@if($order->order_type === 'dine_in' && $order->table_number)
+<div class="row" style="font-size:13px;font-weight:bold;border:1px solid #000;padding:2px 3px;margin:3px 0;text-align:center;">🪑 TABLE {{ $order->table_number }}</div>
+@endif
 @if($order->order_type === 'delivery' && $order->delivery_address)
 <div class="row"><span class="label">Address:</span> <span class="val">{{ $order->delivery_address }}</span></div>
 @endif

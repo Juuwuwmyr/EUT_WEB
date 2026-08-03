@@ -99,6 +99,9 @@ hr.solid {
 <div class="row"><span>Type: </span><span class="bold">{{ $order->order_type_label }}</span></div>
 <div class="row"><span>Date: {{ $order->created_at->format('M d, Y g:i A') }}</span></div>
 <div class="row"><span>Customer: {{ $order->user?->name ?? 'Guest' }}</span></div>
+@if($order->order_type === 'dine_in' && $order->table_number)
+<div class="row"><span class="bold" style="font-size:11px;">Table Number: {{ $order->table_number }}</span></div>
+@endif
 <div class="row"><span>Payment: <strong>
 @if($order->payment_method === 'gcash')
     GCASH
@@ -174,11 +177,15 @@ hr.solid {
 </div>
 
 <script>
-window.onload = function () {
-    document.body.style.width = '185px';
-    document.body.style.maxWidth = '185px';
-    setTimeout(function() { window.print(); }, 300);
-};
+// iframe mode: do NOT auto-print here — parent calls iframe.contentWindow.print()
+// This script only runs if opened directly as a standalone page
+if (window.self === window.top) {
+    window.onload = function () {
+        document.body.style.width = '185px';
+        document.body.style.maxWidth = '185px';
+        setTimeout(function() { window.print(); }, 300);
+    };
+}
 </script>
 </body>
 </html>
