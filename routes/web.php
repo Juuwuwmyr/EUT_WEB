@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\TableQrController;
 
 // -------------------------------------------------------
 // Shop pages
@@ -195,4 +196,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/settings',          [AdminController::class, 'updateSettings'])->name('settings.update');
     Route::post('/settings/password', [AdminController::class, 'updatePassword'])->name('settings.password');
     Route::patch('/settings/toggle-open', [AdminController::class, 'toggleOpen'])->name('settings.toggle-open');
+
+    // ── Table QR Codes ─────────────────────────────────────
+    Route::get('/table-qrcodes',      [TableQrController::class, 'index'])->name('table-qrcodes');
+    Route::get('/table-qrcodes/print', [TableQrController::class, 'print'])->name('table-qrcodes.print');
 });
