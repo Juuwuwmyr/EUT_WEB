@@ -479,9 +479,9 @@
         </div>
     </div>
     <div style="display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;">
-        <span class="kitchen-live" id="wsStatus" title="WebSocket connection status">
-            <span class="live-dot"></span> 
-            <span id="wsStatusText">Connecting...</span>
+        <span class="kitchen-live" id="wsStatus" title="Polling every 3s">
+            <span class="live-dot" style="background:#f59e0b;"></span> 
+            <span id="wsStatusText">Loading...</span>
         </span>
         <button type="button" class="btn-ghost" style="font-size:.75rem;" onclick="refreshKitchen(true)">
             <i data-lucide="refresh-cw" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Refresh
@@ -1069,9 +1069,11 @@ async function refreshKitchen(manual) {
             }
         });
 
+        setPollingStatus(true);
         if (window.lucide) lucide.createIcons();
 
     } catch (e) {
+        setPollingStatus(false);
         if (manual) alert('Could not refresh kitchen board.');
     }
 }
@@ -1094,22 +1096,31 @@ function playNewOrderSound() {
 
 function updateWSStatus(connected) {
     const statusEl = document.getElementById('wsStatusText');
-    const dotEl = document.querySelector('.live-dot');
-    
+    const dotEl    = document.querySelector('.live-dot');
+    const wsEl     = document.getElementById('wsStatus');
+
     if (connected) {
-        if (statusEl) statusEl.textContent = 'Live';
-        if (dotEl) dotEl.style.background = '#22c55e';
-        // Even with WebSocket, keep a 3s poll as safety net for missed events
-        if (!fallbackTimer) {
-            fallbackTimer = setInterval(() => refreshKitchen(false), 3000);
-        }
+        if (statusEl) statusEl.textContent = 'Live (WS)';
+        if (dotEl)    dotEl.style.background = '#22c55e';
+        if (wsEl)     wsEl.title = 'WebSocket connected + polling active';
+    }
+    // If disconnected, don't touch the indicator — polling heartbeat owns it
+    // (avoids "Reconnecting..." flash when Reverb is simply not running)
+}
+
+// Called after every successful poll
+function setPollingStatus(ok) {
+    const statusEl = document.getElementById('wsStatusText');
+    const dotEl    = document.querySelector('.live-dot');
+    const wsEl     = document.getElementById('wsStatus');
+    if (ok) {
+        if (statusEl && !statusEl.textContent.includes('WS')) statusEl.textContent = 'Live';
+        if (dotEl)    dotEl.style.background = '#22c55e';
+        if (wsEl)     wsEl.title = 'Polling every 3s — connected';
     } else {
-        if (statusEl) statusEl.textContent = 'Reconnecting...';
-        if (dotEl) dotEl.style.background = '#f59e0b';
-        // No WebSocket — poll every 1 second
-        if (!fallbackTimer) {
-            fallbackTimer = setInterval(() => refreshKitchen(false), 1000);
-        }
+        if (statusEl) statusEl.textContent = 'Offline';
+        if (dotEl)    dotEl.style.background = '#ef4444';
+        if (wsEl)     wsEl.title = 'Cannot reach server';
     }
 }
 
@@ -1226,49 +1237,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Echo: subscribe to kitchen channel for real-time order updates
     if (window.Echo) {
-        window.Echo.private('kitchen')
-            .listen('.order.updated', (order) => {
-                // ── AUTO-PRINT RULES ──────────────────────────────────────
-                // 1. Order accepted → print kitchen ticket immediately (all types)
-                if (autoPrintEnabled && order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id)) {
-                    printedOrderIds.add('accept_' + order.id);
-                    console.log('🖨️ Echo: Auto-printing kitchen ticket for order', order.order_number);
-                    setTimeout(() => autoPrintKitchenTicket(order.id), 400);
-                }
-                // 2. Chef marks ready (prepared_at set) → print kitchen ticket again
-                if (autoPrintEnabled && order.status === 'preparing' && order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
-                    printedOrderIds.add('ready_' + order.id);
-                    autoPrintKitchenTicket(order.id);
-                }
-                // 3. Rider picks up → print receipt (delivery confirmation)
-                if (autoPrintEnabled && order.status === 'out_for_delivery' && !printedOrderIds.has('pickup_' + order.id)) {
-                    printedOrderIds.add('pickup_' + order.id);
-                    autoPrintKitchenTicket(order.id);
-                }
-                // ─────────────────────────────────────────────────────────
-                // Full kitchen refresh to re-categorise the order
-                refreshKitchen(false);
-            });
-        
-        // Update status when connected
-        updateWSStatus(true);
-        
-        // Handle connection state changes
-        if (window.Echo.connector && window.Echo.connector.pusher) {
-            window.Echo.connector.pusher.connection.bind('connected', () => {
-                updateWSStatus(true);
-            });
-            window.Echo.connector.pusher.connection.bind('disconnected', () => {
-                updateWSStatus(false);
-            });
-            window.Echo.connector.pusher.connection.bind('unavailable', () => {
-                updateWSStatus(false);
-            });
+        try {
+            window.Echo.private('kitchen')
+                .listen('.order.updated', (order) => {
+                    // ── AUTO-PRINT RULES ──────────────────────────────────────
+                    if (autoPrintEnabled && order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id)) {
+                        printedOrderIds.add('accept_' + order.id);
+                        console.log('🖨️ Echo: Auto-printing kitchen ticket for order', order.order_number);
+                        setTimeout(() => autoPrintKitchenTicket(order.id), 400);
+                    }
+                    if (autoPrintEnabled && order.status === 'preparing' && order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
+                        printedOrderIds.add('ready_' + order.id);
+                        autoPrintKitchenTicket(order.id);
+                    }
+                    if (autoPrintEnabled && order.status === 'out_for_delivery' && !printedOrderIds.has('pickup_' + order.id)) {
+                        printedOrderIds.add('pickup_' + order.id);
+                        autoPrintKitchenTicket(order.id);
+                    }
+                    // Full kitchen refresh to re-categorise the order
+                    refreshKitchen(false);
+                });
+
+            // Listen to actual WebSocket connection events — don't assume connected
+            if (window.Echo.connector?.pusher) {
+                window.Echo.connector.pusher.connection.bind('connected', () => {
+                    updateWSStatus(true);
+                });
+                // Disconnected/unavailable: polling will handle status — no "Reconnecting..." shown
+            }
+        } catch (e) {
+            console.warn('Echo subscription failed:', e);
         }
-    } else {
-        // WebSocket not available — fallback polling every 3 seconds starts immediately
-        updateWSStatus(false);
     }
+    // No else needed — polling heartbeat sets status green once it succeeds
 
     // Always start polling immediately on load (3s interval, regardless of WS)
     if (!fallbackTimer) {
