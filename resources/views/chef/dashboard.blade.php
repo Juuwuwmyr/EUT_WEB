@@ -960,15 +960,11 @@ async function refreshKitchen(manual) {
         renderColumn('queued', data.queued);
         renderColumn('cooking', data.cooking);
 
-        // Auto-print newly accepted orders (appearing in queued column)
+        // Auto-print newly accepted orders (appearing in queued column) — ALL order types
         data.queued.forEach(order => {
-            if (!printedOrderIds.has(order.id)) {
-                printedOrderIds.add(order.id);
-                // For delivery: print receipt immediately on accept
-                // For dine-in/pickup: handled by Echo listener on 'accepted' status
-                if (!order.order_type || order.order_type === 'delivery') {
-                    setTimeout(() => kitchenAutoPrint(`/chef/orders/${order.id}/receipt`), 500);
-                }
+            if (!printedOrderIds.has('accept_' + order.id)) {
+                printedOrderIds.add('accept_' + order.id);
+                setTimeout(() => autoPrintKitchenTicket(order.id), 500);
             }
         });
 
@@ -1079,8 +1075,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const _kitchenSeed = @json($kitchenSeed);
     _kitchenSeed.forEach(o => {
         orderDataMap[o.id] = o;
-        if (o.status === 'accepted') {
-            printedOrderIds.add(o.id);
+        // Seed all namespaced keys so page reload never re-prints existing orders
+        if (['accepted','preparing','rider_assigned','out_for_delivery','delivered'].includes(o.status)) {
+            printedOrderIds.add('accept_' + o.id);
+        }
+        if (['rider_assigned','out_for_delivery','delivered'].includes(o.status)) {
+            printedOrderIds.add('ready_' + o.id);
+            printedOrderIds.add('pickup_' + o.id);
         }
     });
 
@@ -1097,18 +1098,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Echo) {
         window.Echo.private('kitchen')
             .listen('.order.updated', (order) => {
-                // Auto-print kitchen ticket when chef marks order ready (prepared_at set)
-                if (order.status === 'preparing' && order.prepared_at) {
+                // ── AUTO-PRINT RULES ──────────────────────────────────────
+                // 1. Order accepted → print kitchen ticket immediately (all types)
+                if (order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id)) {
+                    printedOrderIds.add('accept_' + order.id);
+                    setTimeout(() => autoPrintKitchenTicket(order.id), 400);
+                }
+                // 2. Chef marks ready (prepared_at set) → print kitchen ticket again
+                if (order.status === 'preparing' && order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
+                    printedOrderIds.add('ready_' + order.id);
                     autoPrintKitchenTicket(order.id);
                 }
-                // Auto-print receipt when rider picks up a delivery order (out_for_delivery)
-                if (order.status === 'out_for_delivery') {
+                // 3. Rider picks up → print receipt (delivery confirmation)
+                if (order.status === 'out_for_delivery' && !printedOrderIds.has('pickup_' + order.id)) {
+                    printedOrderIds.add('pickup_' + order.id);
                     autoPrintKitchenTicket(order.id);
                 }
-                // Auto-print receipt when dine-in or pickup order is accepted
-                if (order.status === 'accepted' && (order.order_type === 'dine_in' || order.order_type === 'pickup')) {
-                    setTimeout(() => autoPrintKitchenTicket(order.id), 500);
-                }
+                // ─────────────────────────────────────────────────────────
                 // Full kitchen refresh to re-categorise the order
                 refreshKitchen(false);
             });
