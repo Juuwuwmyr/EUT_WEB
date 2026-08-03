@@ -374,16 +374,24 @@
     <!-- -->
     <div id="view-active">
         <!-- Live Map -->
-        <p class="section-label"><svg width="10" height="10" fill="#8b5cf6" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/></svg> Currently Delivering</p>
+        @php
+            $outOrders      = $active->where('status', 'out_for_delivery');
+            $assignedOrders = $active->where('status', 'rider_assigned');
+            $activeOrder    = $outOrders->first() ?? $assignedOrders->first();
+            $totalActive    = $active->count();
+        @endphp
+        <p class="section-label">
+            <svg width="10" height="10" fill="#8b5cf6" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/></svg>
+            {{ $totalActive > 0 ? $totalActive . ' Active Order' . ($totalActive > 1 ? 's' : '') : 'Live Map' }}
+        </p>
         <div style="background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(139,92,246,.3);border-radius:18px;overflow:hidden;margin-bottom:12px;">
             <div style="padding:12px 16px 8px;display:flex;align-items:center;justify-content:space-between;">
                 <div style="display:flex;align-items:center;gap:8px;">
                     <span style="font-size:12px;font-weight:700;color:#a78bfa;">📍 Live Map</span>
                     <span style="font-size:10px;color:#4b5563;">
-                        @php
-                            $activeOrder = $active->firstWhere('status', 'out_for_delivery') ?? $active->first();
-                        @endphp
-                        @if($activeOrder)
+                        @if($totalActive > 1)
+                            {{ $outOrders->count() }} delivering · {{ $assignedOrders->count() }} queued
+                        @elseif($activeOrder)
                             #{{ $activeOrder->order_number }}
                         @else
                             Your Location
@@ -396,13 +404,12 @@
             </div>
             <div style="position:relative;">
                 <div id="riderMap" style="width:100%;height:220px;"></div>
-                <!-- Re-center button – appears after rider pans away -->
                 <button id="recenterBtn" onclick="recenterMap()"
                     style="display:none;position:absolute;bottom:10px;right:10px;z-index:1000;
                            background:rgba(8,8,16,.88);border:1px solid rgba(139,92,246,.5);
                            color:#a78bfa;padding:6px 12px;border-radius:99px;font-size:11px;
                            font-weight:700;cursor:pointer;backdrop-filter:blur(6px);
-                           display:none;align-items:center;gap:5px;transition:all .2s;"
+                           align-items:center;gap:5px;transition:all .2s;"
                     onmouseenter="this.style.background='rgba(139,92,246,.2)'"
                     onmouseleave="this.style.background='rgba(8,8,16,.88)'">
                     🎯 Re-center
@@ -410,10 +417,12 @@
             </div>
             <div style="padding:8px 16px 12px;display:flex;justify-content:space-between;align-items:center;">
                 <span style="font-size:11px;color:#6b7280;">
-                    @if($activeOrder && $activeOrder->status === 'out_for_delivery')
-                        🏪 Restaurant → 📍 Customer
-                    @elseif($activeOrder && $activeOrder->status === 'rider_assigned')
-                        🏪 Restaurant
+                    @if($outOrders->isNotEmpty() && $assignedOrders->isNotEmpty())
+                        🛵 Delivering + 📦 Pickup pending
+                    @elseif($outOrders->isNotEmpty())
+                        🏪 Restaurant → 📍 Customer{{ $outOrders->count() > 1 ? ' (' . $outOrders->count() . ' orders)' : '' }}
+                    @elseif($assignedOrders->isNotEmpty())
+                        📦 Head to Restaurant{{ $assignedOrders->count() > 1 ? ' (' . $assignedOrders->count() . ' orders)' : '' }}
                     @else
                         📍 Your Location
                     @endif
@@ -422,13 +431,24 @@
             </div>
         </div>
 
+        @php $shownAssignedLabel = false; $shownDeliveringLabel = false; @endphp
         @foreach($active as $order)
-            @if($loop->first && $order->status === 'rider_assigned')
-                <p class="section-label" style="margin-top:0;">📦 Assigned – Head to Restaurant</p>
-            @elseif($order->status === 'rider_assigned')
-                <p class="section-label" style="margin-top:20px;">📦 Assigned – Head to Restaurant</p>
-            @elseif($loop->first && $order->status === 'out_for_delivery')
-                <!-- no label, map already has it -->
+            @if($order->status === 'rider_assigned' && !$shownAssignedLabel)
+                <p class="section-label" style="margin-top:{{ $loop->first ? '0' : '20px' }};">
+                    📦 Assigned – Head to Restaurant
+                    @if($assignedOrders->count() > 1)
+                        <span style="background:rgba(245,158,11,.15);color:#f59e0b;border-radius:99px;padding:2px 8px;font-size:10px;margin-left:6px;">{{ $assignedOrders->count() }} orders</span>
+                    @endif
+                </p>
+                @php $shownAssignedLabel = true; @endphp
+            @elseif($order->status === 'out_for_delivery' && !$shownDeliveringLabel)
+                <p class="section-label" style="margin-top:{{ $loop->first ? '0' : '20px' }};">
+                    🛵 Out for Delivery
+                    @if($outOrders->count() > 1)
+                        <span style="background:rgba(139,92,246,.15);color:#a78bfa;border-radius:99px;padding:2px 8px;font-size:10px;margin-left:6px;">{{ $outOrders->count() }} orders</span>
+                    @endif
+                </p>
+                @php $shownDeliveringLabel = true; @endphp
             @endif
 
             <div class="order-card {{ $order->status === 'out_for_delivery' ? 'active-order' : '' }}" data-order-id="{{ $order->id }}">

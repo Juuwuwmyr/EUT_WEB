@@ -709,25 +709,19 @@ class AdminController extends Controller
         // Priority 1: free riders (available + not on active delivery)
         $availableRiders = \App\Models\Rider::with('user')
             ->where('is_available', true)
-            ->whereDoesntHave('orders', function ($q) {
+            ->withCount(['orders as active_orders' => function ($q) {
                 $q->whereIn('status', ['rider_assigned', 'out_for_delivery']);
-            })
+            }])
+            ->orderBy('active_orders')
             ->get()
-            ->map(fn($r) => ['id' => $r->id, 'name' => $r->user->name, 'phone' => $r->phone, 'busy' => false]);
+            ->map(fn($r) => [
+                'id'    => $r->id,
+                'name'  => $r->user->name . ($r->active_orders > 0 ? ' 🏍️ (' . $r->active_orders . ' order' . ($r->active_orders > 1 ? 's' : '') . ')' : ''),
+                'phone' => $r->phone,
+                'busy'  => $r->active_orders > 0,
+            ]);
 
-        // Priority 2: available riders who are busy (on delivery)
-        if ($availableRiders->isEmpty()) {
-            $availableRiders = \App\Models\Rider::with('user')
-                ->where('is_available', true)
-                ->withCount(['orders as active_orders' => function ($q) {
-                    $q->whereIn('status', ['rider_assigned', 'out_for_delivery']);
-                }])
-                ->orderBy('active_orders')
-                ->get()
-                ->map(fn($r) => ['id' => $r->id, 'name' => $r->user->name, 'phone' => $r->phone, 'busy' => true]);
-        }
-
-        // Priority 3: ANY rider regardless of is_available flag
+        // Priority 2: ANY rider regardless of is_available flag (fallback)
         if ($availableRiders->isEmpty()) {
             $availableRiders = \App\Models\Rider::with('user')
                 ->withCount(['orders as active_orders' => function ($q) {
@@ -735,7 +729,12 @@ class AdminController extends Controller
                 }])
                 ->orderBy('active_orders')
                 ->get()
-                ->map(fn($r) => ['id' => $r->id, 'name' => $r->user->name, 'phone' => $r->phone, 'busy' => true]);
+                ->map(fn($r) => [
+                    'id'    => $r->id,
+                    'name'  => $r->user->name . ($r->active_orders > 0 ? ' 🏍️ (' . $r->active_orders . ' order' . ($r->active_orders > 1 ? 's' : '') . ')' : ''),
+                    'phone' => $r->phone,
+                    'busy'  => true,
+                ]);
         }
 
         $ordersData = $orders->map(function ($o) {

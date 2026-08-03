@@ -33,7 +33,7 @@ class ChefController extends Controller
             ->get()
             ->map(fn($r) => [
                 'id'    => $r->id,
-                'name'  => $r->user->name . ($r->active_orders > 0 ? ' 🏍️ On delivery' : ''),
+                'name'  => $r->user->name . ($r->active_orders > 0 ? ' 🏍️ (' . $r->active_orders . ' order' . ($r->active_orders > 1 ? 's' : '') . ')' : ''),
                 'phone' => $r->phone,
                 'busy'  => $r->active_orders > 0,
             ]);
