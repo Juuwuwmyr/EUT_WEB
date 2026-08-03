@@ -305,28 +305,8 @@
             </div>
         </div>
 
-        <!-- Table Number (dine-in only) -->
-        <div class="card" id="tableNumberCard" style="display:none;">
-            <div class="card-header">
-                <div class="card-icon" style="background:rgba(250,204,21,.1);">
-                    <svg width="15" height="15" fill="none" stroke="#facc15" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 6h18M7 14h10M7 18h10"/></svg>
-                </div>
-                <span class="card-title">Table Number <span style="font-size:11px;font-weight:400;color:#ef4444;">*required</span></span>
-            </div>
-            <div class="card-body">
-                <input
-                    type="text"
-                    id="tableNumberInput"
-                    name="table_number"
-                    class="notes-input"
-                    maxlength="20"
-                    placeholder="e.g. Table 5, Table A2…"
-                    style="width:100%;"
-                    oninput="this.value=this.value.replace(/[^a-zA-Z0-9\s\-]/g,'')"
-                >
-                <p style="font-size:11px;color:#4b5563;margin-top:6px;">Ask a staff member for your table number.</p>
-            </div>
-        </div>
+        <!-- Table Number — hidden field, filled by QR scanner modal -->
+        <input type="hidden" id="tableNumberInput" name="table_number">
 
         <!-- Dine-in Location Warning (only shown when not at restaurant) -->
         <div id="dineInLocationWarning" style="display:none;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.25rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:.75rem;margin-bottom:1rem;flex-wrap:wrap;flex-direction:column;text-align:center;">
@@ -997,20 +977,12 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         return; 
     }
 
-    // Validate table number for dine-in
-    const tableNumber = document.getElementById('tableNumberInput')?.value?.trim() || '';
-    if (orderType === 'dine_in' && !tableNumber) {
-        const tableCard = document.getElementById('tableNumberCard');
-        if (tableCard) {
-            tableCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            tableCard.style.outline = '2px solid #ef4444';
-            tableCard.style.borderRadius = '20px';
-            setTimeout(() => { tableCard.style.outline = ''; }, 2500);
-        }
-        document.getElementById('tableNumberInput')?.focus();
-        alert('Please enter your table number for dine-in orders.');
-        return;
+    // For dine-in: intercept and open QR scanner modal
+    if (orderType === 'dine_in') {
+        openTableScanner();
+        return; // will be resumed by confirmTableAndOrder()
     }
+    const tableNumber = '';
 
     const btn = document.getElementById('placeOrderBtn');
     btn.disabled = true; btn.textContent = 'Placing order…';
@@ -1158,5 +1130,312 @@ if (window.Echo) {
     50%       { box-shadow: 0 0 0 12px rgba(239,68,68,0); }
 }
 </style>
+
+{{-- ══════════════════════════════════════════════════════════════
+     DINE-IN TABLE QR SCANNER MODAL
+     Appears when "Place Order" is clicked with Dine-in selected.
+     Primary: camera QR scan via BarcodeDetector API
+     Fallback: dropdown of tables 1–20
+══════════════════════════════════════════════════════════════ --}}
+<div id="qrScannerBackdrop" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);align-items:flex-end;justify-content:center;"></div>
+
+<div id="qrScannerSheet" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(110%);width:100%;max-width:480px;z-index:9001;background:#0e0f1a;border-radius:28px 28px 0 0;border:1px solid rgba(255,255,255,.1);border-bottom:none;transition:transform .38s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow-y:auto;">
+    <style>
+        /* ── QR Scanner Sheet ── */
+        #qrScannerSheet .qr-handle { width:40px;height:4px;border-radius:99px;background:rgba(255,255,255,.15);margin:14px auto 0; }
+        #qrScannerSheet .qr-head { display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px; }
+        #qrScannerSheet .qr-head-title { font-size:17px;font-weight:800;color:#fff; }
+        #qrScannerSheet .qr-close-btn { width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#6b7280;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;line-height:1;transition:all .2s; }
+        #qrScannerSheet .qr-close-btn:hover { background:rgba(255,255,255,.12);color:#fff; }
+        #qrScannerSheet .qr-body { padding:0 20px 32px; }
+        /* Camera viewport */
+        #qrVideoWrap { position:relative;border-radius:20px;overflow:hidden;background:#000;aspect-ratio:1;max-height:280px;margin-bottom:16px; }
+        #qrVideo { width:100%;height:100%;object-fit:cover;display:block; }
+        #qrScanLine { position:absolute;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,#facc15,transparent);animation:scanMove 2s ease-in-out infinite;top:50%; }
+        @keyframes scanMove { 0%,100%{top:20%}50%{top:80%} }
+        #qrCorners { position:absolute;inset:10%;pointer-events:none; }
+        #qrCorners::before,#qrCorners::after,#qrCorners > span::before,#qrCorners > span::after {
+            content:'';position:absolute;width:22px;height:22px;border-color:#facc15;border-style:solid;
+        }
+        #qrCorners::before  { top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0; }
+        #qrCorners::after   { top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0; }
+        #qrCorners > span::before { bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px; }
+        #qrCorners > span::after  { bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0; }
+        /* Status chip */
+        #qrStatus { text-align:center;font-size:13px;color:#6b7280;margin-bottom:16px;min-height:20px; }
+        #qrStatus.scanning { color:#facc15; }
+        #qrStatus.success  { color:#4ade80; }
+        #qrStatus.error    { color:#f87171; }
+        /* Detected table chip */
+        #qrDetectedChip { display:none;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:16px;padding:14px 18px;margin-bottom:16px;text-align:center; }
+        #qrDetectedChip .chip-label { font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px; }
+        #qrDetectedChip .chip-val { font-size:32px;font-weight:900;color:#4ade80; }
+        /* Fallback dropdown */
+        #qrFallbackWrap { display:none; }
+        #qrFallbackToggle { display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:none;border:none;color:#6b7280;font-size:13px;font-weight:600;cursor:pointer;padding:8px 0;transition:color .2s;margin-bottom:12px; }
+        #qrFallbackToggle:hover { color:#9ca3af; }
+        #qrTableSelect { width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:13px 16px;font-size:15px;font-weight:700;color:#fff;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%236b7280' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;font-family:'Inter',sans-serif; }
+        #qrTableSelect:focus { border-color:rgba(250,204,21,.5); }
+        #qrTableSelect option { background:#0e0f1a;color:#fff; }
+        /* Confirm button */
+        #qrConfirmBtn { width:100%;padding:15px;border-radius:16px;background:linear-gradient(135deg,#f59e0b,#facc15);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(250,204,21,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px; }
+        #qrConfirmBtn:hover { transform:translateY(-1px);box-shadow:0 6px 24px rgba(250,204,21,.45); }
+        #qrConfirmBtn:disabled { opacity:.5;cursor:not-allowed;transform:none; }
+    </style>
+
+    <div class="qr-handle"></div>
+    <div class="qr-head">
+        <span class="qr-head-title">🍽️ Scan Your Table QR</span>
+        <button class="qr-close-btn" onclick="closeTableScanner()">×</button>
+    </div>
+    <div class="qr-body">
+
+        {{-- Camera viewport --}}
+        <div id="qrVideoWrap">
+            <video id="qrVideo" autoplay playsinline muted></video>
+            <div id="qrScanLine"></div>
+            <div id="qrCorners"><span></span></div>
+        </div>
+
+        {{-- Status text --}}
+        <p id="qrStatus" class="scanning">📷 Point camera at the table QR code…</p>
+
+        {{-- Detected table display --}}
+        <div id="qrDetectedChip">
+            <div class="chip-label">Table detected</div>
+            <div class="chip-val" id="qrDetectedVal">—</div>
+        </div>
+
+        {{-- Fallback toggle --}}
+        <button id="qrFallbackToggle" onclick="toggleQrFallback()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Can't scan? Pick table manually
+        </button>
+        <div id="qrFallbackWrap">
+            <select id="qrTableSelect" onchange="onDropdownPick(this.value)">
+                <option value="">— Select your table —</option>
+                @for($t = 1; $t <= 20; $t++)
+                <option value="Table {{ $t }}">Table {{ $t }}</option>
+                @endfor
+            </select>
+        </div>
+
+        {{-- Confirm button --}}
+        <button id="qrConfirmBtn" disabled onclick="confirmTableAndOrder()">
+            Confirm Table & Place Order
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </button>
+    </div>
+</div>
+
+<script>
+/* ── Table QR Scanner ─────────────────────────────────────────────────────── */
+let _qrStream     = null;
+let _qrInterval   = null;
+let _qrCanvas     = null;
+let _detectedTable= null;
+let _qrOpen       = false;
+
+function openTableScanner() {
+    _qrOpen = true;
+    _detectedTable = null;
+    document.getElementById('qrDetectedChip').style.display = 'none';
+    document.getElementById('qrConfirmBtn').disabled = true;
+    document.getElementById('qrFallbackWrap').style.display = 'none';
+    document.getElementById('qrTableSelect').value = '';
+    setQrStatus('scanning', '📷 Point camera at the table QR code…');
+
+    const backdrop = document.getElementById('qrScannerBackdrop');
+    const sheet    = document.getElementById('qrScannerSheet');
+    backdrop.style.display = 'flex';
+    sheet.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => { sheet.style.transform = 'translateX(-50%) translateY(0)'; });
+
+    startCamera();
+}
+
+function closeTableScanner() {
+    _qrOpen = false;
+    stopCamera();
+    const sheet = document.getElementById('qrScannerSheet');
+    sheet.style.transform = 'translateX(-50%) translateY(110%)';
+    setTimeout(() => {
+        sheet.style.display = 'none';
+        document.getElementById('qrScannerBackdrop').style.display = 'none';
+    }, 400);
+    document.body.style.overflow = '';
+}
+
+function setQrStatus(cls, msg) {
+    const el = document.getElementById('qrStatus');
+    el.className = cls;
+    el.textContent = msg;
+}
+
+function toggleQrFallback() {
+    const wrap = document.getElementById('qrFallbackWrap');
+    const visible = wrap.style.display !== 'none';
+    wrap.style.display = visible ? 'none' : 'block';
+}
+
+function onDropdownPick(val) {
+    if (!val) return;
+    setDetectedTable(val, false); // from dropdown, no camera needed
+}
+
+function setDetectedTable(tableStr, fromQR = true) {
+    _detectedTable = tableStr;
+    document.getElementById('qrDetectedVal').textContent = tableStr;
+    document.getElementById('qrDetectedChip').style.display = 'block';
+    document.getElementById('qrConfirmBtn').disabled = false;
+    if (fromQR) {
+        setQrStatus('success', '✅ QR code scanned successfully!');
+        stopCamera();
+    }
+}
+
+/* ── Camera & BarcodeDetector ─────────────────────────────── */
+async function startCamera() {
+    try {
+        _qrStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } }
+        });
+        const video = document.getElementById('qrVideo');
+        video.srcObject = _qrStream;
+        await video.play();
+        startScanning(video);
+    } catch(err) {
+        setQrStatus('error', '⚠️ Camera not available — use the dropdown below.');
+        document.getElementById('qrFallbackWrap').style.display = 'block';
+    }
+}
+
+function stopCamera() {
+    clearInterval(_qrInterval);
+    _qrInterval = null;
+    if (_qrStream) {
+        _qrStream.getTracks().forEach(t => t.stop());
+        _qrStream = null;
+    }
+    const video = document.getElementById('qrVideo');
+    video.srcObject = null;
+}
+
+function startScanning(video) {
+    // Try native BarcodeDetector first (Chrome Android, Edge)
+    if (typeof BarcodeDetector !== 'undefined') {
+        const detector = new BarcodeDetector({ formats: ['qr_code'] });
+        _qrInterval = setInterval(async () => {
+            if (!_qrOpen || _detectedTable) return;
+            try {
+                const codes = await detector.detect(video);
+                if (codes.length) {
+                    const raw = codes[0].rawValue;
+                    const parsed = parseTableFromQr(raw);
+                    if (parsed) { setDetectedTable(parsed); }
+                    else { setQrStatus('error', '❌ QR unrecognized. Use dropdown below.'); document.getElementById('qrFallbackWrap').style.display='block'; }
+                }
+            } catch(e) {}
+        }, 400);
+    } else {
+        // BarcodeDetector not supported — fall back to canvas + zxing-like approach
+        // We'll just show the dropdown since we can't decode without a lib
+        setQrStatus('error', '⚠️ QR scanning not supported on this browser. Use the dropdown.');
+        document.getElementById('qrFallbackWrap').style.display = 'block';
+    }
+}
+
+function parseTableFromQr(raw) {
+    if (!raw) return null;
+    raw = raw.trim();
+    // Formats: "TABLE:5", "Table 5", "5", "T5", etc.
+    const m = raw.match(/(?:table[:\s#-]*)?(\d{1,2})/i);
+    if (m) return 'Table ' + m[1];
+    return null;
+}
+
+/* ── Confirm & Resume Order ───────────────────────────────── */
+async function confirmTableAndOrder() {
+    if (!_detectedTable) return;
+
+    // Inject into hidden field
+    document.getElementById('tableNumberInput').value = _detectedTable;
+
+    closeTableScanner();
+
+    // Short delay for sheet close animation, then resume submission
+    await new Promise(r => setTimeout(r, 420));
+
+    // Re-run the order flow (now tableNumber will be filled)
+    const btn = document.getElementById('placeOrderBtn');
+    btn.disabled = true; btn.textContent = 'Placing order…';
+
+    const cart = JSON.parse(localStorage.getItem('eutCart') || '[]');
+    const orderType = 'dine_in';
+    const tableNumber = _detectedTable;
+    const payRaw  = document.querySelector('input[name=payment]:checked')?.value || 'cod';
+    const payment = payRaw === 'cod' ? 'cash' : payRaw;
+    const notes   = document.getElementById('orderNotes')?.value?.trim() || '';
+    const CSRF    = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+
+    const items = cart.map(i => ({
+        id: i.id, qty: i.quantity,
+        modifiers: (i.modifiers || [])
+            .filter(m => m && typeof m === 'object' && m.name)
+            .map(m => ({
+                type: m.type || 'modifier',
+                name: m.name || '',
+                price_type: m.price_type || 'none',
+                price_adjustment: parseFloat(m.price_adjustment || 0),
+            })),
+    }));
+
+    const payload = {
+        items,
+        order_type: orderType,
+        delivery_address: 'Dine-in · ' + tableNumber,
+        delivery_barangay: '',
+        payment_method: payment,
+        notes,
+        delivery_lat: null,
+        delivery_lng: null,
+        table_number: tableNumber,
+        customer_lat: window.__customerLat || (function() {
+            try { const c = JSON.parse(sessionStorage.getItem('eut_geo_ok') || 'null'); return c?.lat || null; } catch(e) { return null; }
+        })(),
+        customer_lng: window.__customerLng || (function() {
+            try { const c = JSON.parse(sessionStorage.getItem('eut_geo_ok') || 'null'); return c?.lng || null; } catch(e) { return null; }
+        })(),
+    };
+
+    try {
+        const r = await fetch('{{ route("orders.store") }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const d = await r.json();
+        if (d.success) {
+            localStorage.setItem('eutCart', JSON.stringify([]));
+            @auth
+            fetch('/cart', { method:'DELETE', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'} }).catch(()=>{});
+            @endauth
+            window.location.href = '{{ route("shop.tracking") }}';
+        } else {
+            alert(d.message || 'Order failed. Please try again.');
+            btn.disabled = false; btn.textContent = 'Place Order';
+        }
+    } catch(err) {
+        alert('Network error. Please try again.');
+        btn.disabled = false; btn.textContent = 'Place Order';
+    }
+}
+
+// Close sheet on backdrop click
+document.getElementById('qrScannerBackdrop').addEventListener('click', closeTableScanner);
+</script>
+
 </body>
 </html>
+
