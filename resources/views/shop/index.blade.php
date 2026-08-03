@@ -404,6 +404,23 @@
 </head>
 <body>
 
+@if(!$isOpen)
+<!-- CLOSED BANNER -->
+<div id="shopClosedBanner" style="background:linear-gradient(135deg,#7f1d1d,#991b1b);border-bottom:1px solid rgba(239,68,68,.4);padding:12px 16px;text-align:center;position:relative;z-index:200;">
+    <p style="font-size:13px;font-weight:700;color:#fca5a5;margin:0;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <svg width="16" height="16" fill="none" stroke="#fca5a5" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        We're currently <strong style="color:#fff;">CLOSED</strong> — orders are not being accepted right now.
+    </p>
+</div>
+@else
+<div id="shopClosedBanner" style="display:none;background:linear-gradient(135deg,#7f1d1d,#991b1b);border-bottom:1px solid rgba(239,68,68,.4);padding:12px 16px;text-align:center;position:relative;z-index:200;">
+    <p style="font-size:13px;font-weight:700;color:#fca5a5;margin:0;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <svg width="16" height="16" fill="none" stroke="#fca5a5" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        We're currently <strong style="color:#fff;">CLOSED</strong> — orders are not being accepted right now.
+    </p>
+</div>
+@endif
+
 <!-- -- NAVBAR -- -->
 <nav class="topnav">
     <div class="topnav-inner">
@@ -457,7 +474,7 @@
 <div class="hero" id="heroSection">
     <div class="hero-card">
         <div class="hero-text">
-            <div class="hero-badge"><span class="hero-badge-dot"></span> Open Now</div>
+            <div class="hero-badge"><span class="hero-badge-dot" id="shopStatusDot" style="background:{{ $isOpen ? '#22c55e' : '#ef4444' }};"></span> <span id="shopStatusText">{{ $isOpen ? 'Open Now' : 'Closed' }}</span></div>
             <h1 class="hero-title">E.U.T Snack House</h1>
             <p class="hero-sub">Eat &middot; Unwind &middot; Tea &middot; Delivered Fast</p>
             <div class="hero-pills">
@@ -846,8 +863,27 @@ window.addEventListener('popstate', function(e) {
     history.pushState({ page: 'shop' }, '', window.location.href);
 });
 
+// ── Echo: shop open/close status (public channel, no auth needed) ──
+if (window.Echo) {
+    window.Echo.channel('shop.status')
+        .listen('.shop.status', (data) => {
+            const banner = document.getElementById('shopClosedBanner');
+            const dot    = document.getElementById('shopStatusDot');
+            const text   = document.getElementById('shopStatusText');
+            if (data.is_open) {
+                if (banner) banner.style.display = 'none';
+                if (dot)    { dot.style.background = '#22c55e'; }
+                if (text)   text.textContent = 'Open Now';
+            } else {
+                if (banner) banner.style.display = 'block';
+                if (dot)    { dot.style.background = '#ef4444'; }
+                if (text)   text.textContent = 'Closed';
+            }
+        });
+}
+
 @auth
-// ── Echo: live order status banner ───────────────────────
+// ── Echo: live order status banner ────────────────────────
 (function() {
     const STATUS_LABELS = {
         pending:          '⏳ Order Placed',

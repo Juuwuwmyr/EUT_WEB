@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Broadcast;
 
+// Public shop status channel — all visitors
+Broadcast::channel('shop.status', function () {
+    return true;
+});
+
 // Customer's own orders channel — only the order owner can listen
 Broadcast::channel('orders.{userId}', function ($user, $userId) {
     return (int) $user->id === (int) $userId;

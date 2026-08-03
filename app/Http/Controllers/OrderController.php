@@ -14,9 +14,16 @@ class OrderController extends Controller
     // ── POST /orders — place an order ──────────────────────
     public function store(Request $request)
     {
+        // Block ordering when shop is closed
+        if (!cache()->get('shop_is_open', true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sorry, we are currently closed. Please check back later.',
+            ], 422);
+        }
+
         $request->validate([
-            'items'            => 'required|array|min:1',
-            'items.*.id'       => 'required',
+            'items'            => 'required|array|min:1',            'items.*.id'       => 'required',
             'items.*.qty'      => 'required|integer|min:1|max:99',
             'items.*.modifiers'=> 'nullable|array',
             'order_type'       => 'required|in:delivery,pickup,dine_in',
