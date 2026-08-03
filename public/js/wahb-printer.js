@@ -72,12 +72,6 @@
                 ? receiptPath
                 : (window.location.origin + receiptPath);
 
-            // WAHB detects file type from URL extension.
-            // Append .html so it knows to render as HTML page.
-            if (!abs.match(/\.(html|htm|pdf|png|jpg)(\?|$)/i)) {
-                abs = abs.replace(/(\?.*)?$/, function(q) { return '.html' + (q || ''); });
-            }
-
             return _send({ type: key || opts.printerKey, url: abs });
         };
 
