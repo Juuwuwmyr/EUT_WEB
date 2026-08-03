@@ -200,25 +200,61 @@ hr.double { border-top: 3px double #000; }
 </div>
 
 <script>
-// Auto-print in all cases: standalone, popup, or iframe triggered by parent
+// More aggressive auto-print approach for kitchen tickets
 document.addEventListener('DOMContentLoaded', function() {
     document.body.style.width = '185px';
     document.body.style.maxWidth = '185px';
+    
+    // Immediate print attempt for iframe context
+    if (window.parent && window.parent !== window) {
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    }
 });
 
 window.onload = function () {
     document.body.style.width = '185px';
     document.body.style.maxWidth = '185px';
-    setTimeout(function() {
-        window.print();
-        // Auto-close if opened as popup
-        if (window.opener || window.name === 'kitchen_print') {
-            setTimeout(function() {
-                try { window.close(); } catch(e) {}
-            }, 2000);
-        }
-    }, 500);
+    
+    // Multiple auto-print attempts with different timing
+    setTimeout(() => tryAutoPrint(), 200);
+    setTimeout(() => tryAutoPrint(), 1000);
+    setTimeout(() => tryAutoPrint(), 2000);
 };
+
+function tryAutoPrint() {
+    try {
+        // Force focus before printing
+        window.focus();
+        window.print();
+        
+        // Auto-close popup after print dialog
+        if (window.opener || window.name === 'kitchen_print') {
+            setTimeout(() => {
+                try { window.close(); } catch(e) {}
+            }, 3000);
+        }
+    } catch(e) {
+        console.log('Auto-print attempt failed:', e);
+    }
+}
+
+// Listen for print events to close popup after printing
+window.addEventListener('afterprint', function() {
+    if (window.opener || window.name === 'kitchen_print') {
+        setTimeout(() => {
+            try { window.close(); } catch(e) {}
+        }, 500);
+    }
+});
+
+// Backup: close popup even if print was cancelled
+if (window.opener || window.name === 'kitchen_print') {
+    setTimeout(() => {
+        try { window.close(); } catch(e) {}
+    }, 10000);
+}
 </script>
 </body>
 </html>

@@ -121,7 +121,7 @@ async function poll() {
     try {
         const res = await axios.get(`${APP_URL}/api/print-server/pending-prints`, {
             headers: { 'X-Print-Token': PRINT_TOKEN },
-            timeout: 5000,
+            timeout: 10000,
         });
 
         const jobs = res.data.jobs || [];
@@ -131,22 +131,37 @@ async function poll() {
         }
 
         for (const job of jobs) {
+            console.log(`[PRINT] Processing order ${job.order_number} (${job.type})`);
             const ok = await printTicket(job);
             if (ok) {
                 // Mark as printed so it doesn't re-print
-                await axios.post(`${APP_URL}/api/print-server/mark-printed/${job.job_id}`, {}, {
-                    headers: { 'X-Print-Token': PRINT_TOKEN },
-                    timeout: 5000,
-                }).catch(e => console.error('[MARK] Failed to mark printed:', e.message));
+                try {
+                    await axios.post(`${APP_URL}/api/print-server/mark-printed/${job.job_id}`, {}, {
+                        headers: { 'X-Print-Token': PRINT_TOKEN },
+                        timeout: 5000,
+                    });
+                    console.log(`[MARK] ✓ Marked job ${job.job_id} as printed`);
+                } catch (e) {
+                    console.error(`[MARK] ✗ Failed to mark job ${job.job_id} as printed:`, e.message);
+                }
+            } else {
+                console.error(`[PRINT] ✗ Failed to print order ${job.order_number}`);
             }
         }
     } catch (err) {
         if (err.code === 'ECONNREFUSED') {
             console.error(`[POLL] ✗ Cannot reach server — ${APP_URL}`);
+            console.error('       Check if server is running and URL is correct');
         } else if (err.response?.status === 401) {
             console.error('[POLL] ✗ Invalid PRINT_TOKEN — check your .env');
+            console.error('       Token should match Laravel PRINT_SERVER_TOKEN');
+        } else if (err.code === 'ENOTFOUND') {
+            console.error(`[POLL] ✗ Server not found — ${APP_URL}`);
+            console.error('       Check domain spelling in APP_URL');
+        } else if (err.code === 'ETIMEDOUT') {
+            console.error('[POLL] ✗ Connection timeout — server may be slow');
         } else {
-            console.error('[POLL] Error:', err.message);
+            console.error('[POLL] ✗ Error:', err.message);
         }
     }
 }

@@ -492,6 +492,15 @@
     </div>
 </div>
 
+{{-- Auto-Print Status Banner --}}
+<div id="autoPrintBanner" style="display:none;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.25rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:.6rem;">
+        <i data-lucide="printer" style="width:1.1rem;height:1.1rem;color:#f59e0b;stroke-width:2;flex-shrink:0;"></i>
+        <p style="font-size:.8rem;font-weight:700;color:#f59e0b;margin:0;">Click anywhere on this page to enable auto-printing (browser security requirement)</p>
+    </div>
+    <button onclick="enableAutoPrint()" style="font-size:.7rem;color:#f59e0b;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:.5rem;padding:.4rem .8rem;cursor:pointer;white-space:nowrap;">Enable Auto-Print</button>
+</div>
+
 {{-- Popup permission notice — only shown once --}}
 <div id="popupNotice" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.6rem 1.25rem;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:.75rem;margin-bottom:1rem;flex-wrap:wrap;">
     <div style="display:flex;align-items:center;gap:.5rem;">
@@ -574,24 +583,24 @@ let lastNewCount = 0; // not used but kept to avoid reference errors
 let orderDataMap = {};
 let fallbackTimer = null;
 let printedOrderIds = new Set();
-let autoPrintUnlocked = true; // always enabled — browser allows iframe print after any page interaction
+let autoPrintEnabled = false;
 
-function unlockAutoPrint() {
-    autoPrintUnlocked = true;
+function enableAutoPrint() {
+    autoPrintEnabled = true;
     const banner = document.getElementById('autoPrintBanner');
     if (banner) {
-        banner.style.background = 'rgba(16,185,129,.1)';
-        banner.style.borderColor = 'rgba(16,185,129,.35)';
+        banner.style.background = 'rgba(16,185,129,.08)';
+        banner.style.borderColor = 'rgba(16,185,129,.25)';
         banner.innerHTML = `
             <div style="display:flex;align-items:center;gap:.6rem;">
                 <i data-lucide="check-circle-2" style="width:1.1rem;height:1.1rem;color:#10b981;stroke-width:2;flex-shrink:0;"></i>
-                <p style="font-size:.8rem;font-weight:700;color:#10b981;margin:0;">✓ Auto-Print enabled — kitchen ticket will print automatically on every accepted order</p>
+                <p style="font-size:.8rem;font-weight:700;color:#10b981;margin:0;">✓ Auto-Print ENABLED — Kitchen tickets will print automatically when orders are accepted</p>
             </div>`;
         if (window.lucide) lucide.createIcons();
-        setTimeout(() => { if (banner) banner.style.display = 'none'; }, 4000);
+        setTimeout(() => { banner.style.display = 'none'; }, 5000);
     }
-    // Mark all currently queued/cooking orders as already printed
-    // so only NEW orders after this point trigger a print
+    
+    // Mark existing orders as already printed to avoid re-printing them
     document.querySelectorAll('.k-order-card[data-order-id]').forEach(card => {
         const id = card.dataset.orderId;
         if (id) {
@@ -600,12 +609,18 @@ function unlockAutoPrint() {
             printedOrderIds.add('pickup_' + id);
         }
     });
-    // Also mark from orderDataMap
+    
     Object.keys(orderDataMap).forEach(id => {
         printedOrderIds.add('accept_' + id);
         printedOrderIds.add('ready_' + id);
         printedOrderIds.add('pickup_' + id);
     });
+    
+    localStorage.setItem('autoPrintEnabled', 'true');
+}
+
+function unlockAutoPrint() {
+    enableAutoPrint(); // Use the same logic
 }
 
 function elapsedBadge(mins) {
@@ -854,7 +869,69 @@ async function modalAction(action, orderId) {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOrderModal(); });
 
+function showToast(message, type = 'success', duration = 3000) {
+    const toastContainer = document.getElementById('toastContainer') || (() => {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:8px;';
+        document.body.appendChild(container);
+        return container;
+    })();
+
+    const toast = document.createElement('div');
+    const bgColor = type === 'success' ? 'rgba(16,185,129,.9)' : type === 'error' ? 'rgba(239,68,68,.9)' : 'rgba(59,130,246,.9)';
+    const textColor = '#ffffff';
+    
+    toast.style.cssText = `
+        background: ${bgColor};
+        color: ${textColor};
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        backdrop-filter: blur(8px);
+        max-width: 300px;
+        word-wrap: break-word;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 300);
+    }, duration);
+}
+
+// Add CSS animations
+if (!document.getElementById('toastStyles')) {
+    const style = document.createElement('style');
+    style.id = 'toastStyles';
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
     if (!str) return '';
     return String(str)
         .replace(/&/g, '&amp;')
@@ -865,22 +942,55 @@ function escapeHtml(str) {
 
 function autoPrintKitchenTicket(orderId) {
     const url = `/chef/orders/${orderId}/kitchen-ticket`;
-    // Open as a named popup — the ticket page auto-prints and closes itself
-    const w = window.open(url, 'kitchen_print', 'width=200,height=400,left=0,top=0,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
-    if (!w) {
-        // Popup still blocked — iframe fallback
-        const old = document.getElementById('kitchenPrintFrame');
-        if (old) old.remove();
-        const iframe = document.createElement('iframe');
-        iframe.id  = 'kitchenPrintFrame';
-        iframe.src = url;
-        iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
-        document.body.appendChild(iframe);
-        iframe.onload = function() {
-            try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) {}
-            setTimeout(() => iframe.remove(), 30000);
-        };
+    
+    // Try popup first - most reliable for printing
+    const w = window.open(url, 'kitchen_print_' + orderId, 'width=300,height=500,left=0,top=0,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
+    
+    if (w) {
+        // Popup opened successfully
+        console.log('✓ Auto-printing kitchen ticket for order', orderId);
+        showToast('🖨️ Kitchen ticket printing...', 'success', 2000);
+        return;
     }
+    
+    // Popup blocked - try iframe method
+    console.log('Popup blocked, trying iframe method for order', orderId);
+    showToast('🖨️ Printing ticket (allow popups for better experience)', 'info', 3000);
+    
+    const old = document.getElementById('kitchenPrintFrame_' + orderId);
+    if (old) old.remove();
+    
+    const iframe = document.createElement('iframe');
+    iframe.id = 'kitchenPrintFrame_' + orderId;
+    iframe.src = url;
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:300px;height:500px;border:none;opacity:0;';
+    document.body.appendChild(iframe);
+    
+    iframe.onload = function() {
+        setTimeout(() => {
+            try { 
+                iframe.contentWindow.focus(); 
+                iframe.contentWindow.print(); 
+                console.log('✓ Iframe auto-print triggered for order', orderId);
+            } catch(e) { 
+                console.warn('Iframe auto-print failed:', e);
+                showToast('⚠️ Auto-print failed - please manually print', 'error', 4000);
+            }
+        }, 500);
+        
+        // Clean up iframe after 30 seconds
+        setTimeout(() => {
+            try { iframe.remove(); } catch(e) {}
+        }, 30000);
+    };
+    
+    iframe.onerror = function() {
+        console.error('Failed to load kitchen ticket for order', orderId);
+        showToast('❌ Failed to load kitchen ticket', 'error', 4000);
+        setTimeout(() => {
+            try { iframe.remove(); } catch(e) {}
+        }, 5000);
+    };
 }
 
 function printReceipt(receiptUrl) {
@@ -952,8 +1062,9 @@ async function refreshKitchen(manual) {
 
         // Auto-print newly accepted orders (appearing in queued column) — ALL order types
         data.queued.forEach(order => {
-            if (!printedOrderIds.has('accept_' + order.id)) {
+            if (autoPrintEnabled && !printedOrderIds.has('accept_' + order.id)) {
                 printedOrderIds.add('accept_' + order.id);
+                console.log('🖨️ Auto-printing kitchen ticket for order', order.order_number);
                 setTimeout(() => autoPrintKitchenTicket(order.id), 500);
             }
         });
@@ -1008,6 +1119,30 @@ function toggleKitchenFullscreen() {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
+
+    // Check if auto-print was previously enabled
+    if (localStorage.getItem('autoPrintEnabled') === 'true') {
+        autoPrintEnabled = true;
+    } else {
+        // Show auto-print banner if not enabled
+        const banner = document.getElementById('autoPrintBanner');
+        if (banner) banner.style.display = 'flex';
+    }
+
+    // Enable auto-print on any user interaction
+    const enableOnInteraction = () => {
+        if (!autoPrintEnabled) {
+            enableAutoPrint();
+        }
+        // Remove listeners after first interaction
+        document.removeEventListener('click', enableOnInteraction);
+        document.removeEventListener('keydown', enableOnInteraction);
+        document.removeEventListener('touchstart', enableOnInteraction);
+    };
+
+    document.addEventListener('click', enableOnInteraction);
+    document.addEventListener('keydown', enableOnInteraction);
+    document.addEventListener('touchstart', enableOnInteraction);
 
     // Hide popup notice if already dismissed
     if (localStorage.getItem('kitchenPopupDismissed')) {
@@ -1095,17 +1230,18 @@ document.addEventListener('DOMContentLoaded', () => {
             .listen('.order.updated', (order) => {
                 // ── AUTO-PRINT RULES ──────────────────────────────────────
                 // 1. Order accepted → print kitchen ticket immediately (all types)
-                if (order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id)) {
+                if (autoPrintEnabled && order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id)) {
                     printedOrderIds.add('accept_' + order.id);
+                    console.log('🖨️ Echo: Auto-printing kitchen ticket for order', order.order_number);
                     setTimeout(() => autoPrintKitchenTicket(order.id), 400);
                 }
                 // 2. Chef marks ready (prepared_at set) → print kitchen ticket again
-                if (order.status === 'preparing' && order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
+                if (autoPrintEnabled && order.status === 'preparing' && order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
                     printedOrderIds.add('ready_' + order.id);
                     autoPrintKitchenTicket(order.id);
                 }
                 // 3. Rider picks up → print receipt (delivery confirmation)
-                if (order.status === 'out_for_delivery' && !printedOrderIds.has('pickup_' + order.id)) {
+                if (autoPrintEnabled && order.status === 'out_for_delivery' && !printedOrderIds.has('pickup_' + order.id)) {
                     printedOrderIds.add('pickup_' + order.id);
                     autoPrintKitchenTicket(order.id);
                 }
