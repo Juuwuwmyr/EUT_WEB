@@ -1054,14 +1054,36 @@ async function kitchenAction(action, orderId, btn) {
 
 async function refreshKitchen(manual) {
     try {
-        const res = await fetch(KITCHEN_URL, { headers: { 'Accept': 'application/json' } });
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
+        const res = await fetch(KITCHEN_URL, {
+            headers: { 'Accept': 'application/json' },
+            signal: controller.signal,
+        });
+        clearTimeout(timer);
+
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            // Got HTML (e.g. redirect to login) — session expired
+            setPollingStatus(false);
+            console.warn('Kitchen poll: got non-JSON response, possibly session expired. Reloading...');
+            setTimeout(() => location.reload(), 2000);
+            return;
+        }
+
         const data = await res.json();
 
-        renderColumn('queued', data.queued);
-        renderColumn('cooking', data.cooking);
+        // Mark live BEFORE rendering so it always updates even if render throws
+        setPollingStatus(true);
 
-        // Auto-print newly accepted orders (appearing in queued column) — ALL order types
-        data.queued.forEach(order => {
+        renderColumn('queued',  data.queued  || []);
+        renderColumn('cooking', data.cooking || []);
+
+        // Auto-print newly accepted orders (queued column) — ALL order types
+        (data.queued || []).forEach(order => {
             if (autoPrintEnabled && !printedOrderIds.has('accept_' + order.id)) {
                 printedOrderIds.add('accept_' + order.id);
                 console.log('🖨️ Auto-printing kitchen ticket for order', order.order_number);
@@ -1069,11 +1091,11 @@ async function refreshKitchen(manual) {
             }
         });
 
-        setPollingStatus(true);
         if (window.lucide) lucide.createIcons();
 
     } catch (e) {
         setPollingStatus(false);
+        console.warn('Kitchen poll failed:', e.message);
         if (manual) alert('Could not refresh kitchen board.');
     }
 }
