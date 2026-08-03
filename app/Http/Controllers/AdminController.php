@@ -982,6 +982,7 @@ class AdminController extends Controller
         $riders = \App\Models\Rider::with(['user', 'orders' => function($q) {
                 $q->with('user')->whereIn('status', ['rider_assigned', 'out_for_delivery']);
             }])
+            ->whereHas('user') // exclude orphaned riders with no user account
             ->when($request->filled('status'), function ($q) use ($request) {
                 if ($request->status === 'online') {
                     $q->where('is_available', true);

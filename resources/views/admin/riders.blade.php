@@ -135,6 +135,8 @@ $statusMap = [
         $currentStatus = 'offline';
     }
     $st = $statusMap[$currentStatus];
+    // Skip riders with no linked user account
+    if (!$rider->user) continue;
     // Get initials from name
     $nameParts = explode(' ', $rider->user->name);
     $initials = '';
