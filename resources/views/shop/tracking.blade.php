@@ -702,11 +702,6 @@ async function submitCancel(){
     btn.textContent='Yes, Cancel My Order';btn.disabled=false;
 }
 function showToast(msg){const t=document.createElement('div');t.textContent=msg;Object.assign(t.style,{position:'fixed',bottom:'90px',left:'50%',transform:'translateX(-50%)',background:'#0d1f17',border:'1px solid rgba(74,222,128,.3)',color:'#4ade80',padding:'12px 22px',borderRadius:'99px',fontSize:'13px',fontWeight:'700',zIndex:'9999'});document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
-async function updateMapRiderPos(orderId,lat,lng){
-    // Delegated to the full implementation below — this stub kept for safety
-    const s=activeMaps[orderId];
-    if(!s)return;
-}
 
 /* ── Init ── */
 let pollTimer = null;
@@ -717,6 +712,45 @@ function startPolling() {
 function stopPolling() {
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
 }
+
+function handleOrderUpdate(order) {
+    // Update or insert the order in allOrders
+    const idx = allOrders.findIndex(o => o.id === order.id);
+    if (idx !== -1) {
+        allOrders[idx] = order;
+    } else {
+        allOrders.unshift(order);
+    }
+
+    renderAll();
+
+    // If detail sheet is open for this order, rebuild timeline + map
+    if (detailOrderId === order.id) {
+        const detailBody = document.getElementById('detailBody');
+        if (detailBody) {
+            // Destroy old map so it can be rebuilt
+            if (activeMaps[order.id]) {
+                try { activeMaps[order.id].map.remove(); } catch(e) {}
+                delete activeMaps[order.id];
+            }
+            detailBody.innerHTML = buildDetailBody(order);
+            if (!['delivered','cancelled'].includes(order.status)) {
+                setTimeout(() => { if (typeof initOrderMap === 'function') initOrderMap(order); }, 300);
+            }
+        }
+        // Show a subtle toast for key status changes
+        const toastMsgs = {
+            accepted:         '✅ Order accepted!',
+            preparing:        '👨‍🍳 Kitchen is preparing your order',
+            rider_assigned:   '🏍️ Rider assigned — heading to restaurant',
+            out_for_delivery: '🚀 Your order is on the way!',
+            delivered:        '🎉 Order delivered!',
+            cancelled:        '❌ Order was cancelled',
+        };
+        if (toastMsgs[order.status]) showToast(toastMsgs[order.status]);
+    }
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
     applyTheme(localStorage.getItem('eutTheme')||'dark');
     document.getElementById('shopThemeToggle').addEventListener('click',()=>{
@@ -727,62 +761,34 @@ document.addEventListener('DOMContentLoaded',()=>{
     // Initial load
     loadAllOrders();
 
-    // Echo: listen for real-time order updates on the customer's private channel
+    // Always poll every 10s as fallback — pauses when tab is hidden
+    startPolling();
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { stopPolling(); } else { loadAllOrders(); startPolling(); }
+    });
+
+    // Echo: real-time updates (primary — fires instantly when status changes)
     if (window.Echo) {
         window.Echo.private('orders.{{ auth()->id() }}')
             .listen('.order.updated', (order) => {
-                // Update or insert the order in allOrders
-                const idx = allOrders.findIndex(o => o.id === order.id);
-                if (idx !== -1) {
-                    allOrders[idx] = order;
-                } else {
-                    allOrders.unshift(order);
-                }
-
-                renderAll();
-
-                // If detail sheet is open for this order, refresh it
-                if (detailOrderId === order.id) {
-                    const detailBody = document.getElementById('detailBody');
-                    if (detailBody) {
-                        detailBody.innerHTML = buildDetailBody(order);
-                        if (!['delivered','cancelled'].includes(order.status)) {
-                            setTimeout(() => { if(typeof initOrderMap==='function') initOrderMap(order); }, 300);
-                        }
-                    }
-                }
+                handleOrderUpdate(order);
             })
             .listen('.rider.location', (data) => {
-                // Live rider GPS update — move map marker without a full poll
-                if (data.lat && data.lng) {
-                    // Find the order this rider belongs to
-                    const riderOrder = allOrders.find(o =>
-                        o.rider && ['rider_assigned','out_for_delivery'].includes(o.status)
-                    );
-                    if (riderOrder) {
-                        // Update rider coords in memory
-                        if (riderOrder.rider) {
-                            riderOrder.rider.lat = data.lat;
-                            riderOrder.rider.lng = data.lng;
-                        }
-                        // Move the map marker live
-                        if (typeof updateMapRiderPos === 'function') {
-                            updateMapRiderPos(riderOrder.id, data.lat, data.lng);
-                        }
+                // Live rider GPS — move map marker without full reload
+                if (!data.lat || !data.lng) return;
+                const riderOrder = allOrders.find(o =>
+                    o.rider && ['rider_assigned','out_for_delivery'].includes(o.status)
+                );
+                if (riderOrder) {
+                    if (riderOrder.rider) {
+                        riderOrder.rider.lat = data.lat;
+                        riderOrder.rider.lng = data.lng;
                     }
+                    updateMapRiderPos(riderOrder.id, data.lat, data.lng);
                 }
             });
     } else {
-        // Fallback: poll every 15s if Echo isn't available — pause when tab is hidden
-        startPolling();
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                stopPolling();
-            } else {
-                loadAllOrders();
-                startPolling();
-            }
-        });
+        // No Echo — polling every 10s is the only mechanism
     }
 });
 </script>
