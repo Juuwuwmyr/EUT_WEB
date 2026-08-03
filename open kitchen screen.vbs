@@ -19,7 +19,7 @@ For i = 0 To 2
     End If
 Next
 
-kitchenUrl = "https://eut-delivery.duckdns.org/chef"
+kitchenUrl = "https://eut-delivery.duckdns.org/"
 
 chromeFlags = " --app=" & kitchenUrl & _
               " --user-data-dir=""" & kitchenProfile & """" & _
