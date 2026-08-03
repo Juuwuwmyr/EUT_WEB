@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'print_server_token' => env('PRINT_SERVER_TOKEN', ''),
+
 ];
