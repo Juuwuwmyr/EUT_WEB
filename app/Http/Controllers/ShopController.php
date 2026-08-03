@@ -11,8 +11,9 @@ class ShopController extends Controller
         $categories = \App\Models\Category::active()->orderBy('sort_order')->get();
         $menuItems  = \App\Models\MenuItem::with('category')->active()
                         ->orderBy('category_id')->orderBy('sort_order')->get();
+        $isOpen = cache()->get('shop_is_open', true);
 
-        return view('shop.index', compact('categories', 'menuItems'));
+        return view('shop.index', compact('categories', 'menuItems', 'isOpen'));
     }
 
     public function product($id)

@@ -181,4 +181,5 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get ('/settings',          [AdminController::class, 'settings'])->name('settings');
     Route::post('/settings',          [AdminController::class, 'updateSettings'])->name('settings.update');
     Route::post('/settings/password', [AdminController::class, 'updatePassword'])->name('settings.password');
+    Route::patch('/settings/toggle-open', [AdminController::class, 'toggleOpen'])->name('settings.toggle-open');
 });

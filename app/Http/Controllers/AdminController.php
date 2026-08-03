@@ -1048,7 +1048,8 @@ class AdminController extends Controller
 
     public function settings()
     {
-        return view('admin.settings');
+        $isOpen = cache()->get('shop_is_open', true);
+        return view('admin.settings', compact('isOpen'));
     }
 
     public function updateSettings(Request $request)
@@ -1062,7 +1063,37 @@ class AdminController extends Controller
             'min_order'       => 'nullable|numeric|min:0',
         ]);
 
-        return back()->with('success', 'Settings saved successfully.');
+        // Persist open/close toggle
+        $isOpen = $request->boolean('is_open', true);
+        cache()->forever('shop_is_open', $isOpen);
+        cache()->forever('shop_settings', [
+            'restaurant_name' => $request->restaurant_name,
+            'contact_email'   => $request->contact_email,
+            'contact_phone'   => $request->contact_phone,
+            'address'         => $request->address,
+            'delivery_fee'    => $request->delivery_fee,
+            'min_order'       => $request->min_order,
+            'is_open'         => $isOpen,
+        ]);
+
+        return back()->with('success', $isOpen ? 'Settings saved. Shop is now OPEN.' : 'Settings saved. Shop is now CLOSED.');
+    }
+
+    // ── PATCH /admin/settings/toggle-open — quick open/close toggle ────────
+    public function toggleOpen(Request $request)
+    {
+        $current = cache()->get('shop_is_open', true);
+        $new = !$current;
+        cache()->forever('shop_is_open', $new);
+
+        // Broadcast to all connected clients via a public channel
+        broadcast(new \App\Events\ShopStatusUpdated($new));
+
+        return response()->json([
+            'success' => true,
+            'is_open' => $new,
+            'message' => $new ? 'Shop is now OPEN 🟢' : 'Shop is now CLOSED 🔴',
+        ]);
     }
 
     public function updatePassword(Request $request)
