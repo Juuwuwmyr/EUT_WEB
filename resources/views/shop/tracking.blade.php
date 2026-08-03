@@ -383,6 +383,7 @@ function emptyState(icon, title, sub, showBtn) {
    RENDER TABS
 -------------------------------- */
 let allOrders = [];
+let _ordersInflight = false;
 
 function renderAll() {
     const active    = allOrders.filter(o=>!['delivered','cancelled'].includes(o.status));
@@ -639,6 +640,8 @@ function buildDetailBody(o) {
    LOAD ORDERS
 -------------------------------- */
 async function loadAllOrders() {
+    if (_ordersInflight) return;
+    _ordersInflight = true;
     try {
         const res = await fetch('/orders', {headers:{'Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'}});
         const raw = await res.text();
@@ -702,3 +705,346 @@ async function loadAllOrders() {
             }
         }
 
+
+        // Also update any maps not currently in the open sheet
+        (data.active||[]).forEach(o => {
+            if (o.id !== detailOrderId && o.rider && o.rider.lat && o.rider.lng && activeMaps[o.id]) {
+                updateMapRiderPos(o.id, o.rider.lat, o.rider.lng);
+            }
+        });
+    } catch(e) {
+        console.error(e);
+        document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><p class="empty-title">Network error</p><p class="empty-sub">Check your connection and try refreshing.</p></div>`;
+    } finally {
+        _ordersInflight = false;
+    }
+}
+/* --------------------------------
+   CANCEL
+-------------------------------- */
+let currentCancelOrderId = null;
+function openCancelModal(id){currentCancelOrderId=id;document.getElementById('cancelModalBackdrop').style.display='block';document.getElementById('cancelModal').style.display='block';document.getElementById('cancelModalError').style.display='none';document.querySelectorAll('input[name="cancelReason"]').forEach(r=>r.checked=false);document.querySelectorAll('#cancelReasons label').forEach(l=>l.style.borderColor='rgba(255,255,255,.07)');}
+function closeCancelModal(){document.getElementById('cancelModalBackdrop').style.display='none';document.getElementById('cancelModal').style.display='none';currentCancelOrderId=null;}
+async function submitCancel(){
+    const sel=document.querySelector('input[name="cancelReason"]:checked');
+    const errEl=document.getElementById('cancelModalError');
+    const btn=document.getElementById('confirmCancelBtn');
+    if(!sel){errEl.textContent='Please select a reason.';errEl.style.display='block';return;}
+    errEl.style.display='none';btn.textContent='Cancelling...';btn.disabled=true;
+    try{
+        const r=await fetch(`/orders/${currentCancelOrderId}/cancel`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({reason:sel.value})});
+        const d=await r.json();
+        if(d.success){closeCancelModal();closeDetail();await loadAllOrders();showToast('Order cancelled.');}
+        else{errEl.textContent=d.message||'Failed.';errEl.style.display='block';}
+    }catch(e){errEl.textContent='Network error.';errEl.style.display='block';}
+    btn.textContent='Yes, Cancel My Order';btn.disabled=false;
+}
+function showToast(msg){const t=document.createElement('div');t.textContent=msg;Object.assign(t.style,{position:'fixed',bottom:'90px',left:'50%',transform:'translateX(-50%)',background:'#0d1f17',border:'1px solid rgba(74,222,128,.3)',color:'#4ade80',padding:'12px 22px',borderRadius:'99px',fontSize:'13px',fontWeight:'700',zIndex:'9999'});document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+
+/* -- Init -- */
+let pollTimer = null;
+function startPolling() {
+    if (pollTimer) return;
+    pollTimer = setInterval(function() {
+        if (!_ordersInflight) loadAllOrders();
+    }, 5000);
+}
+function stopPolling() {
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+function handleOrderUpdate(order) {
+    const idx = allOrders.findIndex(o => o.id === order.id);
+    if (idx !== -1) {
+        allOrders[idx] = order;
+    } else {
+        allOrders.unshift(order);
+    }
+    renderAll();
+    if (detailOrderId === order.id) {
+        const detailBody = document.getElementById('detailBody');
+        if (detailBody) {
+            if (activeMaps[order.id]) {
+                try { activeMaps[order.id].map.remove(); } catch(e) {}
+                delete activeMaps[order.id];
+            }
+            detailLastStatus = order.status;
+            detailBody.innerHTML = buildDetailBody(order);
+            if (!['delivered','cancelled'].includes(order.status)) {
+                setTimeout(() => { if (typeof initOrderMap === 'function') initOrderMap(order); }, 300);
+            }
+        }
+        const isPickup = order.order_type === 'pickup';
+        const toastMsgs = {
+            accepted:         '✅ Order accepted!',
+            preparing:        '👨‍🍳 Kitchen is preparing your order',
+            rider_assigned:   '🏍 Rider assigned — heading to restaurant',
+            out_for_delivery: '🛵 Your order is on the way!',
+            delivered:        isPickup ? '✅ Order completed! Enjoy your food!' : '🎉 Order delivered!',
+            cancelled:        '❌ Order was cancelled',
+        };
+        if (toastMsgs[order.status]) showToast(toastMsgs[order.status]);
+    }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+    applyTheme(localStorage.getItem('eutTheme')||'dark');
+    document.getElementById('shopThemeToggle').addEventListener('click',()=>{
+        const t=(localStorage.getItem('eutTheme')||'dark')==='dark'?'light':'dark';
+        localStorage.setItem('eutTheme',t);applyTheme(t);
+    });
+
+    loadAllOrders();
+
+    startPolling();
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { stopPolling(); } else { loadAllOrders(); startPolling(); }
+    });
+
+    if (window.Echo) {
+        window.Echo.private('orders.{{ auth()->id() }}')
+            .listen('.order.updated', (order) => {
+                handleOrderUpdate(order);
+            })
+            .listen('.rider.location', (data) => {
+                if (!data.lat || !data.lng) return;
+                const riderOrder = allOrders.find(o =>
+                    o.rider && ['rider_assigned','out_for_delivery'].includes(o.status)
+                );
+                if (riderOrder) {
+                    if (riderOrder.rider) {
+                        riderOrder.rider.lat = data.lat;
+                        riderOrder.rider.lng = data.lng;
+                    }
+                    updateMapRiderPos(riderOrder.id, data.lat, data.lng);
+                }
+            });
+    }
+});
+</script>
+
+<script>
+/* -- Map (Leaflet + OSRM) -- only initialised inside the detail sheet -- */
+const RESTAURANT_POS = [13.321512, 121.302098];
+
+async function fetchOSRMRoute(from, to) {
+    const url = 'https://router.project-osrm.org/route/v1/driving/'
+        + from[1] + ',' + from[0] + ';' + to[1] + ',' + to[0]
+        + '?overview=full&geometries=geojson';
+    try {
+        const r = await fetch(url);
+        const d = await r.json();
+        if (d.code === 'Ok' && d.routes.length)
+            return d.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+    } catch(e) { console.warn('OSRM', e); }
+    return null;
+}
+
+async function geocodeDeliveryAddr(rawAddr) {
+    if (!rawAddr) return null;
+    let addr = rawAddr;
+    const parts = rawAddr.split(',');
+    if (parts.length > 1 && !/\d/.test(parts[0])) addr = parts.slice(1).join(',').trim();
+    const attempts = [
+        addr + ', Naujan, Oriental Mindoro, Philippines',
+        addr + ', Oriental Mindoro, Philippines',
+        addr + ', Philippines',
+        parts[parts.length - 1].trim() + ', Naujan, Oriental Mindoro, Philippines',
+    ];
+    for (const q of attempts) {
+        try {
+            const res  = await fetch(
+                'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1&countrycodes=ph',
+                { headers: { 'Accept-Language': 'en', 'User-Agent': 'EUT-Delivery-App/1.0' } }
+            );
+            const data = await res.json();
+            if (data && data.length) {
+                const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+                if (lat > 4 && lat < 22 && lng > 116 && lng < 127) return [lat, lng];
+            }
+        } catch(e) { /* try next */ }
+        await new Promise(r => setTimeout(r, 400));
+    }
+    return [13.321512, 121.302098];
+}
+
+async function initOrderMap(order) {
+    const el = document.getElementById('trackingMap-' + order.id);
+    if (!el || activeMaps[order.id]) return;
+
+    const isOnWay  = ['rider_assigned', 'out_for_delivery'].includes(order.status);
+    const isOut    = order.status === 'out_for_delivery';
+    const etaEl    = document.getElementById('riderEtaText-' + order.id);
+    const hasRider = order.rider && order.rider.lat && order.rider.lng;
+    const riderPos = hasRider
+        ? [parseFloat(order.rider.lat),  parseFloat(order.rider.lng)]
+        : [RESTAURANT_POS[0] + 0.002,    RESTAURANT_POS[1] + 0.002];
+
+    let customerPos = (order.delivery_lat && order.delivery_lng)
+        ? [parseFloat(order.delivery_lat), parseFloat(order.delivery_lng)]
+        : null;
+
+    const map = L.map(el, { zoomControl: true, attributionControl: false });
+    activeMaps[order.id] = { map, riderMarker: null, routeLine: null, roadPoints: [], simStep: 0, _lastStatus: order.status, destLatLng: null, _lastReroute: 0 };
+
+    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 20 }).addTo(map);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', { maxZoom: 20, opacity: 0.85 }).addTo(map);
+
+    L.marker(RESTAURANT_POS, { icon: L.divIcon({
+        html: `<div style="background:#facc15;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">🍔</span></div>`,
+        className: '', iconSize: [42, 42], iconAnchor: [21, 42],
+    }) }).addTo(map).bindPopup('<b>E.U.T Snack House</b>');
+
+    if (!customerPos && order.delivery_address) {
+        if (etaEl) etaEl.textContent = 'Locating address...';
+        customerPos = await geocodeDeliveryAddr(order.delivery_address);
+        if (customerPos) {
+            fetch('/orders/' + order.id + '/set-coords', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify({ lat: customerPos[0], lng: customerPos[1] })
+            }).catch(() => {});
+        }
+    }
+
+    if (customerPos) {
+        L.marker(customerPos, { icon: L.divIcon({
+            html: `<div style="background:#ef4444;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">🏠</span></div>`,
+            className: '', iconSize: [42, 42], iconAnchor: [21, 42],
+        }) }).addTo(map).bindPopup('<b>Your Delivery Location</b>');
+    }
+
+    if (!isOnWay) {
+        const bounds = customerPos
+            ? [RESTAURANT_POS, customerPos]
+            : [RESTAURANT_POS, [RESTAURANT_POS[0] + 0.01, RESTAURANT_POS[1] + 0.01]];
+        map.fitBounds(bounds, { padding: [50, 50] });
+        if (etaEl) etaEl.textContent = customerPos ? 'Waiting for pickup' : 'Preparing your order';
+        return;
+    }
+
+    const dest = customerPos || [RESTAURANT_POS[0] + 0.005, RESTAURANT_POS[1] + 0.006];
+    activeMaps[order.id].destLatLng = dest;
+
+    const rM = L.marker(riderPos, { icon: L.divIcon({
+        html: `<div style="background:#10b981;width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 10px rgba(16,185,129,.8);">🛵</div>`,
+        className: '', iconSize: [42, 42], iconAnchor: [21, 21],
+    }) }).addTo(map);
+    if (order.rider) rM.bindPopup('<b>' + order.rider.name + '</b><br>⭐ ' + order.rider.rating);
+    activeMaps[order.id].riderMarker = rM;
+
+    if (isOut) {
+        map.fitBounds([riderPos, dest], { padding: [40, 40] });
+        const route = await fetchOSRMRoute(riderPos, dest);
+        if (route) {
+            activeMaps[order.id].roadPoints = route;
+            const ln = L.polyline(route, { color: '#facc15', weight: 5, opacity: 1 }).addTo(map);
+            activeMaps[order.id].routeLine = ln;
+            map.fitBounds(ln.getBounds(), { padding: [40, 40] });
+            if (etaEl) etaEl.textContent = '~' + Math.max(1, Math.round(route.length / 30)) + ' min away';
+        } else {
+            activeMaps[order.id].routeLine = L.polyline([riderPos, dest], { color: '#facc15', weight: 3, opacity: 0.7, dashArray: '8 6' }).addTo(map);
+            if (etaEl) etaEl.textContent = 'On the way';
+        }
+    } else {
+        map.fitBounds([RESTAURANT_POS, dest, riderPos], { padding: [40, 40] });
+        const route = await fetchOSRMRoute(RESTAURANT_POS, dest);
+        if (route) {
+            activeMaps[order.id].roadPoints = route;
+            const ln = L.polyline(route, { color: '#facc15', weight: 5, opacity: 0.7, dashArray: '8 6' }).addTo(map);
+            activeMaps[order.id].routeLine = ln;
+            map.fitBounds(ln.getBounds(), { padding: [40, 40] });
+        } else {
+            activeMaps[order.id].routeLine = L.polyline([RESTAURANT_POS, dest], { color: '#facc15', weight: 3, opacity: 0.6, dashArray: '8 6' }).addTo(map);
+        }
+        if (etaEl) etaEl.textContent = 'Rider heading to pickup';
+    }
+
+    if (!hasRider) simulateMapRider(order.id, dest);
+}
+
+const REROUTE_THRESHOLD_DEG = 0.0015;
+const REROUTE_COOLDOWN_MS   = 20000;
+
+async function updateMapRiderPos(orderId, lat, lng) {
+    const s = activeMaps[orderId];
+    if (!s || !s.riderMarker) return;
+    const newPos = [parseFloat(lat), parseFloat(lng)];
+    s.riderMarker.setLatLng(newPos);
+    if (!s.routeLine) return;
+    const etaEl = document.getElementById('riderEtaText-' + orderId);
+    if (s.roadPoints && s.roadPoints.length > 1) {
+        let closest = 0, minDist = Infinity;
+        s.roadPoints.forEach((pt, i) => {
+            const d = (pt[0] - newPos[0]) ** 2 + (pt[1] - newPos[1]) ** 2;
+            if (d < minDist) { minDist = d; closest = i; }
+        });
+        const distFromRoute = Math.sqrt(minDist);
+        const now = Date.now();
+        const canReroute = (now - (s._lastReroute || 0)) > REROUTE_COOLDOWN_MS;
+        if (distFromRoute > REROUTE_THRESHOLD_DEG && canReroute && s.destLatLng) {
+            s._lastReroute = now;
+            const fresh = await fetchOSRMRoute(newPos, s.destLatLng);
+            if (fresh && fresh.length > 1) {
+                s.roadPoints = fresh;
+                s.routeLine.setLatLngs(fresh);
+                if (etaEl) etaEl.textContent = '~' + Math.max(1, Math.round(fresh.length / 30)) + ' min away';
+            } else {
+                s.routeLine.setLatLngs([newPos, s.destLatLng]);
+                if (etaEl) etaEl.textContent = 'On the way';
+            }
+        } else {
+            s.routeLine.setLatLngs(s.roadPoints.slice(closest));
+            const remaining = s.roadPoints.length - closest;
+            if (etaEl) {
+                const mins = Math.max(0, Math.round(30 * remaining / s.roadPoints.length));
+                etaEl.textContent = mins > 0 ? '~' + mins + ' min away' : 'Arriving now!';
+            }
+        }
+    } else if (s.destLatLng) {
+        s.routeLine.setLatLngs([newPos, s.destLatLng]);
+    }
+}
+
+function simulateMapRider(orderId, dest) {
+    const s = activeMaps[orderId];
+    if (!s) return;
+    const etaEl = document.getElementById('riderEtaText-' + orderId);
+    if (s.roadPoints && s.roadPoints.length) {
+        const total = s.roadPoints.length;
+        const iv = setInterval(() => {
+            if (!activeMaps[orderId]) { clearInterval(iv); return; }
+            s.simStep = Math.min(s.simStep + 1, total - 1);
+            const pos = s.roadPoints[s.simStep];
+            if (s.riderMarker) s.riderMarker.setLatLng(pos);
+            if (s.routeLine)   s.routeLine.setLatLngs(s.roadPoints.slice(s.simStep));
+            const m = Math.max(0, Math.round(30 * (1 - s.simStep / total)));
+            if (etaEl) etaEl.textContent = m > 0 ? '~' + m + ' min away' : 'Arriving now!';
+            if (s.simStep >= total - 1) clearInterval(iv);
+        }, 2500);
+    } else {
+        let step = 0, tot = 60;
+        let pos = s.riderMarker ? s.riderMarker.getLatLng() : { lat: RESTAURANT_POS[0], lng: RESTAURANT_POS[1] };
+        const dLat = (dest[0] - pos.lat) / tot, dLng = (dest[1] - pos.lng) / tot;
+        const iv = setInterval(() => {
+            if (!activeMaps[orderId]) { clearInterval(iv); return; }
+            if (step >= tot) { clearInterval(iv); return; }
+            step++;
+            pos = { lat: pos.lat + dLat, lng: pos.lng + dLng };
+            if (s.riderMarker) s.riderMarker.setLatLng(pos);
+            if (s.routeLine)   s.routeLine.setLatLngs([[pos.lat, pos.lng], dest]);
+            const m = Math.max(0, Math.round(30 * (1 - step / tot)));
+            if (etaEl) etaEl.textContent = m > 0 ? '~' + m + ' min away' : 'Arriving now!';
+        }, 3000);
+    }
+}
+
+history.pushState({ page: 'tracking' }, '', window.location.href);
+window.addEventListener('popstate', function() {
+    history.pushState({ page: 'tracking' }, '', window.location.href);
+});
+</script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+@include('partials.pwa-register')
+</body>
+</html>
