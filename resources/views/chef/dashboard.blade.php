@@ -979,7 +979,6 @@ function autoPrintKitchenTicket(orderId) {
     // For a completely dialog-free experience launch Chrome with:
     //   --kiosk-printing
     // That flag sends window.print() straight to the default printer.
-    wahbLog('info', 'Print', 'Silent iframe print for kitchen ticket', 'orderId=' + orderId + ' url=' + url);
 
     const iframe = document.createElement('iframe');
     iframe.name = 'kitchen_autoprint';          // ticket page reads this
@@ -1020,7 +1019,6 @@ function autoPrintKitchenTicket(orderId) {
     iframe.onerror = function () {
         window.removeEventListener('message', _onMessage);
         _removeIframe();
-        wahbLog('warn', 'Print', 'iframe load failed — using popup fallback', url);
         const w = window.open(url, 'kitchen_print_' + orderId, 'width=300,height=500,left=0,top=0,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
         if (w) { showToast('🖨️ Kitchen ticket printing...', 'success', 2000); return; }
         showToast('⚠️ Popup blocked. Open the ticket manually.', 'error', 5000);
