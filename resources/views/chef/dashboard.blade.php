@@ -865,11 +865,10 @@ function escapeHtml(str) {
 
 function autoPrintKitchenTicket(orderId) {
     const url = `/chef/orders/${orderId}/kitchen-ticket`;
-    // Open a tiny popup — the ticket page has window.print() in its onload
-    // Chef must allow popups once in browser settings for this to work silently
-    const w = window.open(url, '_blank', 'width=200,height=100,left=-9999,top=-9999,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
+    // Open as a named popup — the ticket page auto-prints and closes itself
+    const w = window.open(url, 'kitchen_print', 'width=200,height=400,left=0,top=0,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
     if (!w) {
-        // Popup blocked — fall back to iframe method
+        // Popup still blocked — iframe fallback
         const old = document.getElementById('kitchenPrintFrame');
         if (old) old.remove();
         const iframe = document.createElement('iframe');

@@ -200,21 +200,25 @@ hr.double { border-top: 3px double #000; }
 </div>
 
 <script>
-// iframe mode: do NOT auto-print here — parent calls iframe.contentWindow.print()
-// This script only runs if opened directly as a standalone page or popup
-if (window.self === window.top || window.opener) {
-    window.onload = function () {
-        document.body.style.width = '185px';
-        document.body.style.maxWidth = '185px';
-        setTimeout(function() {
-            window.print();
-            // Auto-close popup after print dialog closes
-            if (window.opener) {
-                setTimeout(function() { window.close(); }, 1000);
-            }
-        }, 300);
-    };
-}
+// Auto-print in all cases: standalone, popup, or iframe triggered by parent
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.style.width = '185px';
+    document.body.style.maxWidth = '185px';
+});
+
+window.onload = function () {
+    document.body.style.width = '185px';
+    document.body.style.maxWidth = '185px';
+    setTimeout(function() {
+        window.print();
+        // Auto-close if opened as popup
+        if (window.opener || window.name === 'kitchen_print') {
+            setTimeout(function() {
+                try { window.close(); } catch(e) {}
+            }, 2000);
+        }
+    }, 500);
+};
 </script>
 </body>
 </html>
