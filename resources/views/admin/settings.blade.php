@@ -18,6 +18,33 @@
 </style>
 <div id="settingsGrid">
 
+    {{-- ── SHOP STATUS CARD ── --}}
+    <div class="section-card" style="grid-column:1/-1;">
+        <div class="px-5 py-4 card-header-border" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:.5rem;">
+                <div style="width:10px;height:10px;border-radius:50%;background:{{ $isOpen ? '#22c55e' : '#ef4444' }};box-shadow:0 0 8px {{ $isOpen ? '#22c55e' : '#ef4444' }};"></div>
+                <div>
+                    <h2 style="font-size:.875rem;font-weight:700;color:var(--text-strong);margin:0 0 .1rem;">
+                        Shop is currently <span style="color:{{ $isOpen ? '#22c55e' : '#ef4444' }};">{{ $isOpen ? 'OPEN' : 'CLOSED' }}</span>
+                    </h2>
+                    <p style="font-size:.72rem;color:var(--text-muted);margin:0;">Customers {{ $isOpen ? 'can' : 'cannot' }} place orders right now.</p>
+                </div>
+            </div>
+            <button id="toggleOpenBtn" onclick="toggleShopOpen()"
+                style="display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.4rem;border-radius:.6rem;border:none;cursor:pointer;font-size:.8rem;font-weight:700;transition:all .2s;
+                background:{{ $isOpen ? 'rgba(239,68,68,.12)' : 'rgba(34,197,94,.12)' }};
+                color:{{ $isOpen ? '#ef4444' : '#22c55e' }};
+                border:1px solid {{ $isOpen ? 'rgba(239,68,68,.3)' : 'rgba(34,197,94,.3)' }};">
+                <i data-lucide="{{ $isOpen ? 'door-closed' : 'door-open' }}" style="width:.85rem;height:.85rem;stroke-width:2.5;"></i>
+                {{ $isOpen ? 'Close Shop Now' : 'Open Shop Now' }}
+            </button>
+        </div>
+        <div style="padding:14px 20px;font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:8px;">
+            <i data-lucide="info" style="width:.75rem;height:.75rem;stroke-width:2;flex-shrink:0;"></i>
+            Toggling updates instantly — customers see "Closed" banner in real time without refreshing.
+        </div>
+    </div>
+
     {{-- Restaurant Information --}}
     <div class="section-card">
         <div class="px-5 py-4 card-header-border" style="display:flex;align-items:center;gap:.5rem;">
@@ -194,3 +221,34 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+async function toggleShopOpen() {
+    const btn = document.getElementById('toggleOpenBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" style="width:.85rem;height:.85rem;animation:spin 1s linear infinite;"></i> Updating…';
+
+    try {
+        const res = await fetch('{{ route("admin.settings.toggle-open") }}', {
+            method: 'PATCH',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Reload page to reflect new state cleanly
+            window.location.reload();
+        } else {
+            alert('Failed to update shop status.');
+            btn.disabled = false;
+        }
+    } catch(e) {
+        alert('Network error.');
+        btn.disabled = false;
+    }
+}
+</script>
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+@endpush
