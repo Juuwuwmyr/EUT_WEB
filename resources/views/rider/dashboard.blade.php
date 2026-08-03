@@ -1533,7 +1533,7 @@ window.addEventListener('beforeunload', () => {
    AUTO-REFRESH RIDER ORDERS (Live Updates)
    ──────────────────────────────────────────────────────── */
 let _ordersRefreshInterval = null;
-const ORDERS_REFRESH_INTERVAL = 5000; // 5 seconds
+const ORDERS_REFRESH_INTERVAL = 3000; // 3 seconds
 
 function startOrdersRefresh() {
     if (_ordersRefreshInterval) return;
@@ -1543,7 +1543,7 @@ function startOrdersRefresh() {
     // Refresh immediately
     refreshRiderOrders();
     
-    // Then poll every 5 seconds
+    // Then poll every 3 seconds
     _ordersRefreshInterval = setInterval(refreshRiderOrders, ORDERS_REFRESH_INTERVAL);
 }
 
