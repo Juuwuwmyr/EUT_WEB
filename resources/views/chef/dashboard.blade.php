@@ -1053,32 +1053,46 @@ async function kitchenAction(action, orderId, btn) {
 }
 
 async function refreshKitchen(manual) {
+    console.log('[KITCHEN] Starting refresh...');
+    
     try {
+        console.log('[KITCHEN] Fetching from:', KITCHEN_URL);
+        
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 8000); // 8s timeout
+        const timer = setTimeout(() => {
+            console.log('[KITCHEN] Fetch timeout after 8s');
+            controller.abort();
+        }, 8000);
 
         const res = await fetch(KITCHEN_URL, {
             headers: { 'Accept': 'application/json' },
             signal: controller.signal,
         });
         clearTimeout(timer);
+        
+        console.log('[KITCHEN] Response:', res.status, res.statusText);
 
         if (!res.ok) throw new Error('HTTP ' + res.status);
 
         const contentType = res.headers.get('content-type') || '';
+        console.log('[KITCHEN] Content-Type:', contentType);
+        
         if (!contentType.includes('application/json')) {
             // Got HTML (e.g. redirect to login) — session expired
+            console.warn('[KITCHEN] Non-JSON response - session expired?');
             setPollingStatus(false);
-            console.warn('Kitchen poll: got non-JSON response, possibly session expired. Reloading...');
             setTimeout(() => location.reload(), 2000);
             return;
         }
 
         const data = await res.json();
+        console.log('[KITCHEN] Parsed data:', data);
 
         // Mark live BEFORE rendering so it always updates even if render throws
+        console.log('[KITCHEN] Setting status to live');
         setPollingStatus(true);
 
+        console.log('[KITCHEN] Rendering columns...');
         renderColumn('queued',  data.queued  || []);
         renderColumn('cooking', data.cooking || []);
 
@@ -1092,11 +1106,12 @@ async function refreshKitchen(manual) {
         });
 
         if (window.lucide) lucide.createIcons();
+        console.log('[KITCHEN] Refresh completed successfully');
 
     } catch (e) {
+        console.error('[KITCHEN] Refresh failed:', e);
         setPollingStatus(false);
-        console.warn('Kitchen poll failed:', e.message);
-        if (manual) alert('Could not refresh kitchen board.');
+        if (manual) alert('Could not refresh kitchen board: ' + e.message);
     }
 }
 
@@ -1132,17 +1147,38 @@ function updateWSStatus(connected) {
 
 // Called after every successful poll
 function setPollingStatus(ok) {
+    console.log('[STATUS] Setting polling status:', ok);
     const statusEl = document.getElementById('wsStatusText');
     const dotEl    = document.querySelector('.live-dot');
     const wsEl     = document.getElementById('wsStatus');
+    
+    console.log('[STATUS] Elements found:', {
+        statusEl: !!statusEl,
+        dotEl: !!dotEl, 
+        wsEl: !!wsEl,
+        currentText: statusEl?.textContent
+    });
+    
     if (ok) {
-        if (statusEl && !statusEl.textContent.includes('WS')) statusEl.textContent = 'Live';
-        if (dotEl)    dotEl.style.background = '#22c55e';
-        if (wsEl)     wsEl.title = 'Polling every 3s — connected';
+        if (statusEl && !statusEl.textContent.includes('WS')) {
+            statusEl.textContent = 'Live';
+            console.log('[STATUS] Updated to Live');
+        }
+        if (dotEl) {
+            dotEl.style.background = '#22c55e';
+            console.log('[STATUS] Dot color updated to green');
+        }
+        if (wsEl) wsEl.title = 'Polling every 3s — connected';
     } else {
-        if (statusEl) statusEl.textContent = 'Offline';
-        if (dotEl)    dotEl.style.background = '#ef4444';
-        if (wsEl)     wsEl.title = 'Cannot reach server';
+        if (statusEl) {
+            statusEl.textContent = 'Offline';
+            console.log('[STATUS] Updated to Offline');
+        }
+        if (dotEl) {
+            dotEl.style.background = '#ef4444';
+            console.log('[STATUS] Dot color updated to red');
+        }
+        if (wsEl) wsEl.title = 'Cannot reach server';
     }
 }
 
