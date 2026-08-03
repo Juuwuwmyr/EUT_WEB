@@ -887,15 +887,25 @@ function printReceipt(receiptUrl) {
 }
 
 function kitchenAutoPrint(receiptUrl) {
+    // Remove any existing auto-print iframe for receipts
+    const oldReceipt = document.getElementById('kitchenReceiptPrintFrame');
+    if (oldReceipt) oldReceipt.remove();
+
     const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.right = '-9999px';
-    iframe.style.bottom = '-9999px';
-    iframe.style.width = '200px';
-    iframe.style.height = '100px';
-    iframe.style.border = 'none';
+    iframe.id = 'kitchenReceiptPrintFrame';
     iframe.src = receiptUrl;
+    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
     document.body.appendChild(iframe);
+
+    iframe.onload = function() {
+        try {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        } catch(e) {
+            console.warn('Auto-print receipt failed:', e);
+        }
+        setTimeout(() => iframe.remove(), 30000);
+    };
 }
 
 async function kitchenAction(action, orderId, btn) {
@@ -954,7 +964,11 @@ async function refreshKitchen(manual) {
         data.queued.forEach(order => {
             if (!printedOrderIds.has(order.id)) {
                 printedOrderIds.add(order.id);
-                setTimeout(() => kitchenAutoPrint(`/chef/orders/${order.id}/receipt`), 500);
+                // For delivery: print receipt immediately on accept
+                // For dine-in/pickup: handled by Echo listener on 'accepted' status
+                if (!order.order_type || order.order_type === 'delivery') {
+                    setTimeout(() => kitchenAutoPrint(`/chef/orders/${order.id}/receipt`), 500);
+                }
             }
         });
 
@@ -1086,6 +1100,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Auto-print kitchen ticket when chef marks order ready (prepared_at set)
                 if (order.status === 'preparing' && order.prepared_at) {
                     autoPrintKitchenTicket(order.id);
+                }
+                // Auto-print receipt when rider picks up a delivery order (out_for_delivery)
+                if (order.status === 'out_for_delivery') {
+                    autoPrintKitchenTicket(order.id);
+                }
+                // Auto-print receipt when dine-in or pickup order is accepted
+                if (order.status === 'accepted' && (order.order_type === 'dine_in' || order.order_type === 'pickup')) {
+                    setTimeout(() => autoPrintKitchenTicket(order.id), 500);
                 }
                 // Full kitchen refresh to re-categorise the order
                 refreshKitchen(false);
