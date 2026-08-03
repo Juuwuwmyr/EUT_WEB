@@ -17,52 +17,67 @@
             padding: 20px;
         }
         .print-container {
-            max-width: 80mm;
+            /* 58mm thermal printer (typical POS) */
+            width: 58mm;
             margin: 0 auto;
             background: #fff;
-            padding: 10mm;
+            padding: 3mm;
         }
         .qr-label {
             text-align: center;
-            margin: 15mm 0;
+            margin: 2mm 0;
             border: 1px dashed #999;
-            padding: 8mm;
+            padding: 3mm;
             page-break-inside: avoid;
         }
         .table-number {
-            font-size: 24px;
+            font-size: 14px;
             font-weight: bold;
-            margin: 5mm 0;
+            margin: 2mm 0 1mm;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
         .qr-code {
             display: flex;
             justify-content: center;
-            margin: 5mm 0;
-            min-height: 60mm;
+            margin: 2mm 0;
+            width: 100%;
         }
         .qr-code canvas,
         .qr-code svg {
             max-width: 100% !important;
-            max-height: 60mm !important;
+            max-height: 45mm !important;
+            width: 45mm !important;
+            height: 45mm !important;
         }
         .subtitle {
-            font-size: 10px;
+            font-size: 8px;
             color: #666;
-            margin-top: 3mm;
+            margin-top: 1mm;
+            letter-spacing: 0.5px;
         }
         @media print {
             body {
                 background: none;
                 padding: 0;
-            }
-            .print-container {
-                max-width: 100%;
-                padding: 0;
                 margin: 0;
             }
+            .print-container {
+                width: 58mm;
+                max-width: 58mm;
+                padding: 3mm;
+                margin: 0;
+                background: none;
+            }
             .qr-label {
+                margin: 2mm 0;
+                padding: 3mm;
+                border: none;
                 page-break-inside: avoid;
+            }
+            @page {
+                size: 58mm auto;
+                margin: 0;
             }
         }
         .no-print {
@@ -71,6 +86,9 @@
             background: #f0f0f0;
             border-radius: 8px;
             margin-bottom: 20px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
         }
         .no-print button {
             padding: 10px 20px;
@@ -118,12 +136,12 @@
     </div>
 
     <script>
-        // Generate all QR codes
+        // Generate all QR codes - sized for 58mm thermal printer (45mm QR is optimal)
         @foreach($tables as $tableNum)
         new QRCode(document.getElementById('qr-{{ $tableNum }}'), {
             text: 'TABLE {{ $tableNum }}',
-            width: 200,
-            height: 200,
+            width: 180,
+            height: 180,
             colorDark: '#000000',
             colorLight: '#ffffff',
             correctLevel: QRCode.CorrectLevel.H
