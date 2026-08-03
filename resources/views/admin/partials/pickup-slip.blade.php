@@ -177,41 +177,25 @@ hr.double { border-top: 3px double #000; }
 </div>
 
 <script>
-function _fixW() { document.body.style.width = '185px'; document.body.style.maxWidth = '185px'; }
-var _inIframe = (window.parent && window.parent !== window);
+function _fixW() { 
+    document.body.style.width = '185px'; 
+    document.body.style.maxWidth = '185px'; 
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     _fixW();
-    // Only auto-print when opened as a standalone popup, NOT when embedded in iframe
-    // (when in iframe, the parent calls contentWindow.print() after onload)
-    if (!_inIframe) {
-        setTimeout(function () {
-            try {
-                window.focus();
-                setTimeout(function() { window.print(); }, 100);
-            } catch(e) { console.error('Print error:', e); }
-        }, 200);
-    }
+    console.log('Pickup slip loaded - ready for manual printing');
+    // NO auto-print - user must click print button in browser
 });
 
 window.addEventListener('load', function() {
     _fixW();
-    // Backup auto-print only for standalone popup (not iframe)
-    if (!_inIframe && window.opener) {
-        setTimeout(function() {
-            try { window.print(); } catch(e) {}
-        }, 300);
-    }
+    // NO auto-print on load
 });
 
 window.addEventListener('afterprint', function () {
-    // Only close/back when opened as standalone popup
-    if (window.opener) {
-        setTimeout(function () {
-            try { window.close(); } catch(e) {}
-        }, 500);
-    }
-    // No postMessage, no history.back — let the parent iframe handle cleanup
+    console.log('Print dialog closed');
+    // NO auto-close - let user close window manually
 });
 </script>
 </body>
