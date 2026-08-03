@@ -319,29 +319,26 @@ function renderTable(orders) {
         var actionBtn = '';
         var act = INLINE_ACTIONS[o.status];
 
-        // preparing: show Dispatch if chef marked ready (prepared_at exists), else show "Chef Cooking" badge
+        // preparing: behaviour depends on order type and whether kitchen marked ready
         if (o.status === 'preparing') {
-            if (o.picked_up_at || o.prepared_at) {
-                // Chef has marked ready — admin can now dispatch a rider
-                act = { label:'Dispatch Rider', icon:'bike', btnClass:'btn-warning', type:'dispatch' };
-            } else {
-                // Still cooking — admin waits for chef
+            if (!o.prepared_at) {
+                // Kitchen still cooking — show pulsing badge, no action button
+                act = null;
                 actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(220,38,38,.1);color:#f87171;border:1px solid rgba(220,38,38,.25);white-space:nowrap;" title="Chef is cooking this order">' +
                     '<span style="width:6px;height:6px;border-radius:50%;background:#f87171;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
                     'Chef Cooking' +
                     '</span>';
+            } else if (o.order_type === 'delivery') {
+                // Delivery + kitchen ready → admin dispatches a rider
+                act = { label:'Dispatch Rider', icon:'bike', btnClass:'btn-warning', type:'dispatch' };
+            } else {
+                // Dine-in / pickup + kitchen ready → admin completes the order
+                act = { label: o.order_type === 'pickup' ? 'Picked Up' : 'Complete', icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
             }
         }
 
-        // For non-delivery orders (pickup/dine-in), preparing→delivered directly
-        if (o.status === 'preparing' && o.order_type !== 'delivery') {
-            act = { label: o.order_type === 'pickup' ? 'Picked Up' : 'Complete', icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
-        }
-
-        // Dine-in accepted: new items may have been merged in — show Complete so admin can close the table
-        if (o.status === 'accepted' && o.order_type === 'dine_in') {
-            act = { label:'Complete', icon:'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
-        }
+        // Dine-in/pickup accepted: kitchen hasn't started yet — admin waits, no Complete button
+        // (chef must Start Cooking → Mark Ready before admin can complete)
 
         if (act) {
             actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;white-space:nowrap;" ' +
@@ -594,12 +591,20 @@ function openManageModal(id) {
         }
     }
 
-    // Non-delivery, preparing → mark delivered directly
+    // Non-delivery (pickup/dine-in), preparing → only allow Complete AFTER kitchen marks ready
     if (o.order_type !== 'delivery' && o.status === 'preparing') {
-        sp.next      = 'delivered';
-        sp.nextLabel = o.order_type === 'pickup' ? 'Mark as Picked Up' : 'Mark as Completed';
-        sp.btnClass  = 'btn-success';
-        sp.chefAction = false;
+        if (o.prepared_at) {
+            sp.next      = 'delivered';
+            sp.nextLabel = o.order_type === 'pickup' ? 'Mark as Picked Up' : 'Mark as Completed';
+            sp.btnClass  = 'btn-success';
+            sp.chefAction = false;
+        } else {
+            // Still cooking — keep chefAction true so the modal shows "awaiting kitchen" state
+            sp.next      = null;
+            sp.nextLabel = null;
+            sp.btnClass  = '';
+            sp.chefAction = true;
+        }
     }
 
     document.getElementById('mmTitle').textContent = 'Manage Order ' + o.order_number;

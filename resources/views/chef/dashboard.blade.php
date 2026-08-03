@@ -1041,7 +1041,8 @@ document.addEventListener('DOMContentLoaded', () => {
     @php
         $allKitchenOrders = array_merge(
             $queuedOrders->all(),
-            $cookingOrders->all()
+            $cookingOrders->all(),
+            $readyOrders->all()
         );
         $kitchenSeed = [];
         foreach ($allKitchenOrders as $o) {
