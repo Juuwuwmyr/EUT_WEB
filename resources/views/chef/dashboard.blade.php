@@ -592,17 +592,27 @@ function unlockAutoPrint() {
         banner.innerHTML = `
             <div style="display:flex;align-items:center;gap:.6rem;">
                 <i data-lucide="check-circle-2" style="width:1.1rem;height:1.1rem;color:#10b981;stroke-width:2;flex-shrink:0;"></i>
-                <p style="font-size:.8rem;font-weight:700;color:#10b981;margin:0;">✓ Auto-Print enabled — receipts will print automatically on every new order</p>
+                <p style="font-size:.8rem;font-weight:700;color:#10b981;margin:0;">✓ Auto-Print enabled — kitchen ticket will print automatically on every accepted order</p>
             </div>`;
         if (window.lucide) lucide.createIcons();
-        setTimeout(() => { if (banner) banner.style.display = 'none'; }, 3000);
+        setTimeout(() => { if (banner) banner.style.display = 'none'; }, 4000);
     }
-    // Do a test print with an invisible iframe to warm up the print context
-    const warmup = document.createElement('iframe');
-    warmup.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
-    warmup.srcdoc = '<html><body></body></html>';
-    document.body.appendChild(warmup);
-    warmup.onload = () => { try { warmup.contentWindow.print(); } catch(e){} setTimeout(() => warmup.remove(), 5000); };
+    // Mark all currently queued/cooking orders as already printed
+    // so only NEW orders after this point trigger a print
+    document.querySelectorAll('.k-order-card[data-order-id]').forEach(card => {
+        const id = card.dataset.orderId;
+        if (id) {
+            printedOrderIds.add('accept_' + id);
+            printedOrderIds.add('ready_' + id);
+            printedOrderIds.add('pickup_' + id);
+        }
+    });
+    // Also mark from orderDataMap
+    Object.keys(orderDataMap).forEach(id => {
+        printedOrderIds.add('accept_' + id);
+        printedOrderIds.add('ready_' + id);
+        printedOrderIds.add('pickup_' + id);
+    });
 }
 
 function elapsedBadge(mins) {
