@@ -200,43 +200,49 @@ hr.double { border-top: 3px double #000; }
 </div>
 
 <script>
-// Only auto-print when opened as a popup from the kitchen dashboard.
-// When loaded by WebApp Hardware Bridge (WAHB), printing is handled by the bridge itself — no dialog.
-document.addEventListener('DOMContentLoaded', function() {
-    document.body.style.width = '185px';
+// ── Auto-print silently on every load ────────────────────────────────────
+// Works in three contexts:
+//   1. Popup   (window.opener set)
+//   2. Hidden iframe (window.name = 'kitchen_autoprint')
+//   3. Direct  (?autoprint=1 in URL)
+//
+// For a completely dialog-free experience launch Chrome with:
+//   --kiosk-printing
+// That flag makes window.print() go directly to the default printer.
+// Without it, the OS print dialog will appear once per invocation.
+
+function _fixBodyWidth() {
+    document.body.style.width    = '185px';
     document.body.style.maxWidth = '185px';
-});
+}
+document.addEventListener('DOMContentLoaded', _fixBodyWidth);
 
 window.onload = function () {
-    document.body.style.width = '185px';
-    document.body.style.maxWidth = '185px';
+    _fixBodyWidth();
 
-    // Only print if opened as a popup (has opener) — not when fetched by WAHB
-    if (window.opener || window.name.startsWith('kitchen_print')) {
-        setTimeout(function() {
-            try {
-                window.focus();
-                window.print();
-                setTimeout(function() { try { window.close(); } catch(e) {} }, 3000);
-            } catch(e) {}
-        }, 300);
-    }
+    // Always auto-print — popup, iframe, or direct URL
+    setTimeout(function () {
+        try {
+            window.focus();
+            window.print();
+        } catch (e) {}
+    }, 300);
 };
 
-// Listen for print events to close popup after printing
-window.addEventListener('afterprint', function() {
-    if (window.opener || window.name === 'kitchen_print') {
-        setTimeout(() => {
-            try { window.close(); } catch(e) {}
-        }, 500);
+// After printing: close popup OR signal parent iframe to clean up
+window.addEventListener('afterprint', function () {
+    if (window.opener) {
+        // Popup context — close self
+        setTimeout(function () { try { window.close(); } catch (e) {} }, 500);
+    } else if (window.parent && window.parent !== window) {
+        // iframe context — post message so dashboard.blade.php removes the iframe
+        try { window.parent.postMessage({ type: 'kitchen_ticket_printed' }, '*'); } catch (e) {}
     }
 });
 
-// Backup: close popup even if print was cancelled
-if (window.opener || window.name === 'kitchen_print') {
-    setTimeout(() => {
-        try { window.close(); } catch(e) {}
-    }, 10000);
+// Safety net: close popup after 10 s even if afterprint never fires
+if (window.opener) {
+    setTimeout(function () { try { window.close(); } catch (e) {} }, 10000);
 }
 </script>
 </body>

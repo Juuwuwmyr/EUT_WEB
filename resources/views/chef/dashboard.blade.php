@@ -1034,36 +1034,53 @@ function autoPrintKitchenTicket(orderId) {
     const url = `/chef/orders/${orderId}/kitchen-ticket`;
 
     // ── Silent iframe print ────────────────────────────────────────────────
-    // WAHB bridge does NOT support HTML URLs (only PDF/images).
-    // We use a hidden iframe so the browser's native print handles HTML tickets.
+    // The ticket page always calls window.print() on load, then posts a
+    // 'kitchen_ticket_printed' message back here so we can remove the iframe.
+    //
+    // For a completely dialog-free experience launch Chrome with:
+    //   --kiosk-printing
+    // That flag sends window.print() straight to the default printer.
     wahbLog('info', 'Print', 'Silent iframe print for kitchen ticket', 'orderId=' + orderId + ' url=' + url);
 
     const iframe = document.createElement('iframe');
+    iframe.name = 'kitchen_autoprint';          // ticket page reads this
     iframe.style.cssText = [
         'position:fixed', 'top:-99999px', 'left:-99999px',
-        'width:1px', 'height:1px', 'border:0',
+        'width:210px', 'height:600px', 'border:0',
         'opacity:0', 'pointer-events:none', 'z-index:-9999'
     ].join(';');
     iframe.setAttribute('tabindex', '-1');
     iframe.setAttribute('aria-hidden', 'true');
     document.body.appendChild(iframe);
 
-    iframe.onload = function () {
-        try {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-            showToast('🖨️ Kitchen ticket printing…', 'success', 1800);
-        } catch (e) {
-            wahbLog('error', 'Print', 'iframe print failed: ' + e.message, url);
+    // Cleanup helper
+    function _removeIframe() {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    }
+
+    // Listen for the ticket page to signal it finished printing
+    function _onMessage(e) {
+        if (e.data && e.data.type === 'kitchen_ticket_printed') {
+            window.removeEventListener('message', _onMessage);
+            setTimeout(_removeIframe, 500);
         }
-        setTimeout(function () {
-            if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-        }, 2000);
+    }
+    window.addEventListener('message', _onMessage);
+
+    // Safety net: remove after 15 s regardless
+    setTimeout(function () {
+        window.removeEventListener('message', _onMessage);
+        _removeIframe();
+    }, 15000);
+
+    iframe.onload = function () {
+        showToast('🖨️ Kitchen ticket printing…', 'success', 1800);
+        // print() is called by the ticket page itself on window.onload
     };
 
     iframe.onerror = function () {
-        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-        // Fallback: popup
+        window.removeEventListener('message', _onMessage);
+        _removeIframe();
         wahbLog('warn', 'Print', 'iframe load failed — using popup fallback', url);
         const w = window.open(url, 'kitchen_print_' + orderId, 'width=300,height=500,left=0,top=0,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
         if (w) { showToast('🖨️ Kitchen ticket printing...', 'success', 2000); return; }
