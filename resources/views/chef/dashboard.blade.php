@@ -1429,15 +1429,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // No else needed — polling heartbeat sets status green once it succeeds
 
     console.log('[INIT] Starting polling system...');
-    // Echo is the primary real-time driver.
-    // Polling runs every 30s as a slow-sync fallback only (not for real-time updates).
-    // This eliminates the 3-second flicker caused by full DOM rebuilds.
+    // Polling runs every 3s for live kitchen updates
     if (!fallbackTimer) {
         console.log('[INIT] Initial refresh call...');
         refreshKitchen(false);
-        console.log('[INIT] Setting up 30-second slow-sync interval (Echo is primary)...');
-        fallbackTimer = setInterval(() => refreshKitchen(false), 30000);
-        console.log('[INIT] Slow-sync fallback started');
+        console.log('[INIT] Setting up 3-second polling interval...');
+        fallbackTimer = setInterval(() => refreshKitchen(false), 3000);
+        console.log('[INIT] Polling started');
     }
     
     // Fallback: Force status check after a short delay to ensure it's not stuck
