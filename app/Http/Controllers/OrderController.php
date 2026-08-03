@@ -124,13 +124,14 @@ class OrderController extends Controller
             $total = round($subtotal + $deliveryFee, 2);
 
             // ── Dine-in: merge into existing active order for same table ────
-            // If the customer already has an active dine-in order at the same table,
-            // append items to it and update totals instead of creating a new order.
+            // Only merge when the existing order is still 'pending' (not yet accepted).
+            // If it's already accepted/preparing the kitchen is working on it — create a
+            // new pending order so the admin must accept it and the kitchen prints a new ticket.
             if ($request->order_type === 'dine_in' && $request->table_number) {
                 $existingOrder = Order::where('user_id', auth()->id())
                     ->where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
-                    ->whereIn('status', ['pending', 'accepted', 'preparing'])
+                    ->where('status', 'pending')
                     ->latest()
                     ->first();
 
