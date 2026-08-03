@@ -1520,12 +1520,96 @@ function openPickupSlipForPrint(orderId) {
 // Start polling on page load
 document.addEventListener('DOMContentLoaded', () => {
     startPickupPolling();
+    startOrdersRefresh();
 });
 
 // Stop polling when leaving page
 window.addEventListener('beforeunload', () => {
     stopPickupPolling();
+    stopOrdersRefresh();
 });
+
+/* ────────────────────────────────────────────────────────
+   AUTO-REFRESH RIDER ORDERS (Live Updates)
+   ──────────────────────────────────────────────────────── */
+let _ordersRefreshInterval = null;
+const ORDERS_REFRESH_INTERVAL = 5000; // 5 seconds
+
+function startOrdersRefresh() {
+    if (_ordersRefreshInterval) return;
+    
+    console.log('[Rider Orders] Starting auto-refresh...');
+    
+    // Refresh immediately
+    refreshRiderOrders();
+    
+    // Then poll every 5 seconds
+    _ordersRefreshInterval = setInterval(refreshRiderOrders, ORDERS_REFRESH_INTERVAL);
+}
+
+function stopOrdersRefresh() {
+    if (_ordersRefreshInterval) {
+        clearInterval(_ordersRefreshInterval);
+        _ordersRefreshInterval = null;
+        console.log('[Rider Orders] Stopped auto-refresh');
+    }
+}
+
+async function refreshRiderOrders() {
+    try {
+        const res = await fetch('{{ route("rider.orders") }}', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+        });
+        
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        
+        const orders = await res.json();
+        console.log('[Rider Orders] Refreshed', orders.length, 'orders');
+        
+        // Re-render the active orders section
+        updateRiderOrdersDisplay(orders);
+        
+    } catch (err) {
+        console.error('[Rider Orders] Refresh failed:', err);
+    }
+}
+
+function updateRiderOrdersDisplay(orders) {
+    // Get the active orders container
+    const activeView = document.getElementById('view-active');
+    if (!activeView) return;
+    
+    // Find and update order cards
+    orders.forEach(order => {
+        const card = document.getElementById('order-row-' + order.id) || 
+                     activeView.querySelector('[data-order-id="' + order.id + '"]');
+        
+        if (card) {
+            // Update status badge
+            const badge = card.querySelector('.badge');
+            if (badge) {
+                badge.className = 'badge ' + (order.status === 'out_for_delivery' ? 'badge-delivering' : 'badge-assigned');
+                const label = order.status === 'out_for_delivery' ? 'On the Way' : 'Assigned';
+                const pulse = order.status === 'out_for_delivery' ? '<span class="pulse-dot"></span>' : '';
+                badge.innerHTML = pulse + ' ' + label;
+            }
+            
+            // Update button based on new status
+            const actionDiv = card.querySelector('.oc-footer div:last-child');
+            if (actionDiv && order.status === 'out_for_delivery') {
+                // Change "Picked Up" button to "Mark as Delivered"
+                const pickupBtn = actionDiv.querySelector('[class*="btn-pickup"]');
+                if (pickupBtn) {
+                    pickupBtn.outerHTML = `<button class="btn-delivered" onclick="openDeliverySheet(this)" data-order-id="${order.id}">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Mark as Delivered
+                    </button>`;
+                }
+            }
+        }
+    });
+}
 </script>
 @include('partials.pwa-register')
 </body>
