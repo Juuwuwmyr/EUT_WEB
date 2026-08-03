@@ -343,7 +343,15 @@
             <div class="guest-notice">⚠️ Please <a href="{{ route('restaurant') }}">log in</a> to place your order.</div>
             @endguest
             @auth
+            @if(!$isOpen)
+            <div style="margin:4px 18px 12px;padding:12px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <svg width="15" height="15" fill="none" stroke="#f87171" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                <span style="font-size:12px;font-weight:700;color:#f87171;">Shop is <strong>CLOSED</strong> — orders not accepted right now.</span>
+            </div>
+            <button type="button" class="place-btn" disabled style="opacity:.5;cursor:not-allowed;background:linear-gradient(135deg,#374151,#4b5563);">Shop Closed</button>
+            @else
             <button type="submit" class="place-btn" id="placeOrderBtn">Place Order</button>
+            @endif
             @endauth
         </div>
       </div><!-- /right -->
@@ -970,6 +978,30 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         btn.disabled = false; btn.textContent = 'Place Order';
     }
 });
+
+// ── Echo: disable checkout if admin closes shop in real time ──
+if (window.Echo) {
+    window.Echo.channel('shop.status')
+        .listen('.shop.status', (data) => {
+            const btn = document.getElementById('placeOrderBtn');
+            if (!btn) return;
+            if (!data.is_open) {
+                btn.disabled = true;
+                btn.textContent = '🔴 Shop Closed';
+                btn.style.background = 'linear-gradient(135deg,#374151,#4b5563)';
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+                btn.type = 'button'; // prevent form submit
+            } else {
+                btn.disabled = false;
+                btn.textContent = 'Place Order';
+                btn.style.background = '';
+                btn.style.opacity = '';
+                btn.style.cursor = '';
+                btn.type = 'submit';
+            }
+        });
+}
 </script>
 @include('partials.pwa-register')
 

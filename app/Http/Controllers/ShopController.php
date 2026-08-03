@@ -43,12 +43,14 @@ class ShopController extends Controller
 
     public function cart()
     {
-        return view('shop.cart');
+        $isOpen = cache()->get('shop_is_open', true);
+        return view('shop.cart', compact('isOpen'));
     }
 
     public function checkout()
     {
-        return view('shop.checkout');
+        $isOpen = cache()->get('shop_is_open', true);
+        return view('shop.checkout', compact('isOpen'));
     }
 
     public function tracking()

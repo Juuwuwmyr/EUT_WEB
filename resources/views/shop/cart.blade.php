@@ -581,16 +581,27 @@
         </div>
 
         <!-- Sticky Buy Now Bar -->
+        @if(!$isOpen)
+        <div style="margin:0 0 10px;padding:12px 16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:14px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <svg width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            <span style="font-size:13px;font-weight:700;color:#f87171;">We're currently <strong>CLOSED</strong> — orders not accepted right now.</span>
+        </div>
+        <div class="buy-now-bar" id="buyNowBar" style="opacity:.5;cursor:not-allowed;pointer-events:none;background:linear-gradient(135deg,#374151,#4b5563);">
+        @else
         <a href="{{ route('shop.checkout') }}" class="buy-now-bar" id="buyNowBar">
+        @endif
             <div class="buy-now-left">
                 <span class="buy-now-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></span>
                 <div>
-                    <p class="buy-now-label">Place Order</p>
+                    <p class="buy-now-label">{{ $isOpen ? 'Place Order' : 'Shop Closed' }}</p>
                     <p class="buy-now-total" id="buyBarTotal">&#8369;0</p>
                 </div>
             </div>
-            <span class="buy-now-cta" style="display:inline-flex;align-items:center;gap:5px;">Buy Now <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg></span>
-        </a>
+            <span class="buy-now-cta" style="display:inline-flex;align-items:center;gap:5px;">
+                {{ $isOpen ? 'Buy Now' : 'Closed' }}
+                @if($isOpen)<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>@endif
+            </span>
+        @if(!$isOpen)</div>@else</a>@endif
         <a href="{{ route('shop.home') }}" class="continue-btn" style="display:inline-flex;align-items:center;gap:6px;">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg> Continue Shopping
         </a>
@@ -975,9 +986,32 @@ window.addEventListener('popstate', function() {
     history.pushState({ page: 'cart' }, '', window.location.href);
 });
 
+// ── Echo: real-time shop close — disable buy now bar ────
+if (window.Echo) {
+    window.Echo.channel('shop.status')
+        .listen('.shop.status', (data) => {
+            const bar = document.getElementById('buyNowBar');
+            if (!bar) return;
+            if (!data.is_open) {
+                bar.style.opacity = '0.5';
+                bar.style.pointerEvents = 'none';
+                bar.style.background = 'linear-gradient(135deg,#374151,#4b5563)';
+                bar.style.cursor = 'not-allowed';
+                const label = bar.querySelector('.buy-now-label');
+                if (label) label.textContent = '🔴 Shop Closed';
+            } else {
+                bar.style.opacity = '';
+                bar.style.pointerEvents = '';
+                bar.style.background = '';
+                bar.style.cursor = '';
+                const label = bar.querySelector('.buy-now-label');
+                if (label) label.textContent = 'Place Order';
+            }
+        });
+}
+
 @auth
-// ── Echo: live order status toast while on cart page ─────
-(function() {
+// ── Echo: live order status toast while on cart page ─────(function() {
     const STATUS_LABELS = {
         accepted:         '✅ Order Accepted! Kitchen is on it.',
         preparing:        '👨‍🍳 Your food is being prepared.',
