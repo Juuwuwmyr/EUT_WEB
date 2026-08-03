@@ -111,7 +111,7 @@
             background: radial-gradient(circle, rgba(250,204,21,0.08) 0%, transparent 70%);
             pointer-events: none;
         }
-        .hero-text { position: relative; z-index: 1; max-width: 55%; }
+        .hero-text { position: relative; z-index: 2; max-width: 55%; }
         .hero-badge {
             display: inline-flex; align-items: center; gap: 5px;
             background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
@@ -156,14 +156,22 @@
         .light-mode .order-type-switcher { background: rgba(0,0,0,0.06) !important; border-color: rgba(0,0,0,0.1) !important; }
         .light-mode .ot-btn { color: #6b7280 !important; }
         .light-mode .ot-btn.active { background: linear-gradient(135deg,#dc2626,#ef4444) !important; color: #fff !important; }
+
+        @media (max-width: 480px) {
+            .hero-text { max-width: 100%; }
+            .hero-img { opacity: 0.25; right: -10px; }
+            .order-type-switcher { width: 100%; justify-content: stretch; }
+            .ot-btn { flex: 1; justify-content: center; }
+        }
         .hero-img {
             position: absolute;
             right: -30px; bottom: 0;
             height: 100%; max-height: 220px;
             width: auto;
             object-fit: contain; object-position: right bottom;
-            z-index: 1;
+            z-index: 1; /* hero-text is z-index:2, so buttons stay clickable */
             filter: drop-shadow(-8px 0 20px rgba(0,0,0,0.5));
+            pointer-events: none; /* image never intercepts clicks */
         }
 
         /* -- CATEGORIES -- */
