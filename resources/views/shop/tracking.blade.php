@@ -491,9 +491,16 @@ function buildDetailBody(o) {
         ? [{key:'placed',label:'Order Placed',time:o.placed_at,done:true},{key:'cancelled',label:'Cancelled',time:o.cancelled_at||'',done:true,is_cancel:true}]
         : timelineSteps.map((s,i) => {
             const currentIdx = timelineSteps.indexOf(o.status);
-            const isDone = i < currentIdx || o.status === 'delivered';
+            const isDone = i < currentIdx;
             const isNow  = s === o.status;
-            const timeMap = {pending:o.placed_at,accepted:o.accepted_at,preparing:o.accepted_at,rider_assigned:o.assigned_at,out_for_delivery:o.picked_up_at,delivered:o.delivered_at};
+            const timeMap = {
+                pending:          o.placed_at,
+                accepted:         o.accepted_at   || null,
+                preparing:        null,
+                rider_assigned:   o.assigned_at   || null,
+                out_for_delivery: o.picked_up_at  || null,
+                delivered:        o.delivered_at  || null,
+            };
             let label = STATUS_CFG[s]?.label||s;
             if(s === 'delivered' && !isDelivery) label = o.order_type === 'pickup' ? 'Picked Up' : 'Completed';
             return {key:s,label:label,time:timeMap[s]||'',done:isDone,isNow,future:!isDone&&!isNow};
@@ -639,11 +646,20 @@ async function loadAllOrders() {
                         setTimeout(() => { if(typeof initOrderMap==='function') initOrderMap(updated); }, 300);
                     }
                 } else {
-                    // Status unchanged — only move the rider marker, no rebuild
+                    // Status unchanged — only move the rider marker, no full rebuild
                     if (updated.rider && updated.rider.lat && updated.rider.lng) {
                         updateMapRiderPos(updated.id, updated.rider.lat, updated.rider.lng);
                     }
-                    // Update timeline timestamps silently (no map impact)
+                    // Still refresh timeline timestamps silently if any arrived
+                    const timestampFields = ['accepted_at','assigned_at','picked_up_at','delivered_at','cancelled_at'];
+                    const prev = allOrders.find(x => x.id === detailOrderId) || {};
+                    const hasNewTimestamp = timestampFields.some(f => updated[f] && updated[f] !== prev[f]);
+                    if (hasNewTimestamp) {
+                        document.getElementById('detailBody').innerHTML = buildDetailBody(updated);
+                        if (!['delivered','cancelled'].includes(updated.status)) {
+                            setTimeout(() => { if(typeof initOrderMap==='function') initOrderMap(updated); }, 300);
+                        }
+                    }
                 }
 
                 // Track current status on the map state
