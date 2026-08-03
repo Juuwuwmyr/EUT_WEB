@@ -305,10 +305,6 @@
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                 Orders
             </a>
-            <a href="{{ route('chef.dashboard') }}" class="nav-link {{ request()->routeIs('chef.dashboard*') ? 'active' : '' }}">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" y1="17" x2="18" y2="17" stroke-width="2" stroke-linecap="round"/><line x1="6" y1="21" x2="18" y2="21" stroke-width="2" stroke-linecap="round"/></svg>
-                Kitchen
-            </a>
             <a href="{{ route('admin.table-qrcodes') }}" class="nav-link {{ request()->routeIs('admin.table-qrcodes*') ? 'active' : '' }}">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 17h7M17 14v7"/></svg>
                 QR Codes
