@@ -622,50 +622,11 @@ function selectOrderType(el, type){
     const tableInput = document.getElementById('tableNumberInput');
     if (tableInput) tableInput.required = (type === 'dine_in');
 
-    // Show dine-in location warning if not at restaurant
-    const dineInWarning = document.getElementById('dineInLocationWarning');
-    if (dineInWarning) {
-        if (type === 'dine_in') {
-            const atRestaurant = checkIfAtRestaurant();
-            dineInWarning.style.display = atRestaurant ? 'none' : 'flex';
-        } else {
-            dineInWarning.style.display = 'none';
-        }
-    }
-
     // Hide/Show payment method card — only visible for delivery
     const paymentCard = document.getElementById('paymentMethodCard');
     if(paymentCard) {
         paymentCard.style.display = type === 'delivery' ? 'block' : 'none';
     }
-}
-
-function checkIfAtRestaurant() {
-    // Restaurant coords
-    const restLat = 13.321512;
-    const restLng = 121.302098;
-    const maxDist = 500; // meters
-    const earthR = 6371;
-
-    // Get customer's current location
-    const cLat = _gpsLat || (function() {
-        try { const c = JSON.parse(sessionStorage.getItem('eut_geo_ok') || 'null'); return c?.lat || null; } catch(e) { return null; }
-    })();
-    const cLng = _gpsLng || (function() {
-        try { const c = JSON.parse(sessionStorage.getItem('eut_geo_ok') || 'null'); return c?.lng || null; } catch(e) { return null; }
-    })();
-
-    if (!cLat || !cLng) return false; // No location data
-
-    // Calculate distance using Haversine
-    const dLat = (Math.PI / 180) * (cLat - restLat);
-    const dLng = (Math.PI / 180) * (cLng - restLng);
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2)
-            + Math.cos((Math.PI / 180) * restLat) * Math.cos((Math.PI / 180) * cLat)
-            * Math.sin(dLng/2) * Math.sin(dLng/2);
-    const distMeters = earthR * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 1000;
-
-    return distMeters <= maxDist;
 }
 
 /* ═══════════════════════════════════

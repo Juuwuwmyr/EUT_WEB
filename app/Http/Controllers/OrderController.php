@@ -50,31 +50,6 @@ class OrderController extends Controller
             }
         }
 
-        // ── Dine-in: customer must be AT the restaurant location ────────────
-        // Dine-in orders require customers to be within 500m of the actual
-        // restaurant coordinates to prevent misuse (e.g., ordering from home
-        // and claiming to be dining in).
-        $orderType = $request->input('order_type', '');
-        if ($orderType === 'dine_in' && $cLat && $cLng) {
-            $restLat = 13.321512;
-            $restLng = 121.302098;
-            $earthR  = 6371;
-            $dLat    = deg2rad($cLat - $restLat);
-            $dLng    = deg2rad($cLng - $restLng);
-            $a       = sin($dLat/2) * sin($dLat/2)
-                     + cos(deg2rad($restLat)) * cos(deg2rad($cLat))
-                     * sin($dLng/2) * sin($dLng/2);
-            $distMeters = $earthR * 2 * atan2(sqrt($a), sqrt(1 - $a)) * 1000;
-
-            if ($distMeters > 500) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'For dine-in orders, you must be at our restaurant location. Please visit us in person to place a dine-in order.',
-                    'outside_restaurant' => true,
-                ], 422);
-            }
-        }
-
         $request->validate([
             'items'            => 'required|array|min:1',            'items.*.id'       => 'required',
             'items.*.qty'      => 'required|integer|min:1|max:99',
