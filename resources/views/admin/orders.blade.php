@@ -1,4 +1,4 @@
-﻿@extends('admin.layout')
+@extends('admin.layout')
 @section('title', 'Orders')
 
 {{-- Leaflet for rider live map in modal --}}
@@ -11,7 +11,7 @@
 
 @section('content')
 
-{{-- â”€â”€ PAGE HEADER â”€â”€ --}}
+{{-- ── PAGE HEADER ── --}}
 <div class="page-header" style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:1rem;">
     <div style="display:flex;align-items:center;gap:.75rem;">
         <div style="width:2.5rem;height:2.5rem;border-radius:.75rem;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;">
@@ -27,7 +27,7 @@
     </button>
 </div>
 
-{{-- ── ERROR LOG PANEL ── --}}
+{{-- -- ERROR LOG PANEL -- --}}
 <div id="errorLogPanel" style="display:none;margin-bottom:1.25rem;border:1px solid rgba(239,68,68,.35);border-radius:.75rem;background:rgba(239,68,68,.06);overflow:hidden;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.08);">
         <div style="display:flex;align-items:center;gap:.5rem;">
@@ -47,7 +47,7 @@
     <div id="errorLogBody" style="max-height:220px;overflow-y:auto;padding:.5rem .75rem;font-family:monospace;font-size:.72rem;line-height:1.6;"></div>
 </div>
 
-{{-- ── TABLE CARD ── --}}
+{{-- -- TABLE CARD -- --}}
 <div class="section-card">
     <div class="filter-bar" style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:.5rem;">
@@ -93,12 +93,12 @@
             </tr>
         </thead>
         <tbody id="ordersTableBody">
-            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:3rem;">Loading…</td></tr>
+            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:3rem;">Loading�</td></tr>
         </tbody>
     </table>
 </div>
 
-{{-- â•â•â•â•â•â•â•â•â•â• MANAGE ORDER MODAL â•â•â•â•â•â•â•â•â•â• --}}
+{{-- ══════════ MANAGE ORDER MODAL ══════════ --}}
 <div id="manageModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'manageModal')">
     <div class="modal-box modal-lg">
         <div class="modal-header">
@@ -111,7 +111,7 @@
             </button>
         </div>
         <div id="mmBody" class="modal-body" style="gap:.875rem;">
-            <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loadingâ€¦</div>
+            <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading…</div>
         </div>
     </div>
 </div>
@@ -126,7 +126,7 @@ var pollTimer    = null;
 var POLL_INTERVAL = 5000; // 5 seconds
 var printedPickupIds = new Set(); // track which orders already auto-printed on pickup
 
-// ── Error Log ────────────────────────────────────────────
+// -- Error Log --------------------------------------------
 var errorLogEntries = [];
 
 function logError(context, message, detail) {
@@ -164,7 +164,7 @@ function copyErrorLog() {
     }).join('\n');
     navigator.clipboard.writeText(text).then(function() {
         var btn = document.querySelector('#errorLogPanel button');
-        if (btn) { var orig = btn.innerHTML; btn.innerHTML = '✓ Copied!'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
+        if (btn) { var orig = btn.innerHTML; btn.innerHTML = '? Copied!'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
     });
 }
 
@@ -178,7 +178,7 @@ function clearErrorLog() {
     if (count) count.textContent = '0';
 }
 
-// ── Status config (client-side) ─────────────────────────
+// -- Status config (client-side) -------------------------
 var STATUS_COLOR_MAP = {
     pending:          { bg:'rgba(245,158,11,.12)',  color:'#d97706',  label:'Pending'        },
     accepted:         { bg:'rgba(59,130,246,.12)',  color:'#2563eb',  label:'Accepted'       },
@@ -190,7 +190,7 @@ var STATUS_COLOR_MAP = {
 };
 
 // -- Status pipeline for modal
-// Admin: Accept (→ auto preparing) | Dispatch rider (after chef marks ready) | Cancel
+// Admin: Accept (? auto preparing) | Dispatch rider (after chef marks ready) | Cancel
 // Chef: Mark Ready (on Kitchen Dashboard)
 // Rider: Picked Up | Delivered
 var STATUS_PIPELINE = {
@@ -211,7 +211,7 @@ var STATUS_TIMELINE = [
     { key:'delivered',        label:'Delivered',        icon:'<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' },
 ];
 
-// ── Auto-poll ────────────────────────────────────────────
+// -- Auto-poll --------------------------------------------
 function startPolling() {
     if (pollTimer) clearInterval(pollTimer); // prevent duplicate intervals
     fetchOrders();
@@ -249,7 +249,7 @@ async function fetchOrders() {
             });
             window._adminFirstPollDone = true;
         } else {
-            // Subsequent poll — only print for orders that just transitioned
+            // Subsequent poll � only print for orders that just transitioned
             data.orders.forEach(function(o) {
                 if (o.status === 'out_for_delivery' && !printedPickupIds.has(o.id)) {
                     printedPickupIds.add(o.id);
@@ -290,11 +290,11 @@ function applyDateFilter(mode) {
     fetchOrders();
 }
 
-// ── Render table rows ────────────────────────────────────
-// Flow: Admin ACCEPTS (auto→preparing) → Chef MARKS READY → Admin DISPATCHES rider → Rider PICKS UP → Rider DELIVERS
+// -- Render table rows ------------------------------------
+// Flow: Admin ACCEPTS (auto?preparing) ? Chef MARKS READY ? Admin DISPATCHES rider ? Rider PICKS UP ? Rider DELIVERS
 var INLINE_ACTIONS = {
     pending: { label:'Accept', icon:'check', btnClass:'btn-success', type:'accept' },
-    // preparing: handled dynamically — 'Dispatch' only when chef has marked ready (picked_up_at set on order data)
+    // preparing: handled dynamically � 'Dispatch' only when chef has marked ready (picked_up_at set on order data)
 };
 
 function renderTable(orders) {
@@ -335,23 +335,23 @@ function renderTable(orders) {
         // preparing: behaviour depends on order type and whether kitchen marked ready
         if (o.status === 'preparing') {
             if (!o.prepared_at) {
-                // Kitchen still cooking — show pulsing badge, no action button
+                // Kitchen still cooking � show pulsing badge, no action button
                 act = null;
                 actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(220,38,38,.1);color:#f87171;border:1px solid rgba(220,38,38,.25);white-space:nowrap;" title="Chef is cooking this order">' +
                     '<span style="width:6px;height:6px;border-radius:50%;background:#f87171;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
                     'Chef Cooking' +
                     '</span>';
             } else if (o.order_type === 'delivery') {
-                // Delivery + kitchen ready → admin dispatches a rider
+                // Delivery + kitchen ready ? admin dispatches a rider
                 act = { label:'Dispatch Rider', icon:'bike', btnClass:'btn-warning', type:'dispatch' };
             } else {
-                // Dine-in / pickup + kitchen ready → admin completes the order
+                // Dine-in / pickup + kitchen ready ? admin completes the order
                 act = { label: o.order_type === 'pickup' ? 'Picked Up' : 'Complete', icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
             }
         }
 
-        // Dine-in/pickup accepted: kitchen hasn't started yet — admin waits, no Complete button
-        // (chef must Start Cooking → Mark Ready before admin can complete)
+        // Dine-in/pickup accepted: kitchen hasn't started yet � admin waits, no Complete button
+        // (chef must Start Cooking ? Mark Ready before admin can complete)
 
         if (act) {
             actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;white-space:nowrap;" ' +
@@ -361,7 +361,7 @@ function renderTable(orders) {
                 '</button>';
         }
 
-        // rider_assigned → rider-owned
+        // rider_assigned ? rider-owned
         if (o.status === 'rider_assigned') {
             var riderName = o.rider ? escHtml(o.rider) : 'Rider';
             actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.25);white-space:nowrap;" title="' + riderName + ' must click Picked Up on their dashboard">' +
@@ -382,7 +382,7 @@ function renderTable(orders) {
                     '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;">' + (o.order_type_icon || '') + ' ' + escHtml(o.order_type_label) + '</span>' +
                     '</div>' +
                     (o.order_type === 'dine_in' && o.table_number
-                        ? '<p style="font-size:.7rem;color:#facc15;font-weight:700;margin:0 0 1px;">🪑 Table ' + escHtml(o.table_number) + '</p>'
+                        ? '<p style="font-size:.7rem;color:#facc15;font-weight:700;margin:0 0 1px;">?? Table ' + escHtml(o.table_number) + '</p>'
                         : '<p style="font-size:.68rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">' + escHtml(o.address || '') + '</p>') +
                 '</div>' +
                 '</div>' +
@@ -421,7 +421,7 @@ function escHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Rider card selection ──────────────────────────────────
+// -- Rider card selection ----------------------------------
 function selectRiderCard(el, riderId) {
     // Find the order id from the cards container
     var container = el.closest('[id^="riderCards_"]');
@@ -456,7 +456,7 @@ async function assignRider(orderId, btn) {
 
     var orig = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '⏳ Assigning…';
+    btn.innerHTML = '? Assigning�';
 
     try {
         var url = '{{ route("admin.orders.assign-rider", ":id") }}'.replace(':id', orderId);
@@ -484,11 +484,11 @@ async function assignRider(orderId, btn) {
     }
 }
 
-// ── Inline quick action (replaces quickAccept for all statuses) ──────────────
+// -- Inline quick action (replaces quickAccept for all statuses) --------------
 async function quickAction(orderId, type, nextStatus, btn) {
     const originalHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '⏳';
+    btn.innerHTML = '?';
 
     try {
         let url, method = 'POST', body = null;
@@ -604,7 +604,7 @@ function openManageModal(id) {
         }
     }
 
-    // Non-delivery (pickup/dine-in), preparing → only allow Complete AFTER kitchen marks ready
+    // Non-delivery (pickup/dine-in), preparing ? only allow Complete AFTER kitchen marks ready
     if (o.order_type !== 'delivery' && o.status === 'preparing') {
         if (o.prepared_at) {
             sp.next      = 'delivered';
@@ -612,7 +612,7 @@ function openManageModal(id) {
             sp.btnClass  = 'btn-success';
             sp.chefAction = false;
         } else {
-            // Still cooking — keep chefAction true so the modal shows "awaiting kitchen" state
+            // Still cooking � keep chefAction true so the modal shows "awaiting kitchen" state
             sp.next      = null;
             sp.nextLabel = null;
             sp.btnClass  = '';
@@ -711,7 +711,7 @@ function openManageModal(id) {
         }
     }
 
-    // rider_assigned → inform admin that the rider must confirm pickup themselves
+    // rider_assigned ? inform admin that the rider must confirm pickup themselves
     if (o.status === 'rider_assigned' && sp.riderAction) {
         var riderName = o.rider ? escHtml(o.rider) : 'the assigned rider';
         actionsHtml +=
@@ -728,7 +728,7 @@ function openManageModal(id) {
             '</div>';
     }
 
-    // pending / accepted / preparing → handled by the Chef in the Kitchen board
+    // pending / accepted / preparing ? handled by the Chef in the Kitchen board
     if (sp.chefAction) {
         var chefStepLabel = o.status === 'pending' ? 'accept this order' : (o.status === 'accepted' ? 'start cooking' : 'mark it ready & assign a rider');
         actionsHtml +=
@@ -816,7 +816,7 @@ function openManageModal(id) {
             '<div style="background:var(--bg-filter);border-radius:.625rem;padding:.75rem;grid-column:span 2;">' +
                 '<p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .25rem;">' + (o.order_type === 'dine_in' ? 'Table Number' : 'Delivery Address') + '</p>' +
                 (o.order_type === 'dine_in' && o.table_number
-                    ? '<p style="font-size:.95rem;font-weight:800;color:#facc15;margin:0;">🪑 Table ' + escHtml(o.table_number) + '</p>'
+                    ? '<p style="font-size:.95rem;font-weight:800;color:#facc15;margin:0;">?? Table ' + escHtml(o.table_number) + '</p>'
                     : '<p style="font-size:.8rem;color:var(--text-body);margin:0;">' + escHtml(o.address || '') + '</p>') +
             '</div>' +
         '</div>' +
@@ -839,7 +839,7 @@ function openManageModal(id) {
                 '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.625rem;">' +
                     '<div style="width:2rem;height:2rem;border-radius:50%;background:rgba(139,92,246,.15);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg></div>' +
                     '<div><p style="font-size:.75rem;font-weight:700;color:#a78bfa;margin:0 0 .1rem;">Rider En Route to Customer</p>' +
-                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">Live tracking — only the rider can mark as delivered.</p></div>' +
+                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">Live tracking � only the rider can mark as delivered.</p></div>' +
                 '</div>' +
                 '<div id="adminOrderMap-' + o.id + '" style="height:220px;width:100%;border-radius:.5rem;overflow:hidden;background:#0a0a14;"></div>' +
               '</div>'
@@ -863,7 +863,7 @@ function openManageModal(id) {
 
 // Admin live rider map
 var adminMapInstance = null;
-const ADMIN_RESTAURANT = [13.3213129, 121.3027265];
+const ADMIN_RESTAURANT = [13.321512, 121.302098];
 
 async function fetchAdminRoute(from, to) {
     var url = 'https://router.project-osrm.org/route/v1/driving/' + from[1] + ',' + from[0] + ';' + to[1] + ',' + to[0] + '?overview=full&geometries=geojson';
@@ -954,7 +954,7 @@ function printReceipt(receiptUrl) {
     }
 }
 
-// ── Boot ─────────────────────────────────────────────────
+// -- Boot -------------------------------------------------
 document.addEventListener('DOMContentLoaded', function() {
     // Set initial filter from URL if present
     var urlParams = new URLSearchParams(window.location.search);
@@ -970,11 +970,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Always start polling so orders refresh even without WebSockets
     startPolling();
 
-    // Echo: real-time nudge — fetch fresh data immediately on any order event
+    // Echo: real-time nudge � fetch fresh data immediately on any order event
     if (window.Echo) {
         window.Echo.private('admin.orders')
             .listen('.order.updated', function(order) {
-                // If rider just picked up — print receipt immediately via Echo
+                // If rider just picked up � print receipt immediately via Echo
                 if (order.status === 'out_for_delivery' && !printedPickupIds.has(order.id)) {
                     printedPickupIds.add(order.id);
                     var receiptUrl = '/chef/orders/' + order.id + '/receipt';

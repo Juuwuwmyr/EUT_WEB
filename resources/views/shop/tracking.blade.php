@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -30,14 +30,14 @@ body{background:#080810;color:#fff;min-height:100vh;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .page-body{max-width:540px;margin:0 auto;padding:130px 16px 110px;}
 
-/* ── SUMMARY STAT CARDS ── */
+/* -- SUMMARY STAT CARDS -- */
 .summary-stat-card{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:10px 6px 8px;text-align:center;transition:border-color .2s;overflow:hidden;min-width:0;}
 .ssc-icon{display:flex;align-items:center;justify-content:center;height:20px;margin-bottom:4px;overflow:hidden;flex-shrink:0;}
 .ssc-icon svg{width:16px;height:16px;flex-shrink:0;}
 .ssc-val{font-size:15px;font-weight:900;color:#facc15;margin:0 0 2px;line-height:1;}
 .ssc-lbl{font-size:10px;color:#4b5563;margin:0;text-transform:uppercase;letter-spacing:.04em;}
 
-/* ── ORDER CARD (compact) ── */
+/* -- ORDER CARD (compact) -- */
 .ocard{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden;margin-bottom:12px;box-shadow:0 4px 20px rgba(0,0,0,.4);cursor:pointer;transition:all .2s;-webkit-tap-highlight-color:transparent;}
 .ocard:hover{border-color:rgba(250,204,21,.25);transform:translateY(-1px);}
 .ocard:active{transform:scale(.98);}
@@ -61,7 +61,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
 .badge-cancelled{background:rgba(239,68,68,.08);color:#f87171;border:1px solid rgba(239,68,68,.18);}
 .badge-pulse{width:6px;height:6px;background:#ef4444;border-radius:50%;animation:blink 1.2s infinite;}
 
-/* ── PROGRESS BAR (inside sheet) ── */
+/* -- PROGRESS BAR (inside sheet) -- */
 .progress-track{height:6px;background:#1a1b2e;border-radius:99px;overflow:hidden;}
 .progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#dc2626,#f59e0b,#facc15);transition:width 1.2s cubic-bezier(.4,0,.2,1);}
 .progress-steps{display:flex;justify-content:space-between;margin-top:8px;}
@@ -69,7 +69,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
 .step-label.done{color:#facc15;}
 .step-label.now{color:#ef4444;font-weight:700;}
 
-/* ── TIMELINE ── */
+/* -- TIMELINE -- */
 .timeline{padding:16px 18px;display:flex;flex-direction:column;gap:0;}
 .tl-step{display:flex;gap:12px;position:relative;}
 .tl-step:not(:last-child)::after{content:'';position:absolute;left:11px;top:24px;width:2px;bottom:-2px;background:rgba(255,255,255,.06);}
@@ -84,7 +84,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
 .tl-future .tl-title{color:#374151;}
 .tl-time{font-size:11px;color:#4b5563;}
 
-/* ── SHEET ── */
+/* -- SHEET -- */
 .sheet-backdrop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s;}
 .sheet-backdrop.open{opacity:1;pointer-events:all;}
 .sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(110%);width:100%;max-width:540px;z-index:400;background:#0e0f1a;border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;transition:transform .38s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow-y:auto;}
@@ -100,7 +100,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
 .sheet-section{padding:14px 18px 0;}
 .sheet-section-title{font-size:11px;font-weight:700;color:#4b5563;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
 
-/* ── ITEM ROW (inside sheet) ── */
+/* -- ITEM ROW (inside sheet) -- */
 .sitem{display:flex;align-items:flex-start;gap:10px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,.04);}
 .sitem:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
 .sitem-img{width:46px;height:46px;border-radius:10px;object-fit:cover;flex-shrink:0;}
@@ -179,7 +179,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
 <div class="page-body">
 
     @guest
-    <!-- ── GUEST GATE ── -->
+    <!-- -- GUEST GATE -- -->
     <div style="text-align:center; padding: 60px 24px 40px;">
         <div style="width:96px;height:96px;margin:0 auto 24px;background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,0.07);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
             <svg width="44" height="44" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24">
@@ -235,14 +235,14 @@ body{background:#080810;color:#fff;min-height:100vh;}
             </div>
             <div class="summary-stat-card" id="ssc-spent">
                 <span class="ssc-icon"><svg width="16" height="16" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
-                <p class="ssc-val" id="ssc-val-spent" style="font-size:12px;">₱0</p>
+                <p class="ssc-val" id="ssc-val-spent" style="font-size:12px;">?0</p>
                 <p class="ssc-lbl">Spent</p>
             </div>
         </div>
     </div>
 
     <div id="view-all">
-        <div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg></div><p class="empty-title">Loading…</p></div>
+        <div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg></div><p class="empty-title">Loading�</p></div>
     </div>
     <div id="view-past"      style="display:none;"></div>
     <div id="view-cancelled" style="display:none;"></div>
@@ -294,10 +294,10 @@ body{background:#080810;color:#fff;min-height:100vh;}
 </nav>
 
 <script>
-/* ── Theme ── */
+/* -- Theme -- */
 function applyTheme(t){document.documentElement.classList.toggle('light-mode',t==='light');document.getElementById('shopSunIcon').style.display=t==='dark'?'block':'none';document.getElementById('shopMoonIcon').style.display=t==='light'?'block':'none';}
 
-/* ── Tab switching ── */
+/* -- Tab switching -- */
 let currentTab = 'all';
 function switchTab(tab) {
     currentTab = tab;
@@ -307,7 +307,7 @@ function switchTab(tab) {
     });
 }
 
-/* ── Helpers ── */
+/* -- Helpers -- */
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function modifierTagsHtml(modifiers) {
     if(!modifiers||!modifiers.length)return'';
@@ -335,9 +335,9 @@ const STATUS_CFG = {
 };
 const TIMELINE_STEPS = ['pending','accepted','preparing','rider_assigned','out_for_delivery','delivered'];
 
-/* ────────────────────────────────
+/* --------------------------------
    COMPACT ORDER CARD
-──────────────────────────────── */
+-------------------------------- */
 function buildOrderCard(o) {
     const cfg = STATUS_CFG[o.status] || STATUS_CFG.pending;
     const imgs = o.items.slice(0,3).map(i=>
@@ -363,7 +363,7 @@ function buildOrderCard(o) {
         <div class="ocard-bottom">
             <div>
                 <p class="ocard-total-label">${o.items.length} item${o.items.length!==1?'s':''}</p>
-                <p class="ocard-total">₱${Number(o.total).toLocaleString()}</p>
+                <p class="ocard-total">?${Number(o.total).toLocaleString()}</p>
             </div>
             <svg class="ocard-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </div>
@@ -379,9 +379,9 @@ function emptyState(icon, title, sub, showBtn) {
     </div>`;
 }
 
-/* ────────────────────────────────
+/* --------------------------------
    RENDER TABS
-──────────────────────────────── */
+-------------------------------- */
 let allOrders = [];
 
 function renderAll() {
@@ -389,7 +389,7 @@ function renderAll() {
     const past      = allOrders.filter(o=>o.status==='delivered');
     const cancelled = allOrders.filter(o=>o.status==='cancelled');
 
-    // ── Update summary stats banner ──
+    // -- Update summary stats banner --
     const banner = document.getElementById('orderSummaryBanner');
     if (allOrders.length > 0 && banner) {
         banner.style.display = 'block';
@@ -398,16 +398,16 @@ function renderAll() {
         document.getElementById('ssc-val-total').textContent     = allOrders.length;
         document.getElementById('ssc-val-delivered').textContent = past.length;
         document.getElementById('ssc-val-cancelled').textContent = cancelled.length;
-        document.getElementById('ssc-val-spent').textContent     = '₱' + totalSpent.toLocaleString();
+        document.getElementById('ssc-val-spent').textContent     = '?' + totalSpent.toLocaleString();
         // Highlight active card if there are active orders
         document.getElementById('ssc-active').style.borderColor = active.length > 0 ? 'rgba(250,204,21,.35)' : '';
     }
 
-    // Tab dot on All tab — blink when there are active orders
+    // Tab dot on All tab � blink when there are active orders
     document.getElementById('allDot').style.display = active.length ? 'inline-block' : 'none';
 
-    // All tab — shows active/in-progress orders only
-    // ── Dine-in table session banner ──
+    // All tab � shows active/in-progress orders only
+    // -- Dine-in table session banner --
     // Group active dine-in orders by table; show a combined total banner when >1 order for same table
     var tableSessionHtml = '';
     if (active.length > 1) {
@@ -427,11 +427,11 @@ function renderAll() {
                 '<div style="margin-bottom:12px;padding:14px 16px;border-radius:14px;background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.25);">' +
                 '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">' +
                 '<svg width="16" height="16" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 6h18M3 14h18M3 18h18"/></svg>' +
-                '<span style="font-size:13px;font-weight:700;color:#facc15;">Table ' + escHtml(tbl) + ' — Session Total</span>' +
+                '<span style="font-size:13px;font-weight:700;color:#facc15;">Table ' + escHtml(tbl) + ' � Session Total</span>' +
                 '</div>' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                '<span style="font-size:12px;color:#9ca3af;">' + grp.length + ' orders · ' + totalItems + ' items<br><span style="font-size:11px;color:#6b7280;">' + orderNums + '</span></span>' +
-                '<span style="font-size:20px;font-weight:800;color:#facc15;">₱' + sessionTotal.toLocaleString() + '</span>' +
+                '<span style="font-size:12px;color:#9ca3af;">' + grp.length + ' orders � ' + totalItems + ' items<br><span style="font-size:11px;color:#6b7280;">' + orderNums + '</span></span>' +
+                '<span style="font-size:20px;font-weight:800;color:#facc15;">?' + sessionTotal.toLocaleString() + '</span>' +
                 '</div>' +
                 '</div>';
         });
@@ -449,12 +449,12 @@ function renderAll() {
     // Cancelled tab
     document.getElementById('view-cancelled').innerHTML = cancelled.length
         ? cancelled.map(o=>buildOrderCard(o)).join('')
-        : emptyState('<svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>','No cancelled orders','Great — you haven&#39;t cancelled anything.',false);
+        : emptyState('<svg width="40" height="40" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>','No cancelled orders','Great � you haven&#39;t cancelled anything.',false);
 }
 
-/* ────────────────────────────────
+/* --------------------------------
    DETAIL SHEET
-──────────────────────────────── */
+-------------------------------- */
 let detailOrderId = null;
 const activeMaps  = {};
 
@@ -490,7 +490,7 @@ function buildDetailBody(o) {
     const cancellable = ['pending','accepted','preparing'].includes(o.status);
     const isDelivery = o.order_type === 'delivery';
 
-    // ── Progress bar (active only) ──
+    // -- Progress bar (active only) --
     const isPlaced    = o.status==='pending';
     const isPreparing = ['accepted','preparing'].includes(o.status);
     const isOnWay     = ['rider_assigned','out_for_delivery'].includes(o.status);
@@ -512,7 +512,7 @@ function buildDetailBody(o) {
         </div>
         <div class="sheet-divider" style="margin-top:14px;"></div>` : '';
 
-    // ── Timeline ──
+    // -- Timeline --
     const timelineSteps = isDelivery 
         ? ['pending','accepted','preparing','rider_assigned','out_for_delivery','delivered']
         : ['pending','accepted','preparing','delivered'];
@@ -550,7 +550,7 @@ function buildDetailBody(o) {
         </div>
         <div class="sheet-divider"></div>`;
 
-    // ── Items ──
+    // -- Items --
     const itemsHtml = `
         <div class="sheet-section" style="padding-bottom:14px;">
             <p class="sheet-section-title">Items (${o.items.length})</p>
@@ -562,23 +562,23 @@ function buildDetailBody(o) {
                     <p class="sitem-meta">x${i.qty}</p>
                     ${modifierTagsHtml(i.modifiers)}
                 </div>
-                <span class="sitem-price">₱${Number(i.subtotal).toLocaleString()}</span>
+                <span class="sitem-price">?${Number(i.subtotal).toLocaleString()}</span>
             </div>`).join('')}
         </div>
         <div class="sheet-divider"></div>`;
 
-    // ── Totals ──
+    // -- Totals --
     const totalsHtml = `
         <div style="padding-top:4px;">
-            <div class="tot-row"><span class="tot-label">Subtotal</span><span class="tot-val">₱${Number(o.subtotal).toLocaleString()}</span></div>
-            <div class="tot-row"><span class="tot-label">Delivery fee</span><span class="tot-val">₱${Number(o.delivery_fee).toLocaleString()}</span></div>
+            <div class="tot-row"><span class="tot-label">Subtotal</span><span class="tot-val">?${Number(o.subtotal).toLocaleString()}</span></div>
+            <div class="tot-row"><span class="tot-label">Delivery fee</span><span class="tot-val">?${Number(o.delivery_fee).toLocaleString()}</span></div>
             <div class="tot-row" style="padding-top:10px;padding-bottom:10px;border-top:1px solid rgba(255,255,255,.05);">
-                <span class="tot-grand-label">Total</span><span class="tot-grand">₱${Number(o.total).toLocaleString()}</span>
+                <span class="tot-grand-label">Total</span><span class="tot-grand">?${Number(o.total).toLocaleString()}</span>
             </div>
         </div>
         <div class="sheet-divider"></div>`;
 
-    // ── Delivery info ──
+    // -- Delivery info --
     const infoHtml = `
         <div class="irow">
             <div class="irow-icon" style="background:rgba(250,204,21,.1);"><svg width="14" height="14" fill="none" stroke="#facc15" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></div>
@@ -596,19 +596,19 @@ function buildDetailBody(o) {
         </div>
         ${o.rider?`<div class="irow">
             <div class="irow-icon" style="background:rgba(167,139,250,.1);"><svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
-            <div><p class="irow-label">Rider</p><p class="irow-val">${escHtml(o.rider.name)}</p><p class="irow-sub"><svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> ${o.rider.rating} · ${escHtml(o.rider.phone)}</p></div>
+            <div><p class="irow-label">Rider</p><p class="irow-val">${escHtml(o.rider.name)}</p><p class="irow-sub"><svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> ${o.rider.rating} � ${escHtml(o.rider.phone)}</p></div>
         </div>`:''}`;
 
-    // ── Map (active delivery only) ──
+    // -- Map (active delivery only) --
     const mapHtml = (isActive && o.order_type === 'delivery') ? `
         <div class="sheet-divider" style="margin-top:4px;"></div>
         <div style="padding:12px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
             <p style="font-size:13px;font-weight:700;color:#fff;">${isOnWay?'<svg width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3"/></svg> Live Rider Tracking':'<svg width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3"/></svg> Order Location'}</p>
-            <p style="font-size:11px;color:#4b5563;" id="riderEtaText-${o.id}">${isOnWay?'Fetching route…':'Locating…'}</p>
+            <p style="font-size:11px;color:#4b5563;" id="riderEtaText-${o.id}">${isOnWay?'Fetching route�':'Locating�'}</p>
         </div>
         <div id="trackingMap-${o.id}" style="height:220px;width:100%;background:#0a0a14;"></div>` : '';
 
-    // ── Cancel button ──
+    // -- Cancel button --
     const cancelHtml = cancellable ? `
         <div style="padding:14px 18px 10px;">
             <button onclick="openCancelModal(${o.id})" style="width:100%;padding:12px;border-radius:12px;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);color:#f87171;font-size:14px;font-weight:700;cursor:pointer;">
@@ -616,13 +616,13 @@ function buildDetailBody(o) {
             </button>
         </div>` : '';
 
-    // ── Reorder (past/cancelled) ──
+    // -- Reorder (past/cancelled) --
     const reorderHtml = (o.status==='delivered'||o.status==='cancelled') ? `
         <div style="padding:14px 18px 32px;display:flex;justify-content:center;">
             <a href="{{ route('shop.home') }}" class="btn-reorder"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Order Again</a>
         </div>` : '<div style="height:32px;"></div>';
 
-    // ── Cancel reason ──
+    // -- Cancel reason --
     const cancelReasonHtml = o.cancel_reason ? `
         <div style="margin:0 18px 12px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:10px 14px;">
             <p style="font-size:12px;font-weight:600;color:#f87171;margin-bottom:3px;">Cancellation Reason</p>
@@ -632,15 +632,15 @@ function buildDetailBody(o) {
     return progressHtml + timelineHtml + itemsHtml + totalsHtml + infoHtml + cancelReasonHtml + mapHtml + cancelHtml + reorderHtml;
 }
 
-/* ────────────────────────────────
+/* --------------------------------
    LOAD ORDERS
-──────────────────────────────── */
+-------------------------------- */
 async function loadAllOrders() {
     try {
         const res = await fetch('/orders', {headers:{'Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'}});
         const raw = await res.text();
         if(!res.ok){
-            document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><p class="empty-title">Could not load orders</p><p class="empty-sub">HTTP ${res.status} — please try refreshing.</p></div>`;
+            document.getElementById('view-all').innerHTML = `<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><p class="empty-title">Could not load orders</p><p class="empty-sub">HTTP ${res.status} � please try refreshing.</p></div>`;
             return;
         }
         let data;
@@ -666,7 +666,7 @@ async function loadAllOrders() {
                 const statusChanged = prevStatus !== null && prevStatus !== updated.status;
 
                 if (statusChanged) {
-                    // Status changed — rebuild sheet + map so timeline/progress update
+                    // Status changed � rebuild sheet + map so timeline/progress update
                     if (activeMaps[detailOrderId]) {
                         try { activeMaps[detailOrderId].map.remove(); } catch(e) {}
                         delete activeMaps[detailOrderId];
@@ -676,7 +676,7 @@ async function loadAllOrders() {
                         setTimeout(() => { if(typeof initOrderMap==='function') initOrderMap(updated); }, 300);
                     }
                 } else {
-                    // Status unchanged — only move the rider marker, no full rebuild
+                    // Status unchanged � only move the rider marker, no full rebuild
                     if (updated.rider && updated.rider.lat && updated.rider.lng) {
                         updateMapRiderPos(updated.id, updated.rider.lat, updated.rider.lng);
                     }
@@ -711,9 +711,9 @@ async function loadAllOrders() {
     }
 }
 
-/* ────────────────────────────────
+/* --------------------------------
    CANCEL
-──────────────────────────────── */
+-------------------------------- */
 let currentCancelOrderId = null;
 function openCancelModal(id){currentCancelOrderId=id;document.getElementById('cancelModalBackdrop').style.display='block';document.getElementById('cancelModal').style.display='block';document.getElementById('cancelModalError').style.display='none';document.querySelectorAll('input[name="cancelReason"]').forEach(r=>r.checked=false);document.querySelectorAll('#cancelReasons label').forEach(l=>l.style.borderColor='rgba(255,255,255,.07)');}
 function closeCancelModal(){document.getElementById('cancelModalBackdrop').style.display='none';document.getElementById('cancelModal').style.display='none';currentCancelOrderId=null;}
@@ -722,7 +722,7 @@ async function submitCancel(){
     const errEl=document.getElementById('cancelModalError');
     const btn=document.getElementById('confirmCancelBtn');
     if(!sel){errEl.textContent='<svg width="40" height="40" fill="none" stroke="#f59e0b" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg> Please select a reason.';errEl.style.display='block';return;}
-    errEl.style.display='none';btn.textContent='Cancelling…';btn.disabled=true;
+    errEl.style.display='none';btn.textContent='Cancelling�';btn.disabled=true;
     try{
         const r=await fetch(`/orders/${currentCancelOrderId}/cancel`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':'{{ csrf_token() }}'},body:JSON.stringify({reason:sel.value})});
         const d=await r.json();
@@ -733,7 +733,7 @@ async function submitCancel(){
 }
 function showToast(msg){const t=document.createElement('div');t.textContent=msg;Object.assign(t.style,{position:'fixed',bottom:'90px',left:'50%',transform:'translateX(-50%)',background:'#0d1f17',border:'1px solid rgba(74,222,128,.3)',color:'#4ade80',padding:'12px 22px',borderRadius:'99px',fontSize:'13px',fontWeight:'700',zIndex:'9999'});document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
 
-/* ── Init ── */
+/* -- Init -- */
 let pollTimer = null;
 function startPolling() {
     if (pollTimer) return;
@@ -770,12 +770,12 @@ function handleOrderUpdate(order) {
         }
         // Show a subtle toast for key status changes
         const toastMsgs = {
-            accepted:         '✅ Order accepted!',
-            preparing:        '👨‍🍳 Kitchen is preparing your order',
-            rider_assigned:   '🏍️ Rider assigned — heading to restaurant',
-            out_for_delivery: '🚀 Your order is on the way!',
-            delivered:        '🎉 Order delivered!',
-            cancelled:        '❌ Order was cancelled',
+            accepted:         '? Order accepted!',
+            preparing:        '????? Kitchen is preparing your order',
+            rider_assigned:   '??? Rider assigned � heading to restaurant',
+            out_for_delivery: '?? Your order is on the way!',
+            delivered:        '?? Order delivered!',
+            cancelled:        '? Order was cancelled',
         };
         if (toastMsgs[order.status]) showToast(toastMsgs[order.status]);
     }
@@ -791,20 +791,20 @@ document.addEventListener('DOMContentLoaded',()=>{
     // Initial load
     loadAllOrders();
 
-    // Always poll every 10s as fallback — pauses when tab is hidden
+    // Always poll every 10s as fallback � pauses when tab is hidden
     startPolling();
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) { stopPolling(); } else { loadAllOrders(); startPolling(); }
     });
 
-    // Echo: real-time updates (primary — fires instantly when status changes)
+    // Echo: real-time updates (primary � fires instantly when status changes)
     if (window.Echo) {
         window.Echo.private('orders.{{ auth()->id() }}')
             .listen('.order.updated', (order) => {
                 handleOrderUpdate(order);
             })
             .listen('.rider.location', (data) => {
-                // Live rider GPS — move map marker without full reload
+                // Live rider GPS � move map marker without full reload
                 if (!data.lat || !data.lng) return;
                 const riderOrder = allOrders.find(o =>
                     o.rider && ['rider_assigned','out_for_delivery'].includes(o.status)
@@ -818,14 +818,14 @@ document.addEventListener('DOMContentLoaded',()=>{
                 }
             });
     } else {
-        // No Echo — polling every 10s is the only mechanism
+        // No Echo � polling every 10s is the only mechanism
     }
 });
 </script>
 
 <script>
-/* ── Map (Leaflet + OSRM) — only initialised inside the detail sheet ── */
-const RESTAURANT_POS = [13.3213129, 121.3027265]; // EUT Snack House — verified Google Maps coordinates
+/* -- Map (Leaflet + OSRM) � only initialised inside the detail sheet -- */
+const RESTAURANT_POS = [13.321512, 121.302098]; // EUT Snack House � verified Google Maps coordinates
 
 async function fetchOSRMRoute(from, to) {
     const url = 'https://router.project-osrm.org/route/v1/driving/'
@@ -840,7 +840,7 @@ async function fetchOSRMRoute(from, to) {
     return null;
 }
 
-/* ── Geocode address text → [lat, lng] with multi-attempt fallback ── */
+/* -- Geocode address text ? [lat, lng] with multi-attempt fallback -- */
 async function geocodeDeliveryAddr(rawAddr) {
     if (!rawAddr) return null;
     // Strip leading "Name, " prefix if first segment has no digits
@@ -868,7 +868,7 @@ async function geocodeDeliveryAddr(rawAddr) {
         } catch(e) { /* try next */ }
         await new Promise(r => setTimeout(r, 400));
     }
-    return [13.3213129, 121.3027265]; // EUT Snack House fallback
+    return [13.321512, 121.302098]; // EUT Snack House fallback
 }
 
 async function initOrderMap(order) {
@@ -896,13 +896,13 @@ async function initOrderMap(order) {
 
     // Restaurant pin
     L.marker(RESTAURANT_POS, { icon: L.divIcon({
-        html: `<div style="background:#facc15;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">🍔</span></div>`,
+        html: `<div style="background:#facc15;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #d97706;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">??</span></div>`,
         className: '', iconSize: [42, 42], iconAnchor: [21, 42],
     }) }).addTo(map).bindPopup('<b>E.U.T Snack House</b>');
 
     // Geocode fallback if coords missing
     if (!customerPos && order.delivery_address) {
-        if (etaEl) etaEl.textContent = 'Locating address…';
+        if (etaEl) etaEl.textContent = 'Locating address�';
         customerPos = await geocodeDeliveryAddr(order.delivery_address);
         // Save back so next time is instant
         if (customerPos) {
@@ -917,7 +917,7 @@ async function initOrderMap(order) {
     // Customer / delivery destination pin
     if (customerPos) {
         L.marker(customerPos, { icon: L.divIcon({
-            html: `<div style="background:#ef4444;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">🏠</span></div>`,
+            html: `<div style="background:#ef4444;width:42px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #b91c1c;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);"><span style="transform:rotate(45deg);font-size:20px;line-height:1;">??</span></div>`,
             className: '', iconSize: [42, 42], iconAnchor: [21, 42],
         }) }).addTo(map).bindPopup('<b>Your Delivery Location</b>');
     }
@@ -935,9 +935,9 @@ async function initOrderMap(order) {
     // Store destination on map state for re-routing
     activeMaps[order.id].destLatLng = dest;
 
-    // Rider marker — animated pulse circle with motorbike icon
+    // Rider marker � animated pulse circle with motorbike icon
     const rM = L.marker(riderPos, { icon: L.divIcon({
-        html: `<div style="background:#10b981;width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 10px rgba(16,185,129,.8);">🛵</div>`,
+        html: `<div style="background:#10b981;width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 10px rgba(16,185,129,.8);">??</div>`,
         className: '', iconSize: [42, 42], iconAnchor: [21, 21],
     }) }).addTo(map);
     if (order.rider) rM.bindPopup('<b>' + order.rider.name + '</b><br><svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> ' + order.rider.rating);
@@ -973,8 +973,8 @@ async function initOrderMap(order) {
     if (!hasRider) simulateMapRider(order.id, dest);
 }
 
-/* Called on every poll — moves the marker, trims the route, re-routes if rider is off-route */
-const REROUTE_THRESHOLD_DEG = 0.0015; // ~150m — if rider is further than this from the route, re-route
+/* Called on every poll � moves the marker, trims the route, re-routes if rider is off-route */
+const REROUTE_THRESHOLD_DEG = 0.0015; // ~150m � if rider is further than this from the route, re-route
 const REROUTE_COOLDOWN_MS   = 20000;  // re-fetch OSRM at most every 20s
 
 async function updateMapRiderPos(orderId, lat, lng) {
@@ -1001,7 +1001,7 @@ async function updateMapRiderPos(orderId, lat, lng) {
         const canReroute = (now - (s._lastReroute || 0)) > REROUTE_COOLDOWN_MS;
 
         if (distFromRoute > REROUTE_THRESHOLD_DEG && canReroute && s.destLatLng) {
-            // Rider is off-route — fetch a fresh OSRM route from current position
+            // Rider is off-route � fetch a fresh OSRM route from current position
             s._lastReroute = now;
             const fresh = await fetchOSRMRoute(newPos, s.destLatLng);
             if (fresh && fresh.length > 1) {
@@ -1009,12 +1009,12 @@ async function updateMapRiderPos(orderId, lat, lng) {
                 s.routeLine.setLatLngs(fresh);
                 if (etaEl) etaEl.textContent = '~' + Math.max(1, Math.round(fresh.length / 30)) + ' min away';
             } else {
-                // OSRM failed — fall back to straight line
+                // OSRM failed � fall back to straight line
                 s.routeLine.setLatLngs([newPos, s.destLatLng]);
                 if (etaEl) etaEl.textContent = 'On the way';
             }
         } else {
-            // On-route — trim the polyline to start from the rider's current position
+            // On-route � trim the polyline to start from the rider's current position
             s.routeLine.setLatLngs(s.roadPoints.slice(closest));
             const remaining = s.roadPoints.length - closest;
             if (etaEl) {
@@ -1023,7 +1023,7 @@ async function updateMapRiderPos(orderId, lat, lng) {
             }
         }
     } else if (s.destLatLng) {
-        // No road points yet — just draw straight line
+        // No road points yet � just draw straight line
         s.routeLine.setLatLngs([newPos, s.destLatLng]);
     }
 }
@@ -1061,7 +1061,7 @@ function simulateMapRider(orderId, dest) {
     }
 }
 
-// ── Mobile back button guard ──────────────────────────────
+// -- Mobile back button guard ------------------------------
 history.pushState({ page: 'tracking' }, '', window.location.href);
 window.addEventListener('popstate', function() {
     history.pushState({ page: 'tracking' }, '', window.location.href);

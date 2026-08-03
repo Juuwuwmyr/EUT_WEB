@@ -1,9 +1,9 @@
-﻿@extends('admin.layout')
+@extends('admin.layout')
 @section('title', 'Riders')
 
 @section('content')
 
-{{-- ── PAGE HEADER ── --}}
+{{-- -- PAGE HEADER -- --}}
 <div class="page-header" style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:1rem;">
     <div style="display:flex;align-items:center;gap:.75rem;">
         <div style="width:2.5rem;height:2.5rem;border-radius:.75rem;background:rgba(245,158,11,.12);display:flex;align-items:center;justify-content:center;">
@@ -20,7 +20,7 @@
     </button>
 </div>
 
-{{-- ── STAT CARDS ── --}}
+{{-- -- STAT CARDS -- --}}
 @php
 // Calculate real stats from database
 $totalRiders = $riders->count();
@@ -53,7 +53,7 @@ $riderStats = [
     @endforeach
 </div>
 
-{{-- ── LIVE RIDERS MAP ── --}}
+{{-- -- LIVE RIDERS MAP -- --}}
 <div class="section-card" style="margin-bottom:1.5rem;overflow:hidden;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border-section);">
         <div style="display:flex;align-items:center;gap:.5rem;">
@@ -79,7 +79,7 @@ $riderStats = [
     </div>
 </div>
 
-{{-- ── FILTER BAR ── --}}
+{{-- -- FILTER BAR -- --}}
 <div class="section-card">
     <div class="filter-bar" style="justify-content:space-between;">
         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
@@ -96,11 +96,11 @@ $riderStats = [
         </div>
         <span style="font-size:.72rem;color:var(--text-muted);display:inline-flex;align-items:center;gap:.35rem;">
             <i data-lucide="info" style="width:.8rem;height:.8rem;stroke-width:2;"></i>
-            Sample data — connect riders table to go live
+            Sample data � connect riders table to go live
         </span>
     </div>
 
-    {{-- ── RIDERS TABLE ── --}}
+    {{-- -- RIDERS TABLE -- --}}
     <table class="admin-table" id="ridersTable">
         <thead>
             <tr>
@@ -179,7 +179,7 @@ $statusMap = [
         @if($activeOrder)
             <a href="{{ route('admin.orders') }}" style="color:var(--accent);font-weight:600;font-family:monospace;">#{{ $activeOrder->order_number }}</a>
         @else
-            <span style="color:var(--text-muted);">—</span>
+            <span style="color:var(--text-muted);">�</span>
         @endif
     </td>
     <td>
@@ -187,7 +187,7 @@ $statusMap = [
         <span style="font-size:.72rem;color:var(--text-muted);margin-left:.25rem;">orders</span>
     </td>
     <td>
-        <span style="font-size:.875rem;font-weight:700;color:#facc15;">⭐ {{ number_format($rider->rating,1) }}</span>
+        <span style="font-size:.875rem;font-weight:700;color:#facc15;">? {{ number_format($rider->rating,1) }}</span>
     </td>
     <td>
         <div style="display:flex;gap:.4rem;align-items:center;">
@@ -212,7 +212,7 @@ $statusMap = [
     </table>
 </div>
 
-{{-- ── ADD RIDER MODAL ── --}}
+{{-- -- ADD RIDER MODAL -- --}}
 <div id="addRiderModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'addRiderModal')">
     <div class="modal-box">
         <div class="modal-header">
@@ -272,7 +272,7 @@ $statusMap = [
     </div>
 </div>
 
-{{-- ── RIDER DETAIL MODAL ── --}}
+{{-- -- RIDER DETAIL MODAL -- --}}
 <div id="riderDetailModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'riderDetailModal')">
     <div class="modal-box modal-lg">
         <div class="modal-header">
@@ -292,7 +292,7 @@ $statusMap = [
                 </div>
                 <div style="flex:1;">
                     <p style="font-weight:700;color:var(--text-strong);font-size:1rem;margin:0 0 .2rem;" id="detailNameFull">Juan dela Cruz</p>
-                    <p style="font-size:.78rem;color:var(--text-muted);margin:0;" id="detailPhone">09171234567 · Motorcycle</p>
+                    <p style="font-size:.78rem;color:var(--text-muted);margin:0;" id="detailPhone">09171234567 � Motorcycle</p>
                 </div>
                 <span id="detailStatusBadge" style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .8rem;border-radius:9999px;font-size:.75rem;font-weight:700;"></span>
             </div>
@@ -316,10 +316,10 @@ $statusMap = [
                 <p style="font-size:.78rem;font-weight:700;color:var(--text-subtle);text-transform:uppercase;letter-spacing:.05em;margin:0 0 .625rem;">Recent Deliveries</p>
                 @php
                 $recentDeliveries = [
-                    ['order'=>'#EUT-00512','customer'=>'Andrea M.','total'=>'₱520','time'=>'5 min ago','status'=>'on_delivery'],
-                    ['order'=>'#EUT-00498','customer'=>'Bong S.',   'total'=>'₱350','time'=>'1 hr ago', 'status'=>'delivered'],
-                    ['order'=>'#EUT-00481','customer'=>'Celia R.',  'total'=>'₱680','time'=>'3 hrs ago','status'=>'delivered'],
-                    ['order'=>'#EUT-00465','customer'=>'Danny T.',  'total'=>'₱290','time'=> 'Yesterday','status'=>'delivered'],
+                    ['order'=>'#EUT-00512','customer'=>'Andrea M.','total'=>'?520','time'=>'5 min ago','status'=>'on_delivery'],
+                    ['order'=>'#EUT-00498','customer'=>'Bong S.',   'total'=>'?350','time'=>'1 hr ago', 'status'=>'delivered'],
+                    ['order'=>'#EUT-00481','customer'=>'Celia R.',  'total'=>'?680','time'=>'3 hrs ago','status'=>'delivered'],
+                    ['order'=>'#EUT-00465','customer'=>'Danny T.',  'total'=>'?290','time'=> 'Yesterday','status'=>'delivered'],
                 ];
                 @endphp
                 @foreach($recentDeliveries as $d)
@@ -346,7 +346,7 @@ $statusMap = [
             </button>
             <div style="display:flex;gap:.5rem;">
                 <button class="btn-ghost" onclick="closeModal('riderDetailModal')">Close</button>
-                <button class="btn-primary" onclick="alert('Assign to order — connect to DB.')">
+                <button class="btn-primary" onclick="alert('Assign to order � connect to DB.')">
                     <i data-lucide="send" style="width:.85rem;height:.85rem;stroke-width:2.5;"></i>
                     Assign to Order
                 </button>
@@ -355,7 +355,7 @@ $statusMap = [
     </div>
 </div>
 
-{{-- ── EDIT RIDER MODAL ── --}}
+{{-- -- EDIT RIDER MODAL -- --}}
 <div id="editRiderModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'editRiderModal')">
     <div class="modal-box">
         <div class="modal-header">
@@ -459,7 +459,7 @@ function openRiderDetail(id) {
     document.getElementById('detailRiderName').textContent = r.name;
     document.getElementById('detailInitials').textContent  = r.initials;
     document.getElementById('detailNameFull').textContent  = r.name;
-    document.getElementById('detailPhone').textContent     = r.phone + ' · ' + r.vehicle;
+    document.getElementById('detailPhone').textContent     = r.phone + ' � ' + r.vehicle;
     document.getElementById('detailDeliveries').textContent = r.deliveries;
     document.getElementById('detailRating').textContent    = r.rating.toFixed(1);
     const badge = document.getElementById('detailStatusBadge');
@@ -489,12 +489,12 @@ function confirmRemoveRider(name, formEl) {
 </script>
 
 <script>
-// ── LEAFLET + OSRM ADMIN RIDERS MAP — with real-time polling ──
+// -- LEAFLET + OSRM ADMIN RIDERS MAP � with real-time polling --
 </script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const RESTAURANT_ADMIN = [13.3213129, 121.3027265];
+const RESTAURANT_ADMIN = [13.321512, 121.302098];
 @php
 $adminRidersJson = $riders->map(function($rider) {
     $activeOrders = $rider->orders->filter(fn($o) =>
@@ -505,7 +505,7 @@ $adminRidersJson = $riders->map(function($rider) {
     $currentStatus = $isOnDelivery ? 'on_delivery' : ($rider->is_available ? 'online' : 'offline');
     $color = $currentStatus === 'on_delivery' ? '#8b5cf6' : ($currentStatus === 'online' ? '#10b981' : '#6b7280');
 
-    $pos = [$rider->current_lat ?? 13.3213129, $rider->current_lng ?? 121.3027265];
+    $pos = [$rider->current_lat ?? 13.321512, $rider->current_lng ?? 121.302098];
 
     $destinations = $activeOrders->map(fn($o) => [
         'order_number' => $o->order_number,
@@ -535,9 +535,9 @@ $adminRidersJson = $riders->map(function($rider) {
 @endphp
 const ADMIN_RIDERS_INIT = {!! $adminRidersJson !!};
 
-// Map state — built once, updated by polling
+// Map state � built once, updated by polling
 let adminMapInst   = null;
-const adminMarkers = {};   // riderId → { marker, routeLine }
+const adminMarkers = {};   // riderId ? { marker, routeLine }
 
 async function fetchOSRMAdmin(from, to) {
     const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
@@ -582,44 +582,44 @@ function riderPopupHtml(r) {
 
     const ordersList = (r.orders && r.orders.length)
         ? r.orders.map(o => `<div style="margin-top:3px;font-size:11px;">
-            🛵 <b>${o.order_number}</b>${o.customer ? ' — ' + o.customer : ''}
+            ?? <b>${o.order_number}</b>${o.customer ? ' � ' + o.customer : ''}
             <div style="font-size:10px;color:#9ca3af;max-width:200px;">${o.address || ''}</div>
           </div>`).join('')
-        : '<div style="margin-top:4px;color:#10b981;font-size:11px;">🟢 Available</div>';
+        : '<div style="margin-top:4px;color:#10b981;font-size:11px;">?? Available</div>';
 
     return `<div style="font-family:sans-serif;min-width:180px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
             <b style="font-size:13px;">${r.name}</b>${statusBadge}
         </div>
-        ${r.orders && r.orders.length > 1 ? `<div style="font-size:10px;color:#f59e0b;font-weight:700;margin-bottom:2px;">📦 ${r.orders.length} active orders</div>` : ''}
+        ${r.orders && r.orders.length > 1 ? `<div style="font-size:10px;color:#f59e0b;font-weight:700;margin-bottom:2px;">?? ${r.orders.length} active orders</div>` : ''}
         ${ordersList}
     </div>`;
 }
 
 function destPopupHtml(o) {
     return `<div style="font-family:sans-serif;">
-        <b style="font-size:12px;">📦 Delivery Point</b>
+        <b style="font-size:12px;">?? Delivery Point</b>
         ${o.order_number ? `<div style="margin-top:3px;font-size:11px;color:#f87171;">${o.order_number}</div>` : ''}
         ${o.customer ? `<div style="font-size:11px;color:#9ca3af;">${o.customer}</div>` : ''}
         ${o.address ? `<div style="font-size:10px;color:#6b7280;margin-top:2px;max-width:200px;">${o.address}</div>` : ''}
     </div>`;
 }
 
-// ── Route fetch throttle — key: riderId_orderNum → timestamp ──
+// -- Route fetch throttle � key: riderId_orderNum ? timestamp --
 const _adminRouteLastFetch = {};
 const ADMIN_ROUTE_THROTTLE_MS = 20000; // re-fetch OSRM at most every 20s per route
 
 async function addOrUpdateAdminRider(r) {
     if (!adminMapInst) return;
 
-    // ── Normalise: build a `destinations` array ──────────
+    // -- Normalise: build a `destinations` array ----------
     // Support both old format (r.dest) and new multi-order format (r.orders[])
     const destinations = (r.orders && r.orders.length)
         ? r.orders.filter(o => o.dest_lat && o.dest_lng)
         : (r.dest ? [{ order_number: r.order, customer: r.customer, address: r.address, dest_lat: r.dest[0], dest_lng: r.dest[1] }] : []);
 
     if (!adminMarkers[r.id]) {
-        // ── New rider — add marker ──────────────────────────
+        // -- New rider � add marker --------------------------
         const marker = L.marker(r.pos, { icon: L.divIcon({
             html: `<div style="background:${r.color};width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 10px ${r.color}88;">&#x1F6F5;</div>`,
             className: '', iconSize: [42, 42], iconAnchor: [21, 21],
@@ -627,7 +627,7 @@ async function addOrUpdateAdminRider(r) {
         marker.bindPopup(riderPopupHtml(r));
         adminMarkers[r.id] = { marker, routes: {}, destMarkers: {} };
     } else {
-        // ── Existing rider — update position + popup + icon ──
+        // -- Existing rider � update position + popup + icon --
         adminMarkers[r.id].marker.setLatLng(r.pos);
         adminMarkers[r.id].marker.getPopup().setContent(riderPopupHtml(r));
         adminMarkers[r.id].marker.setIcon(L.divIcon({
@@ -636,7 +636,7 @@ async function addOrUpdateAdminRider(r) {
         }));
     }
 
-    // ── Track which order keys are still active ───────────
+    // -- Track which order keys are still active -----------
     const activeKeys = new Set(destinations.map(o => o.order_number));
 
     // Remove stale routes/pins for orders no longer active
@@ -672,7 +672,7 @@ async function addOrUpdateAdminRider(r) {
                 }).addTo(adminMapInst);
             }
         } else {
-            // Throttled — just move the start of the existing polyline to rider's new pos
+            // Throttled � just move the start of the existing polyline to rider's new pos
             if (adminMarkers[r.id].routes[key]) {
                 const lls = adminMarkers[r.id].routes[key].getLatLngs();
                 if (lls && lls.length > 0) {

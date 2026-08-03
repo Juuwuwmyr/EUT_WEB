@@ -96,8 +96,8 @@ class OrderController extends Controller
 
                 if ($lat && $lng) {
                     // Haversine distance from restaurant to customer (in km)
-                    $restLat = 13.3213129;
-                    $restLng = 121.3027265;
+                    $restLat = 13.321512;
+                    $restLng = 121.302098;
                     $earthR  = 6371;
                     $dLat    = deg2rad($lat - $restLat);
                     $dLng    = deg2rad($lng - $restLng);
@@ -392,8 +392,8 @@ class OrderController extends Controller
 
         $lat    = (float) $request->lat;
         $lng    = (float) $request->lng;
-        $restLat = 13.3213129;
-        $restLng = 121.3027265;
+        $restLat = 13.321512;
+        $restLng = 121.302098;
         $earthR  = 6371;
 
         $dLat = deg2rad($lat - $restLat);

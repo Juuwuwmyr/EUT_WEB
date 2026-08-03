@@ -1054,7 +1054,7 @@ function dismissSuccess() {
 
 <script>
 <?php
-$restaurantPos = [13.3213129, 121.3027265];
+$restaurantPos = [13.321512, 121.302098];
 $riderPos      = [$rider->current_lat ?? 13.3235, $rider->current_lng ?? 121.3050];
 $activeOrder   = $active->firstWhere('status', 'out_for_delivery') ?? $active->first();
 $customerPos   = null;
