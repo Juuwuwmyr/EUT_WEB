@@ -1,4 +1,4 @@
-﻿Set WshShell = CreateObject("WScript.Shell")
+Set WshShell = CreateObject("WScript.Shell")
 Dim fso: Set fso = CreateObject("Scripting.FileSystemObject")
 
 strPath = fso.GetParentFolderName(WScript.ScriptFullName)
