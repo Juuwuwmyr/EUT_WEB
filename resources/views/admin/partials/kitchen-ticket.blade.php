@@ -201,12 +201,18 @@ hr.double { border-top: 3px double #000; }
 
 <script>
 // iframe mode: do NOT auto-print here — parent calls iframe.contentWindow.print()
-// This script only runs if opened directly as a standalone page
-if (window.self === window.top) {
+// This script only runs if opened directly as a standalone page or popup
+if (window.self === window.top || window.opener) {
     window.onload = function () {
         document.body.style.width = '185px';
         document.body.style.maxWidth = '185px';
-        setTimeout(function() { window.print(); }, 300);
+        setTimeout(function() {
+            window.print();
+            // Auto-close popup after print dialog closes
+            if (window.opener) {
+                setTimeout(function() { window.close(); }, 1000);
+            }
+        }, 300);
     };
 }
 </script>

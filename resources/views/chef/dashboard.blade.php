@@ -492,6 +492,15 @@
     </div>
 </div>
 
+{{-- Popup permission notice — only shown once --}}
+<div id="popupNotice" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.6rem 1.25rem;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:.5rem;">
+        <i data-lucide="info" style="width:.9rem;height:.9rem;color:#3b82f6;stroke-width:2;flex-shrink:0;"></i>
+        <p style="font-size:.75rem;color:var(--text-muted);margin:0;">For auto-print to work: allow popups for this site in your browser address bar when prompted.</p>
+    </div>
+    <button onclick="document.getElementById('popupNotice').style.display='none';localStorage.setItem('kitchenPopupDismissed','1')" style="font-size:.7rem;color:var(--text-muted);background:none;border:none;cursor:pointer;white-space:nowrap;">Dismiss</button>
+</div>
+
 <div class="kitchen-board" id="kitchenBoard">
     {{-- Queue (accepted by admin) --}}
     <div class="kitchen-col" data-col="queued">
@@ -856,17 +865,23 @@ function escapeHtml(str) {
 
 function autoPrintKitchenTicket(orderId) {
     const url = `/chef/orders/${orderId}/kitchen-ticket`;
-    const old = document.getElementById('kitchenPrintFrame');
-    if (old) old.remove();
-    const iframe = document.createElement('iframe');
-    iframe.id  = 'kitchenPrintFrame';
-    iframe.src = url;
-    iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
-    document.body.appendChild(iframe);
-    iframe.onload = function() {
-        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) { console.warn('Auto-print failed:', e); }
-        setTimeout(() => iframe.remove(), 30000);
-    };
+    // Open a tiny popup — the ticket page has window.print() in its onload
+    // Chef must allow popups once in browser settings for this to work silently
+    const w = window.open(url, '_blank', 'width=200,height=100,left=-9999,top=-9999,toolbar=0,scrollbars=0,status=0,menubar=0,location=0');
+    if (!w) {
+        // Popup blocked — fall back to iframe method
+        const old = document.getElementById('kitchenPrintFrame');
+        if (old) old.remove();
+        const iframe = document.createElement('iframe');
+        iframe.id  = 'kitchenPrintFrame';
+        iframe.src = url;
+        iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
+        document.body.appendChild(iframe);
+        iframe.onload = function() {
+            try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) {}
+            setTimeout(() => iframe.remove(), 30000);
+        };
+    }
 }
 
 function printReceipt(receiptUrl) {
@@ -994,6 +1009,12 @@ function toggleKitchenFullscreen() {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
+
+    // Hide popup notice if already dismissed
+    if (localStorage.getItem('kitchenPopupDismissed')) {
+        const n = document.getElementById('popupNotice');
+        if (n) n.style.display = 'none';
+    }
 
     // Seed orderDataMap from initial server-rendered data
     @php
