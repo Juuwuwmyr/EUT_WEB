@@ -407,19 +407,12 @@ function escHtml(str) {
 
 // -- Print pickup slip (delivery orders only) --------------
 function adminPrintPickupSlip(orderId) {
-    var url  = '/admin/orders/' + orderId + '/pickup-slip';
-    var win  = window.open(url, '_blank', 'width=320,height=600,menubar=no,toolbar=no,location=no,status=no');
+    var url = '/admin/orders/' + orderId + '/pickup-slip';
+    var win = window.open(url, '_blank', 'width=320,height=620,menubar=no,toolbar=no,location=no,status=no');
     if (!win) {
-        // Popup was blocked — fall back to a plain new tab
+        // Popup blocked — open in new tab so user can print manually
         window.open(url, '_blank');
-        return;
     }
-    win.addEventListener('load', function() {
-        setTimeout(function() {
-            win.focus();
-            win.print();
-        }, 400);
-    });
 }
 
 // -- Rider card selection ----------------------------------

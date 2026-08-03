@@ -177,25 +177,18 @@ hr.double { border-top: 3px double #000; }
 </div>
 
 <script>
-function _fixW() { 
-    document.body.style.width = '185px'; 
-    document.body.style.maxWidth = '185px'; 
+function _fixW() {
+    document.body.style.width = '185px';
+    document.body.style.maxWidth = '185px';
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    _fixW();
-    console.log('Pickup slip loaded - ready for manual printing');
-    // NO auto-print - user must click print button in browser
-});
 
 window.addEventListener('load', function() {
     _fixW();
-    // NO auto-print on load
+    window.print();
 });
 
 window.addEventListener('afterprint', function () {
-    console.log('Print dialog closed');
-    // NO auto-close - let user close window manually
+    window.close();
 });
 </script>
 </body>
