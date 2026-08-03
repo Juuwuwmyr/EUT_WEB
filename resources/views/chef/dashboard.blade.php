@@ -5,12 +5,9 @@
 <style>
     .kitchen-board {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
         min-height: calc(100vh - 220px);
-    }
-    @media (max-width: 1200px) {
-        .kitchen-board { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 640px) {
         .kitchen-board { grid-template-columns: 1fr; }
@@ -496,25 +493,7 @@
 </div>
 
 <div class="kitchen-board" id="kitchenBoard">
-    {{-- New Orders --}}
-    <div class="kitchen-col" data-col="new">
-        <div class="kitchen-col-header" style="background:rgba(245,158,11,.06);">
-            <h2 class="kitchen-col-title">
-                <i data-lucide="bell" style="width:1rem;height:1rem;color:#f59e0b;stroke-width:2;"></i>
-                New Orders
-            </h2>
-            <span class="kitchen-col-count" style="background:rgba(245,158,11,.15);color:#f59e0b;" id="count-new">{{ $newOrders->count() }}</span>
-        </div>
-        <div class="kitchen-col-body" id="col-new">
-            @forelse($newOrders as $order)
-                @include('admin.partials.kitchen-order-card', ['order' => $order, 'column' => 'new'])
-            @empty
-                <div class="k-empty"><div class="k-empty-icon"><svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-5-5.917V5a1 1 0 10-2 0v.083A6 6 0 006 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div>No new orders</div>
-            @endforelse
-        </div>
-    </div>
-
-    {{-- Queue --}}
+    {{-- Queue (accepted by admin) --}}
     <div class="kitchen-col" data-col="queued">
         <div class="kitchen-col-header" style="background:rgba(59,130,246,.06);">
             <h2 class="kitchen-col-title">
@@ -582,7 +561,7 @@ const ACCEPT_URL  = id => IS_ADMIN ? `/admin/orders/${id}/accept` : `/chef/order
 const START_URL   = id => `/chef/orders/${id}/start`;
 const READY_URL   = id => `/chef/orders/${id}/ready`;
 
-let lastNewCount = {{ $newOrders->count() }};
+let lastNewCount = 0; // not used but kept to avoid reference errors
 let orderDataMap = {};
 let fallbackTimer = null;
 let printedOrderIds = new Set();
@@ -685,13 +664,12 @@ function renderColumn(col, orders) {
     countEl.textContent = orders.length;
 
     if (!orders.length) {
-        const emptyMsg = { new: 'No new orders', queued: 'Queue is empty', cooking: 'Nothing cooking' };
+        const emptyMsg = { queued: 'Queue is empty', cooking: 'Nothing cooking' };
         const emptyIcon = {
-            new:     '<svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-5-5.917V5a1 1 0 10-2 0v.083A6 6 0 006 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>',
             queued:  '<svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
             cooking: '<svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z"/></svg>',
         };
-        el.innerHTML = `<div class="k-empty"><div class="k-empty-icon">${emptyIcon[col]}</div>${emptyMsg[col]}</div>`;
+        el.innerHTML = `<div class="k-empty"><div class="k-empty-icon">${emptyIcon[col] || ''}</div>${emptyMsg[col] || ''}</div>`;
         return;
     }
 
@@ -950,13 +928,6 @@ async function refreshKitchen(manual) {
         const res = await fetch(KITCHEN_URL, { headers: { 'Accept': 'application/json' } });
         const data = await res.json();
 
-        const newCount = data.new.length;
-        if (newCount > lastNewCount) {
-            playNewOrderSound();
-        }
-        lastNewCount = newCount;
-
-        renderColumn('new', data.new);
         renderColumn('queued', data.queued);
         renderColumn('cooking', data.cooking);
 
@@ -998,17 +969,16 @@ function updateWSStatus(connected) {
     if (connected) {
         if (statusEl) statusEl.textContent = 'Live';
         if (dotEl) dotEl.style.background = '#22c55e';
-        // Clear fallback polling when WebSocket is active
-        if (fallbackTimer) {
-            clearInterval(fallbackTimer);
-            fallbackTimer = null;
+        // Even with WebSocket, keep a 3s poll as safety net for missed events
+        if (!fallbackTimer) {
+            fallbackTimer = setInterval(() => refreshKitchen(false), 3000);
         }
     } else {
         if (statusEl) statusEl.textContent = 'Reconnecting...';
         if (dotEl) dotEl.style.background = '#f59e0b';
-        // Start fallback polling every 30 seconds
+        // No WebSocket — poll every 1 second
         if (!fallbackTimer) {
-            fallbackTimer = setInterval(() => refreshKitchen(false), 30000);
+            fallbackTimer = setInterval(() => refreshKitchen(false), 1000);
         }
     }
 }
@@ -1023,7 +993,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Seed orderDataMap from initial server-rendered data
     @php
         $allKitchenOrders = array_merge(
-            $newOrders->all(),
             $queuedOrders->all(),
             $cookingOrders->all()
         );
@@ -1135,8 +1104,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     } else {
-        // WebSocket not available, use fallback polling every 30 seconds
+        // WebSocket not available — fallback polling every 3 seconds starts immediately
         updateWSStatus(false);
+    }
+
+    // Always start polling immediately on load (3s interval, regardless of WS)
+    if (!fallbackTimer) {
+        refreshKitchen(false);
+        fallbackTimer = setInterval(() => refreshKitchen(false), 3000);
     }
 });
 </script>
