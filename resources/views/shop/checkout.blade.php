@@ -308,17 +308,7 @@
         <!-- Table Number — hidden field, filled by QR scanner modal -->
         <input type="hidden" id="tableNumberInput" name="table_number">
 
-        <!-- Dine-in Location Warning (only shown when not at restaurant) -->
-        <div id="dineInLocationWarning" style="display:none;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1.25rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:.75rem;margin-bottom:1rem;flex-wrap:wrap;flex-direction:column;text-align:center;">
-            <div style="display:flex;align-items:center;gap:.6rem;width:100%;justify-content:center;">
-                <svg width="1.1rem" height="1.1rem" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/>
-                    <circle cx="12" cy="9" r="2.5" stroke-width="1.75"/>
-                </svg>
-                <p style="font-size:.8rem;font-weight:700;color:#ef4444;margin:0;">Dine-in orders require you to be at our restaurant location</p>
-            </div>
-            <p style="font-size:.75rem;color:#9ca3af;margin:0;width:100;">Please visit us in person to place a dine-in order.</p>
-        </div>
+
 
         <!-- Payment Method -->
         <div class="card" id="paymentMethodCard">

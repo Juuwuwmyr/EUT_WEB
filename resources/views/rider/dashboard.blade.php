@@ -507,13 +507,10 @@
                             </button>
                         @endif
                         @if($order->status === 'rider_assigned')
-                            <form method="POST" action="{{ route('rider.orders.picked-up', $order) }}" style="display:inline;">
-                                @csrf
-                                <button type="submit" class="btn-pickup">
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-                                    Picked Up
-                                </button>
-                            </form>
+                            <button type="button" class="btn-pickup" onclick="pickedUpAjax(this, {{ $order->id }})">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                                Picked Up
+                            </button>
                         @elseif($order->status === 'out_for_delivery')
                             <button class="btn-delivered" onclick="openDeliverySheet(this)" data-order-id="{{ $order->id }}">
                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -1009,6 +1006,130 @@ function dismissSuccess() {
     // Reload so the delivered order moves to history and stats update
     window.location.reload();
 }
+
+/* ══════════════════════════════════════════════════════
+   AJAX PICKED UP — no page navigation, then auto-print
+══════════════════════════════════════════════════════ */
+async function pickedUpAjax(btn, orderId) {
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin .6s linear infinite"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Picking up…';
+
+    try {
+        const res  = await fetch(`/rider/orders/${orderId}/picked-up`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept':       'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            },
+            body: JSON.stringify({}),
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+            throw new Error(data.message || 'Failed');
+        }
+
+        // Update the UI immediately — badge + button swap
+        const card  = btn.closest('.order-card');
+        const badge = card.querySelector('.badge');
+        badge.className = 'badge badge-delivering';
+        badge.innerHTML = '<span class="pulse-dot"></span> On the Way';
+        btn.outerHTML = `<button class="btn-delivered" onclick="openDeliverySheet(this)" data-order-id="${orderId}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            Mark as Delivered
+        </button>`;
+
+        // Auto-print pickup slip via hidden iframe
+        printPickupSlip(orderId);
+
+    } catch(err) {
+        alert('Error: ' + err.message + '. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg> Picked Up';
+    }
+}
+
+/* ══════════════════════════════════════════════════════
+   PRINT PICKUP SLIP — iframe method, no page nav
+   Opens print dialog without leaving the rider dashboard
+══════════════════════════════════════════════════════ */
+function printPickupSlip(orderId) {
+    // Remove any stale iframe
+    const old = document.getElementById('_pickupPrintFrame');
+    if (old) old.remove();
+
+    const iframe = document.createElement('iframe');
+    iframe.id = '_pickupPrintFrame';
+    // Hidden off-screen
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;opacity:0;pointer-events:none;';
+    document.body.appendChild(iframe);
+
+    // The pickup slip URL
+    iframe.src = `/chef/orders/${orderId}/pickup-slip`;
+
+    iframe.onload = function() {
+        try {
+            // Give browser a moment to render the receipt content
+            setTimeout(function() {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+                // Mark as printed in backend after print dialog
+                fetch(`/rider/pickups/${orderId}/mark-printed`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                }).catch(() => {});
+                // Clean up iframe after 60s
+                setTimeout(() => { try { iframe.remove(); } catch(e) {} }, 60000);
+            }, 600);
+        } catch(e) {
+            console.warn('Print failed:', e);
+        }
+    };
+
+    iframe.onerror = function() {
+        console.warn('Failed to load pickup slip for printing.');
+        iframe.remove();
+    };
+}
+
+/* ══════════════════════════════════════════════════════
+   AUTO-POLL every 3 seconds — refresh active orders
+   Uses /rider/orders JSON endpoint so we don't reload
+══════════════════════════════════════════════════════ */
+let _lastOrderHash = '';
+let _pollPaused    = false; // pause polling when delivery sheet is open
+
+function hashOrders(orders) {
+    return orders.map(o => o.id + ':' + o.status).join('|');
+}
+
+async function pollActiveOrders() {
+    if (_pollPaused) return;
+    try {
+        const res    = await fetch('/rider/orders', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' } });
+        if (!res.ok) return;
+        const orders = await res.json();
+        const hash   = hashOrders(orders);
+        if (hash !== _lastOrderHash) {
+            _lastOrderHash = hash;
+            if (hash !== '') {
+                // Something changed — soft-reload just the page (preserves tab state)
+                window.location.reload();
+            }
+        }
+    } catch(e) { /* silent — network hiccup */ }
+}
+
+// Kick off polling
+_lastOrderHash = '{{ $active->map(fn($o) => $o->id . ":" . $o->status)->implode("|") }}';
+setInterval(pollActiveOrders, 3000);
+
+// Pause polling when delivery sheet is open (avoid reload mid-sheet)
+const _origOpenSheet  = openDeliverySheet;
+const _origCloseSheet = closeSheet;
+openDeliverySheet  = function(btn) { _pollPaused = true;  _origOpenSheet(btn);  };
+closeSheet         = function()    { _pollPaused = false; _origCloseSheet();    };
 
 </script>
 
