@@ -237,28 +237,6 @@ async function fetchOrders() {
         data.orders.forEach(function(o) { ORDERS_MAP[o.id] = o; });
         RIDERS = data.riders || [];
 
-        // On the very first poll (page load), seed printedPickupIds with all existing
-        // out_for_delivery/delivered orders so we never re-print on refresh.
-        // On subsequent polls, any order newly appearing as out_for_delivery is a real
-        // transition and should trigger a print.
-        if (!window._adminFirstPollDone) {
-            data.orders.forEach(function(o) {
-                if (['out_for_delivery', 'delivered'].includes(o.status)) {
-                    printedPickupIds.add(o.id);
-                }
-            });
-            window._adminFirstPollDone = true;
-        } else {
-            // Subsequent poll � only print for orders that just transitioned
-            data.orders.forEach(function(o) {
-                if (o.status === 'out_for_delivery' && !printedPickupIds.has(o.id)) {
-                    printedPickupIds.add(o.id);
-                    var receiptUrl = '/chef/orders/' + o.id + '/pickup-slip';
-                    setTimeout(function() { kitchenAutoPrint(receiptUrl); }, 400);
-                }
-            });
-        }
-
         renderTable(data.orders);
 
         if (dot)   dot.style.background   = '#10b981'; // green = ok
