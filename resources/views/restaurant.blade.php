@@ -875,6 +875,164 @@ img { display: block; }
 <body>
 <div class="noise-layer"></div>
 
+{{-- ── Naujan-Only Geo-Restriction Banner ─────────────────────────────────
+     Shows a non-blocking top banner if the user is outside Naujan.
+     The Order Now buttons are also disabled with a tooltip.
+──────────────────────────────────────────────────────────────────────── --}}
+<div id="geoRestrictBanner" style="
+    display:none; position:fixed; top:0; left:0; right:0; z-index:9999;
+    background: linear-gradient(135deg, #7f1d1d, #991b1b);
+    border-bottom: 1px solid rgba(239,68,68,0.5);
+    padding: 12px 20px;
+    animation: slideDownBanner 0.4s ease;
+">
+    <style>
+        @keyframes slideDownBanner { from{transform:translateY(-100%)} to{transform:translateY(0)} }
+        #geoRestrictBanner .geo-banner-inner {
+            max-width: 1160px; margin: 0 auto;
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+        #geoRestrictBanner .geo-banner-icon {
+            flex-shrink: 0; font-size: 18px;
+        }
+        #geoRestrictBanner .geo-banner-text {
+            flex: 1; font-size: 13px; color: #fca5a5; font-weight: 600; line-height: 1.5;
+        }
+        #geoRestrictBanner .geo-banner-text strong { color: #fff; }
+        #geoRestrictBanner .geo-banner-dist {
+            background: rgba(0,0,0,0.25); border-radius: 99px;
+            padding: 3px 12px; font-size: 12px; color: #fca5a5; font-weight: 700;
+            border: 1px solid rgba(239,68,68,0.3); white-space: nowrap; flex-shrink: 0;
+        }
+        #geoRestrictBanner .geo-banner-close {
+            flex-shrink: 0; background: none; border: none; color: rgba(252,165,165,0.6);
+            cursor: pointer; font-size: 20px; line-height: 1; padding: 2px 4px;
+            transition: color 0.2s;
+        }
+        #geoRestrictBanner .geo-banner-close:hover { color: #fff; }
+        /* Disabled order buttons */
+        .geo-order-disabled {
+            opacity: 0.45 !important;
+            cursor: not-allowed !important;
+            pointer-events: none !important;
+            filter: grayscale(0.4) !important;
+        }
+        .geo-outside-badge {
+            display: none;
+            position: fixed; bottom: 24px; right: 24px;
+            background: linear-gradient(135deg, #7f1d1d, #991b1b);
+            color: #fca5a5; font-size: 13px; font-weight: 700;
+            padding: 12px 20px; border-radius: 14px;
+            border: 1px solid rgba(239,68,68,0.3);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+            z-index: 8000; max-width: 280px; line-height: 1.5;
+            animation: slideInBadge 0.4s ease;
+        }
+        @keyframes slideInBadge { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        .geo-outside-badge strong { color: #fff; display: block; margin-bottom: 3px; }
+    </style>
+    <div class="geo-banner-inner">
+        <span class="geo-banner-icon">📍</span>
+        <span class="geo-banner-text">
+            <strong>Naujan Customers Only</strong> — EUT Snack House currently delivers exclusively within <strong>Naujan, Oriental Mindoro</strong>. Your location appears to be outside our coverage area.
+        </span>
+        <span class="geo-banner-dist" id="geoBannerDist" style="display:none;"></span>
+        <button class="geo-banner-close" onclick="document.getElementById('geoRestrictBanner').style.display='none';">×</button>
+    </div>
+</div>
+
+{{-- Floating "can't order" badge that appears when an order button is clicked while outside Naujan --}}
+<div class="geo-outside-badge" id="geoOutsideBadge">
+    <strong>📍 Outside Coverage Area</strong>
+    EUT Snack House only accepts orders from within Naujan, Oriental Mindoro.
+</div>
+
+<script>
+(function() {
+    var NAUJAN_LAT = 13.3215, NAUJAN_LNG = 121.3021, MAX_KM = 30;
+    var CACHE_KEY = 'eut_geo_ok', CACHE_MS = 30 * 60 * 1000;
+    var _outsideNaujan = false;
+
+    function hav(a, b, c, d) {
+        var R = 6371, dL = (c-a)*Math.PI/180, dG = (d-b)*Math.PI/180;
+        var e = Math.sin(dL/2)**2 + Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dG/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(e), Math.sqrt(1-e));
+    }
+
+    function disableOrderButtons() {
+        _outsideNaujan = true;
+        // Disable all "Order Now" / "Start Ordering" / "View Full Menu" buttons that link to ordering
+        document.querySelectorAll('a[href*="/shop"], button[onclick*="openModal"]').forEach(function(el) {
+            el.classList.add('geo-order-disabled');
+            el.addEventListener('click', function(ev) {
+                ev.preventDefault(); ev.stopImmediatePropagation();
+                showOutsideBadge();
+            }, true);
+        });
+    }
+
+    function showOutsideBadge() {
+        var badge = document.getElementById('geoOutsideBadge');
+        badge.style.display = 'block';
+        clearTimeout(badge._t);
+        badge._t = setTimeout(function() { badge.style.display = 'none'; }, 3500);
+    }
+
+    function markOutside(km) {
+        document.getElementById('geoRestrictBanner').style.display = 'block';
+        // Push page content below the banner
+        document.body.style.paddingTop = '62px';
+        if (km) {
+            var distEl = document.getElementById('geoBannerDist');
+            distEl.textContent = Math.round(km) + ' km away';
+            distEl.style.display = 'inline-block';
+        }
+        // Wait for DOM to be ready before disabling buttons
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', disableOrderButtons);
+        } else {
+            disableOrderButtons();
+        }
+    }
+
+    // Check sessionStorage cache
+    try {
+        var cached = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null');
+        if (cached && (Date.now() - cached.ts) < CACHE_MS) {
+            var km = hav(cached.lat, cached.lng, NAUJAN_LAT, NAUJAN_LNG);
+            if (km <= MAX_KM) {
+                window.__customerLat = cached.lat;
+                window.__customerLng = cached.lng;
+                return; // ✅ within Naujan
+            } else {
+                markOutside(km);
+                return;
+            }
+        }
+    } catch(e) {}
+
+    // No cache — silently check in background (don't block the landing page)
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            var lat = pos.coords.latitude, lng = pos.coords.longitude;
+            var km = hav(lat, lng, NAUJAN_LAT, NAUJAN_LNG);
+            if (km <= MAX_KM) {
+                sessionStorage.setItem(CACHE_KEY, JSON.stringify({lat: lat, lng: lng, ts: Date.now()}));
+                window.__customerLat = lat;
+                window.__customerLng = lng;
+            } else {
+                markOutside(km);
+            }
+        },
+        function() { /* denied — silent, let backend guard */ },
+        { timeout: 8000, maximumAge: 300000 }
+    );
+})();
+</script>
+
+
+
 <!-- --------------------------------------------------
      NAV
 -------------------------------------------------- -->

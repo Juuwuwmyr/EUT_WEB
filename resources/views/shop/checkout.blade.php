@@ -150,7 +150,70 @@
     </style>
 </head>
 <body>
+
+{{-- Naujan-Only Geo-Restriction (same logic as shop index) --}}
+<div id="geoOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(4,4,10,0.97);backdrop-filter:blur(20px);align-items:center;justify-content:center;flex-direction:column;font-family:'Inter',sans-serif;">
+    <style>
+        @keyframes geoPulse2{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}60%{box-shadow:0 0 0 20px rgba(239,68,68,0)}}
+        @keyframes geoFloat2{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        @keyframes spin2{to{transform:rotate(360deg)}}
+        #geoOverlay .geo-card{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(239,68,68,0.3);border-radius:28px;padding:40px 36px;max-width:420px;width:calc(100% - 32px);text-align:center;box-shadow:0 40px 80px rgba(0,0,0,0.8);}
+        #geoOverlay .geo-icon-ring{width:88px;height:88px;border-radius:50%;margin:0 auto 24px;background:rgba(239,68,68,0.1);border:2px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:center;font-size:40px;animation:geoPulse2 2.5s ease-in-out infinite,geoFloat2 4s ease-in-out infinite;}
+        #geoOverlay .geo-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:10px;line-height:1.25;}
+        #geoOverlay .geo-subtitle{font-size:13px;color:#6b7280;line-height:1.7;margin-bottom:20px;}
+        #geoOverlay .geo-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#f87171;font-size:12px;font-weight:700;padding:7px 16px;border-radius:99px;margin-bottom:28px;letter-spacing:0.04em;text-transform:uppercase;}
+        #geoOverlay .geo-dist-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px 20px;margin-bottom:24px;display:none;}
+        #geoOverlay .geo-dist-box.visible{display:block;}
+        #geoOverlay .geo-dist-label{font-size:11px;color:#4b5563;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+        #geoOverlay .geo-dist-val{font-size:28px;font-weight:900;color:#ef4444;letter-spacing:-0.02em;}
+        #geoOverlay .geo-dist-unit{font-size:13px;color:#6b7280;font-weight:500;}
+        #geoOverlay .geo-map-pin{display:flex;align-items:center;gap:8px;font-size:12px;color:#4b5563;justify-content:center;margin-bottom:24px;}
+        #geoOverlay .geo-back-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;border-radius:14px;padding:14px 32px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;width:100%;box-shadow:0 4px 18px rgba(220,38,38,0.4);text-decoration:none;}
+        #geoOverlay .geo-checking{display:flex;flex-direction:column;align-items:center;gap:12px;color:#9ca3af;font-size:13px;}
+        #geoOverlay .geo-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,0.08);border-top-color:#facc15;border-radius:50%;animation:spin2 0.8s linear infinite;}
+    </style>
+    <div class="geo-card">
+        <div class="geo-checking" id="geoChecking"><div class="geo-spinner"></div><p>Verifying your location…</p></div>
+        <div id="geoBlocked" style="display:none;">
+            <div class="geo-icon-ring">📍</div>
+            <div class="geo-badge">Outside Coverage Area</div>
+            <h2 class="geo-title">Exclusive to<br>Naujan, Oriental Mindoro</h2>
+            <p class="geo-subtitle">EUT Snack House currently serves customers within <strong style="color:#fff;">Naujan municipality</strong> only. We're working on expanding our delivery zone soon!</p>
+            <div class="geo-dist-box" id="geoDistBox">
+                <div class="geo-dist-label">Your distance from Naujan</div>
+                <div><span class="geo-dist-val" id="geoDistVal">—</span> <span class="geo-dist-unit">km away</span></div>
+            </div>
+            <div class="geo-map-pin">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                EUT Snack House · Naujan, Oriental Mindoro
+            </div>
+            <a href="{{ route('restaurant') }}" class="geo-back-btn">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                Back to Homepage
+            </a>
+        </div>
+    </div>
+</div>
+<script>
+(function(){
+    var NAUJAN_LAT=13.3215,NAUJAN_LNG=121.3021,MAX_KM=30,CACHE_KEY='eut_geo_ok',CACHE_MS=30*60*1000;
+    function hav(a,b,c,d){var R=6371,dL=(c-a)*Math.PI/180,dG=(d-b)*Math.PI/180,e=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dG/2)**2;return R*2*Math.atan2(Math.sqrt(e),Math.sqrt(1-e));}
+    function showOvr(){document.getElementById('geoOverlay').style.display='flex';document.body.style.overflow='hidden';}
+    function block(km){showOvr();document.getElementById('geoChecking').style.display='none';document.getElementById('geoBlocked').style.display='block';if(km){document.getElementById('geoDistVal').textContent=Math.round(km);document.getElementById('geoDistBox').classList.add('visible');}}
+    function allow(la,ln){sessionStorage.setItem(CACHE_KEY,JSON.stringify({lat:la,lng:ln,ts:Date.now()}));window.__customerLat=la;window.__customerLng=ln;}
+    try{var c=JSON.parse(sessionStorage.getItem(CACHE_KEY)||'null');if(c&&(Date.now()-c.ts)<CACHE_MS){var km=hav(c.lat,c.lng,NAUJAN_LAT,NAUJAN_LNG);if(km<=MAX_KM){window.__customerLat=c.lat;window.__customerLng=c.lng;return;}}}catch(e){}
+    if(!navigator.geolocation)return;
+    showOvr();
+    navigator.geolocation.getCurrentPosition(
+        function(p){var km=hav(p.coords.latitude,p.coords.longitude,NAUJAN_LAT,NAUJAN_LNG);if(km<=MAX_KM){allow(p.coords.latitude,p.coords.longitude);document.getElementById('geoOverlay').style.display='none';document.body.style.overflow='';}else{block(km);}},
+        function(){document.getElementById('geoOverlay').style.display='none';document.body.style.overflow='';},
+        {timeout:8000,maximumAge:300000}
+    );
+})();
+</script>
+
 <!-- NAVBAR -->
+
 <nav class="topnav">
     <div class="topnav-inner">
         <a href="{{ route('shop.cart') }}" class="back-btn">
@@ -948,7 +1011,15 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         delivery_lat: lat,
         delivery_lng: lng,
         table_number: orderType === 'dine_in' ? tableNumber : null,
+        // ── Naujan geo-restriction: send customer location to backend ──
+        customer_lat: window.__customerLat || (function() {
+            try { const c = JSON.parse(sessionStorage.getItem('eut_geo_ok') || 'null'); return c?.lat || null; } catch(e) { return null; }
+        })(),
+        customer_lng: window.__customerLng || (function() {
+            try { const c = JSON.parse(sessionStorage.getItem('eut_geo_ok') || 'null'); return c?.lng || null; } catch(e) { return null; }
+        })(),
     };
+
 
     try {
         const r = await fetch('{{ route("orders.store") }}', {

@@ -22,6 +22,34 @@ class OrderController extends Controller
             ], 422);
         }
 
+        // ── Naujan-only restriction ─────────────────────────────────────────
+        // Orders are only accepted from customers physically located within
+        // Naujan, Oriental Mindoro (≤ 30 km from the town center).
+        // The frontend sends `customer_lat` / `customer_lng` obtained via the
+        // browser Geolocation API.  If the coordinates are absent we allow the
+        // request through — the frontend layer is the primary gate.
+        $cLat = (float) $request->input('customer_lat', 0);
+        $cLng = (float) $request->input('customer_lng', 0);
+        if ($cLat && $cLng) {
+            $naujanLat = 13.3215;
+            $naujanLng = 121.3021;
+            $earthR    = 6371;
+            $dLat      = deg2rad($cLat - $naujanLat);
+            $dLng      = deg2rad($cLng - $naujanLng);
+            $a         = sin($dLat/2) * sin($dLat/2)
+                       + cos(deg2rad($naujanLat)) * cos(deg2rad($cLat))
+                       * sin($dLng/2) * sin($dLng/2);
+            $distKm    = $earthR * 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+            if ($distKm > 30) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sorry, this service is exclusive to customers within Naujan, Oriental Mindoro. Your location appears to be outside our coverage area.',
+                    'outside_naujan' => true,
+                ], 422);
+            }
+        }
+
         $request->validate([
             'items'            => 'required|array|min:1',            'items.*.id'       => 'required',
             'items.*.qty'      => 'required|integer|min:1|max:99',
