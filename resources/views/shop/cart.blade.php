@@ -1011,7 +1011,8 @@ if (window.Echo) {
 }
 
 @auth
-// ── Echo: live order status toast while on cart page ─────(function() {
+// ── Echo: live order status toast while on cart page ─────
+(function() {
     const STATUS_LABELS = {
         accepted:         '✅ Order Accepted! Kitchen is on it.',
         preparing:        '👨‍🍳 Your food is being prepared.',
