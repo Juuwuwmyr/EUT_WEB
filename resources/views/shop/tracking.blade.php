@@ -333,13 +333,23 @@ const STATUS_CFG = {
     delivered:        {label:'Delivered',       badge:'badge-done',     icon:'<svg width="13" height="13" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>', progress:100},
     cancelled:        {label:'Cancelled',       badge:'badge-cancelled',icon:'<svg width="13" height="13" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>', progress:0},
 };
-const TIMELINE_STEPS = ['pending','accepted','preparing','rider_assigned','out_for_delivery','delivered'];
+
+// Returns the display label for a delivered order based on order type
+function deliveredLabel(orderType) {
+    if (orderType === 'dine_in') return 'Completed';
+    if (orderType === 'pickup')  return 'Completed';
+    return 'Delivered';
+}
 
 /* --------------------------------
    COMPACT ORDER CARD
 -------------------------------- */
 function buildOrderCard(o) {
     const cfg = STATUS_CFG[o.status] || STATUS_CFG.pending;
+    // For completed non-delivery orders, override the badge label
+    const badgeLabel = (o.status === 'delivered' && o.order_type !== 'delivery')
+        ? deliveredLabel(o.order_type)
+        : cfg.label;
     const imgs = o.items.slice(0,3).map(i=>
         `<img src="${escHtml(i.image)}" class="ocard-img" alt="${escHtml(i.name)}" loading="lazy" decoding="async" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">`)
         .join('');
@@ -357,7 +367,7 @@ function buildOrderCard(o) {
                 </div>
                 <p class="ocard-date">${escHtml(o.placed_at)}</p>
             </div>
-            <span class="badge ${cfg.badge}">${isLive?'<span class="badge-pulse"></span> ':''} ${escHtml(cfg.label)}</span>
+            <span class="badge ${cfg.badge}">${isLive?'<span class="badge-pulse"></span> ':''} ${escHtml(badgeLabel)}</span>
         </div>
         <div class="ocard-images" style="padding:0 16px 10px;">${imgs}${extra}</div>
         <div class="ocard-bottom">
@@ -493,6 +503,13 @@ function buildDetailBody(o) {
     const isActive = !['delivered','cancelled'].includes(o.status);
     const cancellable = ['pending','accepted','preparing'].includes(o.status);
     const isDelivery = o.order_type === 'delivery';
+    const isDineIn   = o.order_type === 'dine_in';
+    const isPickup   = o.order_type === 'pickup';
+
+    // Status label shown in progress bar header — order-type aware
+    const statusLabel = (o.status === 'delivered' && !isDelivery)
+        ? deliveredLabel(o.order_type)
+        : cfg.label;
 
     // -- Progress bar (active only) --
     const isPlaced    = o.status==='pending';
@@ -504,14 +521,14 @@ function buildDetailBody(o) {
         <div style="padding:16px 18px 0;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                 <span style="font-size:11px;color:#6b7280;">Status</span>
-                <span style="font-size:13px;font-weight:700;color:#facc15;">${escHtml(cfg.label)}</span>
+                <span style="font-size:13px;font-weight:700;color:#facc15;">${escHtml(statusLabel)}</span>
             </div>
             <div class="progress-track"><div class="progress-fill" style="width:${cfg.progress}%"></div></div>
             <div class="progress-steps">
                 <span class="step-label ${isPlaced?'now':!isPlaced?'done':''}">Placed</span>
                 <span class="step-label ${isPreparing?'now':(isOnWay||isDelivered)?'done':''}">Preparing</span>
                 ${isDelivery ? `<span class="step-label ${isOnWay?'now':isDelivered?'done':''}">On the way</span>` : ''}
-                <span class="step-label ${isDelivered?'done':''}">${!isDelivery ? 'Completed' : 'Delivered'}</span>
+                <span class="step-label ${isDelivered?'done':''}">${isDelivery ? 'Delivered' : deliveredLabel(o.order_type)}</span>
             </div>
         </div>
         <div class="sheet-divider" style="margin-top:14px;"></div>` : '';
@@ -535,8 +552,8 @@ function buildDetailBody(o) {
                 out_for_delivery: o.picked_up_at  || null,
                 delivered:        o.delivered_at  || null,
             };
-            let label = STATUS_CFG[s]?.label||s;
-            if(s === 'delivered' && !isDelivery) label = 'Completed';
+            let label = STATUS_CFG[s]?.label || s;
+            if (s === 'delivered') label = deliveredLabel(o.order_type);
             return {key:s,label:label,time:timeMap[s]||'',done:isDone,isNow,future:!isDone&&!isNow};
         });
 
@@ -775,12 +792,13 @@ function handleOrderUpdate(order) {
             }
         }
         const isPickup = order.order_type === 'pickup';
+        const isDineIn = order.order_type === 'dine_in';
         const toastMsgs = {
             accepted:         '✅ Order accepted!',
             preparing:        '👨‍🍳 Kitchen is preparing your order',
             rider_assigned:   '🏍 Rider assigned — heading to restaurant',
             out_for_delivery: '🛵 Your order is on the way!',
-            delivered:        isPickup ? '✅ Order completed! Enjoy your food!' : '🎉 Order delivered!',
+            delivered:        (isPickup || isDineIn) ? '✅ Order completed! Enjoy your food!' : '🎉 Order delivered!',
             cancelled:        '❌ Order was cancelled',
         };
         if (toastMsgs[order.status]) showToast(toastMsgs[order.status]);
