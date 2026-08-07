@@ -342,12 +342,11 @@
         </div>
 
         {{-- Column headers --}}
-        <div style="display:grid;grid-template-columns:1fr 1fr 110px 80px 72px auto;gap:.5rem;padding:.3rem .5rem;margin-bottom:.25rem;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 110px 80px auto;gap:.5rem;padding:.3rem .5rem;margin-bottom:.25rem;">
           <span style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Add-on Name</span>
           <span style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Description (optional)</span>
           <span style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Extra Price</span>
           <span style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Affects?</span>
-          <span style="font-size:.68rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;" title="Max number of add-ons the customer can select (blank = unlimited)">Max picks</span>
           <span></span>
         </div>
 
@@ -519,7 +518,6 @@ function openEditItemModal(item, categories) {
                 description:      g.description || '',
                 price_type:       (g.options && g.options[0]) ? g.options[0].price_type       : 'none',
                 price_adjustment: (g.options && g.options[0]) ? g.options[0].price_adjustment : 0,
-                max_selections:   g.max_selections || '',
             });
         } else {
             loadGroup(g);
@@ -651,12 +649,11 @@ function addAddon(addon) {
     var container = document.getElementById('addonRows');
     var affects   = (addon.price_type === 'add');
     var adjVal    = addon.price_adjustment || 0;
-    var maxVal    = addon.max_selections  || '';
 
     var row = document.createElement('div');
     row.id  = 'addonrow_' + aid;
     row.dataset.existingId = addon.id || '';
-    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 110px 80px 72px auto;gap:.5rem;align-items:center;' +
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 110px 80px auto;gap:.5rem;align-items:center;' +
                         'padding:.55rem .75rem;background:var(--bg-body);border:1px solid var(--border-card);' +
                         'border-radius:.625rem;';
 
@@ -695,13 +692,6 @@ function addAddon(addon) {
                 ? '<i data-lucide="check-circle" style="width:.7rem;height:.7rem;stroke-width:2;vertical-align:middle;"></i> Yes'
                 : '<i data-lucide="minus-circle" style="width:.7rem;height:.7rem;stroke-width:2;vertical-align:middle;"></i> No') +
         '</button>' +
-
-        // Max picks
-        '<input type="number" class="admin-input" id="admaxsel_'+aid+'" ' +
-               'min="1" step="1" value="'+escHtml(String(maxVal))+'" ' +
-               'placeholder="∞" ' +
-               'title="Max add-ons customer can pick (blank = unlimited)" ' +
-               'style="font-size:.8rem;text-align:center;">' +
 
         // Remove
         '<button type="button" onclick="removeAddon(\''+aid+'\')" ' +
@@ -941,8 +931,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var aAdj     = (document.getElementById('adadj_'  +aid)||{}).value || '0';
         var aAffects = (document.getElementById('adaffects_'+aid)||{}).dataset.affects === '1';
         var aPType   = aAffects ? 'add' : 'none';
-        var aMaxRaw  = (document.getElementById('admaxsel_'+aid)||{}).value || '';
-        var aMax     = aMaxRaw !== '' ? parseInt(aMaxRaw, 10) : '';
 
         function addAddonHidden(n, v) {
             var inp = document.createElement('input');
@@ -955,7 +943,6 @@ document.addEventListener('DOMContentLoaded', function() {
         addAddonHidden('addons['+ai+'][description]',       aDesc);
         addAddonHidden('addons['+ai+'][price_type]',        aPType);
         addAddonHidden('addons['+ai+'][price_adjustment]',  aAdj);
-        if(aMax !== '') addAddonHidden('addons['+ai+'][max_selections]', aMax);
         // Addons are stored as modifier_groups with type='addon'
         addAddonHidden('addons['+ai+'][type]',              'addon');
         addAddonHidden('addons['+ai+'][is_active]',         '1');
