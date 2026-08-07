@@ -67,11 +67,14 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name'                  => 'required|string|max:200',
             'email'                 => 'required|email|unique:users,email',
+            'phone'                 => 'required|string|min:10|max:20',
             'password'              => 'required|string|min:6|confirmed',
             'password_confirmation' => 'required',
         ], [
             'name.required'     => 'Please enter your full name.',
             'email.unique'      => 'An account with this email already exists.',
+            'phone.required'    => 'Please enter your mobile number.',
+            'phone.min'         => 'Please enter a valid mobile number.',
             'password.min'      => 'Password must be at least 6 characters.',
             'password.confirmed'=> 'Passwords do not match.',
         ]);
@@ -87,6 +90,7 @@ class AuthController extends Controller
         $user = User::create([
             'name'     => trim($request->name),
             'email'    => $request->email,
+            'phone'    => $request->phone,
             'password' => Hash::make($request->password),
             'provider' => 'email',
             'role'     => 'user',
@@ -128,10 +132,14 @@ class AuthController extends Controller
 
         $request->validate([
             'name'   => 'required|string|max:200',
+            'phone'  => 'required|string|min:10|max:20',
             'avatar' => 'nullable|image|max:2048',
         ]);
 
-        $data = ['name' => trim($request->name)];
+        $data = [
+            'name'  => trim($request->name),
+            'phone' => $request->phone,
+        ];
 
         if ($request->hasFile('avatar')) {
             $path = $request->file('avatar')->store('avatars', 'public');
@@ -145,6 +153,7 @@ class AuthController extends Controller
             'user'    => [
                 'name'   => $user->name,
                 'email'  => $user->email,
+                'phone'  => $user->phone,
                 'avatar' => $user->avatar,
             ],
         ]);

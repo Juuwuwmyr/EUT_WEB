@@ -134,6 +134,11 @@
                     <p class="hero-greeting">Welcome back</p>
                     <p class="hero-name" id="heroName">{{ auth()->user()->name }}</p>
                     <p class="hero-email">{{ auth()->user()->email }}</p>
+                    @if(auth()->user()->phone)
+                    <p class="hero-email" style="color:#4ade80;margin-top:2px;">📞 {{ auth()->user()->phone }}</p>
+                    @else
+                    <p class="hero-email" style="color:#ef4444;margin-top:2px;font-size:11px;">⚠ No phone number — <a href="javascript:void(0)" onclick="openModal('profileModal')" style="color:#facc15;text-decoration:underline;">Add now</a></p>
+                    @endif
                 </div>
             @else
                 <div class="hero-avatar-placeholder" style="display:flex;align-items:center;justify-content:center;">
@@ -308,6 +313,10 @@
             <div class="form-field">
                 <label class="form-label">Full Name</label>
                 <input type="text" id="profileName" class="form-input" value="{{ auth()->user()->name }}" placeholder="Your name">
+            </div>
+            <div class="form-field">
+                <label class="form-label">Mobile Number <span style="color:#ef4444;">*</span></label>
+                <input type="tel" id="profilePhone" class="form-input" value="{{ auth()->user()->phone }}" placeholder="09XX XXX XXXX" maxlength="11" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
             </div>
             <div class="form-field">
                 <label class="form-label">Email</label>
@@ -493,13 +502,17 @@ async function saveProfile() {
     const btn  = document.getElementById('profileSaveBtn');
     const alert = document.getElementById('profileAlert');
     const name  = document.getElementById('profileName').value.trim();
+    const phone = document.getElementById('profilePhone').value.trim();
     showAlert(alert, '', '');
 
-    if (!name) { showAlert(alert, 'error', 'Name is required.'); return; }
+    if (!name)  { showAlert(alert, 'error', 'Name is required.'); return; }
+    if (!phone) { showAlert(alert, 'error', 'Mobile number is required.'); return; }
+    if (phone.length < 10) { showAlert(alert, 'error', 'Please enter a valid mobile number.'); return; }
 
     btn.disabled = true; btn.textContent = 'Saving…';
     const fd = new FormData();
     fd.append('name', name);
+    fd.append('phone', phone);
     const avatarFile = document.getElementById('avatarInput').files[0];
     if (avatarFile) fd.append('avatar', avatarFile);
 

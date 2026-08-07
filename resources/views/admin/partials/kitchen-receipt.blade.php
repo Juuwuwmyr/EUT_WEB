@@ -99,6 +99,9 @@ hr.solid {
 <div class="row"><span>Type: </span><span class="bold">{{ $order->order_type_label }}</span></div>
 <div class="row"><span>Date: {{ $order->created_at->format('M d, Y g:i A') }}</span></div>
 <div class="row"><span>Customer: {{ $order->user?->name ?? 'Guest' }}</span></div>
+@if($order->order_type === 'delivery' && $order->user?->phone)
+<div class="row"><span class="bold">📞 {{ $order->user->phone }}</span></div>
+@endif
 @if($order->order_type === 'dine_in' && $order->table_number)
 <div class="row"><span class="bold" style="font-size:11px;">Table Number: {{ $order->table_number }}</span></div>
 @endif
@@ -162,6 +165,9 @@ hr.solid {
 <div class="address-box">
     <div class="bold" style="margin-bottom:1px;">Deliver to:</div>
     <div>{{ $order->delivery_address }}</div>
+    @if($order->user?->phone)
+    <div class="bold" style="margin-top:2px;font-size:10px;">📞 {{ $order->user->phone }}</div>
+    @endif
 </div>
 @endif
 

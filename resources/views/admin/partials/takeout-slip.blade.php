@@ -84,13 +84,22 @@ hr.double { border-top: 3px double #000; }
 <div class="store-sub">Naujan, Oriental Mindoro</div>
 <hr class="solid">
 
-<div class="takeout-label">🛵 TAKEOUT SLIP 🛵</div>
+@php
+    $isDelivery = $order->order_type === 'delivery';
+    $isPickup   = $order->order_type === 'pickup';
+    $slipLabel  = $isDelivery ? '🛵 DELIVERY SLIP 🛵' : ($isPickup ? '📦 PICKUP SLIP 📦' : '🏠 TAKEOUT SLIP 🏠');
+@endphp
+
+<div class="takeout-label">{{ $slipLabel }}</div>
 <div class="order-num">{{ $order->order_number }}</div>
 <hr>
 
 <div class="row"><span class="label">Date:</span> <span class="val">{{ $order->created_at->format('M d, Y') }}</span></div>
 <div class="row"><span class="label">Time:</span> <span class="val">{{ $order->created_at->format('g:i A') }}</span></div>
 <div class="row"><span class="label">Customer:</span> <span class="val">{{ $order->user?->name ?? 'Guest' }}</span></div>
+@if($order->user?->phone)
+<div class="row"><span class="label">📞 Contact:</span> <span class="val">{{ $order->user->phone }}</span></div>
+@endif
 @if($order->delivery_address)
 <div class="row"><span class="label">Address:</span> <span class="val">{{ $order->delivery_address }}</span></div>
 @endif
@@ -142,6 +151,16 @@ hr.double { border-top: 3px double #000; }
 
 <hr class="double">
 
+<div class="total-row">
+    <span>Subtotal</span>
+    <span>₱{{ number_format($order->subtotal ?? $subtotalCalc, 2) }}</span>
+</div>
+@if($isDelivery && ($order->delivery_fee ?? 0) >= 0)
+<div class="total-row">
+    <span>Delivery Fee</span>
+    <span>{{ ($order->delivery_fee ?? 0) == 0 ? 'FREE' : '₱'.number_format($order->delivery_fee, 2) }}</span>
+</div>
+@endif
 <div class="total-row grand">
     <span>TOTAL</span>
     <span>₱{{ number_format($order->total, 2) }}</span>
@@ -149,7 +168,19 @@ hr.double { border-top: 3px double #000; }
 <hr>
 <div class="total-row">
     <span>Payment</span>
-    <span style="text-transform:uppercase;font-weight:bold;">{{ $order->payment_method ?? 'Cash' }}</span>
+    <span style="text-transform:uppercase;font-weight:bold;">
+        @if($order->payment_method === 'gcash')
+            GCASH
+        @elseif($order->payment_method === 'card')
+            CARD
+        @elseif($isDelivery)
+            CASH ON DELIVERY
+        @elseif($isPickup)
+            CASH ON PICKUP
+        @else
+            CASH
+        @endif
+    </span>
 </div>
 
 @if($order->notes)
@@ -162,7 +193,9 @@ hr.double { border-top: 3px double #000; }
 
 <div class="footer">
     <div>Printed: {{ now()->format('M d, Y · g:i A') }}</div>
-    <div style="margin-top:2px;font-weight:bold;">*** TAKEOUT / DELIVERY COPY ***</div>
+    <div style="margin-top:2px;font-weight:bold;">
+        *** {{ $isDelivery ? 'DELIVERY' : ($isPickup ? 'PICKUP' : 'TAKEOUT') }} COPY ***
+    </div>
     <div style="margin-top:1px;">Thank you! 🙏</div>
 </div>
 

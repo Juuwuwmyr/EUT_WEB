@@ -1894,6 +1894,15 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
                     <input type="email" class="auth-input" id="signupEmail" placeholder="you@example.com" autocomplete="email">
                 </div>
                 <div class="auth-field">
+                    <label class="auth-label">Mobile Number <span style="color:#ef4444;">*</span></label>
+                    <div style="position:relative;">
+                        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:13px;color:#6b7280;font-weight:600;">🇵🇭 +63</span>
+                        <input type="tel" class="auth-input" id="signupPhone" placeholder="9XX XXX XXXX" autocomplete="tel" maxlength="11"
+                               style="padding-left:72px;"
+                               oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    </div>
+                </div>
+                <div class="auth-field">
                     <label class="auth-label">Password</label>
                     <input type="password" class="auth-input" id="signupPassword" placeholder="Min. 6 characters" autocomplete="new-password">
                 </div>
@@ -2115,13 +2124,18 @@ async function doLogin() {
 async function doSignup() {
     const name     = document.getElementById('signupName').value.trim();
     const email    = document.getElementById('signupEmail').value.trim();
+    const phoneRaw = document.getElementById('signupPhone').value.trim();
     const password = document.getElementById('signupPassword').value;
     const btn      = document.getElementById('signupBtn');
 
-    if (!name || !email || !password) { showAlert('Please fill in all fields.'); return; }
+    if (!name || !email || !phoneRaw || !password) { showAlert('Please fill in all fields.'); return; }
     if (password.length < 6) { showAlert('Password must be at least 6 characters.'); return; }
-    clearAlert();
+    if (phoneRaw.length < 10) { showAlert('Please enter a valid mobile number.'); return; }
 
+    // Normalize: if starts with 0 keep as-is, otherwise prepend 0
+    const phone = phoneRaw.startsWith('0') ? phoneRaw : '0' + phoneRaw;
+
+    clearAlert();
     btn.disabled  = true;
     btn.innerHTML = 'Creating account...';
 
@@ -2134,7 +2148,7 @@ async function doSignup() {
                 'Accept': 'application/json',
                 'ngrok-skip-browser-warning': '1'
             },
-            body: JSON.stringify({ name, email, password, password_confirmation: password })
+            body: JSON.stringify({ name, email, phone, password, password_confirmation: password })
         });
         const data = await res.json();
         if (res.ok && data.redirect) {
