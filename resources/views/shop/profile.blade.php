@@ -423,8 +423,8 @@
 <script>
 const CSRF    = document.querySelector('meta[name="csrf-token"]').content;
 const IS_AUTH = {{ auth()->check() ? 'true' : 'false' }};
-const ORDERS_URL = '{{ auth()->check() ? route("orders.index") : "" }}';
-const DEF_NAME   = {{ auth()->check() ? json_encode(auth()->user()->name) : '""' }};
+const ORDERS_URL = '{!! auth()->check() ? route("orders.index") : "" !!}';
+const DEF_NAME   = {!! auth()->check() ? json_encode(auth()->user()->name) : '""' !!};
 
 /* ── Theme ── */
 function applyTheme(t) {
@@ -590,7 +590,7 @@ function openAddressForm(addr) {
     document.getElementById('addrFormTitle').textContent = addr ? 'Edit Address' : 'Add Address';
     document.getElementById('addrId').value       = addr ? addr.id : '';
     document.getElementById('addrLabel').value    = addr ? addr.label : '';
-    document.getElementById('addrName').value     = addr ? addr.recipient_name : '{{ auth()->user()->name }}';
+    document.getElementById('addrName').value     = addr ? addr.recipient_name : '{!! auth()->check() ? addslashes(auth()->user()->name) : "" !!}';
     document.getElementById('addrPhone').value    = addr ? addr.phone : '';
     document.getElementById('addrAddress').value  = addr ? addr.address : '';
     document.getElementById('addrBarangay').value = addr ? (addr.barangay||'') : '';
