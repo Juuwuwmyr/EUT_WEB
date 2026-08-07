@@ -44,7 +44,13 @@ class ShopController extends Controller
     public function cart()
     {
         $isOpen = cache()->get('shop_is_open', true);
-        return view('shop.cart', compact('isOpen'));
+        $upsellItems = \App\Models\MenuItem::where('is_archived', false)
+            ->whereNotNull('image')
+            ->where('image', '!=', '')
+            ->inRandomOrder()
+            ->limit(8)
+            ->get();
+        return view('shop.cart', compact('isOpen', 'upsellItems'));
     }
 
     public function checkout()
