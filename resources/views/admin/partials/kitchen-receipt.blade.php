@@ -17,7 +17,7 @@ html, body {
 }
 
 body {
-    padding: 4px 8px 20px 4px;
+    padding: 4px 6px 20px 10px;
 }
 
 .center  { text-align: center; }
@@ -76,7 +76,7 @@ hr.solid {
     html, body {
         width: 185px !important;
         max-width: 185px !important;
-        padding: 4px 8px 20px 4px !important;
+        padding: 4px 6px 20px 10px !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
