@@ -845,23 +845,25 @@ function buildAddons() {
     }
 
     if (isRadio) {
-        // ── RADIO MODE: render as pill grid (same style as modifier pills) ──
+        // ── RADIO MODE: one group with multiple options → render each option as a pill ──
         list.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;';
         ADDON_GROUPS.forEach(group => {
-            const opt      = group.active_options && group.active_options[0];
-            const priceType = opt ? opt.price_type : 'none';
-            const adj       = opt ? parseFloat(opt.price_adjustment || 0) : 0;
-            const isPaid    = priceType === 'add' && adj > 0;
-            const priceLabel = isPaid ? '+₱' + adj.toLocaleString() : '';
+            (group.active_options || []).forEach(opt => {
+                const priceType  = opt.price_type || 'none';
+                const adj        = parseFloat(opt.price_adjustment || 0);
+                const isPaid     = priceType === 'add' && adj > 0;
+                const priceLabel = isPaid ? '+₱' + adj.toLocaleString() : '';
 
-            const pill = document.createElement('div');
-            pill.className = 'size-pill';
-            pill.id = 'addon_' + group.id;
-            pill.innerHTML = `
-                <span class="size-pill-label">${group.name}</span>
-                ${priceLabel ? `<span class="size-pill-desc">${priceLabel}</span>` : ''}`;
-            pill.addEventListener('click', () => toggleAddon(group.id, group.name, priceType, adj));
-            list.appendChild(pill);
+                const pill = document.createElement('div');
+                pill.className = 'size-pill';
+                pill.id = 'addon_opt_' + opt.id;
+                pill.dataset.groupId = group.id;
+                pill.innerHTML = `
+                    <span class="size-pill-label">${opt.name}</span>
+                    ${priceLabel ? `<span class="size-pill-desc">${priceLabel}</span>` : ''}`;
+                pill.addEventListener('click', () => toggleAddonOpt(group.id, opt.id, opt.name, priceType, adj));
+                list.appendChild(pill);
+            });
         });
     } else {
         // ── MULTI-SELECT MODE: render as checkbox cards ──
@@ -895,7 +897,28 @@ function buildAddons() {
     }
 }
 
-function toggleAddon(groupId, name, priceType, adj) {
+// Radio option toggle — used when addon group has multiple options rendered as pills
+function toggleAddonOpt(groupId, optId, name, priceType, adj) {
+    const limitLabel = document.getElementById('addonsLimitLabel');
+
+    // Deselect all pills in this group
+    document.querySelectorAll(`[data-group-id="${groupId}"]`).forEach(p => p.classList.remove('selected'));
+
+    // If clicking already-selected → deselect
+    if (selectedAddons[groupId] && selectedAddons[groupId].optId === optId) {
+        delete selectedAddons[groupId];
+        if (limitLabel) { limitLabel.style.color = ''; limitLabel.textContent = 'Optional · Choose one'; }
+        updateTotal();
+        return;
+    }
+
+    // Select the tapped pill
+    selectedAddons[groupId] = { optId, name, priceType, adj };
+    const pill = document.getElementById('addon_opt_' + optId);
+    if (pill) pill.classList.add('selected');
+    if (limitLabel) { limitLabel.style.color = '#f59e0b'; limitLabel.textContent = name; }
+    updateTotal();
+}
     const limitLabel = document.getElementById('addonsLimitLabel');
     const globalMax  = addonGlobalMax();
     const isRadio    = globalMax === 1;
