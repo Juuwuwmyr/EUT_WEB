@@ -2,22 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=185, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=160, initial-scale=1.0, maximum-scale=1.0">
 <title>Table {{ $tableNumber }} Receipt</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
-    width: 185px;
-    max-width: 185px;
+    width: 160px;
+    max-width: 160px;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 8.5px;
+    font-size: 7.5px;
     color: #000;
     background: #fff;
 }
 
 body {
-    padding: 4px 8px 20px 4px;
+    padding: 4px 4px 20px 4px;
 }
 
 .center  { text-align: center; }
@@ -71,9 +71,9 @@ hr.solid {
         margin: 0;
     }
     html, body {
-        width: 185px !important;
-        max-width: 185px !important;
-        padding: 4px 8px 20px 4px !important;
+        width: 160px !important;
+        max-width: 160px !important;
+        padding: 4px 4px 20px 4px !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
