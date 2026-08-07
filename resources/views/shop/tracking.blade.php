@@ -617,7 +617,7 @@ function buildDetailBody(o) {
         </div>
         ${o.rider?`<div class="irow">
             <div class="irow-icon" style="background:rgba(167,139,250,.1);"><svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
-            <div><p class="irow-label">Rider</p><p class="irow-val">${escHtml(o.rider.name)}</p><p class="irow-sub"><svg width="11" height="11" fill="#facc15" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> ${o.rider.rating} � ${escHtml(o.rider.phone)}</p></div>
+            <div><p class="irow-label">Rider</p><p class="irow-val">${escHtml(o.rider.name)}</p><p class="irow-sub">⭐ ${o.rider.rating} · 📞 <a href="tel:${escHtml(o.rider.phone)}" style="color:#4ade80;text-decoration:none;font-weight:600;">${escHtml(o.rider.phone)}</a></p></div>
         </div>`:''}`;
 
     // -- Map (active delivery only) --
@@ -948,7 +948,7 @@ async function initOrderMap(order) {
         html: `<div style="background:#10b981;width:42px;height:42px;border-radius:50%;border:3px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 10px rgba(16,185,129,.8);">🛵</div>`,
         className: '', iconSize: [42, 42], iconAnchor: [21, 21],
     }) }).addTo(map);
-    if (order.rider) rM.bindPopup('<b>' + order.rider.name + '</b><br>⭐ ' + order.rider.rating);
+    if (order.rider) rM.bindPopup('<b>' + order.rider.name + '</b><br>⭐ ' + order.rider.rating + '<br>📞 <a href="tel:' + order.rider.phone + '" style="color:#4ade80;text-decoration:none;font-weight:600;">' + order.rider.phone + '</a>');
     activeMaps[order.id].riderMarker = rM;
 
     if (isOut) {
