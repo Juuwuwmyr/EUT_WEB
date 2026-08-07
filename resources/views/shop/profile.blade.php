@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -421,7 +421,10 @@
 @endauth
 
 <script>
-const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+const CSRF    = document.querySelector('meta[name="csrf-token"]').content;
+const IS_AUTH = {{ auth()->check() ? 'true' : 'false' }};
+const ORDERS_URL = '{{ auth()->check() ? route("orders.index") : "" }}';
+const DEF_NAME   = {{ auth()->check() ? json_encode(auth()->user()->name) : '""' }};
 
 /* ── Theme ── */
 function applyTheme(t) {
@@ -431,6 +434,7 @@ function applyTheme(t) {
     const lbl = document.getElementById('themeLabel');
     if (lbl) lbl.textContent = t === 'dark' ? 'Dark' : 'Light';
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     applyTheme(localStorage.getItem('eutTheme') || 'dark');
     document.getElementById('shopThemeToggle').addEventListener('click', () => {
@@ -438,56 +442,66 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('eutTheme', t);
         applyTheme(t);
     });
-    @auth
-    loadStats();
-    @endauth
+    if (IS_AUTH) loadStats();
+    document.querySelectorAll('.modal-backdrop').forEach(el => {
+        el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+    });
 });
 
 /* ── Modal helpers ── */
 function openModal(id) {
     const el = document.getElementById(id);
+    if (!el) { console.error('Modal not found:', id); return; }
     el.classList.add('open');
     if (id === 'addressModal') loadAddresses();
 }
 function closeModal(id) {
-    document.getElementById(id).classList.remove('open');
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('open');
 }
-// Close on backdrop click
-document.querySelectorAll('.modal-backdrop').forEach(el => {
-    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-});
 
-/* ── Load Stats from orders API ── */
-@auth
+/* ── Helpers ── */
+function showAlert(el, type, msg) {
+    if (!el) return;
+    el.className = 'form-alert' + (type ? ' ' + type : '');
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+}
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+
+/* ── Load Order Stats ── */
 async function loadStats() {
     try {
-        const res  = await fetch('{{ route("orders.index") }}', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } }); headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
+        const res  = await fetch(ORDERS_URL, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
         if (!res.ok) return;
         const data = await res.json();
-        const orders = data.orders || [];
-        const total     = orders.length;
-        const delivered = orders.filter(o => o.status === 'delivered').length;
-        const active    = orders.filter(o => !['delivered','cancelled'].includes(o.status)).length;
-        const spent     = orders.filter(o => o.status === 'delivered').reduce((s,o) => s + parseFloat(o.total||0), 0);
+        const active    = data.active    || [];
+        const past      = data.past      || [];
+        const cancelled = data.cancelled || [];
+        const total     = active.length + past.length + cancelled.length;
+        const delivered = past.length;
+        const spent     = past.reduce((s, o) => s + parseFloat(o.total || 0), 0);
 
-        document.getElementById('statOrders').textContent    = total;
-        document.getElementById('statSpent').textContent     = '₱' + (spent >= 1000 ? (spent/1000).toFixed(1)+'k' : Math.round(spent));
-        document.getElementById('statDelivered').textContent = delivered;
-        document.getElementById('statPending').textContent   = active;
-
-        const sub = document.getElementById('ordersSubtext');
-        if (sub) sub.textContent = active > 0 ? `${active} active order${active > 1?'s':''}` : `${total} order${total !== 1?'s':''} total`;
-    } catch(e) {
+        const g = id => document.getElementById(id);
+        if (g('statOrders'))    g('statOrders').textContent    = total;
+        if (g('statSpent'))     g('statSpent').textContent     = '₱' + (spent >= 1000 ? (spent/1000).toFixed(1)+'k' : Math.round(spent));
+        if (g('statDelivered')) g('statDelivered').textContent = delivered;
+        if (g('statPending'))   g('statPending').textContent   = active.length;
+        const sub = g('ordersSubtext');
+        if (sub) sub.textContent = active.length > 0
+            ? `${active.length} active order${active.length > 1 ? 's' : ''}`
+            : `${total} order${total !== 1 ? 's' : ''} total`;
+    } catch (e) {
         ['statOrders','statSpent','statDelivered','statPending'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.textContent = '0';
         });
-        const sub = document.getElementById('ordersSubtext');
-        if (sub) sub.textContent = 'No orders yet';
     }
 }
-
-/* ── PROFILE SAVE ── */
+/* ── Avatar preview ── */
 function previewAvatar(input) {
     if (!input.files || !input.files[0]) return;
     const reader = new FileReader();
@@ -524,13 +538,8 @@ async function saveProfile() {
         });
         const data = await res.json();
         if (data.success) {
-            showAlert(alert, 'success', 'Profile updated!');
-            document.getElementById('heroName').textContent = data.user.name;
-            if (data.user.avatar) {
-                const heroWrap = document.getElementById('heroAvatar') || document.getElementById('heroAvatarPlaceholder');
-                if (heroWrap) heroWrap.outerHTML = `<img src="${data.user.avatar}" class="hero-avatar" id="heroAvatar">`;
-            }
-            setTimeout(() => closeModal('profileModal'), 1200);
+            showAlert(alert, 'success', '✅ Profile updated!');
+            setTimeout(() => window.location.reload(), 1000);
         } else {
             showAlert(alert, 'error', data.message || 'Failed to save.');
         }
@@ -548,7 +557,7 @@ async function loadAddresses() {
     const list = document.getElementById('addressList');
     list.innerHTML = '<p style="text-align:center;color:#4b5563;padding:20px 0;">Loading…</p>';
     try {
-        const res  = await fetch('/addresses', {
+        const res  = await fetch('/addresses', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
         const data = await res.json();
         renderAddresses(data.addresses || []);
     } catch(e) {

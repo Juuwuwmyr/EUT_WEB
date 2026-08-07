@@ -261,6 +261,11 @@
             h.classList.remove('dark','light');
             h.classList.add(t === 'light' ? 'light' : 'dark');
         })();
+        /* Scroll active nav link into view on page load */
+        document.addEventListener('DOMContentLoaded', function() {
+            var active = document.querySelector('.nav-link.active');
+            if (active) active.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'instant' });
+        });
         /* Modal helpers — defined early so views can call them */
         function openModal(id){ var el=document.getElementById(id); if(el){el.classList.add('open');document.body.style.overflow='hidden';} }
         function closeModal(id){ var el=document.getElementById(id); if(el){el.classList.remove('open');document.body.style.overflow='';} }
@@ -271,7 +276,7 @@
 
 {{-- ═══════════════════════ TOP NAVIGATION ═══════════════════════ --}}
 <nav class="admin-nav" style="position:sticky;top:0;z-index:50;">
-    <div style="max-width:1536px;margin:0 auto;padding:0 1.5rem;height:64px;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+    <div style="max-width:1536px;margin:0 auto;padding:0 1rem;height:64px;display:flex;align-items:center;justify-content:space-between;gap:.5rem;min-width:0;overflow:hidden;">
 
         {{-- Logo --}}
         <a href="{{ route('admin.dashboard') }}" style="display:flex;align-items:center;gap:.5rem;text-decoration:none;flex-shrink:0;">
@@ -280,7 +285,8 @@
         </a>
 
         {{-- Nav links --}}
-        <div style="display:flex;align-items:center;gap:.25rem;overflow-x:auto;flex:1;">
+        <div style="display:flex;align-items:center;gap:.25rem;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none;-ms-overflow-style:none;">
+            <style>.admin-nav-links::-webkit-scrollbar{display:none;}</style>
             <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
                 Dashboard
@@ -295,7 +301,7 @@
             </a>
             <a href="{{ route('admin.menu-items') }}" class="nav-link {{ request()->routeIs('admin.menu-items*') ? 'active' : '' }}">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M3 12h18M3 18h18"/><circle cx="19" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="5" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
-                Menu Items
+                Menu
             </a>
             <a href="{{ route('admin.riders') }}" class="nav-link {{ request()->routeIs('admin.riders*') ? 'active' : '' }}">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="flex-shrink:0;"><circle cx="12" cy="5" r="2" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 20v-5l3-3 1.5 4L12 14l2.5 2L16 15l3 3v2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l-3 2h4l1 5 2-4 2 4 1-5h4l-3-2"/></svg>
