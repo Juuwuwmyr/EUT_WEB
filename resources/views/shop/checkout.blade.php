@@ -377,7 +377,7 @@
             <div style="margin-top:8px;border-top:1px solid rgba(255,255,255,.05);">
                 <div class="tot-row"><span class="tot-label">Subtotal</span><span class="tot-val" id="coSubtotal">₱0</span></div>
                 <div class="tot-row"><span class="tot-label">Delivery fee</span><span class="tot-val" id="coDelivery">₱30</span></div>
-                <div id="deliveryDistRow" style="margin:-6px 0 4px;"><span style="font-size:10px;color:#4b5563;" id="deliveryDistLabel">Calculating distance…</span></div>
+                <div id="deliveryDistRow" style="margin:-6px 0 4px;"><span style="font-size:10px;color:#4b5563;" id="deliveryDistLabel">₱30 base (up to 2 km)</span></div>
                 <div class="tot-row" style="padding-top:12px;padding-bottom:12px;border-top:1px solid rgba(255,255,255,.06);">
                     <span class="tot-grand-label">Total</span>
                     <span class="tot-grand-val" id="coTotal">₱0</span>
@@ -545,24 +545,59 @@ function modChips(mods){
     return chips.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;">${chips.join('')}</div>`:'';
 }
 
+/* ── Calculate delivery fee client-side (mirrors server formula) ── */
+function calcDeliveryFeeLocal(lat, lng) {
+    const restLat = 13.321512;
+    const restLng = 121.302098;
+    const R = 6371;
+    const dLat = (lat - restLat) * Math.PI / 180;
+    const dLng = (lng - restLng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2)
+            + Math.cos(restLat * Math.PI / 180) * Math.cos(lat * Math.PI / 180)
+            * Math.sin(dLng/2) * Math.sin(dLng/2);
+    const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const fee = 30 + Math.max(0, Math.ceil(km - 2)) * 10;
+    const label = km <= 2
+        ? `₱${fee} (within 2 km)`
+        : `₱${fee} (${km.toFixed(1)} km)`;
+    return { km: parseFloat(km.toFixed(2)), fee, label };
+}
+
 /* ── Fetch delivery fee from server when coordinates are known ── */
 async function updateDeliveryFeeByCoords(lat, lng) {
     if (!lat || !lng || currentOrderType !== 'delivery') return;
+
+    // Show instant local estimate while waiting for server
+    const local = calcDeliveryFeeLocal(lat, lng);
+    currentDeliveryFee = local.fee;
+    const distEl = document.getElementById('deliveryDistLabel');
+
+    if (local.km > 100) {
+        if (distEl) distEl.textContent = 'Outside delivery range (max 100 km)';
+        renderSummary();
+        return;
+    }
+    if (distEl) distEl.textContent = local.label;
+    renderSummary();
+
+    // Confirm with server (more accurate)
     try {
         const res = await fetch(`${DELIVERY_FEE_URL}?lat=${lat}&lng=${lng}`, {
             headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
         });
+        if (!res.ok) return; // keep local estimate on HTTP error
         const data = await res.json();
         if (data.success) {
             currentDeliveryFee = data.fee;
-            const distEl = document.getElementById('deliveryDistLabel');
             if (distEl) distEl.textContent = data.label;
             renderSummary();
         } else {
             const errEl = document.getElementById('addressError');
             if (errEl) { errEl.textContent = data.message; errEl.style.display = 'block'; }
         }
-    } catch(e) {}
+    } catch(e) {
+        // Keep the local estimate already shown — don't get stuck
+    }
 }
 
 /* ── Order summary ── */
@@ -648,8 +683,18 @@ async function loadAddresses(){
         // Calculate delivery fee for default address
         if (def && def.lat && def.lng) {
             updateDeliveryFeeByCoords(def.lat, def.lng);
+        } else {
+            // No coordinates — show base fee
+            const distEl = document.getElementById('deliveryDistLabel');
+            if (distEl) distEl.textContent = '₱30 base (up to 2 km)';
+            renderSummary();
         }
-    }catch(e){console.error('addr load failed',e);}
+    }catch(e){
+        console.error('addr load failed',e);
+        const distEl = document.getElementById('deliveryDistLabel');
+        if (distEl) distEl.textContent = '₱30 base (up to 2 km)';
+        renderSummary();
+    }
 }
 
 function renderSelectedAddress(){
@@ -718,6 +763,12 @@ function selectAddress(id){
     const a = addresses.find(a => a.id === id);
     if (a && a.lat && a.lng) {
         updateDeliveryFeeByCoords(a.lat, a.lng);
+    } else {
+        // Address has no coordinates — use base fee
+        currentDeliveryFee = 30;
+        const distEl = document.getElementById('deliveryDistLabel');
+        if (distEl) distEl.textContent = '₱30 base (up to 2 km)';
+        renderSummary();
     }
     setTimeout(closePicker,200);
 }

@@ -1,12 +1,20 @@
 """
 EUT Snack House - Menu Image Generator
-Generates AI food images using Pollinations.AI (FREE, no API key needed)
-then converts to WebP.
+Generates AI food images using Google Gemini (Imagen 3) then converts to WebP.
+Uses the real EUT seed SQL menu items (NOT eut_restaurant.sql).
 
 Usage:  python generate_menu_images.py
 """
-import os, io, time, sys, urllib.request, urllib.parse
+import os, io, time, sys
 from pathlib import Path
+
+try:
+    from google import genai
+    from google.genai import types
+except ImportError:
+    os.system(f"{sys.executable} -m pip install google-genai -q")
+    from google import genai
+    from google.genai import types
 
 try:
     from PIL import Image
@@ -14,13 +22,9 @@ except ImportError:
     os.system(f"{sys.executable} -m pip install Pillow -q")
     from PIL import Image
 
-OUTPUT_DIR = Path(r"c:\wamp64\www\EUT_WEB\public\images\menu")
+API_KEY    = "AQ.Ab8RN6J7gsMSPmn1MZtf6Fvq9hikINoR48e8CNSbtNtgD5UuIQ"
+OUTPUT_DIR = Path(r"c:\Users\alex m cortez\Desktop\EUT_WEB\public\images\menu")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-# Pollinations.AI endpoint — free, no auth required
-# Docs: https://pollinations.ai
-# Using seed for reproducibility; nologo=true removes watermark
-POLLINATIONS_URL = "https://image.pollinations.ai/prompt/{prompt}?width=1024&height=1024&model=flux-pro&nologo=true&enhance=false&seed={seed}"
 
 BASE = (
     "Professional Filipino food photography, restaurant menu style, "
@@ -200,111 +204,83 @@ MENU_ITEMS = [
 
     # ── EUT Sex Combo ──────────────────────────────────────────────────────────
     (173,"sex-combo",             BASE+"Filipino sinangag breakfast combo: garlic fried rice, egg, mixed viands (sisig, hotdog, bacon) on plate with drinks"),
+
+    # ── EUT Giant Burger (remaining) ───────────────────────────────────────────
     (186,"sex-combo-plate",       BASE+"Filipino sinangag + egg + fillet + Hungarian sausage combo plate with drinks"),
 ]
 
 
-def build_url(prompt: str, seed: int = 42) -> str:
-    """Encode the prompt and return the Pollinations.AI image URL."""
-    encoded = urllib.parse.quote(prompt, safe="")
-    return POLLINATIONS_URL.format(prompt=encoded, seed=seed)
-
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept": "image/webp,image/png,image/*,*/*",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://pollinations.ai/",
-}
-
-
-def generate_and_save(item_id: int, filename: str, prompt: str) -> bool:
+def generate_and_save(client, item_id, filename, prompt):
     out_path = OUTPUT_DIR / f"{filename}.webp"
     if out_path.exists():
-        print(f"  ⏭  Skip #{item_id} {filename} (exists)")
+        print(f"  Skip #{item_id} {filename} (exists)")
         return True
-
-    print(f"  🎨 #{item_id} {filename} ...", end=" ", flush=True)
-    url = build_url(prompt, seed=item_id)
-
-    for attempt in range(1, 4):           # up to 3 retries
-        try:
-            req = urllib.request.Request(url, headers=HEADERS)
-            with urllib.request.urlopen(req, timeout=90) as resp:
-                img_bytes = resp.read()
-
-            if len(img_bytes) < 1024:
-                raise ValueError(f"Response too small ({len(img_bytes)} bytes) — likely an error page")
-
-            img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
-            img.save(out_path, "WEBP", quality=88, method=6)
-            kb = out_path.stat().st_size // 1024
-            print(f"✅ {kb} KB")
-            return True
-
-        except Exception as e:
-            if attempt < 3:
-                wait = 8 * attempt
-                print(f"\n    ⚠  Attempt {attempt} failed: {e}  — retrying in {wait}s...", end=" ", flush=True)
-                time.sleep(wait)
-            else:
-                print(f"❌ {e}")
-                return False
-
-    return False
+    print(f"  Generating #{item_id} {filename} ...", end=" ", flush=True)
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-image",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+            ),
+        )
+        img_bytes = None
+        for part in response.candidates[0].content.parts:
+            if hasattr(part, 'inline_data') and part.inline_data:
+                img_bytes = part.inline_data.data
+                break
+        if not img_bytes:
+            print("FAILED - No image in response")
+            return False
+        img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+        img.save(out_path, "WEBP", quality=88, method=6)
+        kb = out_path.stat().st_size // 1024
+        print(f"OK {kb}KB")
+        return True
+    except Exception as e:
+        print(f"FAILED - {e}")
+        return False
 
 
 def print_sql():
-    print("\n" + "=" * 60)
-    print("Run these SQL UPDATE statements in phpMyAdmin:")
-    print("=" * 60)
-    done: set = set()
+    print("\n" + "="*60)
+    print("Run these SQL statements in phpMyAdmin:")
+    print("="*60)
+    done = set()
     for item_id, filename, _ in MENU_ITEMS:
         if item_id not in done:
             print(f"UPDATE menu_items SET image='/images/menu/{filename}.webp' WHERE id={item_id};")
             done.add(item_id)
-    print("=" * 60)
+    print("="*60)
 
 
 def main():
-    print("=" * 60)
-    print("  EUT Snack House — Menu Image Generator")
-    print("  Powered by Pollinations.AI  (100% FREE, no key needed)")
-    print(f"  Items to generate : {len(MENU_ITEMS)}")
-    print(f"  Output directory  : {OUTPUT_DIR}")
-    print("=" * 60)
+    global API_KEY
+    if API_KEY == "PASTE_YOUR_NEW_KEY_HERE" or not API_KEY:
+        print("="*60)
+        print("  EUT Snack House — Menu Image Generator")
+        print("  Get FREE key: https://aistudio.google.com/apikey")
+        print("="*60)
+        API_KEY = input("  Paste your Gemini API key: ").strip()
+    if not API_KEY:
+        print("No key provided."); sys.exit(1)
 
-    # Quick connectivity check with a tiny test image
-    print("  Checking Pollinations.AI connectivity...", end=" ", flush=True)
-    try:
-        test_url = "https://image.pollinations.ai/prompt/test?width=64&height=64&model=flux-pro&nologo=true&seed=1"
-        req = urllib.request.Request(test_url, headers=HEADERS)
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            resp.read(512)   # just need a partial read to confirm it works
-        print("✅ Connected\n")
-    except Exception as e:
-        print(f"❌\n\n⚠  Cannot reach Pollinations.AI: {e}")
-        print("   Check your internet connection and try again.")
-        sys.exit(1)
+    client = genai.Client(api_key=API_KEY)
+    print(f"\n📁 Output: {OUTPUT_DIR}")
+    print(f"🖼  Items:  {len(MENU_ITEMS)}\n")
 
-    print()
     ok, fail = 0, []
-
     for item_id, filename, prompt in MENU_ITEMS:
-        success = generate_and_save(item_id, filename, prompt)
-        if success:
+        if generate_and_save(client, item_id, filename, prompt):
             ok += 1
         else:
             fail.append(filename)
-        # Small delay between requests to be a polite client
-        time.sleep(3)
+        time.sleep(2)   # respect rate limit
 
     print(f"\n✅ Done: {ok}/{len(MENU_ITEMS)}")
     if fail:
-        print(f"❌ Failed ({len(fail)}): {', '.join(fail)}")
-
+        print(f"❌ Failed: {', '.join(fail)}")
     print_sql()
-
 
 if __name__ == "__main__":
     main()

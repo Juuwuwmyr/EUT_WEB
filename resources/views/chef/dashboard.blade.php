@@ -766,8 +766,9 @@ function renderColumn(col, orders) {
     countEl.textContent = orders.length;
 
     if (!orders.length) {
-        const emptyMsg = { queued: 'Queue is empty', cooking: 'Nothing cooking' };
+        const emptyMsg = { new: 'No new orders', queued: 'Queue is empty', cooking: 'Nothing cooking' };
         const emptyIcon = {
+            new:     '<svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
             queued:  '<svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>',
             cooking: '<svg width="28" height="28" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z"/></svg>',
         };
@@ -1135,10 +1136,11 @@ async function refreshKitchen(manual) {
         setPollingStatus(true);
         console.log('[KITCHEN] Status set to live, now rendering...');
 
+        renderColumn('new',     data.new     || []);
         renderColumn('queued',  data.queued  || []);
         renderColumn('cooking', data.cooking || []);
 
-        // Auto-print newly accepted orders OR re-accepted/updated accepted orders
+        // Auto-print newly accepted orders (queued column)
         (data.queued || []).forEach(order => {
             const printKey = 'accept_' + order.id + '_' + (order.updated_at || '');
             if (autoPrintEnabled && !printedOrderIds.has(printKey)) {
@@ -1157,6 +1159,15 @@ async function refreshKitchen(manual) {
 
                 const isAddon = newItemIds.length > 0 && newItemIds.length < currentItemIds.length;
                 setTimeout(() => autoPrintKitchenTicket(order.id, isAddon ? newItemIds : null), 500);
+            }
+        });
+
+        // Auto-print orders marked ready (cooking column with prepared_at set)
+        (data.cooking || []).forEach(order => {
+            if (order.prepared_at && autoPrintEnabled && !printedOrderIds.has('ready_' + order.id)) {
+                printedOrderIds.add('ready_' + order.id);
+                console.log('\ud83d\udda8\ufe0f Auto-printing ready ticket for order', order.order_number);
+                setTimeout(() => autoPrintKitchenTicket(order.id, null), 500);
             }
         });
 
@@ -1360,8 +1371,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!printedItemIds[o.id]) printedItemIds[o.id] = new Set();
             o.items.forEach(i => printedItemIds[o.id].add(i.id));
         }
-        if (['rider_assigned','out_for_delivery','delivered'].includes(o.status)) {
+        if (['preparing','rider_assigned','out_for_delivery','delivered'].includes(o.status) && o.prepared_at) {
             printedOrderIds.add('ready_' + o.id);
+        }
+        if (['rider_assigned','out_for_delivery','delivered'].includes(o.status)) {
             printedOrderIds.add('pickup_' + o.id);
         }
     });
