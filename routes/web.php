@@ -38,7 +38,7 @@ Route::get('/welcome', function () {
 });
 
 Route::get('/restaurant', function () {
-    $featuredItems = \App\Models\MenuItem::where('is_available', true)
+    $featuredItems = \App\Models\MenuItem::where('is_archived', false)
         ->whereNotNull('image')
         ->where('image', '!=', '')
         ->inRandomOrder()
