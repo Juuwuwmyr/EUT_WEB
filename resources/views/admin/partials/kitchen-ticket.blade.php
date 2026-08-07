@@ -2,21 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=160, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=185, initial-scale=1.0, maximum-scale=1.0">
 <title>Kitchen Ticket {{ $order->order_number }}</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
-    width: 160px;
-    max-width: 160px;
+    width: 185px;
+    max-width: 185px;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 8px;
+    font-size: 9px;
     color: #000;
     background: #fff;
 }
 
-body { padding: 4px 4px 20px 4px; margin-left: 1.5mm; }
+body { padding: 4px 8px 20px 4px; }
 
 .center { text-align: center; }
 .bold   { font-weight: bold; }
@@ -134,10 +134,9 @@ hr.double { border-top: 3px double #000; }
         margin: 0;
     }
     html, body {
-        width: 160px !important;
-        max-width: 160px !important;
-        padding: 4px 4px 20px 4px !important;
-        margin-left: 1.5mm !important;
+        width: 185px !important;
+        max-width: 185px !important;
+        padding: 4px 8px 20px 4px !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
