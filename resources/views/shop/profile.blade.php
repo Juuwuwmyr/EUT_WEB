@@ -694,16 +694,6 @@ async function savePassword() {
     }
 }
 
-/* ── Helpers ── */
-function showAlert(el, type, msg) {
-    if (!el) return;
-    el.className = 'form-alert' + (type ? ' ' + type : '');
-    el.textContent = msg;
-    el.style.display = msg ? 'block' : 'none';
-}
-function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-@endauth
-
 // ── Mobile back button guard ──────────────────────────────
 history.pushState({ page: 'profile' }, '', window.location.href);
 window.addEventListener('popstate', function() {
