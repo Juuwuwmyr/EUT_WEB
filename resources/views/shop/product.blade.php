@@ -517,7 +517,7 @@
                 </span>
                 <span id="addonsLimitLabel">Optional · Select multiple</span>
             </p>
-            <div id="addonsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+            <div id="addonsList"></div>
         </div>
     </div>
 
@@ -818,12 +818,13 @@ function addonGlobalMax() {
             min = (min === null) ? g.max_selections : Math.min(min, g.max_selections);
         }
     });
-    return min; // null means unlimited
+    return min;
 }
 
 function buildAddons() {
-    const container = document.getElementById('addonsContainer');
-    const list      = document.getElementById('addonsList');
+    const container  = document.getElementById('addonsContainer');
+    const list       = document.getElementById('addonsList');
+    const limitLabel = document.getElementById('addonsLimitLabel');
     if (!ADDON_GROUPS || !ADDON_GROUPS.length) {
         container.style.display = 'none';
         return;
@@ -832,103 +833,127 @@ function buildAddons() {
     list.innerHTML = '';
     selectedAddons = {};
 
-    // Set the limit label in the section header
     const globalMax = addonGlobalMax();
-    const limitLabel = document.getElementById('addonsLimitLabel');
+    const isRadio   = globalMax === 1;
+
     if (limitLabel) {
-        limitLabel.textContent = globalMax === 1
+        limitLabel.textContent = isRadio
             ? 'Optional · Choose one'
             : globalMax !== null
                 ? `Optional · Choose up to ${globalMax}`
                 : 'Optional · Select multiple';
     }
 
-    ADDON_GROUPS.forEach(group => {
-        // Get the single option that holds price info
-        const opt       = group.active_options && group.active_options[0];
-        const priceType = opt ? opt.price_type : 'none';
-        const adj       = opt ? parseFloat(opt.price_adjustment || 0) : 0;
-        const isPaid    = priceType === 'add' && adj > 0;
-        const priceLabel = isPaid ? '+₱' + adj.toLocaleString() : 'Free';
+    if (isRadio) {
+        // ── RADIO MODE: render as pill grid (same style as modifier pills) ──
+        list.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;';
+        ADDON_GROUPS.forEach(group => {
+            const opt      = group.active_options && group.active_options[0];
+            const priceType = opt ? opt.price_type : 'none';
+            const adj       = opt ? parseFloat(opt.price_adjustment || 0) : 0;
+            const isPaid    = priceType === 'add' && adj > 0;
+            const priceLabel = isPaid ? '+₱' + adj.toLocaleString() : '';
 
-        const card = document.createElement('div');
-        card.className = 'addon-card';
-        card.id = 'addon_' + group.id;
-        card.innerHTML = `
-            <div class="addon-card-left">
-                <div class="addon-check" id="adcheck_${group.id}">
-                    <svg width="12" height="12" fill="none" stroke="#000" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </div>
-                <div class="addon-card-info">
-                    <p class="addon-name">${group.name}</p>
-                    ${group.description ? `<p class="addon-desc">${group.description}</p>` : ''}
-                </div>
-            </div>
-            <span class="addon-price-tag ${isPaid ? 'paid' : 'free'}">${priceLabel}</span>`;
+            const pill = document.createElement('div');
+            pill.className = 'size-pill';
+            pill.id = 'addon_' + group.id;
+            pill.innerHTML = `
+                <span class="size-pill-label">${group.name}</span>
+                ${priceLabel ? `<span class="size-pill-desc">${priceLabel}</span>` : ''}`;
+            pill.addEventListener('click', () => toggleAddon(group.id, group.name, priceType, adj));
+            list.appendChild(pill);
+        });
+    } else {
+        // ── MULTI-SELECT MODE: render as checkbox cards ──
+        list.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+        ADDON_GROUPS.forEach(group => {
+            const opt       = group.active_options && group.active_options[0];
+            const priceType = opt ? opt.price_type : 'none';
+            const adj       = opt ? parseFloat(opt.price_adjustment || 0) : 0;
+            const isPaid    = priceType === 'add' && adj > 0;
+            const priceLabel = isPaid ? '+₱' + adj.toLocaleString() : 'Free';
 
-        card.addEventListener('click', () => toggleAddon(group.id, group.name, priceType, adj));
-        list.appendChild(card);
-    });
+            const card = document.createElement('div');
+            card.className = 'addon-card';
+            card.id = 'addon_' + group.id;
+            card.innerHTML = `
+                <div class="addon-card-left">
+                    <div class="addon-check" id="adcheck_${group.id}">
+                        <svg width="12" height="12" fill="none" stroke="#000" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <div class="addon-card-info">
+                        <p class="addon-name">${group.name}</p>
+                        ${group.description ? `<p class="addon-desc">${group.description}</p>` : ''}
+                    </div>
+                </div>
+                <span class="addon-price-tag ${isPaid ? 'paid' : 'free'}">${priceLabel}</span>`;
+            card.addEventListener('click', () => toggleAddon(group.id, group.name, priceType, adj));
+            list.appendChild(card);
+        });
+    }
 }
 
 function toggleAddon(groupId, name, priceType, adj) {
-    const card       = document.getElementById('addon_' + groupId);
-    const check      = document.getElementById('adcheck_' + groupId);
     const limitLabel = document.getElementById('addonsLimitLabel');
     const globalMax  = addonGlobalMax();
-    const isRadio    = globalMax === 1; // radio mode — only 1 allowed at a time
+    const isRadio    = globalMax === 1;
 
-    if (selectedAddons[groupId]) {
-        // Clicking the already-selected one → deselect it
-        delete selectedAddons[groupId];
-        card.classList.remove('selected');
-        check.style.opacity = '0.4';
-        if (limitLabel && globalMax !== null) {
-            limitLabel.style.color = '';
-            limitLabel.textContent = isRadio ? 'Optional · Choose one' : `Optional · Choose up to ${globalMax}`;
-        }
-    } else {
-        if (isRadio) {
-            // ── RADIO MODE: deselect whatever is currently selected first ──
-            Object.keys(selectedAddons).forEach(id => {
-                const prevCard  = document.getElementById('addon_' + id);
-                const prevCheck = document.getElementById('adcheck_' + id);
-                if (prevCard)  prevCard.classList.remove('selected');
-                if (prevCheck) prevCheck.style.opacity = '0.4';
-            });
-            selectedAddons = {};
-        } else if (globalMax !== null && Object.keys(selectedAddons).length >= globalMax) {
-            // ── MULTI-SELECT: limit reached — flash warning ──
-            if (limitLabel) {
-                limitLabel.style.color = '#ef4444';
-                limitLabel.textContent = `Max ${globalMax} add-on${globalMax > 1 ? 's' : ''} only!`;
-                setTimeout(() => {
-                    limitLabel.style.color = '';
-                    limitLabel.textContent = `Optional · Choose up to ${globalMax}`;
-                }, 1400);
-            }
-            card.style.transition = 'transform .1s';
-            card.style.transform  = 'translateX(4px)';
-            setTimeout(() => { card.style.transform = ''; }, 200);
+    if (isRadio) {
+        // ── RADIO: deselect previous pill, select new one ──
+        Object.keys(selectedAddons).forEach(id => {
+            const prev = document.getElementById('addon_' + id);
+            if (prev) prev.classList.remove('selected');
+        });
+        selectedAddons = {};
+
+        // If clicking the already-selected one, just deselect
+        if (selectedAddons[groupId]) {
+            if (limitLabel) { limitLabel.style.color = ''; limitLabel.textContent = 'Optional · Choose one'; }
+            updateTotal();
             return;
         }
 
-        // Select the tapped card
         selectedAddons[groupId] = { name, priceType, adj };
-        card.classList.add('selected');
-        check.style.opacity = '1';
+        const pill = document.getElementById('addon_' + groupId);
+        if (pill) pill.classList.add('selected');
+        if (limitLabel) { limitLabel.style.color = '#f59e0b'; limitLabel.textContent = name; }
 
-        if (limitLabel && globalMax !== null) {
-            const count = Object.keys(selectedAddons).length;
-            if (isRadio) {
-                limitLabel.style.color = '#f59e0b';
-                limitLabel.textContent = '1 / 1 selected';
-            } else {
+    } else {
+        // ── MULTI-SELECT: checkbox toggle with limit ──
+        const card  = document.getElementById('addon_' + groupId);
+        const check = document.getElementById('adcheck_' + groupId);
+
+        if (selectedAddons[groupId]) {
+            delete selectedAddons[groupId];
+            if (card)  card.classList.remove('selected');
+            if (check) check.style.opacity = '0.4';
+            if (limitLabel && globalMax !== null) {
+                limitLabel.style.color = '';
+                limitLabel.textContent = `Optional · Choose up to ${globalMax}`;
+            }
+        } else {
+            if (globalMax !== null && Object.keys(selectedAddons).length >= globalMax) {
+                if (limitLabel) {
+                    limitLabel.style.color = '#ef4444';
+                    limitLabel.textContent = `Max ${globalMax} only!`;
+                    setTimeout(() => {
+                        limitLabel.style.color = '';
+                        limitLabel.textContent = `Optional · Choose up to ${globalMax}`;
+                    }, 1400);
+                }
+                if (card) { card.style.transition='transform .1s'; card.style.transform='translateX(4px)'; setTimeout(()=>{card.style.transform='';},200); }
+                return;
+            }
+            selectedAddons[groupId] = { name, priceType, adj };
+            if (card)  card.classList.add('selected');
+            if (check) check.style.opacity = '1';
+            if (limitLabel && globalMax !== null) {
+                const count = Object.keys(selectedAddons).length;
                 limitLabel.style.color = count >= globalMax ? '#f59e0b' : '';
                 limitLabel.textContent = count >= globalMax
-                    ? `${count} / ${globalMax} selected (max reached)`
+                    ? `${count} / ${globalMax} selected`
                     : `Optional · Choose up to ${globalMax}`;
             }
         }
