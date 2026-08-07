@@ -325,11 +325,6 @@
                     <div><p class="pay-label">Cash on Delivery</p><p class="pay-sub">Pay when order arrives</p></div>
                 </label>
                 <label class="pay-option" onclick="selectPay(this)">
-                    <input type="radio" name="payment" value="gcash">
-                    <span class="pay-emoji"><svg width="18" height="18" fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path stroke-linecap="round" d="M12 18h.01"/></svg></span>
-                    <div><p class="pay-label">GCash</p><p class="pay-sub">Send payment to: <strong style="color:#60a5fa;">09052883320</strong> · We confirm upon receipt</p></div>
-                </label>
-                <label class="pay-option" onclick="selectPay(this)">
                     <input type="radio" name="payment" value="card">
                     <span class="pay-emoji">💳</span>
                     <div><p class="pay-label">Credit / Debit Card</p><p class="pay-sub">Visa or Mastercard</p></div>
