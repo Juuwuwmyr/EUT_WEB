@@ -511,22 +511,12 @@
             <div style="padding:14px 0 0;">
                 <p style="font-size:11px; color:#4b5563; font-weight:600; padding:0 18px 10px; letter-spacing:0.04em; text-transform:uppercase;">You might also like</p>
                 <div class="upsell-scroll">
-                    <a href="{{ route('shop.home') }}" class="upsell-chip">
-                        <img src="{{ asset('images/french-fries.webp') }}" class="upsell-img" alt="Fries">
-                        <div><p class="upsell-name">Crispy Fries</p><p class="upsell-price">&#8369;120</p></div>
+                    @foreach($upsellItems as $upsell)
+                    <a href="{{ route('shop.product', $upsell->id) }}" class="upsell-chip">
+                        <img src="{{ asset($upsell->image) }}" class="upsell-img" alt="{{ $upsell->name }}" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">
+                        <div><p class="upsell-name">{{ $upsell->name }}</p><p class="upsell-price">&#8369;{{ number_format($upsell->price, 0) }}</p></div>
                     </a>
-                    <a href="{{ route('shop.home') }}" class="upsell-chip">
-                        <img src="{{ asset('images/combo-meal.webp') }}" class="upsell-img" alt="Combo">
-                        <div><p class="upsell-name">Combo Meal</p><p class="upsell-price">&#8369;390</p></div>
-                    </a>
-                    <a href="{{ route('shop.home') }}" class="upsell-chip">
-                        <img src="{{ asset('images/gourmet-burger.webp') }}" class="upsell-img" alt="Burger">
-                        <div><p class="upsell-name">Gourmet Burger</p><p class="upsell-price">&#8369;420</p></div>
-                    </a>
-                    <a href="{{ route('shop.home') }}" class="upsell-chip">
-                        <img src="{{ asset('images/hero-burger.webp') }}" class="upsell-img" alt="Classic">
-                        <div><p class="upsell-name">Classic Burger</p><p class="upsell-price">&#8369;350</p></div>
-                    </a>
+                    @endforeach
                 </div>
             </div>
         </div>
