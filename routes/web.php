@@ -38,7 +38,13 @@ Route::get('/welcome', function () {
 });
 
 Route::get('/restaurant', function () {
-    return view('restaurant');
+    $featuredItems = \App\Models\MenuItem::where('is_available', true)
+        ->whereNotNull('image')
+        ->where('image', '!=', '')
+        ->inRandomOrder()
+        ->limit(8)
+        ->get();
+    return view('restaurant', compact('featuredItems'));
 })->name('restaurant');
 
 // Health check for AWS ALB/ELB
