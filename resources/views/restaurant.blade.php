@@ -1177,133 +1177,39 @@ img { display: block; }
         </div>
         <div class="menu-grid" id="menuGrid">
 
-            <!-- Greek Salad -->
-            <div class="menu-card" data-cat="healthy">
+            @foreach($featuredItems as $item)
+            @php
+                $badges = [
+                    ['label'=>'Best Seller','class'=>'badge-green','icon'=>'<svg width="9" height="9" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'],
+                    ['label'=>'Fan Fave',   'class'=>'badge-pink', 'icon'=>'<svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M12 2a5 5 0 015 5v1h1a3 3 0 013 3v8a3 3 0 01-3 3H6a3 3 0 01-3-3v-8a3 3 0 013-3h1V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v1h6V7a3 3 0 00-3-3z"/></svg>'],
+                    ['label'=>'Hot',        'class'=>'badge-red',  'icon'=>'<svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>'],
+                    ['label'=>'New',        'class'=>'badge-yellow','icon'=>'<svg width="9" height="9" fill="#000" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>'],
+                    ['label'=>'Signature',  'class'=>'badge-purple','icon'=>'<svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>'],
+                    ['label'=>'Top Rated',  'class'=>'badge-amber', 'icon'=>'<svg width="9" height="9" fill="#000" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>'],
+                    ['label'=>'Refreshing', 'class'=>'badge-teal',  'icon'=>'<svg width="9" height="9" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>'],
+                ];
+                $badge = $badges[$loop->index % count($badges)];
+                $catMap = ['Unlimited'=>'main','Sagana Package'=>'main','Sweets Corner'=>'desserts','Cream Milk Series'=>'drinks','Fruit Tea'=>'drinks','Milk Tea'=>'drinks','Iced Coffee Latte'=>'drinks','Iced Coffee Macchiato'=>'drinks','Signature Shakes'=>'drinks','Fruit Shakes'=>'drinks','Bilao-Kan'=>'main','Pasta and Pancit'=>'main','EUT Sandwich'=>'fastfood','EUT Giant Burger'=>'fastfood','Snacks'=>'fastfood','Hiwa Hiwalay'=>'main','EUT Pak-Pak Wings'=>'fastfood','EUT Sa Hita Drumsticks'=>'fastfood','Rice Bowl'=>'main','EUT Sex Combo'=>'main'];
+                $catSlug = $catMap[$item->category->name ?? ''] ?? 'main';
+                $catLabel = $item->category->name ?? 'Main Course';
+                $imgSrc = $item->image ? asset($item->image) : asset('images/hero-burger.webp');
+                $rating = number_format(4.5 + ($loop->index % 6) * 0.1, 1);
+            @endphp
+            <div class="menu-card" data-cat="{{ $catSlug }}">
                 <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/combo-meal.webp') }}" alt="Greek Salad" class="menu-card-img">
-                    <span class="menu-badge badge-green"><svg width="9" height="9" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Best Seller</span>
+                    <img src="{{ $imgSrc }}" alt="{{ $item->name }}" class="menu-card-img" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">
+                    <span class="menu-badge {{ $badge['class'] }}">{!! $badge['icon'] !!} {{ $badge['label'] }}</span>
                 </div>
                 <div class="menu-card-body">
-                    <div class="menu-card-cat">Healthy</div>
-                    <div class="menu-card-name">Greek Salad</div>
+                    <div class="menu-card-cat">{{ $catLabel }}</div>
+                    <div class="menu-card-name">{{ $item->name }}</div>
                     <div class="menu-card-footer">
-                        <span class="menu-card-price">&#8369;149</span>
-                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
+                        <span class="menu-card-price">&#8369;{{ number_format($item->price, 0) }}</span>
+                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> {{ $rating }}</span>
                     </div>
                 </div>
             </div>
-
-            <!-- Freshly Baked Cake -->
-            <div class="menu-card" data-cat="desserts">
-                <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/delicious-burger-fries.webp') }}" alt="Freshly Baked Cake" class="menu-card-img">
-                    <span class="menu-badge badge-pink"><svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M12 2a5 5 0 015 5v1h1a3 3 0 013 3v8a3 3 0 01-3 3H6a3 3 0 01-3-3v-8a3 3 0 013-3h1V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v1h6V7a3 3 0 00-3-3z"/></svg> Fan Fave</span>
-                </div>
-                <div class="menu-card-body">
-                    <div class="menu-card-cat">Desserts</div>
-                    <div class="menu-card-name">Freshly Baked Cake</div>
-                    <div class="menu-card-footer">
-                        <span class="menu-card-price">&#8369;199</span>
-                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.9</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Crispy Burger Combo -->
-            <div class="menu-card" data-cat="fastfood">
-                <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/gourmet-burger.webp') }}" alt="Crispy Burger Combo" class="menu-card-img">
-                    <span class="menu-badge badge-red"><svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Hot</span>
-                </div>
-                <div class="menu-card-body">
-                    <div class="menu-card-cat">Fast Food</div>
-                    <div class="menu-card-name">Crispy Burger Combo</div>
-                    <div class="menu-card-footer">
-                        <span class="menu-card-price">&#8369;179</span>
-                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.7</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pasta Carbonara -->
-            <div class="menu-card" data-cat="main">
-                <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/hero-burger.webp') }}" alt="Pasta Carbonara" class="menu-card-img">
-                    <span class="menu-badge badge-yellow"><svg width="9" height="9" fill="#000" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> New</span>
-                </div>
-                <div class="menu-card-body">
-                    <div class="menu-card-cat">Main Course</div>
-                    <div class="menu-card-name">Pasta Carbonara</div>
-                    <div class="menu-card-footer">
-                        <span class="menu-card-price">&#8369;220</span>
-                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Grilled Chicken Rice -->
-            <div class="menu-card" data-cat="main">
-                <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/combo-meal.webp') }}" alt="Grilled Chicken Rice" class="menu-card-img">
-                    <span class="menu-badge badge-green"><svg width="9" height="9" fill="none" stroke="#fff" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Best Seller</span>
-                </div>
-                <div class="menu-card-body">
-                    <div class="menu-card-cat">Main Course</div>
-                    <div class="menu-card-name">Grilled Chicken Rice</div>
-                    <div class="menu-card-footer">
-                        <span class="menu-card-price">&#8369;195</span>
-                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.6</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mango Shake -->
-            <div class="menu-card" data-cat="drinks">
-                <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/french-fries.webp') }}" alt="Mango Shake" class="menu-card-img">
-                    <span class="menu-badge badge-teal"><svg width="9" height="9" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> Refreshing</span>
-                </div>
-                <div class="menu-card-body">
-                    <div class="menu-card-cat">Drinks</div>
-                    <div class="menu-card-name">Mango Shake</div>
-                    <div class="menu-card-footer">
-                        <span class="menu-card-price">&#8369;89</span>
-                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.8</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Beef Sinigang -->
-            <div class="menu-card" data-cat="main">
-                <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/restaurant-interior.webp') }}" alt="Beef Sinigang" class="menu-card-img">
-                    <span class="menu-badge badge-purple"><svg width="9" height="9" fill="#fff" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Signature</span>
-                </div>
-                <div class="menu-card-body">
-                    <div class="menu-card-cat">Main Course</div>
-                    <div class="menu-card-name">Beef Sinigang</div>
-                    <div class="menu-card-footer">
-                        <span class="menu-card-price">&#8369;235</span>
-                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 4.9</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chocolate Lava Cake -->
-            <div class="menu-card" data-cat="desserts">
-                <div class="menu-card-img-wrap">
-                    <img src="{{ asset('images/hero-bg.webp') }}" alt="Chocolate Lava Cake" class="menu-card-img">
-                    <span class="menu-badge badge-amber"><svg width="9" height="9" fill="#000" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg> Top Rated</span>
-                </div>
-                <div class="menu-card-body">
-                    <div class="menu-card-cat">Desserts</div>
-                    <div class="menu-card-name">Chocolate Lava Cake</div>
-                    <div class="menu-card-footer">
-                        <span class="menu-card-price">&#8369;169</span>
-                        <span class="menu-card-stars"><svg width="12" height="12" fill="#facc15" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.538-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg> 5.0</span>
-                    </div>
-                </div>
-            </div>
+            @endforeach
 
         </div>
         <div style="text-align:center;margin-top:44px;">
