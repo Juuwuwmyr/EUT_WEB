@@ -113,12 +113,12 @@
 
 <!-- ══════════ HERO ══════════ -->
 <div class="hero">
-    <button id="shopThemeToggle" class="hero-theme-btn">
+    <button type="button" id="shopThemeToggle" class="hero-theme-btn">
         <svg id="shopSunIcon" width="14" height="14" fill="currentColor" viewBox="0 0 24 24" style="color:#fff;display:none;"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
         <svg id="shopMoonIcon" width="14" height="14" fill="currentColor" viewBox="0 0 24 24" style="color:#fff;"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
     </button>
     @auth
-    <button class="hero-edit-btn" onclick="openModal('profileModal')" title="Edit profile">
+    <button type="button" class="hero-edit-btn" onclick="openModal('profileModal')" title="Edit profile">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
     </button>
     @endauth
@@ -185,14 +185,14 @@
     <!-- ── ACCOUNT ── -->
     <p class="section-label" style="padding-left:32px;">Account</p>
     <div class="section-card">
-        <button class="menu-row" onclick="openModal('profileModal')">
+        <button type="button" class="menu-row" onclick="openModal('profileModal')">
             <div class="menu-icon" style="background:rgba(250,204,21,.1);">
                 <svg width="18" height="18" fill="none" stroke="#facc15" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
             </div>
             <div class="menu-text"><p class="menu-title">My Profile</p><p class="menu-sub">Edit name &amp; avatar</p></div>
             <svg class="chevron" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
         </button>
-        <button class="menu-row" onclick="openModal('addressModal')">
+        <button type="button" class="menu-row" onclick="openModal('addressModal')">
             <div class="menu-icon" style="background:rgba(239,68,68,.1);">
                 <svg width="18" height="18" fill="none" stroke="#f87171" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
@@ -205,7 +205,7 @@
     <p class="section-label" style="padding-left:32px;">Security</p>
     <div class="section-card">
         @if(auth()->user()->provider !== 'google')
-        <button class="menu-row" onclick="openModal('passwordModal')">
+        <button type="button" class="menu-row" onclick="openModal('passwordModal')">
             <div class="menu-icon" style="background:rgba(167,139,250,.1);">
                 <svg width="18" height="18" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
             </div>
@@ -225,7 +225,7 @@
     <!-- ── PREFERENCES ── -->
     <p class="section-label" style="padding-left:32px;">Preferences</p>
     <div class="section-card">
-        <button class="menu-row" onclick="document.getElementById('shopThemeToggle').click()">
+        <button type="button" class="menu-row" onclick="document.getElementById('shopThemeToggle').click()">
             <div class="menu-icon" style="background:rgba(251,146,60,.1);">
                 <svg width="18" height="18" fill="none" stroke="#fb923c" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
             </div>

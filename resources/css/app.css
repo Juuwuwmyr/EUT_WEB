@@ -149,31 +149,31 @@ body:not(.admin-body) nav {
    FORM INPUTS — dark mode only on customer pages
    Admin inputs use .admin-input class with CSS vars
    ============================================= */
-html.dark body:not(.admin-body) input,
-html.dark body:not(.admin-body) select,
-html.dark body:not(.admin-body) textarea,
+html.dark body:not(.admin-body) input:not(.form-input),
+html.dark body:not(.admin-body) select:not(.form-input),
+html.dark body:not(.admin-body) textarea:not(.form-input),
 /* also target customer pages where html has no class (defaults dark) */
-html:not(.light) body:not(.admin-body) input,
-html:not(.light) body:not(.admin-body) select,
-html:not(.light) body:not(.admin-body) textarea {
+html:not(.light) body:not(.admin-body) input:not(.form-input),
+html:not(.light) body:not(.admin-body) select:not(.form-input),
+html:not(.light) body:not(.admin-body) textarea:not(.form-input) {
     background-color: #000000 !important;
     color: #d4d4d4 !important;
     border-color: #2a2a2a !important;
 }
 
-html.dark body:not(.admin-body) input::placeholder,
-html.dark body:not(.admin-body) textarea::placeholder,
-html:not(.light) body:not(.admin-body) input::placeholder,
-html:not(.light) body:not(.admin-body) textarea::placeholder {
+html.dark body:not(.admin-body) input:not(.form-input)::placeholder,
+html.dark body:not(.admin-body) textarea:not(.form-input)::placeholder,
+html:not(.light) body:not(.admin-body) input:not(.form-input)::placeholder,
+html:not(.light) body:not(.admin-body) textarea:not(.form-input)::placeholder {
     color: #737373 !important;
 }
 
-html.dark body:not(.admin-body) input:focus,
-html.dark body:not(.admin-body) select:focus,
-html.dark body:not(.admin-body) textarea:focus,
-html:not(.light) body:not(.admin-body) input:focus,
-html:not(.light) body:not(.admin-body) select:focus,
-html:not(.light) body:not(.admin-body) textarea:focus {
+html.dark body:not(.admin-body) input:not(.form-input):focus,
+html.dark body:not(.admin-body) select:not(.form-input):focus,
+html.dark body:not(.admin-body) textarea:not(.form-input):focus,
+html:not(.light) body:not(.admin-body) input:not(.form-input):focus,
+html:not(.light) body:not(.admin-body) select:not(.form-input):focus,
+html:not(.light) body:not(.admin-body) textarea:not(.form-input):focus {
     border-color: #dc2626 !important;
     outline: none !important;
     box-shadow: 0 0 0 1px #dc2626 !important;
