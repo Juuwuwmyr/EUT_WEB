@@ -94,14 +94,20 @@
                 </div>
                 <div>
                     <p style="font-size:.75rem; font-weight:600; color:#fff; line-height:1; margin:0;">{{ auth()->user()->name }}</p>
-                    <p style="font-size:.7rem; color:rgba(255,255,255,.6); margin:.2rem 0 0;">Chef</p>
+                    <p style="font-size:.7rem; color:rgba(255,255,255,.6); margin:.2rem 0 0;">{{ auth()->user()->isAdmin() ? 'Admin' : 'Chef' }}</p>
                 </div>
+                @if(auth()->user()->isAdmin())
+                <a href="{{ route('admin.dashboard') }}" title="Back to Admin" style="margin-left:.25rem;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:.4rem;cursor:pointer;padding:.25rem .6rem;color:#f59e0b;display:flex;align-items:center;gap:.3rem;text-decoration:none;font-size:.7rem;font-weight:700;">
+                    <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Admin
+                </a>
+                @else
                 <form method="POST" action="{{ route('auth.logout') }}" style="margin-left:.25rem;">
                     @csrf
                     <button type="submit" title="Logout" style="background:none;border:none;cursor:pointer;padding:.25rem;color:rgba(255,255,255,.5);display:flex;align-items:center;">
                         <i data-lucide="log-out" style="width:16px;height:16px;"></i>
                     </button>
                 </form>
+                @endif
             </div>
         </div>
     </div>
