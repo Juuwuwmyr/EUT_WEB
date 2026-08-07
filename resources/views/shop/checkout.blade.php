@@ -207,7 +207,7 @@
     navigator.geolocation.getCurrentPosition(
         function(p){var km=hav(p.coords.latitude,p.coords.longitude,NAUJAN_LAT,NAUJAN_LNG);if(km<=MAX_KM){allow(p.coords.latitude,p.coords.longitude);document.getElementById('geoOverlay').style.display='none';document.body.style.overflow='';}else{block(km);}},
         function(){document.getElementById('geoOverlay').style.display='none';document.body.style.overflow='';},
-        {timeout:8000,maximumAge:300000}
+        {timeout:8000,maximumAge:0,enableHighAccuracy:true}
     );
 })();
 </script>
@@ -932,18 +932,32 @@ function startCheckoutGps() {
     if (_gpsWatchCo !== null) navigator.geolocation.clearWatch(_gpsWatchCo);
     _gpsWatchCo = navigator.geolocation.watchPosition(
         p => {
-            _gpsLat = p.coords.latitude;
-            _gpsLng = p.coords.longitude;
-            _gpsGranted = true;
-            showLocationGate(false);
+            const acc = p.coords.accuracy; // meters
             const el = document.getElementById('gpsCheckoutStatus');
-            if (el) {
-                el.innerHTML = '<span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block;animation:blink 1.5s infinite;"></span><span style="color:#10b981;font-weight:600;">Location locked — accurate delivery pin ✓</span>';
+
+            // Accept only if accuracy is within 150m (rejects WiFi-only fixes)
+            if (acc <= 150) {
+                _gpsLat = p.coords.latitude;
+                _gpsLng = p.coords.longitude;
+                _gpsGranted = true;
+                showLocationGate(false);
+                if (el) {
+                    el.innerHTML = `<span style="width:6px;height:6px;background:#10b981;border-radius:50%;display:inline-block;animation:blink 1.5s infinite;"></span><span style="color:#10b981;font-weight:600;">Location locked — accurate delivery pin ✓ (±${Math.round(acc)}m)</span>`;
+                }
+            } else {
+                // WiFi/IP fix — keep waiting for real GPS
+                if (el) {
+                    el.innerHTML = `<span style="width:6px;height:6px;background:#f59e0b;border-radius:50%;display:inline-block;animation:blink 1s infinite;"></span><span style="color:#f59e0b;font-weight:600;">Refining GPS… (±${Math.round(acc)}m — waiting for better signal)</span>`;
+                }
+                // Still save it as best-effort fallback if we have nothing better
+                if (!_gpsGranted) {
+                    _gpsLat = p.coords.latitude;
+                    _gpsLng = p.coords.longitude;
+                }
             }
         },
         err => {
             _gpsGranted = false;
-            // Don't block checkout — GPS is optional, delivery address is used as fallback
             const el = document.getElementById('gpsCheckoutStatus');
             if (err.code === 1) {
                 if (el) el.innerHTML = '<span style="color:#6b7280;">📍 Location not shared — using saved address</span>';
@@ -951,7 +965,7 @@ function startCheckoutGps() {
                 if (el) el.innerHTML = '<span style="color:#6b7280;">📍 GPS unavailable — using saved address</span>';
             }
         },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 }
     );
 }
 
