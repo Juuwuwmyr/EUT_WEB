@@ -14,7 +14,7 @@ html, body {
     color: #000;
     background: #fff;
 }
-body { padding: 4px 4px 20px 4px; margin-left: 3mm; }
+body { padding: 4px 4px 20px 4px; margin-left: 1.5mm; }
 hr { border: none; border-top: 1px dashed #000; margin: 3px 0; width: 100%; }
 hr.solid  { border-top: 1px solid #000; }
 hr.double { border-top: 3px double #000; }
@@ -73,7 +73,7 @@ hr.double { border-top: 3px double #000; }
 
 @media print {
     @page { size: 58mm auto; margin: 0; }
-    html, body { width: 160px !important; max-width: 160px !important; padding: 4px 4px 20px 4px !important; margin-left: 3mm !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { width: 160px !important; max-width: 160px !important; padding: 4px 4px 20px 4px !important; margin-left: 1.5mm !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     script, noscript { display: none !important; }
 }
 </style>

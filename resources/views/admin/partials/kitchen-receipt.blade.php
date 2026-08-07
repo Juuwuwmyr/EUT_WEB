@@ -18,7 +18,7 @@ html, body {
 
 body {
     padding: 4px 4px 20px 4px;
-    margin-left: 3mm;
+    margin-left: 1.5mm;
 }
 
 .center  { text-align: center; }
@@ -78,7 +78,7 @@ hr.solid {
         width: 160px !important;
         max-width: 160px !important;
         padding: 4px 4px 20px 4px !important;
-        margin-left: 3mm !important;
+        margin-left: 1.5mm !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
