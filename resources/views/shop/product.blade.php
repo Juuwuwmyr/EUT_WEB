@@ -919,70 +919,6 @@ function toggleAddonOpt(groupId, optId, name, priceType, adj) {
     if (limitLabel) { limitLabel.style.color = '#f59e0b'; limitLabel.textContent = name; }
     updateTotal();
 }
-    const limitLabel = document.getElementById('addonsLimitLabel');
-    const globalMax  = addonGlobalMax();
-    const isRadio    = globalMax === 1;
-
-    if (isRadio) {
-        // ── RADIO: deselect previous pill, select new one ──
-        Object.keys(selectedAddons).forEach(id => {
-            const prev = document.getElementById('addon_' + id);
-            if (prev) prev.classList.remove('selected');
-        });
-        selectedAddons = {};
-
-        // If clicking the already-selected one, just deselect
-        if (selectedAddons[groupId]) {
-            if (limitLabel) { limitLabel.style.color = ''; limitLabel.textContent = 'Optional · Choose one'; }
-            updateTotal();
-            return;
-        }
-
-        selectedAddons[groupId] = { name, priceType, adj };
-        const pill = document.getElementById('addon_' + groupId);
-        if (pill) pill.classList.add('selected');
-        if (limitLabel) { limitLabel.style.color = '#f59e0b'; limitLabel.textContent = name; }
-
-    } else {
-        // ── MULTI-SELECT: checkbox toggle with limit ──
-        const card  = document.getElementById('addon_' + groupId);
-        const check = document.getElementById('adcheck_' + groupId);
-
-        if (selectedAddons[groupId]) {
-            delete selectedAddons[groupId];
-            if (card)  card.classList.remove('selected');
-            if (check) check.style.opacity = '0.4';
-            if (limitLabel && globalMax !== null) {
-                limitLabel.style.color = '';
-                limitLabel.textContent = `Optional · Choose up to ${globalMax}`;
-            }
-        } else {
-            if (globalMax !== null && Object.keys(selectedAddons).length >= globalMax) {
-                if (limitLabel) {
-                    limitLabel.style.color = '#ef4444';
-                    limitLabel.textContent = `Max ${globalMax} only!`;
-                    setTimeout(() => {
-                        limitLabel.style.color = '';
-                        limitLabel.textContent = `Optional · Choose up to ${globalMax}`;
-                    }, 1400);
-                }
-                if (card) { card.style.transition='transform .1s'; card.style.transform='translateX(4px)'; setTimeout(()=>{card.style.transform='';},200); }
-                return;
-            }
-            selectedAddons[groupId] = { name, priceType, adj };
-            if (card)  card.classList.add('selected');
-            if (check) check.style.opacity = '1';
-            if (limitLabel && globalMax !== null) {
-                const count = Object.keys(selectedAddons).length;
-                limitLabel.style.color = count >= globalMax ? '#f59e0b' : '';
-                limitLabel.textContent = count >= globalMax
-                    ? `${count} / ${globalMax} selected`
-                    : `Optional · Choose up to ${globalMax}`;
-            }
-        }
-    }
-    updateTotal();
-}
 
 /* ── QTY ── */
 function bindQty() {
@@ -1043,12 +979,15 @@ function quickAddToCart() {
 function openSheet(mode) {
     sheetMode = mode;
     selectedAddons = {};
-    // Reset addon card visuals
+    // Reset addon pill/card visuals
+    document.querySelectorAll('.size-pill[id^="addon_opt_"]').forEach(p => p.classList.remove('selected'));
     document.querySelectorAll('.addon-card.selected').forEach(c => {
         c.classList.remove('selected');
         const chk = c.querySelector('.addon-check');
         if(chk) chk.style.opacity = '0.4';
     });
+    const limitLabel = document.getElementById('addonsLimitLabel');
+    if (limitLabel) { limitLabel.style.color = ''; limitLabel.textContent = addonGlobalMax() === 1 ? 'Optional · Choose one' : 'Optional · Select multiple'; }
     // In 'cart' mode: only show Add to Cart button (full width), hide Buy Now
     const addBtn = document.getElementById('sheetAddBtn');
     const buyBtn = document.getElementById('sheetBuyBtn');
@@ -1153,7 +1092,7 @@ function doAdd(goToCart) {
         else if (o.id) optIds.push(o.id);
     });
     const optKey   = optIds.sort().join('-');
-    const addonKey = Object.keys(selectedAddons).sort().join('a');
+    const addonKey = Object.values(selectedAddons).map(a => a.optId || a.name).sort().join('a');
     const key      = ITEM_ID + (optKey ? '_' + optKey : '') + (addonKey ? '_ad' + addonKey : '');
 
     // Flag whether this item required a flavor/modifier selection
@@ -1195,9 +1134,14 @@ function doAdd(goToCart) {
         }
     });
     Object.entries(selectedAddons).forEach(([groupId, addon]) => {
+        // Find the group name for kitchen display (e.g. "Drink: Blue Lemonade")
+        const addonGroup = ADDON_GROUPS.find(g => g.id === parseInt(groupId));
+        const displayName = addonGroup && addonGroup.name !== addon.name
+            ? addonGroup.name + ': ' + addon.name
+            : addon.name;
         modifiers.push({
             type:              'addon',
-            name:              addon.name,
+            name:              displayName,
             price_type:        addon.priceType,
             price_adjustment:  parseFloat(addon.adj || 0),
         });
