@@ -16,7 +16,7 @@ html, body {
     background: #fff;
 }
 
-body { padding: 4px 4px 20px 4px; margin-left: 8mm; }
+body { padding: 4px 4px 20px 4px; margin-left: 3mm; }
 
 .center { text-align: center; }
 .bold   { font-weight: bold; }
@@ -137,7 +137,7 @@ hr.double { border-top: 3px double #000; }
         width: 160px !important;
         max-width: 160px !important;
         padding: 4px 4px 20px 4px !important;
-        margin-left: 8mm !important;
+        margin-left: 3mm !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
