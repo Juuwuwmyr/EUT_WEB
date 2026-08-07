@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=185, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=160, initial-scale=1.0, maximum-scale=1.0">
 <title>Takeout Slip {{ $order->order_number }}</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body {
-    width: 185px;
-    max-width: 185px;
+    width: 160px;
+    max-width: 160px;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: 9px;
+    font-size: 8px;
     color: #000;
     background: #fff;
 }
-body { padding: 4px 8px 20px 4px; }
+body { padding: 4px 4px 20px 4px; margin-left: 1.5mm; }
 hr { border: none; border-top: 1px dashed #000; margin: 3px 0; width: 100%; }
 hr.solid  { border-top: 1px solid #000; }
 hr.double { border-top: 3px double #000; }
@@ -73,7 +73,7 @@ hr.double { border-top: 3px double #000; }
 
 @media print {
     @page { size: 58mm auto; margin: 0; }
-    html, body { width: 185px !important; max-width: 185px !important; padding: 4px 8px 20px 4px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { width: 160px !important; max-width: 160px !important; padding: 4px 4px 20px 4px !important; margin-left: 1.5mm !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     script, noscript { display: none !important; }
 }
 </style>
