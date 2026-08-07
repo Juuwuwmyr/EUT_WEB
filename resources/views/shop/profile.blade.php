@@ -137,7 +137,7 @@
                     @if(auth()->user()->phone)
                     <p class="hero-email" style="color:#4ade80;margin-top:2px;">📞 {{ auth()->user()->phone }}</p>
                     @else
-                    <p class="hero-email" style="color:#ef4444;margin-top:2px;font-size:11px;">⚠ No phone number — <a href="javascript:void(0)" onclick="openModal('profileModal')" style="color:#facc15;text-decoration:underline;">Add now</a></p>
+                    <p class="hero-email" style="color:#ef4444;margin-top:2px;font-size:11px;">⚠ No phone number — <a href="#" onclick="event.preventDefault();openModal('profileModal')" style="color:#facc15;text-decoration:underline;">Add now</a></p>
                     @endif
                 </div>
             @else
