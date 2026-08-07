@@ -515,7 +515,7 @@
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:#f59e0b;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
                     Add-ons
                 </span>
-                <span>Optional · Select multiple</span>
+                <span id="addonsLimitLabel">Optional · Select multiple</span>
             </p>
             <div id="addonsList" style="display:flex;flex-direction:column;gap:8px;"></div>
         </div>
@@ -810,6 +810,17 @@ function selectOption(groupId, optId, isFlavor) {
 }
 
 /* ── BUILD ADD-ONS ── */
+// Compute the tightest max_selections across all addon groups (null = unlimited)
+function addonGlobalMax() {
+    let min = null;
+    (ADDON_GROUPS || []).forEach(g => {
+        if (g.max_selections != null && g.max_selections > 0) {
+            min = (min === null) ? g.max_selections : Math.min(min, g.max_selections);
+        }
+    });
+    return min; // null means unlimited
+}
+
 function buildAddons() {
     const container = document.getElementById('addonsContainer');
     const list      = document.getElementById('addonsList');
@@ -820,6 +831,15 @@ function buildAddons() {
     container.style.display = 'block';
     list.innerHTML = '';
     selectedAddons = {};
+
+    // Set the limit label in the section header
+    const globalMax = addonGlobalMax();
+    const limitLabel = document.getElementById('addonsLimitLabel');
+    if (limitLabel) {
+        limitLabel.textContent = globalMax !== null
+            ? `Optional · Choose up to ${globalMax}`
+            : 'Optional · Select multiple';
+    }
 
     ADDON_GROUPS.forEach(group => {
         // Get the single option that holds price info
@@ -854,14 +874,53 @@ function buildAddons() {
 function toggleAddon(groupId, name, priceType, adj) {
     const card  = document.getElementById('addon_' + groupId);
     const check = document.getElementById('adcheck_' + groupId);
+    const limitLabel = document.getElementById('addonsLimitLabel');
+    const globalMax  = addonGlobalMax();
+
     if (selectedAddons[groupId]) {
+        // Deselect
         delete selectedAddons[groupId];
         card.classList.remove('selected');
         check.style.opacity = '0.4';
+
+        // Update label after deselect
+        if (limitLabel && globalMax !== null) {
+            const count = Object.keys(selectedAddons).length;
+            limitLabel.style.color = '';
+            limitLabel.textContent = `Optional · Choose up to ${globalMax}`;
+        }
     } else {
+        // Check limit before selecting
+        if (globalMax !== null && Object.keys(selectedAddons).length >= globalMax) {
+            // Flash the label red to signal limit reached
+            if (limitLabel) {
+                limitLabel.style.color = '#ef4444';
+                limitLabel.textContent = `Max ${globalMax} add-on${globalMax > 1 ? 's' : ''} only!`;
+                setTimeout(() => {
+                    limitLabel.style.color = '';
+                    limitLabel.textContent = `Optional · Choose up to ${globalMax}`;
+                }, 1400);
+            }
+            // Briefly shake the card
+            card.style.transition = 'transform .1s';
+            card.style.transform  = 'translateX(4px)';
+            setTimeout(() => { card.style.transform = ''; }, 200);
+            return;
+        }
+
+        // Select
         selectedAddons[groupId] = { name, priceType, adj };
         card.classList.add('selected');
         check.style.opacity = '1';
+
+        // Update label count
+        if (limitLabel && globalMax !== null) {
+            const count = Object.keys(selectedAddons).length;
+            limitLabel.style.color = count >= globalMax ? '#f59e0b' : '';
+            limitLabel.textContent = count >= globalMax
+                ? `${count} / ${globalMax} selected (max reached)`
+                : `Optional · Choose up to ${globalMax}`;
+        }
     }
     updateTotal();
 }

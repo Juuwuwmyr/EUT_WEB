@@ -519,12 +519,15 @@ class AdminController extends Controller
             $pAdj      = $addonData['price_adjustment'] ?? 0;
 
             $groupPayload = [
-                'menu_item_id' => $item->id,
-                'type'         => 'addon',
-                'name'         => $name,
-                'required'     => false,
-                'is_active'    => true,
-                'sort_order'   => $i,
+                'menu_item_id'   => $item->id,
+                'type'           => 'addon',
+                'name'           => $name,
+                'required'       => false,
+                'is_active'      => true,
+                'sort_order'     => $i,
+                'max_selections' => isset($addonData['max_selections']) && $addonData['max_selections'] !== ''
+                                        ? (int) $addonData['max_selections']
+                                        : null,
             ];
 
             if (!empty($addonData['id'])) {
