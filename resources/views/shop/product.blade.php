@@ -836,9 +836,11 @@ function buildAddons() {
     const globalMax = addonGlobalMax();
     const limitLabel = document.getElementById('addonsLimitLabel');
     if (limitLabel) {
-        limitLabel.textContent = globalMax !== null
-            ? `Optional · Choose up to ${globalMax}`
-            : 'Optional · Select multiple';
+        limitLabel.textContent = globalMax === 1
+            ? 'Optional · Choose one'
+            : globalMax !== null
+                ? `Optional · Choose up to ${globalMax}`
+                : 'Optional · Select multiple';
     }
 
     ADDON_GROUPS.forEach(group => {
@@ -872,27 +874,33 @@ function buildAddons() {
 }
 
 function toggleAddon(groupId, name, priceType, adj) {
-    const card  = document.getElementById('addon_' + groupId);
-    const check = document.getElementById('adcheck_' + groupId);
+    const card       = document.getElementById('addon_' + groupId);
+    const check      = document.getElementById('adcheck_' + groupId);
     const limitLabel = document.getElementById('addonsLimitLabel');
     const globalMax  = addonGlobalMax();
+    const isRadio    = globalMax === 1; // radio mode — only 1 allowed at a time
 
     if (selectedAddons[groupId]) {
-        // Deselect
+        // Clicking the already-selected one → deselect it
         delete selectedAddons[groupId];
         card.classList.remove('selected');
         check.style.opacity = '0.4';
-
-        // Update label after deselect
         if (limitLabel && globalMax !== null) {
-            const count = Object.keys(selectedAddons).length;
             limitLabel.style.color = '';
-            limitLabel.textContent = `Optional · Choose up to ${globalMax}`;
+            limitLabel.textContent = isRadio ? 'Optional · Choose one' : `Optional · Choose up to ${globalMax}`;
         }
     } else {
-        // Check limit before selecting
-        if (globalMax !== null && Object.keys(selectedAddons).length >= globalMax) {
-            // Flash the label red to signal limit reached
+        if (isRadio) {
+            // ── RADIO MODE: deselect whatever is currently selected first ──
+            Object.keys(selectedAddons).forEach(id => {
+                const prevCard  = document.getElementById('addon_' + id);
+                const prevCheck = document.getElementById('adcheck_' + id);
+                if (prevCard)  prevCard.classList.remove('selected');
+                if (prevCheck) prevCheck.style.opacity = '0.4';
+            });
+            selectedAddons = {};
+        } else if (globalMax !== null && Object.keys(selectedAddons).length >= globalMax) {
+            // ── MULTI-SELECT: limit reached — flash warning ──
             if (limitLabel) {
                 limitLabel.style.color = '#ef4444';
                 limitLabel.textContent = `Max ${globalMax} add-on${globalMax > 1 ? 's' : ''} only!`;
@@ -901,25 +909,28 @@ function toggleAddon(groupId, name, priceType, adj) {
                     limitLabel.textContent = `Optional · Choose up to ${globalMax}`;
                 }, 1400);
             }
-            // Briefly shake the card
             card.style.transition = 'transform .1s';
             card.style.transform  = 'translateX(4px)';
             setTimeout(() => { card.style.transform = ''; }, 200);
             return;
         }
 
-        // Select
+        // Select the tapped card
         selectedAddons[groupId] = { name, priceType, adj };
         card.classList.add('selected');
         check.style.opacity = '1';
 
-        // Update label count
         if (limitLabel && globalMax !== null) {
             const count = Object.keys(selectedAddons).length;
-            limitLabel.style.color = count >= globalMax ? '#f59e0b' : '';
-            limitLabel.textContent = count >= globalMax
-                ? `${count} / ${globalMax} selected (max reached)`
-                : `Optional · Choose up to ${globalMax}`;
+            if (isRadio) {
+                limitLabel.style.color = '#f59e0b';
+                limitLabel.textContent = '1 / 1 selected';
+            } else {
+                limitLabel.style.color = count >= globalMax ? '#f59e0b' : '';
+                limitLabel.textContent = count >= globalMax
+                    ? `${count} / ${globalMax} selected (max reached)`
+                    : `Optional · Choose up to ${globalMax}`;
+            }
         }
     }
     updateTotal();
