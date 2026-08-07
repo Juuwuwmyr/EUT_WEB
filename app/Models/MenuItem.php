@@ -78,6 +78,21 @@ class MenuItem extends Model
         return (bool) $this->is_archived;
     }
 
+    /**
+     * Always return a usable image URL.
+     * Falls back to the local default placeholder when no image is set.
+     */
+    public function getImageUrlAttribute(): string
+    {
+        if ($this->image) {
+            return str_starts_with($this->image, 'http')
+                ? $this->image
+                : asset($this->image);
+        }
+
+        return asset('images/menu/default-menu-item.webp');
+    }
+
     // ── Legacy static helpers (keep dashboard working) ───────
     public static function getAllMenuItems(): array
     {

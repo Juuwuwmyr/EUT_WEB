@@ -84,7 +84,7 @@
             <tr style="{{ $item->is_archived ? 'opacity:.55;' : '' }}">
                 <td>
                     <div style="display:flex;align-items:center;gap:.75rem;">
-                        <img src="{{ asset($item->image) }}" alt="{{ $item->name }}" style="width:3rem;height:3rem;border-radius:.75rem;object-fit:cover;border:1px solid var(--border-card);flex-shrink:0;">
+                        <img src="{{ $item->image ? asset($item->image) : asset('images/menu/default-menu-item.webp') }}" alt="{{ $item->name }}" style="width:3rem;height:3rem;border-radius:.75rem;object-fit:cover;border:1px solid var(--border-card);flex-shrink:0;" onerror="this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
                         <div>
                             <span style="font-weight:600;color:var(--text-strong);display:block;">{{ $item->name }}</span>
                             <span style="font-size:.72rem;color:var(--text-muted);">{{ Str::limit($item->description,45) }}</span>

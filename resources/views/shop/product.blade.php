@@ -388,7 +388,7 @@
 
     <!-- Hero image -->
     <div class="product-hero">
-        <img src="{{ $item['image'] ? asset($item['image']) : 'https://placehold.co/800x500/1a1a2e/facc15?text=' . urlencode($item['name']) }}" alt="{{ $item['name'] }}" class="product-hero-img" decoding="async">
+        <img src="{{ $item['image'] ? asset($item['image']) : asset('images/menu/default-menu-item.webp') }}" alt="{{ $item['name'] }}" class="product-hero-img" decoding="async" onerror="this.onerror=null;this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
         <div class="product-hero-overlay"></div>
         @if(!empty($item['featured']))
             <span class="hero-badge-hot">🔥 Hot Item</span>
@@ -480,7 +480,7 @@
 
     <!-- Sheet header -->
     <div class="sheet-header">
-        <img src="{{ $item['image'] ? asset($item['image']) : 'https://placehold.co/120x120/1a1a2e/facc15?text=' . urlencode($item['name']) }}" alt="{{ $item['name'] }}" class="sheet-thumb" loading="lazy" decoding="async">
+        <img src="{{ $item['image'] ? asset($item['image']) : asset('images/menu/default-menu-item.webp') }}" alt="{{ $item['name'] }}" class="sheet-thumb" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
         <div style="flex:1; min-width:0;">
             <p class="sheet-item-name">{{ $item['name'] }}</p>
             <div class="sheet-item-price-row">
@@ -602,7 +602,7 @@ function updateCartBadge() {
 const BASE_PRICE = {{ $item['price'] }};
 const ITEM_ID    = {{ $item['id'] }};
 const ITEM_NAME  = @json($item['name']);
-const ITEM_IMAGE = @json($item['image'] ? asset($item['image']) : asset('images/hero-burger.webp'));
+const ITEM_IMAGE = @json($item['image'] ? asset($item['image']) : asset('images/menu/default-menu-item.webp'));
 const ITEM_CAT   = @json($item['category']['slug'] ?? 'food');
 
 // ── Modifier groups from DB ──────────────────────────────

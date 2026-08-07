@@ -687,7 +687,7 @@ function renderItems(items) {
             }).join('');
         return `
             <div class="k-item">
-                <img class="k-item-img" src="${item.image}" alt="">
+                <img class="k-item-img" src="${item.image || '{{ asset('images/menu/default-menu-item.webp') }}'}" alt="" onerror="this.onerror=null;this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
                 <div style="flex:1;min-width:0;">
                     <div style="display:flex;align-items:baseline;gap:.4rem;">
                         <span class="k-item-qty">${item.qty}×</span>
