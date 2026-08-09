@@ -447,6 +447,56 @@ class OrderController extends Controller
         ]);
     }
 
+    // ── GET /orders/table/{table} — public: dine-in guests check their table order ──
+    public function tableStatus(string $table)
+    {
+        // Sanitise: table number must be 1-2 digits
+        if (!preg_match('/^\d{1,2}$/', $table)) {
+            return response()->json(['order' => null]);
+        }
+
+        $order = Order::with('items')
+            ->where('order_type', 'dine_in')
+            ->where('table_number', $table)
+            ->whereNotIn('status', ['cancelled'])
+            ->whereDate('created_at', today())
+            ->latest()
+            ->first();
+
+        if (!$order) {
+            return response()->json(['order' => null]);
+        }
+
+        $statusLabels = [
+            'pending'   => ['label' => 'Order Received',    'color' => '#f59e0b', 'icon' => '⏳'],
+            'accepted'  => ['label' => 'Accepted',          'color' => '#3b82f6', 'icon' => '✅'],
+            'preparing' => ['label' => 'Being Prepared',    'color' => '#8b5cf6', 'icon' => '👨‍🍳'],
+            'ready'     => ['label' => 'Ready to Serve',    'color' => '#10b981', 'icon' => '🍽️'],
+            'delivered' => ['label' => 'Served',            'color' => '#4ade80', 'icon' => '🎉'],
+        ];
+
+        $cfg = $statusLabels[$order->status] ?? $statusLabels['pending'];
+
+        return response()->json([
+            'order' => [
+                'id'           => $order->id,
+                'order_number' => $order->order_number,
+                'status'       => $order->status,
+                'status_label' => $cfg['label'],
+                'status_color' => $cfg['color'],
+                'status_icon'  => $cfg['icon'],
+                'table_number' => $order->table_number,
+                'total'        => $order->total,
+                'placed_at'    => $order->created_at->format('g:i A'),
+                'items'        => $order->items->map(fn($i) => [
+                    'name'     => $i->item_name,
+                    'qty'      => $i->quantity,
+                    'subtotal' => $i->subtotal,
+                ]),
+            ],
+        ]);
+    }
+
     // ── GET /delivery-fee — calculate fee by distance from shop ──────────
     public function calcFee(Request $request)
     {

@@ -145,6 +145,7 @@ body{background:#080810;color:#fff;min-height:100vh;}
     0%   { transform: scale(1);   opacity: .6; }
     100% { transform: scale(2.2); opacity: 0;  }
 }
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 .light-mode .topnav-title{color:#111!important;}
 .light-mode .ocard{background:#fff!important;border-color:rgba(0,0,0,.07)!important;}
 .light-mode .ocard-num,.light-mode .empty-title{color:#111!important;}
@@ -179,34 +180,118 @@ body{background:#080810;color:#fff;min-height:100vh;}
 <div class="page-body">
 
     @guest
-    <!-- -- GUEST GATE -- -->
-    <div style="text-align:center; padding: 60px 24px 40px;">
-        <div style="width:96px;height:96px;margin:0 auto 24px;background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,0.07);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
-            <svg width="44" height="44" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
-        </div>
-        <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">Track your orders</h2>
-        <p style="font-size:14px;color:#6b7280;line-height:1.7;margin-bottom:32px;max-width:280px;margin-left:auto;margin-right:auto;">
-            Sign in to view your order history, live status, and delivery tracking.
-        </p>
-        <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto 24px;">
-            <a href="{{ route('restaurant') }}#login"
-               style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 18px rgba(220,38,38,0.38);">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-                Log In
+    <!-- ── GUEST VIEW: dine-in order status (no login required) ── -->
+    <div id="guestDineInView">
+        <!-- Shown when we find a table order -->
+        <div id="guestOrderCard" style="display:none;">
+            <div style="text-align:center;padding:28px 0 16px;">
+                <span id="guestStatusIcon" style="font-size:48px;display:block;margin-bottom:10px;">⏳</span>
+                <h2 id="guestStatusLabel" style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;">Order Received</h2>
+                <p id="guestTableBadge" style="font-size:13px;color:#9ca3af;"></p>
+            </div>
+            <div style="background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:20px;margin:0 0 14px;overflow:hidden;">
+                <div style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:13px;font-weight:700;color:#fff;">Order Summary</span>
+                    <span id="guestOrderNumber" style="font-size:11px;color:#6b7280;"></span>
+                </div>
+                <div id="guestItemsList" style="padding:8px 0;"></div>
+                <div style="padding:12px 18px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:13px;font-weight:700;color:#fff;">Total</span>
+                    <span id="guestOrderTotal" style="font-size:18px;font-weight:800;color:#facc15;"></span>
+                </div>
+            </div>
+            <div style="background:rgba(250,204,21,.06);border:1px solid rgba(250,204,21,.15);border-radius:14px;padding:12px 16px;font-size:12px;color:#9ca3af;text-align:center;margin-bottom:16px;">
+                🔄 Status updates automatically every 15 seconds
+            </div>
+            <a href="{{ route('shop.home') }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#9ca3af;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:10px;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                Order More Items
             </a>
-            <a href="{{ route('restaurant') }}#register"
-               style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(245,158,11,0.3);">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                Create Account
-            </a>
         </div>
-        <a href="{{ route('shop.home') }}" style="font-size:13px;color:#4b5563;text-decoration:none;display:inline-flex;align-items:center;gap:5px;" onmouseover="this.style.color='#9ca3af'" onmouseout="this.style.color='#4b5563'">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-            Browse the menu instead
-        </a>
+
+        <!-- Shown when no active table order found -->
+        <div id="guestNoOrder" style="display:none;text-align:center;padding:60px 24px 40px;">
+            <div style="width:96px;height:96px;margin:0 auto 24px;background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,0.07);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+                <svg width="44" height="44" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">No active order</h2>
+            <p style="font-size:14px;color:#6b7280;line-height:1.7;margin-bottom:28px;max-width:280px;margin-left:auto;margin-right:auto;">
+                Scan your table QR code to start ordering, or log in to view your order history.
+            </p>
+            <a href="{{ route('shop.home') }}" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:700;text-decoration:none;margin-bottom:12px;">
+                Browse Menu
+            </a>
+            <div style="margin-top:16px;">
+                <a href="{{ route('restaurant') }}#login" style="font-size:13px;color:#4b5563;text-decoration:none;">
+                    Log in to view order history →
+                </a>
+            </div>
+        </div>
+
+        <!-- Loading state -->
+        <div id="guestLoading" style="text-align:center;padding:60px 24px;">
+            <div style="width:40px;height:40px;border:3px solid rgba(250,204,21,.2);border-top-color:#facc15;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;"></div>
+            <p style="font-size:14px;color:#6b7280;">Checking your order…</p>
+        </div>
     </div>
+
+    <script>
+    // ── Guest dine-in order tracker ─────────────────────────────────────────
+    (function() {
+        const tableNum = sessionStorage.getItem('eutTableNumber')
+                      || localStorage.getItem('eutTableNumber');
+
+        const cardEl    = document.getElementById('guestOrderCard');
+        const noOrderEl = document.getElementById('guestNoOrder');
+        const loadingEl = document.getElementById('guestLoading');
+
+        function showLoading() { loadingEl.style.display='block'; cardEl.style.display='none'; noOrderEl.style.display='none'; }
+        function showCard()    { loadingEl.style.display='none';  cardEl.style.display='block'; noOrderEl.style.display='none'; }
+        function showEmpty()   { loadingEl.style.display='none';  cardEl.style.display='none';  noOrderEl.style.display='block'; }
+
+        if (!tableNum) { showEmpty(); return; }
+
+        async function poll() {
+            try {
+                const res = await fetch('/orders/table/' + encodeURIComponent(tableNum), {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (!data.order) { showEmpty(); return; }
+
+                const o = data.order;
+
+                // Update status
+                document.getElementById('guestStatusIcon').textContent  = o.status_icon;
+                document.getElementById('guestStatusLabel').textContent = o.status_label;
+                document.getElementById('guestStatusLabel').style.color = o.status_color;
+                document.getElementById('guestTableBadge').textContent  = '🪑 Table ' + o.table_number + ' · Placed at ' + o.placed_at;
+                document.getElementById('guestOrderNumber').textContent = '#' + o.order_number;
+                document.getElementById('guestOrderTotal').textContent  = '₱' + Number(o.total).toLocaleString();
+
+                // Render items
+                const list = document.getElementById('guestItemsList');
+                list.innerHTML = o.items.map(i =>
+                    `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.04);">
+                        <span style="font-size:13px;color:#e5e7eb;">× ${i.qty} ${i.name}</span>
+                        <span style="font-size:13px;font-weight:700;color:#facc15;">₱${Number(i.subtotal).toLocaleString()}</span>
+                    </div>`
+                ).join('');
+
+                showCard();
+            } catch(e) {
+                showEmpty();
+            }
+        }
+
+        showLoading();
+        poll();
+        // Auto-refresh every 15 seconds
+        setInterval(poll, 15000);
+    })();
+    </script>
     @endguest
 
     @auth

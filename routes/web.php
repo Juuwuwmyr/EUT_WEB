@@ -106,6 +106,9 @@ Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(functi
 // Orders — store is public (guests can place dine-in orders)
 Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
 
+// Public: dine-in guests poll this to see their table's order status (no auth needed)
+Route::get('/orders/table/{table}', [\App\Http\Controllers\OrderController::class, 'tableStatus'])->name('orders.table-status');
+
 Route::middleware('auth')->group(function () {
     // -------------------------------------------------------
     // Cart sync (server-side cart for logged-in users)
