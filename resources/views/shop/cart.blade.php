@@ -1104,8 +1104,11 @@ if (window.Echo) {
 <script>
 // ── Patch checkout links with table number from QR scan ─────────────────────
 (function() {
-    const tableNum = sessionStorage.getItem('eutTableNumber');
+    const tableNum = sessionStorage.getItem('eutTableNumber')
+                  || localStorage.getItem('eutTableNumber'); // fallback: survives post-order sessionStorage clear
     if (!tableNum) return;
+    // Re-sync sessionStorage from localStorage in case it was cleared after a previous order
+    sessionStorage.setItem('eutTableNumber', tableNum);
     const base = '{{ route("shop.checkout") }}';
     const url  = base + '?table=' + encodeURIComponent(tableNum);
 

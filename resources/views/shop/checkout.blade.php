@@ -236,7 +236,7 @@
       <div>
 
         <!-- Delivery Address Card -->
-        <div class="card" id="addressCard">
+        <div class="card" id="addressCard" style="display:none;">
             <div class="card-header">
                 <div class="card-icon" style="background:rgba(239,68,68,.1);">
                     <svg width="15" height="15" fill="none" stroke="#f87171" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -380,7 +380,7 @@
             <div id="guestDineInNotice" style="display:none;margin:4px 18px 10px;padding:10px 14px;background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.2);border-radius:12px;font-size:12px;color:#facc15;text-align:center;">
                 🪑 Dine-in only — no login required. Just enter your table number above.
             </div>
-            <div id="guestLoginNotice" style="margin:4px 18px 18px;">
+            <div id="guestLoginNotice" style="display:none;margin:4px 18px 18px;">
                 <div class="guest-notice">⚠️ Please <a href="{{ route('restaurant') }}">log in</a> to place a delivery or pickup order.</div>
             </div>
             @endguest
@@ -519,12 +519,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     // When customer scans a table QR: /checkout?table=7 (or arrived via /shop?table=7 → cart)
     // → auto-select Dine-in, fill table number, skip the QR scanner modal
     const urlParams = new URLSearchParams(window.location.search);
-    const tableFromQr = urlParams.get('table') || sessionStorage.getItem('eutTableNumber');
+    const tableFromQr = urlParams.get('table')
+                     || sessionStorage.getItem('eutTableNumber')
+                     || localStorage.getItem('eutTableNumber'); // fallback: survives post-order sessionStorage clear
     if (tableFromQr && /^\d{1,2}$/.test(tableFromQr.trim())) {
         const tableNum = tableFromQr.trim();
 
-        // Persist in sessionStorage so it survives refreshes
+        // Persist in both storages so it survives refreshes and post-order clears
         sessionStorage.setItem('eutTableNumber', tableNum);
+        localStorage.setItem('eutTableNumber', tableNum);
 
         // Auto-select Dine-in order type
         const dineInLabel = document.querySelector('.pay-option input[value="dine_in"]');
@@ -1264,7 +1267,10 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         const d = await r.json();
         if (d.success) {
             localStorage.setItem('eutCart', JSON.stringify([]));
-            sessionStorage.removeItem('eutTableNumber'); // clear table after order placed
+            // Keep table context in localStorage so the guest can add more items without re-scanning.
+            // Only clear sessionStorage here; localStorage.eutTableNumber persists until they leave the restaurant
+            // (it is cleared when they close the browser tab / session naturally).
+            sessionStorage.removeItem('eutTableNumber');
             // Clear server cart too
             @auth
             fetch('/cart', { method:'DELETE', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'} }).catch(()=>{});
@@ -1632,7 +1638,9 @@ async function confirmTableAndOrder() {
         const d = await r.json();
         if (d.success) {
             localStorage.setItem('eutCart', JSON.stringify([]));
-            sessionStorage.removeItem('eutTableNumber'); // clear table after order placed
+            // Keep table context in localStorage so the guest can add more items without re-scanning.
+            // Only clear sessionStorage here; localStorage.eutTableNumber persists until they leave the restaurant.
+            sessionStorage.removeItem('eutTableNumber');
             @auth
             fetch('/cart', { method:'DELETE', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'} }).catch(()=>{});
             @endauth

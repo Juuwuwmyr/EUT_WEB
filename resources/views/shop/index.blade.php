@@ -834,9 +834,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Table QR: if customer arrived via /shop?table=N QR code ─────────────
     const _urlTable = new URLSearchParams(window.location.search).get('table')
-                   || sessionStorage.getItem('eutTableNumber');
+                   || sessionStorage.getItem('eutTableNumber')
+                   || localStorage.getItem('eutTableNumber'); // fallback: survives post-order sessionStorage clear
     if (_urlTable && /^\d{1,2}$/.test(_urlTable.trim())) {
         sessionStorage.setItem('eutTableNumber', _urlTable.trim());
+        localStorage.setItem('eutTableNumber', _urlTable.trim()); // persist across page sessions
         // Auto-select & lock Dine-in since they scanned a table QR
         localStorage.setItem('eutOrderType', 'dine_in');
         window._tableQrLocked = true; // signal to setOrderType to refuse switching
