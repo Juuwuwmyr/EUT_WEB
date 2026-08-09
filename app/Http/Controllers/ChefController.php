@@ -161,14 +161,23 @@ class ChefController extends Controller
             return view('admin.partials.kitchen-receipt', compact('order'));
         }
 
-        // Gather all delivered orders for this table from today (same table session)
-        $orders = Order::with(['items'])
+        // Gather all delivered orders for this table belonging to the same sitting.
+        // Scope by table_session_id when available so that a second customer at the
+        // same table on the same day never sees the previous session's items.
+        // Fall back to the date-only scope for legacy orders that pre-date the column.
+        $sessionQuery = Order::with(['items'])
             ->where('order_type', 'dine_in')
             ->where('table_number', $order->table_number)
-            ->where('status', 'delivered')
-            ->whereDate('created_at', $order->created_at->toDateString())
-            ->oldest()
-            ->get();
+            ->where('status', 'delivered');
+
+        if ($order->table_session_id) {
+            $sessionQuery->where('table_session_id', $order->table_session_id);
+        } else {
+            // Legacy fallback: scope by date only (pre-session-id orders)
+            $sessionQuery->whereDate('created_at', $order->created_at->toDateString());
+        }
+
+        $orders = $sessionQuery->oldest()->get();
 
         // Safety: if somehow empty, fall back to the single order
         if ($orders->isEmpty()) {

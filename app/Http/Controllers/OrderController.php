@@ -221,6 +221,10 @@ class OrderController extends Controller
                 'delivery_lng'     => $request->delivery_lng,
                 'table_number'     => $request->order_type === 'dine_in' ? $request->table_number : null,
                 'notes'            => $request->notes,
+                // Each new dine-in sitting gets a unique session ID so the receipt
+                // query only groups orders from the same customer session, never
+                // bleeding into a previous session at the same table on the same day.
+                'table_session_id' => $request->order_type === 'dine_in' ? \Illuminate\Support\Str::uuid() : null,
             ]);
 
             foreach ($lineItems as $item) {
