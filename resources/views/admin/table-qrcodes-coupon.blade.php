@@ -155,7 +155,7 @@
         // Generate all QR codes - 40mm size (optimized for coupon bond)
         @foreach($tables as $tableNum)
         new QRCode(document.getElementById('qr-{{ $tableNum }}'), {
-            text: 'TABLE {{ $tableNum }}',
+            text: '{{ url("/checkout") }}?table={{ $tableNum }}',
             width: 150,
             height: 150,
             colorDark: '#000000',
