@@ -478,8 +478,13 @@
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px;">
             <div>
-                <p class="form-label">Barangay / City</p>
-                <input type="text" id="fBarangay" class="form-input" placeholder="Barangay / City">
+                <p class="form-label">Barangay / Sitio <span style="color:#ef4444;">*</span></p>
+                <select id="fBarangay" class="form-input" style="background:var(--bg-input,#1a1b2e);color:var(--text-input,#e5e7eb);border:1px solid var(--border-input,rgba(255,255,255,.1));border-radius:10px;padding:10px 12px;font-size:13px;width:100%;cursor:pointer;">
+                    <option value="">— Select Barangay —</option>
+                    @foreach(config('naujan_barangays') as $brgy => $fee)
+                        <option value="{{ $brgy }}" data-fee="{{ $fee }}">{{ $brgy }} (₱{{ $fee }})</option>
+                    @endforeach
+                </select>
             </div>
             <div>
                 <p class="form-label">Postal Code</p>
@@ -521,13 +526,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 /* ── Helpers ── */
 const CSRF = '{{ csrf_token() }}';
-const DELIVERY_FEE_URL = '{{ route("delivery-fee") }}';
-// Delivery pricing constants (mirrors server-side)
-const DELIVERY_BASE_FEE = 30;   // ₱30 base (covers first 2 km)
-const DELIVERY_PER_KM   = 10;   // ₱10 per km beyond 2 km
-const DELIVERY_FREE_KM  = 2;    // first 2 km included in base
-const DELIVERY_MAX_KM   = 100;  // max range
-let currentDeliveryFee  = DELIVERY_BASE_FEE; // updated when address coords are known
+let currentDeliveryFee = 50; // updated when address is selected (barangay-based)
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function modChips(mods){
@@ -542,59 +541,52 @@ function modChips(mods){
     return chips.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;">${chips.join('')}</div>`:'';
 }
 
-/* ── Calculate delivery fee client-side (mirrors server formula) ── */
-function calcDeliveryFeeLocal(lat, lng) {
-    const restLat = 13.321512;
-    const restLng = 121.302098;
-    const R = 6371;
-    const dLat = (lat - restLat) * Math.PI / 180;
-    const dLng = (lng - restLng) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2)
-            + Math.cos(restLat * Math.PI / 180) * Math.cos(lat * Math.PI / 180)
-            * Math.sin(dLng/2) * Math.sin(dLng/2);
-    const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const fee = 30 + Math.max(0, Math.ceil(km - 2)) * 10;
-    const label = km <= 2
-        ? `₱${fee} (within 2 km)`
-        : `₱${fee} (${km.toFixed(1)} km)`;
-    return { km: parseFloat(km.toFixed(2)), fee, label };
+/* ── Naujan barangay → flat delivery fee map ── */
+const BARANGAY_FEES = @json(config('naujan_barangays'));
+
+/* ── Get delivery fee for a barangay name ── */
+function getBarangayFee(barangay) {
+    if (!barangay) return 50; // default if not selected
+    return BARANGAY_FEES[barangay] ?? 50;
 }
 
-/* ── Fetch delivery fee from server when coordinates are known ── */
-async function updateDeliveryFeeByCoords(lat, lng) {
-    if (!lat || !lng || currentOrderType !== 'delivery') return;
-
-    // Show instant local estimate while waiting for server
-    const local = calcDeliveryFeeLocal(lat, lng);
-    currentDeliveryFee = local.fee;
-    const distEl = document.getElementById('deliveryDistLabel');
-
-    if (local.km > 100) {
-        if (distEl) distEl.textContent = 'Outside delivery range (max 100 km)';
-        renderSummary();
-        return;
-    }
-    if (distEl) distEl.textContent = local.label;
-    renderSummary();
-
-    // Confirm with server (more accurate)
-    try {
-        const res = await fetch(`${DELIVERY_FEE_URL}?lat=${lat}&lng=${lng}`, {
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+/* ── Update fee when barangay dropdown changes ── */
+document.addEventListener('DOMContentLoaded', () => {
+    const brgySelect = document.getElementById('fBarangay');
+    if (brgySelect) {
+        brgySelect.addEventListener('change', function () {
+            // If the currently selected address matches what's being edited,
+            // update the fee preview immediately
+            const fee = getBarangayFee(this.value);
+            const distEl = document.getElementById('deliveryDistLabel');
+            if (distEl && currentOrderType === 'delivery') {
+                distEl.textContent = `₱${fee} flat rate — ${this.value || 'select barangay'}`;
+            }
         });
-        if (!res.ok) return; // keep local estimate on HTTP error
-        const data = await res.json();
-        if (data.success) {
-            currentDeliveryFee = data.fee;
-            if (distEl) distEl.textContent = data.label;
-            renderSummary();
-        } else {
-            const errEl = document.getElementById('addressError');
-            if (errEl) { errEl.textContent = data.message; errEl.style.display = 'block'; }
-        }
-    } catch(e) {
-        // Keep the local estimate already shown — don't get stuck
     }
+});
+
+/* ── Calculate delivery fee from barangay (replaces GPS-based calc) ── */
+function calcDeliveryFeeLocal(barangay) {
+    const fee = getBarangayFee(barangay);
+    return { fee, label: `₱${fee} flat rate — ${barangay || 'Naujan'}` };
+}
+
+/* ── Update delivery fee display when address is selected ── */
+async function updateDeliveryFeeByCoords(lat, lng) {
+    // Kept for backward compatibility but no longer used for fee calculation
+    // Fee is now barangay-based, updated in selectAddress()
+}
+
+/* ── Update fee when an address is selected ── */
+function updateFeeFromAddress(address) {
+    if (!address || currentOrderType !== 'delivery') return;
+    const barangay = address.barangay || '';
+    const result   = calcDeliveryFeeLocal(barangay);
+    currentDeliveryFee = result.fee;
+    const distEl = document.getElementById('deliveryDistLabel');
+    if (distEl) distEl.textContent = result.label;
+    renderSummary();
 }
 
 /* ── Order summary ── */
@@ -655,7 +647,7 @@ function selectOrderType(el, type){
         addrCard.style.display = 'block';
         // Recalculate fee for currently selected address
         const a = addresses.find(a => a.id === selectedAddressId);
-        if (a && a.lat && a.lng) updateDeliveryFeeByCoords(a.lat, a.lng);
+        if (a) updateFeeFromAddress(a);
     } else {
         addrCard.style.display = 'none';
     }
@@ -689,15 +681,9 @@ async function loadAddresses(){
         const def=addresses.find(a=>a.is_default)||addresses[0]||null;
         selectedAddressId=def?def.id:null;
         renderSelectedAddress();
-        // Calculate delivery fee for default address
-        if (def && def.lat && def.lng) {
-            updateDeliveryFeeByCoords(def.lat, def.lng);
-        } else {
-            // No coordinates — show base fee
-            const distEl = document.getElementById('deliveryDistLabel');
-            if (distEl) distEl.textContent = '₱30 base (up to 2 km)';
-            renderSummary();
-        }
+        // Calculate delivery fee for default address barangay
+        if (def) updateFeeFromAddress(def);
+        renderSummary();
     }catch(e){
         console.error('addr load failed',e);
         const distEl = document.getElementById('deliveryDistLabel');
@@ -723,7 +709,12 @@ function renderSelectedAddress(){
             <span class="addr-phone">${esc(a.phone)}</span>
             <span class="addr-label-badge ${a.is_default?'default':''}">${esc(a.label)}${a.is_default?' · Default':''}</span>
         </div>
-        <p class="addr-text">${esc(a.full_address)}</p>`;
+        <p class="addr-text">${esc(a.full_address)}</p>
+        ${!a.barangay ? `<div style="margin-top:8px;padding:8px 12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;display:flex;align-items:center;gap:8px;">
+            <svg width="14" height="14" fill="none" stroke="#f87171" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            <span style="font-size:12px;color:#f87171;font-weight:600;">Barangay required — <button type="button" onclick="openEditForm(${a.id})" style="background:none;border:none;color:#facc15;font-weight:700;font-size:12px;cursor:pointer;padding:0;text-decoration:underline;">Update address</button></span>
+        </div>` : ''}
+        `;
 }
 
 /* ── Picker sheet ── */
@@ -755,6 +746,7 @@ function renderAddrList(){
                     <span class="addr-label-badge ${a.is_default?'default':''}">${esc(a.label)}${a.is_default?' · Default':''}</span>
                 </div>
                 <p class="addr-text">${esc(a.full_address)}</p>
+                ${!a.barangay ? `<p style="font-size:11px;color:#f87171;font-weight:600;margin-top:4px;">⚠ Barangay missing — tap Edit to update</p>` : ''}
                 <div class="addr-card-actions">
                     <button class="addr-action-btn addr-edit-btn" onclick="event.stopPropagation();openEditForm(${a.id})">Edit</button>
                     ${!a.is_default?`<button class="addr-action-btn addr-set-default-btn" onclick="event.stopPropagation();setDefault(${a.id})">Set Default</button>`:''}
@@ -768,17 +760,9 @@ function selectAddress(id){
     selectedAddressId=id;
     renderSelectedAddress();
     renderAddrList();
-    // Update delivery fee based on selected address coordinates
+    // Update delivery fee based on selected address barangay
     const a = addresses.find(a => a.id === id);
-    if (a && a.lat && a.lng) {
-        updateDeliveryFeeByCoords(a.lat, a.lng);
-    } else {
-        // Address has no coordinates — use base fee
-        currentDeliveryFee = 30;
-        const distEl = document.getElementById('deliveryDistLabel');
-        if (distEl) distEl.textContent = '₱30 base (up to 2 km)';
-        renderSummary();
-    }
+    updateFeeFromAddress(a);
     setTimeout(closePicker,200);
 }
 
@@ -899,7 +883,10 @@ async function saveAddress(){
             if(editingAddressId){addresses=addresses.map(a=>a.id===editingAddressId?d.address:a);}
             else{addresses.push(d.address);}
             if(d.address.is_default){addresses=addresses.map(a=>({...a,is_default:a.id===d.address.id}));}
-            if(!selectedAddressId||d.address.is_default)selectedAddressId=d.address.id;
+            if(!selectedAddressId||d.address.is_default){
+                selectedAddressId=d.address.id;
+                updateFeeFromAddress(d.address);
+            }
             renderSelectedAddress();
             closeAddrForm();
         }else{errEl.textContent=d.message||'Failed to save.';errEl.style.display='block';}
@@ -1033,6 +1020,13 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         alert('Please add a delivery address first.'); 
         openAddForm(); 
         return; 
+    }
+
+    // Block if address has no barangay selected
+    if (orderType === 'delivery' && addr && !addr.barangay) {
+        alert('⚠️ Please update your address — barangay is required for delivery fee calculation.');
+        openEditForm(addr.id);
+        return;
     }
 
     // For dine-in: intercept and open QR scanner modal

@@ -123,40 +123,14 @@ class OrderController extends Controller
                 ];
             }
 
-            // ── Distance-based delivery fee ─────────────────────────────
-            // Formula: ₱30 base (covers first 2 km) + ₱10 per km beyond 2 km.
-            // Max range: 100 km. Pickup / dine-in = free.
+            // ── Barangay-based flat delivery fee ────────────────────────────
+            // Fee is determined by the customer's barangay, not GPS distance.
+            // Pickup / dine-in = free.
             $deliveryFee = 0;
             if ($request->order_type === 'delivery') {
-                $lat = (float) $request->delivery_lat;
-                $lng = (float) $request->delivery_lng;
-
-                if ($lat && $lng) {
-                    // Haversine distance from restaurant to customer (in km)
-                    $restLat = 13.321512;
-                    $restLng = 121.302098;
-                    $earthR  = 6371;
-                    $dLat    = deg2rad($lat - $restLat);
-                    $dLng    = deg2rad($lng - $restLng);
-                    $a       = sin($dLat/2) * sin($dLat/2)
-                             + cos(deg2rad($restLat)) * cos(deg2rad($lat))
-                             * sin($dLng/2) * sin($dLng/2);
-                    $km      = $earthR * 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-                    if ($km > 100) {
-                        DB::rollBack();
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Sorry, your location is outside our 100 km delivery range.',
-                        ], 422);
-                    }
-
-                    // ₱30 for first 2 km, +₱10 per km after that
-                    $deliveryFee = 30 + max(0, ceil($km - 2)) * 10;
-                } else {
-                    // No coordinates yet — use minimum ₱30
-                    $deliveryFee = 30;
-                }
+                $barangay  = $request->delivery_barangay ?? '';
+                $barangays = config('naujan_barangays', []);
+                $deliveryFee = $barangays[$barangay] ?? 50; // ₱50 default if unknown
             }
             $total = round($subtotal + $deliveryFee, 2);
 
@@ -423,45 +397,24 @@ class OrderController extends Controller
         ]);
     }
 
-    // ── GET /delivery-fee — calculate fee from coordinates ─────────────
+    // ── GET /delivery-fee — get fee by barangay name ─────────────────────
     public function calcFee(Request $request)
     {
         $request->validate([
-            'lat' => 'required|numeric|between:-90,90',
-            'lng' => 'required|numeric|between:-180,180',
+            'barangay' => 'required|string|max:100',
         ]);
 
-        $lat    = (float) $request->lat;
-        $lng    = (float) $request->lng;
-        $restLat = 13.321512;
-        $restLng = 121.302098;
-        $earthR  = 6371;
-
-        $dLat = deg2rad($lat - $restLat);
-        $dLng = deg2rad($lng - $restLng);
-        $a    = sin($dLat/2) * sin($dLat/2)
-              + cos(deg2rad($restLat)) * cos(deg2rad($lat))
-              * sin($dLng/2) * sin($dLng/2);
-        $km   = round($earthR * 2 * atan2(sqrt($a), sqrt(1 - $a)), 2);
-
-        if ($km > 100) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Outside delivery range (max 100 km).',
-                'km'      => $km,
-            ], 422);
-        }
-
-        // ₱30 for first 2 km, +₱10 per km after that (rounded up per km)
-        $fee = 30 + max(0, ceil($km - 2)) * 10;
+        $barangays   = config('naujan_barangays', []);
+        $barangay    = $request->barangay;
+        $fee         = $barangays[$barangay] ?? 50; // ₱50 default if not in list
+        $inList      = array_key_exists($barangay, $barangays);
 
         return response()->json([
-            'success' => true,
-            'km'      => $km,
-            'fee'     => $fee,
-            'label'   => $km <= 2
-                ? "₱{$fee} (within 2 km)"
-                : "₱{$fee} (" . number_format($km, 1) . " km)",
+            'success'  => true,
+            'fee'      => $fee,
+            'barangay' => $barangay,
+            'label'    => "₱{$fee} flat rate — {$barangay}",
+            'in_list'  => $inList,
         ]);
     }
 }

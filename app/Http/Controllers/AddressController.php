@@ -21,12 +21,14 @@ class AddressController extends Controller
     /** POST /addresses — save a new address */
     public function store(Request $request)
     {
+        $validBarangays = array_keys(config('naujan_barangays', []));
+
         $request->validate([
             'label'          => 'nullable|string|max:50',
             'recipient_name' => 'required|string|max:150',
             'phone'          => 'required|string|max:20',
             'address'        => 'required|string|max:300',
-            'barangay'       => 'nullable|string|max:100',
+            'barangay'       => 'required|string|in:' . implode(',', $validBarangays),
             'city'           => 'nullable|string|max:100',
             'postal'         => 'nullable|string|max:20',
             'is_default'     => 'nullable|boolean',
@@ -68,12 +70,14 @@ class AddressController extends Controller
     {
         if ($address->user_id !== auth()->id()) abort(403);
 
+        $validBarangays = array_keys(config('naujan_barangays', []));
+
         $request->validate([
             'label'          => 'nullable|string|max:50',
             'recipient_name' => 'required|string|max:150',
             'phone'          => 'required|string|max:20',
             'address'        => 'required|string|max:300',
-            'barangay'       => 'nullable|string|max:100',
+            'barangay'       => 'required|string|in:' . implode(',', $validBarangays),
             'city'           => 'nullable|string|max:100',
             'postal'         => 'nullable|string|max:20',
             'is_default'     => 'nullable|boolean',
