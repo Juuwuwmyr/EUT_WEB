@@ -533,7 +533,32 @@ document.addEventListener('DOMContentLoaded',()=>{
             if (label) selectOrderType(label, 'dine_in');
         }
 
-        // Fill & lock the table number
+        // ── Lock order type to Dine-in — disable Delivery & Pickup ──────────
+        document.querySelectorAll('.pay-option input[value="delivery"], .pay-option input[value="pickup"]').forEach(input => {
+            const lbl = input.closest('.pay-option');
+            if (lbl) {
+                // Remove click handler so they can't switch
+                lbl.onclick = null;
+                lbl.style.opacity = '0.35';
+                lbl.style.cursor = 'not-allowed';
+                lbl.style.pointerEvents = 'none';
+                lbl.title = 'Locked to Dine-in (table QR)';
+            }
+        });
+        // Also lock the Dine-in button itself (keep it selected but no further clicking needed)
+        const dineInBtn = document.querySelector('.pay-option input[value="dine_in"]')?.closest('.pay-option');
+        if (dineInBtn) {
+            dineInBtn.onclick = null; // prevent deselecting
+            dineInBtn.style.cursor = 'default';
+            // Add a small lock badge inside the dine-in button
+            const lockBadge = document.createElement('span');
+            lockBadge.textContent = '🔒';
+            lockBadge.style.cssText = 'font-size:10px;position:absolute;top:4px;right:4px;';
+            dineInBtn.style.position = 'relative';
+            dineInBtn.appendChild(lockBadge);
+        }
+
+        // Fill & lock the table number input
         document.getElementById('tableNumberInput').value = tableNum;
 
         // Show a confirmation banner
@@ -550,6 +575,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
         // Clean URL so refreshing doesn't re-trigger (sessionStorage keeps the value)
         history.replaceState({}, '', window.location.pathname);
+
     } else {
         // Restore previously selected order type
         const savedType = localStorage.getItem('eutOrderType') || 'delivery';
