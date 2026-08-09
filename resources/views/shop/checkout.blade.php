@@ -515,13 +515,16 @@ document.addEventListener('DOMContentLoaded',()=>{
     renderSummary();
     @auth loadAddresses(); @endauth
 
-    // ── Auto-detect table number from QR code URL param ──────────────────
-    // When customer scans a table QR: /checkout?table=7
+    // ── Auto-detect table number from QR code URL param OR sessionStorage ────
+    // When customer scans a table QR: /checkout?table=7 (or arrived via /shop?table=7 → cart)
     // → auto-select Dine-in, fill table number, skip the QR scanner modal
     const urlParams = new URLSearchParams(window.location.search);
-    const tableFromQr = urlParams.get('table');
+    const tableFromQr = urlParams.get('table') || sessionStorage.getItem('eutTableNumber');
     if (tableFromQr && /^\d{1,2}$/.test(tableFromQr.trim())) {
         const tableNum = tableFromQr.trim();
+
+        // Persist in sessionStorage so it survives refreshes
+        sessionStorage.setItem('eutTableNumber', tableNum);
 
         // Auto-select Dine-in order type
         const dineInLabel = document.querySelector('.pay-option input[value="dine_in"]');
@@ -545,7 +548,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         const tableCard = document.getElementById('tableNumberCard');
         if (tableCard) tableCard.parentNode.insertBefore(banner, tableCard);
 
-        // Clean URL so refreshing doesn't re-trigger
+        // Clean URL so refreshing doesn't re-trigger (sessionStorage keeps the value)
         history.replaceState({}, '', window.location.pathname);
     } else {
         // Restore previously selected order type
@@ -1235,6 +1238,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         const d = await r.json();
         if (d.success) {
             localStorage.setItem('eutCart', JSON.stringify([]));
+            sessionStorage.removeItem('eutTableNumber'); // clear table after order placed
             // Clear server cart too
             @auth
             fetch('/cart', { method:'DELETE', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'} }).catch(()=>{});
@@ -1602,6 +1606,7 @@ async function confirmTableAndOrder() {
         const d = await r.json();
         if (d.success) {
             localStorage.setItem('eutCart', JSON.stringify([]));
+            sessionStorage.removeItem('eutTableNumber'); // clear table after order placed
             @auth
             fetch('/cart', { method:'DELETE', headers:{'X-CSRF-TOKEN':'{{ csrf_token() }}','Accept':'application/json'} }).catch(()=>{});
             @endauth
