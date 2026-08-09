@@ -387,40 +387,100 @@
     {{-- Guest cart — for dine-in guests who have items in localStorage --}}
     <div id="guestCartWrap" style="display:none;">
         <div id="guestCartList" style="padding:8px 0;"></div>
-        <div style="padding:16px 18px 8px;border-top:1px solid rgba(255,255,255,.06);">
-            <div style="display:flex;justify-content:space-between;font-size:13px;color:#9ca3af;margin-bottom:6px;">
+        <div style="padding:12px 18px 8px;border-top:1px solid rgba(255,255,255,.06);">
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#9ca3af;margin-bottom:4px;">
                 <span>Subtotal</span><span id="guestSubtotal">₱0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#4b5563;margin-bottom:12px;">
+                <span id="guestItemCount"></span>
+                <button onclick="guestClearCart()" style="background:none;border:none;color:#4b5563;font-size:11px;cursor:pointer;padding:0;text-decoration:underline;">Clear all</button>
             </div>
             <a id="guestCheckoutBtn" href="{{ route('shop.checkout') }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;margin-top:8px;">
                 Proceed to Checkout →
             </a>
         </div>
+        <a href="{{ route('shop.home') }}" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;font-size:13px;color:#4b5563;text-decoration:none;margin-top:4px;">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Add more items
+        </a>
     </div>
 
     <script>
-    // Show guest cart if they have items (dine-in guest), otherwise show login gate
+    // ── Guest cart (dine-in) — fully interactive ─────────────────────────────
+    let guestCart = JSON.parse(localStorage.getItem('eutCart') || '[]');
+
+    function saveGuestCart() {
+        localStorage.setItem('eutCart', JSON.stringify(guestCart));
+    }
+
+    function renderGuestCart() {
+        const list = document.getElementById('guestCartList');
+        if (!list) return;
+
+        if (guestCart.length === 0) {
+            // Cart emptied — show gate, hide cart
+            document.getElementById('guestGate').style.display = 'block';
+            document.getElementById('guestCartWrap').style.display = 'none';
+            return;
+        }
+
+        list.innerHTML = '';
+        let sub = 0;
+        guestCart.forEach((item, idx) => {
+            sub += item.price * item.quantity;
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.05);';
+            row.innerHTML = `
+                <img src="${item.image||''}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;" onerror="this.src='/images/menu/default-menu-item.webp'">
+                <div style="flex:1;min-width:0;">
+                    <p style="font-size:13px;font-weight:600;color:#fff;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</p>
+                    <p style="font-size:12px;color:#6b7280;margin:0 0 6px;">₱${Number(item.price).toLocaleString()} each</p>
+                    <div style="display:flex;align-items:center;gap:0;">
+                        <button onclick="guestChangeQty(${idx}, -1)" style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+                        <span style="width:32px;text-align:center;font-size:13px;font-weight:700;color:#fff;">${item.quantity}</span>
+                        <button onclick="guestChangeQty(${idx}, 1)" style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">
+                    <span style="font-size:13px;font-weight:700;color:#facc15;">₱${(item.price*item.quantity).toLocaleString()}</span>
+                    <button onclick="guestRemoveItem(${idx})" style="background:none;border:none;color:#4b5563;cursor:pointer;padding:2px;" title="Remove">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>`;
+            list.appendChild(row);
+        });
+
+        const totalQty = guestCart.reduce((s,i) => s + i.quantity, 0);
+        document.getElementById('guestSubtotal').textContent = '₱' + sub.toLocaleString();
+        document.getElementById('guestItemCount').textContent = totalQty + (totalQty === 1 ? ' item' : ' items');
+    }
+
+    function guestChangeQty(idx, delta) {
+        guestCart[idx].quantity += delta;
+        if (guestCart[idx].quantity < 1) guestCart[idx].quantity = 1;
+        saveGuestCart();
+        renderGuestCart();
+    }
+
+    function guestRemoveItem(idx) {
+        guestCart.splice(idx, 1);
+        saveGuestCart();
+        renderGuestCart();
+    }
+
+    function guestClearCart() {
+        if (!confirm('Remove all items from cart?')) return;
+        guestCart = [];
+        saveGuestCart();
+        renderGuestCart();
+    }
+
+    // Initial render
     (function() {
-        const cart = JSON.parse(localStorage.getItem('eutCart') || '[]');
-        if (cart.length > 0) {
+        if (guestCart.length > 0) {
             document.getElementById('guestGate').style.display = 'none';
             document.getElementById('guestCartWrap').style.display = 'block';
-            // Render items
-            const list = document.getElementById('guestCartList');
-            let sub = 0;
-            cart.forEach(item => {
-                sub += item.price * item.quantity;
-                const row = document.createElement('div');
-                row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.05);';
-                row.innerHTML = `
-                    <img src="${item.image||''}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;" onerror="this.src='/images/menu/default-menu-item.webp'">
-                    <div style="flex:1;min-width:0;">
-                        <p style="font-size:13px;font-weight:600;color:#fff;margin:0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</p>
-                        <p style="font-size:12px;color:#6b7280;margin:0;">× ${item.quantity} · ₱${Number(item.price).toLocaleString()} each</p>
-                    </div>
-                    <span style="font-size:13px;font-weight:700;color:#facc15;flex-shrink:0;">₱${(item.price*item.quantity).toLocaleString()}</span>`;
-                list.appendChild(row);
-            });
-            document.getElementById('guestSubtotal').textContent = '₱' + sub.toLocaleString();
+            renderGuestCart();
         }
     })();
     </script>
