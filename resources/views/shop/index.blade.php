@@ -830,6 +830,14 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartBadge();
     updateCount();
 
+    // ── Table QR: if customer arrived via /checkout?table=N QR code ──────────
+    const _urlTable = new URLSearchParams(window.location.search).get('table');
+    if (_urlTable && /^\d{1,2}$/.test(_urlTable.trim())) {
+        sessionStorage.setItem('eutTableNumber', _urlTable.trim());
+        // Auto-select Dine-in since they scanned a table QR
+        localStorage.setItem('eutOrderType', 'dine_in');
+    }
+
     // Restore saved order type
     const savedType = localStorage.getItem('eutOrderType') || 'delivery';
     setOrderType(savedType, false); // false = don't save again on init

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -391,7 +391,7 @@
             <div style="display:flex;justify-content:space-between;font-size:13px;color:#9ca3af;margin-bottom:6px;">
                 <span>Subtotal</span><span id="guestSubtotal">₱0</span>
             </div>
-            <a href="{{ route('shop.checkout') }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;margin-top:8px;">
+            <a id="guestCheckoutBtn" href="{{ route('shop.checkout') }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;margin-top:8px;">
                 Proceed to Checkout →
             </a>
         </div>
@@ -619,7 +619,7 @@
         </div>
         <div class="buy-now-bar" id="buyNowBar" style="opacity:.5;cursor:not-allowed;pointer-events:none;background:linear-gradient(135deg,#374151,#4b5563);">
         @else
-        <a href="{{ route('shop.checkout') }}" class="buy-now-bar" id="buyNowBar">
+        <a href="{{ route('shop.checkout') }}" class="buy-now-bar" id="buyNowBar" data-checkout-base="{{ route('shop.checkout') }}">
         @endif
             <div class="buy-now-left">
                 <span class="buy-now-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></span>
@@ -1101,5 +1101,22 @@ if (window.Echo) {
 @endauth
 </script>
 @include('partials.pwa-register')
+<script>
+// ── Patch checkout links with table number from QR scan ─────────────────────
+(function() {
+    const tableNum = sessionStorage.getItem('eutTableNumber');
+    if (!tableNum) return;
+    const base = '{{ route("shop.checkout") }}';
+    const url  = base + '?table=' + encodeURIComponent(tableNum);
+
+    // Guest checkout button (top of page, for non-auth users)
+    const guestBtn = document.getElementById('guestCheckoutBtn');
+    if (guestBtn) guestBtn.href = url;
+
+    // Buy-now bar (bottom sticky bar)
+    const buyBar = document.getElementById('buyNowBar');
+    if (buyBar && buyBar.tagName === 'A') buyBar.href = url;
+})();
+</script>
 </body>
 </html>
