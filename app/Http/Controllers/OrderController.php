@@ -206,6 +206,7 @@ class OrderController extends Controller
                     }
 
                     $existingOrder->update($updateData);
+                    $existingOrder->refresh(); // reload so broadcast carries the updated status
 
                     DB::commit();
                     broadcast(new OrderStatusUpdated($existingOrder))->toOthers();
