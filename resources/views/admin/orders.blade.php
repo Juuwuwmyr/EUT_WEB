@@ -280,15 +280,171 @@ function renderTable(orders) {
     if (!tbody) return;
 
     var countEl = document.getElementById('orderCount');
-    if (countEl) countEl.textContent = orders.length + ' order(s)';
 
     if (!orders.length) {
+        if (countEl) countEl.textContent = '0 order(s)';
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:3rem;">No orders found.</td></tr>';
         return;
     }
 
-    var html = '';
+    // ── Group active dine-in orders by table so same-table orders appear as
+    //    one row (with sub-order cards inside) until the session is done.
+    //    Non-dine-in, no-table, delivered, cancelled, and archived orders
+    //    are always shown as individual rows.
+    var ACTIVE_STATUSES = ['pending','accepted','preparing','rider_assigned','out_for_delivery'];
+    var tableGroups = {}; // table_number -> [orders]
+    var soloOrders  = [];
+
     orders.forEach(function(o) {
+        var canGroup = o.order_type === 'dine_in'
+            && o.table_number
+            && ACTIVE_STATUSES.indexOf(o.status) !== -1
+            && !o.is_archived
+            && !activeFilter; // don't collapse when a specific status filter is active
+        if (canGroup) {
+            if (!tableGroups[o.table_number]) tableGroups[o.table_number] = [];
+            tableGroups[o.table_number].push(o);
+        } else {
+            soloOrders.push(o);
+        }
+    });
+
+    // Flatten: tables with only one order just go into soloOrders too
+    Object.keys(tableGroups).forEach(function(t) {
+        if (tableGroups[t].length === 1) {
+            soloOrders.push(tableGroups[t][0]);
+            delete tableGroups[t];
+        }
+    });
+
+    var rowCount = soloOrders.length + Object.keys(tableGroups).length;
+    if (countEl) countEl.textContent = rowCount + ' row(s) · ' + orders.length + ' order(s)';
+
+    var html = '';
+
+    // ── Render grouped table rows first (most urgent on top) ─────────────────
+    Object.keys(tableGroups).forEach(function(tableNum) {
+        var group = tableGroups[tableNum].sort(function(a,b){ return a.id - b.id; }); // oldest first
+        var rep   = group[0]; // representative order (oldest / first placed)
+        var initial = (rep.customer || 'G').charAt(0).toUpperCase();
+
+        // Determine the most urgent status in the group for display
+        var statusPriority = ['pending','accepted','preparing','rider_assigned','out_for_delivery','delivered','cancelled'];
+        var topStatus = group.reduce(function(best, o) {
+            return statusPriority.indexOf(o.status) < statusPriority.indexOf(best) ? o.status : best;
+        }, group[0].status);
+        var sc = STATUS_COLOR_MAP[topStatus] || STATUS_COLOR_MAP['pending'];
+
+        // All items across all orders in the group
+        var allItems = [];
+        group.forEach(function(o) { allItems = allItems.concat(o.items || []); });
+        var itemsHtml = '';
+        allItems.slice(0, 3).forEach(function(item) {
+            itemsHtml +=
+                '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">' +
+                '<span style="font-size:.72rem;font-weight:700;color:var(--accent);background:rgba(250,204,21,.1);border-radius:4px;padding:1px 5px;flex-shrink:0;">x' + item.qty + '</span>' +
+                '<span style="font-size:.75rem;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;" title="' + escHtml(item.name) + '">' + escHtml(item.name) + '</span>' +
+                '</div>';
+        });
+        if (allItems.length > 3) itemsHtml += '<span style="font-size:.68rem;color:var(--text-muted);">+' + (allItems.length - 3) + ' more</span>';
+
+        var grandTotal = group.reduce(function(s,o){ return s + parseFloat(o.total||0); }, 0);
+
+        // Sub-order action pills — one per order in the group
+        var subHtml = '<div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">';
+        group.forEach(function(o) {
+            var oSc  = STATUS_COLOR_MAP[o.status] || STATUS_COLOR_MAP['pending'];
+            var oBtns = buildActionBtns(o);
+            subHtml +=
+                '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.3rem .5rem;border-radius:.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">' +
+                '<span style="font-family:monospace;font-size:.7rem;font-weight:700;color:var(--accent);flex-shrink:0;">' + escHtml(o.order_number) + '</span>' +
+                '<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:9999px;font-size:.62rem;font-weight:700;background:' + oSc.bg + ';color:' + oSc.color + ';">' + oSc.label + '</span>' +
+                '<span style="font-size:.68rem;color:var(--text-muted);flex-shrink:0;">₱' + Number(o.total).toLocaleString() + '</span>' +
+                '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-left:auto;">' + oBtns + '</div>' +
+                '</div>';
+        });
+        subHtml += '</div>';
+
+        html +=
+            '<tr id="order-row-group-' + tableNum.replace(/\s/g,'_') + '">' +
+            '<td>' +
+                '<div style="display:flex;flex-direction:column;gap:.15rem;">' +
+                group.map(function(o){ return '<span style="font-family:monospace;font-size:.72rem;color:var(--accent);">' + escHtml(o.order_number) + '</span>'; }).join('') +
+                '</div>' +
+            '</td>' +
+            '<td>' +
+                '<div style="display:flex;align-items:center;gap:.5rem;">' +
+                '<div style="width:1.875rem;height:1.875rem;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#000;font-weight:700;font-size:.7rem;flex-shrink:0;">' + initial + '</div>' +
+                '<div>' +
+                    '<div style="display:flex;align-items:center;gap:.3rem;margin-bottom:.1rem;">' +
+                    '<p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">' + escHtml(rep.customer) + '</p>' +
+                    '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(250,204,21,.1);color:#facc15;font-weight:700;">🪑 Table ' + escHtml(tableNum) + '</span>' +
+                    '</div>' +
+                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">' + group.length + ' order(s) active</p>' +
+                '</div>' +
+                '</div>' +
+            '</td>' +
+            '<td style="max-width:200px;">' + itemsHtml + '</td>' +
+            '<td style="font-weight:700;color:var(--accent);">&#x20B1;' + Number(grandTotal).toLocaleString() + '</td>' +
+            '<td><span style="display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:9999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:' + sc.bg + ';color:' + sc.color + ';">' + sc.label + '</span></td>' +
+            '<td style="color:var(--text-muted);font-size:.72rem;white-space:nowrap;">' + escHtml(rep.date_short || rep.date) + '</td>' +
+            '<td>' + subHtml + '</td>' +
+            '</tr>';
+    });
+
+    // ── Render individual (non-grouped) order rows ────────────────────────────
+    soloOrders.forEach(function(o) {
+        html += renderSingleOrderRow(o);
+    });
+
+    tbody.innerHTML = html;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// Build just the action buttons for one order (used in both grouped and solo rows)
+function buildActionBtns(o) {
+    var actionBtn = '';
+    var act = INLINE_ACTIONS[o.status];
+
+    if (o.status === 'preparing') {
+        if (!o.prepared_at) {
+            act = null;
+            actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(220,38,38,.1);color:#f87171;border:1px solid rgba(220,38,38,.25);white-space:nowrap;">' +
+                '<span style="width:6px;height:6px;border-radius:50%;background:#f87171;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
+                'Chef Cooking' +
+                '</span>';
+        } else if (o.order_type === 'delivery') {
+            act = { label:'Dispatch Rider', icon:'bike', btnClass:'btn-warning', type:'dispatch' };
+        } else {
+            act = { label: o.order_type === 'pickup' ? 'Picked Up' : 'Complete', icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
+        }
+    }
+
+    if (o.status === 'rider_assigned') {
+        var riderName = o.rider ? escHtml(o.rider) : 'Rider';
+        actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.25);white-space:nowrap;">' +
+            '<span style="width:6px;height:6px;border-radius:50%;background:#a78bfa;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
+            'Awaiting Rider Pickup' +
+            '</span>';
+    }
+
+    if (act) {
+        actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;white-space:nowrap;" ' +
+            'onclick="quickAction(' + o.id + ',\'' + act.type + '\',\'' + (act.next || '') + '\',this)">' +
+            '<i data-lucide="' + act.icon + '" style="width:.75rem;height:.75rem;stroke-width:2.5;flex-shrink:0;"></i>' +
+            act.label +
+            '</button>';
+    }
+
+    // Settings/detail button always
+    actionBtn += '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;" onclick="openManageModal(' + o.id + ')" title="Details">' +
+        '<i data-lucide="settings-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+        '</button>';
+
+    return actionBtn;
+}
+
+function renderSingleOrderRow(o) {
         var sc = STATUS_COLOR_MAP[o.status] || STATUS_COLOR_MAP['pending'];
         var initial = (o.customer || 'G').charAt(0).toUpperCase();
 
@@ -306,50 +462,26 @@ function renderTable(orders) {
             itemsHtml += '<span style="font-size:.68rem;color:var(--text-muted);">+' + (o.items.length - 2) + ' more</span>';
         }
 
-        // Inline action button
-        var actionBtn = '';
-        var act = INLINE_ACTIONS[o.status];
+        var actionBtn = buildActionBtns(o);
 
-        // preparing: behaviour depends on order type and whether kitchen marked ready
-        if (o.status === 'preparing') {
-            if (!o.prepared_at) {
-                // Kitchen still cooking � show pulsing badge, no action button
-                act = null;
-                actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(220,38,38,.1);color:#f87171;border:1px solid rgba(220,38,38,.25);white-space:nowrap;" title="Chef is cooking this order">' +
-                    '<span style="width:6px;height:6px;border-radius:50%;background:#f87171;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
-                    'Chef Cooking' +
-                    '</span>';
-            } else if (o.order_type === 'delivery') {
-                // Delivery + kitchen ready ? admin dispatches a rider
-                act = { label:'Dispatch Rider', icon:'bike', btnClass:'btn-warning', type:'dispatch' };
-            } else {
-                // Dine-in / pickup + kitchen ready ? admin completes the order
-                act = { label: o.order_type === 'pickup' ? 'Picked Up' : 'Complete', icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
-            }
+        // Archive / delete buttons
+        if (o.order_type === 'delivery') {
+            actionBtn += '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#60a5fa;" onclick="adminPrintTakeoutSlip(' + o.id + ')" title="Print Takeout Slip">' +
+                '<i data-lucide="printer" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+                '</button>';
         }
-
-        // Dine-in/pickup accepted: kitchen hasn't started yet � admin waits, no Complete button
-        // (chef must Start Cooking ? Mark Ready before admin can complete)
-
-        if (act) {
-            actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;white-space:nowrap;" ' +
-                'onclick="quickAction(' + o.id + ',\'' + act.type + '\',\'' + (act.next || '') + '\',this)">' +
-                '<i data-lucide="' + act.icon + '" style="width:.75rem;height:.75rem;stroke-width:2.5;flex-shrink:0;"></i>' +
-                act.label +
+        if (['delivered','cancelled'].indexOf(o.status) !== -1) {
+            actionBtn += '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';" onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '">' +
+                '<i data-lucide="' + (o.is_archived ? 'archive-restore' : 'archive') + '" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+                '</button>';
+        }
+        if (o.is_archived) {
+            actionBtn += '<button class="btn-icon-delete" style="font-size:.72rem;padding:.35rem .55rem;" onclick="deleteOrder(' + o.id + ',\'' + escHtml(o.order_number) + '\',this)" title="Delete permanently">' +
+                '<i data-lucide="trash-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
                 '</button>';
         }
 
-        // rider_assigned ? rider-owned
-        if (o.status === 'rider_assigned') {
-            var riderName = o.rider ? escHtml(o.rider) : 'Rider';
-            actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.25);white-space:nowrap;" title="' + riderName + ' must click Picked Up on their dashboard">' +
-                '<span style="width:6px;height:6px;border-radius:50%;background:#a78bfa;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
-                'Awaiting Rider Pickup' +
-                '</span>';
-        }
-
-        html +=
-            '<tr id="order-row-' + o.id + '">' +
+        return '<tr id="order-row-' + o.id + '">' +
             '<td><span style="font-family:monospace;font-weight:700;color:var(--accent);font-size:.875rem;">' + escHtml(o.order_number) + '</span></td>' +
             '<td>' +
                 '<div style="display:flex;align-items:center;gap:.5rem;">' +
@@ -360,7 +492,7 @@ function renderTable(orders) {
                     '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;">' + (o.order_type_icon || '') + ' ' + escHtml(o.order_type_label) + '</span>' +
                     '</div>' +
                     (o.order_type === 'dine_in' && o.table_number
-                        ? '<p style="font-size:.7rem;color:#facc15;font-weight:700;margin:0 0 1px;">?? Table ' + escHtml(o.table_number) + '</p>'
+                        ? '<p style="font-size:.7rem;color:#facc15;font-weight:700;margin:0 0 1px;">🪑 Table ' + escHtml(o.table_number) + '</p>'
                         : '<p style="font-size:.68rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">' + escHtml(o.address || '') + '</p>') +
                 '</div>' +
                 '</div>' +
@@ -372,32 +504,9 @@ function renderTable(orders) {
             '<td>' +
                 '<div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;">' +
                 actionBtn +
-                '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;" onclick="openManageModal(' + o.id + ')" title="Details">' +
-                    '<i data-lucide="settings-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
-                '</button>' +
-                (o.order_type === 'delivery'
-                    ? '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#60a5fa;" onclick="adminPrintTakeoutSlip(' + o.id + ')" title="Print Takeout Slip">' +
-                        '<i data-lucide="printer" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
-                      '</button>'
-                    : '') +
-                ((['delivered','cancelled'].includes(o.status))
-                    ? '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';" onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '">' +
-                        '<i data-lucide="' + (o.is_archived ? 'archive-restore' : 'archive') + '" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
-                      '</button>'
-                    : '') +
-                (o.is_archived
-                    ? '<button class="btn-icon-delete" style="font-size:.72rem;padding:.35rem .55rem;" onclick="deleteOrder(' + o.id + ',\'' + escHtml(o.order_number) + '\',this)" title="Delete permanently">' +
-                        '<i data-lucide="trash-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
-                      '</button>'
-                    : '') +
                 '</div>' +
             '</td>' +
             '</tr>';
-
-    });
-
-    tbody.innerHTML = html;
-    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function escHtml(str) {
