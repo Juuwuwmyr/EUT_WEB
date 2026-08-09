@@ -564,8 +564,23 @@ class AdminController extends Controller
             }
         }
 
-        // Delete addons removed in the UI
-        $item->modifierGroups()->where('type', 'addon')->whereNotIn('id', $keptIds)->delete();
+        // Delete addons removed in the UI.
+        // IMPORTANT: Only delete simple addon groups (≤1 option) that were managed
+        // through the admin UI. Multi-option addon groups (e.g. Drink with 7 options)
+        // inserted via SQL are NOT rendered in the admin UI, so never delete them here.
+        $multiOptionIds = $item->modifierGroups()
+            ->where('type', 'addon')
+            ->whereNotIn('id', $keptIds)
+            ->withCount('options')
+            ->get()
+            ->filter(fn($g) => $g->options_count > 1)
+            ->pluck('id');
+
+        $item->modifierGroups()
+             ->where('type', 'addon')
+             ->whereNotIn('id', $keptIds)
+             ->whereNotIn('id', $multiOptionIds)
+             ->delete();
     }
 
     // ── Standalone modifier group CRUD (for future API use) ──

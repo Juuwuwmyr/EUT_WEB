@@ -324,11 +324,7 @@
                     <span class="pay-emoji"><svg width="18" height="18" fill="none" stroke="#4ade80" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg></span>
                     <div><p class="pay-label">Cash on Delivery</p><p class="pay-sub">Pay when order arrives</p></div>
                 </label>
-                <label class="pay-option" onclick="selectPay(this)">
-                    <input type="radio" name="payment" value="card">
-                    <span class="pay-emoji">💳</span>
-                    <div><p class="pay-label">Credit / Debit Card</p><p class="pay-sub">Visa or Mastercard</p></div>
-                </label>
+
             </div>
         </div>
 
