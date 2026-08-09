@@ -115,6 +115,30 @@
         </div>
     </div>
 </div>
+
+{{-- ══════════ ORDER PREVIEW MODAL (View before Accept) ══════════ --}}
+<div id="previewModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'previewModal')">
+    <div class="modal-box" style="max-width:420px;">
+        <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="eye" style="width:1.1rem;height:1.1rem;color:#f59e0b;stroke-width:2;"></i>
+                <h3 class="modal-title" id="pvTitle">Order Preview</h3>
+            </div>
+            <button onclick="closeModal('previewModal')" class="modal-close">
+                <i data-lucide="x" style="width:1rem;height:1rem;stroke-width:2.5;"></i>
+            </button>
+        </div>
+        <div id="pvBody" class="modal-body" style="gap:.75rem;"></div>
+        <div style="padding:.75rem 1.25rem 1.25rem;display:flex;gap:.5rem;">
+            <button onclick="closeModal('previewModal')" class="btn-ghost" style="flex:1;justify-content:center;font-size:.8rem;">
+                Close
+            </button>
+            <button id="pvAcceptBtn" class="btn-success" style="flex:2;justify-content:center;font-size:.875rem;display:inline-flex;align-items:center;gap:.35rem;">
+                <i data-lucide="check" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i> Accept Order
+            </button>
+        </div>
+    </div>
+</div>
 <script>
 var CSRF_TOKEN   = '{{ csrf_token() }}';
 var POLL_URL     = '{{ route("admin.orders.poll") }}';
@@ -434,6 +458,14 @@ function buildActionBtns(o) {
             '<i data-lucide="' + act.icon + '" style="width:.75rem;height:.75rem;stroke-width:2.5;flex-shrink:0;"></i>' +
             act.label +
             '</button>';
+
+        // For pending orders: prepend a "View" button so admin can inspect items before accepting
+        if (o.status === 'pending') {
+            actionBtn = '<button type="button" class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .65rem;white-space:nowrap;border:1px solid rgba(245,158,11,.35);color:#f59e0b;" ' +
+                'onclick="openPreviewModal(' + o.id + ')" title="View order items before accepting">' +
+                '<i data-lucide="eye" style="width:.75rem;height:.75rem;stroke-width:2;flex-shrink:0;"></i> View' +
+                '</button>' + actionBtn;
+        }
     }
 
     // Settings/detail button always
@@ -656,6 +688,86 @@ async function quickAction(orderId, type, nextStatus, btn) {
 async function quickAccept(orderId, btn) {
     if (!confirm('Accept this order?')) return;
     await quickAction(orderId, 'accept', '', btn);
+}
+
+// -- Preview modal: show full order before accepting -----------------------
+function openPreviewModal(id) {
+    var o = ORDERS_MAP[id];
+    if (!o) { fetchOrders().then(function(){ openPreviewModal(id); }); return; }
+
+    document.getElementById('pvTitle').textContent = o.order_number +
+        (o.table_number ? ' · 🪑 Table ' + o.table_number : '');
+
+    // Build items list
+    var itemsHtml = '';
+    var subtotal  = 0;
+    o.items.forEach(function(item) {
+        subtotal += parseFloat(item.subtotal || 0);
+        var modTags = '';
+        if (item.modifiers && item.modifiers.length) {
+            item.modifiers.forEach(function(m) {
+                if (!m || !m.name || /^no\s/i.test(m.name)) return;
+                var colors = { flavor:'#3b82f6', modifier:'#8b5cf6', addon:'#d97706' };
+                var c = colors[m.type] || '#8b5cf6';
+                modTags += '<span style="padding:.1rem .4rem;border-radius:99px;font-size:.58rem;background:' + c + '18;color:' + c + ';font-weight:600;margin-right:.2rem;">' + escHtml(m.name) + '</span>';
+            });
+        }
+        itemsHtml +=
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:.5rem 0;border-bottom:1px solid var(--border-divider);">' +
+                '<div style="flex:1;min-width:0;">' +
+                    '<span style="font-weight:700;color:var(--text-strong);font-size:.82rem;">×' + item.qty + ' ' + escHtml(item.name) + '</span>' +
+                    (modTags ? '<div style="margin-top:.25rem;display:flex;flex-wrap:wrap;gap:.2rem;">' + modTags + '</div>' : '') +
+                    '<div style="font-size:.68rem;color:var(--text-muted);margin-top:.15rem;">₱' + Number(item.price || (item.subtotal / item.qty)).toLocaleString() + ' each</div>' +
+                '</div>' +
+                '<span style="font-size:.82rem;font-weight:700;color:var(--accent);flex-shrink:0;margin-left:.75rem;">₱' + Number(item.subtotal).toLocaleString() + '</span>' +
+            '</div>';
+    });
+
+    var html =
+        // Table / order type badge
+        '<div style="display:flex;align-items:center;gap:.5rem;padding:.5rem .75rem;border-radius:.5rem;background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.18);">' +
+            '<span style="font-size:1.1rem;">🪑</span>' +
+            '<div>' +
+                '<p style="margin:0;font-size:.75rem;font-weight:700;color:#facc15;">' +
+                    (o.table_number ? 'Table ' + escHtml(o.table_number) + ' — Dine-in' : escHtml(o.order_type_label || o.order_type)) +
+                '</p>' +
+                '<p style="margin:0;font-size:.65rem;color:var(--text-muted);">Placed ' + escHtml(o.date_short || o.date) + ' · ' + escHtml(o.customer) + '</p>' +
+            '</div>' +
+        '</div>' +
+        // Items
+        '<div>' +
+            '<p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .35rem;font-weight:600;">Items Ordered</p>' +
+            '<div style="background:var(--bg-filter);border-radius:.625rem;padding:.25rem .875rem;">' +
+                itemsHtml +
+                '<div style="display:flex;justify-content:space-between;padding:.5rem 0;margin-top:.15rem;">' +
+                    '<span style="font-weight:800;color:var(--text-strong);font-size:.875rem;">Total</span>' +
+                    '<span style="font-weight:800;font-size:1.05rem;color:var(--accent);">₱' + Number(o.total).toLocaleString() + '</span>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        // Notes
+        (o.notes
+            ? '<div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:.5rem;padding:.6rem .875rem;">' +
+                '<p style="font-size:.65rem;color:#d97706;text-transform:uppercase;letter-spacing:.06em;margin:0 0 .25rem;font-weight:700;">📝 Customer Note</p>' +
+                '<p style="font-size:.78rem;color:var(--text-body);margin:0;">' + escHtml(o.notes) + '</p>' +
+              '</div>'
+            : '');
+
+    document.getElementById('pvBody').innerHTML = html;
+
+    // Wire up the Accept button
+    var acceptBtn = document.getElementById('pvAcceptBtn');
+    // Clone to remove any previous listener
+    var fresh = acceptBtn.cloneNode(true);
+    acceptBtn.parentNode.replaceChild(fresh, acceptBtn);
+    fresh.addEventListener('click', function() {
+        closeModal('previewModal');
+        // Call quickAction directly — the fresh button is used just as a dummy ref
+        quickAction(id, 'accept', '', fresh);
+    });
+
+    openModal('previewModal');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 async function archiveOrder(orderId, btn) {
