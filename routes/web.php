@@ -98,6 +98,9 @@ Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(functi
 // -------------------------------------------------------
 // Orders (authenticated customers)
 // -------------------------------------------------------
+// Orders — store is public (guests can place dine-in orders)
+Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
+
 Route::middleware('auth')->group(function () {
     // -------------------------------------------------------
     // Cart sync (server-side cart for logged-in users)
@@ -111,9 +114,6 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/orders',                  [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders',                   [\App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}',           [\App\Http\Controllers\OrderController::class, 'show'])->name('orders.show');
-    Route::post('/orders/{order}/cancel',   [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
-    Route::patch('/orders/{order}/set-coords', [\App\Http\Controllers\OrderController::class, 'setCoords'])->name('orders.set-coords');
 
     // Profile
     Route::post ('/profile',          [AuthController::class, 'updateProfile'])->name('profile.update');

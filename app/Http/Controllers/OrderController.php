@@ -23,43 +23,52 @@ class OrderController extends Controller
         }
 
         // ── Naujan-only restriction ─────────────────────────────────────────
-        // Orders are only accepted from customers physically located within
-        // Naujan, Oriental Mindoro (≤ 30 km from the town center).
-        // The frontend sends `customer_lat` / `customer_lng` obtained via the
-        // browser Geolocation API.  If the coordinates are absent we allow the
-        // request through — the frontend layer is the primary gate.
-        $cLat = (float) $request->input('customer_lat', 0);
-        $cLng = (float) $request->input('customer_lng', 0);
-        if ($cLat && $cLng) {
-            $naujanLat = 13.3215;
-            $naujanLng = 121.3021;
-            $earthR    = 6371;
-            $dLat      = deg2rad($cLat - $naujanLat);
-            $dLng      = deg2rad($cLng - $naujanLng);
-            $a         = sin($dLat/2) * sin($dLat/2)
-                       + cos(deg2rad($naujanLat)) * cos(deg2rad($cLat))
-                       * sin($dLng/2) * sin($dLng/2);
-            $distKm    = $earthR * 2 * atan2(sqrt($a), sqrt(1 - $a));
+        // Skip for dine-in — they're already physically at the restaurant.
+        $isDineIn = $request->input('order_type') === 'dine_in';
 
-            if ($distKm > 30) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Sorry, this service is exclusive to customers within Naujan, Oriental Mindoro. Your location appears to be outside our coverage area.',
-                    'outside_naujan' => true,
-                ], 422);
+        if (!$isDineIn) {
+            $cLat = (float) $request->input('customer_lat', 0);
+            $cLng = (float) $request->input('customer_lng', 0);
+            if ($cLat && $cLng) {
+                $naujanLat = 13.3215;
+                $naujanLng = 121.3021;
+                $earthR    = 6371;
+                $dLat      = deg2rad($cLat - $naujanLat);
+                $dLng      = deg2rad($cLng - $naujanLng);
+                $a         = sin($dLat/2) * sin($dLat/2)
+                           + cos(deg2rad($naujanLat)) * cos(deg2rad($cLat))
+                           * sin($dLng/2) * sin($dLng/2);
+                $distKm    = $earthR * 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+                if ($distKm > 30) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Sorry, this service is exclusive to customers within Naujan, Oriental Mindoro. Your location appears to be outside our coverage area.',
+                        'outside_naujan' => true,
+                    ], 422);
+                }
             }
         }
 
+        // Guests can only place dine-in orders
+        if (!auth()->check() && !$isDineIn) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please log in to place a delivery or pickup order.',
+            ], 401);
+        }
+
         $request->validate([
-            'items'            => 'required|array|min:1',            'items.*.id'       => 'required',
+            'items'            => 'required|array|min:1',
+            'items.*.id'       => 'required',
             'items.*.qty'      => 'required|integer|min:1|max:99',
             'items.*.modifiers'=> 'nullable|array',
             'order_type'       => 'required|in:delivery,pickup,dine_in',
-            'delivery_address' => 'required|string|max:255',
+            'delivery_address' => 'required_unless:order_type,dine_in|nullable|string|max:255',
             'delivery_barangay'=> 'nullable|string|max:100',
             'delivery_lat'     => 'nullable|numeric|between:-90,90',
             'delivery_lng'     => 'nullable|numeric|between:-180,180',
-            'payment_method'   => 'required|in:cash,gcash,card',
+            'payment_method'   => 'nullable|in:cash,gcash,card',
             'notes'            => 'nullable|string|max:500',
             'table_number'     => 'required_if:order_type,dine_in|nullable|string|max:20',
         ]);
@@ -207,15 +216,15 @@ class OrderController extends Controller
             }
 
             $order = Order::create([
-                'user_id'          => auth()->id(),
+                'user_id'          => auth()->id(), // null for dine-in guests
                 'status'           => 'pending',
                 'order_type'       => $request->order_type,
                 'subtotal'         => $subtotal,
                 'delivery_fee'     => $deliveryFee,
                 'total'            => $total,
-                'payment_method'   => $request->payment_method,
+                'payment_method'   => $request->payment_method ?? 'cash',
                 'payment_status'   => 'pending',
-                'delivery_address' => $request->delivery_address,
+                'delivery_address' => $request->delivery_address ?? ('Dine-in · Table ' . $request->table_number),
                 'delivery_barangay'=> $request->delivery_barangay,
                 'delivery_lat'     => $request->delivery_lat,
                 'delivery_lng'     => $request->delivery_lng,
