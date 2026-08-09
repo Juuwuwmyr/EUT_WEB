@@ -212,7 +212,9 @@ class ChefController extends Controller
     }
 
     /**
-     * Get a combined receipt for all delivered dine-in orders at the same table.
+     * Get a combined receipt for all dine-in orders at the same table for the
+     * current session. Shows every order in the session (not just delivered ones)
+     * so the receipt is always complete even when completing a mid-session order.
      * Falls back to a single-order receipt if the order has no table number.
      */
     public function tableReceipt(Order $order)
@@ -223,14 +225,17 @@ class ChefController extends Controller
             return view('admin.partials.kitchen-receipt', compact('order'));
         }
 
-        // Gather all delivered orders for this table belonging to the same sitting.
-        // Scope by table_session_id when available so that a second customer at the
-        // same table on the same day never sees the previous session's items.
-        // Fall back to the date-only scope for legacy orders that pre-date the column.
+        // Gather ALL non-cancelled orders for this table in the same sitting.
+        // We deliberately do NOT filter by status = 'delivered' — the full session
+        // receipt must include every order the customer placed, whether the last
+        // batch is still being cooked or has already been completed.
+        // Scope by table_session_id when available so a second customer on the same
+        // day never sees the previous session's items.
+        // Fall back to date-only scope for legacy orders that pre-date the column.
         $sessionQuery = Order::with(['items'])
             ->where('order_type', 'dine_in')
             ->where('table_number', $order->table_number)
-            ->where('status', 'delivered');
+            ->where('status', '!=', 'cancelled');
 
         if ($order->table_session_id) {
             $sessionQuery->where('table_session_id', $order->table_session_id);
