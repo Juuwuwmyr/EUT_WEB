@@ -1355,7 +1355,7 @@ if (window.Echo) {
             <select id="qrTableSelect" onchange="onDropdownPick(this.value)">
                 <option value="">— Select your table —</option>
                 @for($t = 1; $t <= 20; $t++)
-                <option value="Table {{ $t }}">Table {{ $t }}</option>
+                <option value="{{ $t }}">Table {{ $t }}</option>
                 @endfor
             </select>
         </div>
@@ -1491,7 +1491,7 @@ function parseTableFromQr(raw) {
     raw = raw.trim();
     // Formats: "TABLE:5", "Table 5", "5", "T5", etc.
     const m = raw.match(/(?:table[:\s#-]*)?(\d{1,2})/i);
-    if (m) return 'Table ' + m[1];
+    if (m) return m[1]; // store just the number, display layer adds "Table"
     return null;
 }
 
