@@ -204,6 +204,124 @@
     .k-btn-cook:hover:not(:disabled)    { background: #1d4ed8; }
     .k-btn-ready   { background: #d97706; color: #fff; }
     .k-btn-ready:hover:not(:disabled)   { background: #b45309; }
+    /* Small ghost-red cancel button that sits beside the main action */
+    .k-btn-remove  {
+        flex: 0 0 auto;
+        width: 2.4rem;
+        background: rgba(239,68,68,.1);
+        color: #ef4444;
+        border: 1px solid rgba(239,68,68,.25);
+    }
+    .k-btn-remove:hover:not(:disabled) {
+        background: rgba(239,68,68,.22);
+        border-color: rgba(239,68,68,.5);
+    }
+
+    /* ── Remove-Item Modal ── */
+    .k-remove-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: rgba(0,0,0,.78);
+        backdrop-filter: blur(6px);
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .k-remove-backdrop.open { display: flex; }
+    .k-remove-modal {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 1.1rem;
+        width: 100%;
+        max-width: 420px;
+        box-shadow: 0 24px 60px rgba(0,0,0,.7);
+        animation: kModalIn .2s ease;
+        overflow: hidden;
+    }
+    .k-remove-header {
+        padding: 1rem 1.2rem .8rem;
+        border-bottom: 1px solid var(--border-divider);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .k-remove-title {
+        font-size: .95rem;
+        font-weight: 800;
+        color: var(--text-strong);
+    }
+    .k-remove-subtitle {
+        font-size: .72rem;
+        color: var(--text-muted);
+        margin-top: .1rem;
+    }
+    .k-remove-body {
+        padding: .75rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: .45rem;
+        max-height: 52vh;
+        overflow-y: auto;
+    }
+    .k-remove-item-row {
+        display: flex;
+        align-items: center;
+        gap: .7rem;
+        padding: .55rem .7rem;
+        border-radius: .65rem;
+        border: 1px solid var(--border-divider);
+        background: rgba(255,255,255,.03);
+        cursor: pointer;
+        transition: border-color .15s, background .15s;
+    }
+    .k-remove-item-row:hover { border-color: rgba(239,68,68,.4); background: rgba(239,68,68,.06); }
+    .k-remove-item-row.selected { border-color: rgba(239,68,68,.6); background: rgba(239,68,68,.1); }
+    .k-remove-item-img {
+        width: 38px;
+        height: 38px;
+        border-radius: .45rem;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid var(--border-divider);
+    }
+    .k-remove-item-name {
+        flex: 1;
+        font-size: .85rem;
+        font-weight: 700;
+        color: var(--text-strong);
+    }
+    .k-remove-item-qty {
+        font-size: .75rem;
+        font-weight: 800;
+        color: #facc15;
+        flex-shrink: 0;
+    }
+    .k-remove-check {
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: .65rem;
+        color: transparent;
+        transition: all .15s;
+    }
+    .k-remove-item-row.selected .k-remove-check {
+        background: #ef4444;
+        border-color: #ef4444;
+        color: #fff;
+    }
+    .k-remove-footer {
+        padding: .75rem 1.2rem 1rem;
+        border-top: 1px solid var(--border-divider);
+        display: flex;
+        gap: .5rem;
+    }
 
     .k-empty {
         text-align: center;
@@ -571,6 +689,32 @@
     </div>
 </div>
 
+{{-- ── Remove Item Modal ── --}}
+<div class="k-remove-backdrop" id="removeItemModal" onclick="closeRemoveItemModal(event)">
+    <div class="k-remove-modal">
+        <div class="k-remove-header">
+            <div>
+                <div class="k-remove-title">Remove Item from Order</div>
+                <div class="k-remove-subtitle" id="removeModalOrderLabel">—</div>
+            </div>
+            <button class="k-modal-close" onclick="closeRemoveItemModal()" style="flex-shrink:0;">✕</button>
+        </div>
+        <div class="k-remove-body" id="removeItemList">
+            {{-- populated by JS --}}
+        </div>
+        <div class="k-remove-footer">
+            <button id="removeItemConfirmBtn"
+                class="k-btn"
+                style="flex:1;background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);"
+                onclick="confirmRemoveItem()" disabled>
+                Remove Selected Item
+            </button>
+            <button class="k-btn" style="flex:0 0 auto;padding:.6rem 1rem;background:rgba(255,255,255,.06);color:var(--text-muted);"
+                onclick="closeRemoveItemModal()">Keep All</button>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -582,6 +726,7 @@ const KITCHEN_URL = '{{ route('chef.orders') }}';
 const ACCEPT_URL  = id => IS_ADMIN ? `/admin/orders/${id}/accept` : `/chef/orders/${id}/accept`;
 const START_URL   = id => `/chef/orders/${id}/start`;
 const READY_URL   = id => `/chef/orders/${id}/ready`;
+const REMOVE_ITEM_URL = (orderId, itemId) => `/chef/orders/${orderId}/items/${itemId}`;
 
 console.log('[INIT] Constants:', {
     CSRF_TOKEN: !!CSRF_TOKEN,
@@ -703,6 +848,11 @@ function renderActions(order, column) {
     const receiptUrl = `/chef/orders/${order.id}/receipt`;
     const printBtn = `<button class="k-btn" style="flex:0 0 auto;width:2.5rem;background:rgba(255,255,255,.06);color:var(--text-muted);" onclick="event.stopPropagation();printReceipt('${receiptUrl}')" title="Print Receipt"><i data-lucide="printer" style="width:14px;height:14px;"></i></button>`;
 
+    // Remove-item button — only for dine-in orders with more than 0 items
+    const removeBtn = (order.order_type === 'dine_in')
+        ? `<button class="k-btn k-btn-remove" onclick="event.stopPropagation();openRemoveItemModal(${order.id})" title="Remove an item">✕</button>`
+        : '';
+
     if (column === 'new') {
         // Pending orders — admin accepts
         return IS_ADMIN
@@ -710,11 +860,10 @@ function renderActions(order, column) {
             : `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);" disabled>Waiting for acceptance…</button>`;
     }
     if (column === 'queued') {
-        // Accepted orders — chef starts cooking
-        return printBtn + `<button class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', ${order.id}, this)">🍳 Start Cooking</button>`;
+        return removeBtn + printBtn + `<button class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', ${order.id}, this)">🍳 Start Cooking</button>`;
     }
     if (column === 'cooking') {
-        return printBtn + `<button class="k-btn k-btn-ready" onclick="event.stopPropagation();kitchenAction('ready', ${order.id}, this)">Mark Ready</button>`;
+        return removeBtn + printBtn + `<button class="k-btn k-btn-ready" onclick="event.stopPropagation();kitchenAction('ready', ${order.id}, this)">Mark Ready</button>`;
     }
     return printBtn;
 }
@@ -881,9 +1030,16 @@ function openOrderModal(orderId) {
     }
     if (col === 'cooking') btn = `<button class="k-btn k-btn-ready" style="flex:1;" onclick="modalAction('ready',${order.id})">Mark Ready</button>`;
 
+    // Remove-item button shown in modal for dine-in queued/cooking
+    const removeModalBtn = (order.order_type === 'dine_in' && (col === 'queued' || col === 'cooking'))
+        ? `<button class="k-btn k-btn-remove" style="flex:0 0 auto;padding:.6rem 1rem;width:auto;" onclick="closeOrderModal();openRemoveItemModal(${order.id})">✕ Remove Item</button>`
+        : '';
+
     document.getElementById('modalActions').innerHTML =
         (col !== 'new' ? printBtn : '') +
-        btn + `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);flex:0 0 auto;padding:.6rem 1.2rem;" onclick="closeOrderModal()">Close</button>`;
+        btn +
+        removeModalBtn +
+        `<button class="k-btn" style="background:rgba(255,255,255,.06);color:var(--text-muted);flex:0 0 auto;padding:.6rem 1.2rem;" onclick="closeOrderModal()">Close</button>`;
 
     document.getElementById('orderModal').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -913,7 +1069,111 @@ async function modalAction(action, orderId) {
     } catch(e) { alert('Network error.'); if (btn) btn.disabled = false; }
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOrderModal(); });
+// ── REMOVE ITEM MODAL ───────────────────────────────────────────────────────
+let _removeOrderId  = null;
+let _removeItemId   = null;
+
+function openRemoveItemModal(orderId) {
+    const order = orderDataMap[orderId];
+    if (!order) return;
+
+    _removeOrderId = orderId;
+    _removeItemId  = null;
+
+    // Populate header label
+    document.getElementById('removeModalOrderLabel').textContent =
+        order.order_number + (order.table_number ? ' · Table ' + order.table_number : '');
+
+    // Build item list
+    const list = document.getElementById('removeItemList');
+    list.innerHTML = (order.items || []).map(item => `
+        <div class="k-remove-item-row" data-item-id="${item.id}" onclick="selectRemoveItem(this, ${item.id})">
+            <img class="k-remove-item-img"
+                 src="${escapeHtml(item.image || '')}"
+                 alt=""
+                 onerror="this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
+            <span class="k-remove-item-name">${escapeHtml(item.name)}</span>
+            <span class="k-remove-item-qty">${item.qty}×</span>
+            <span class="k-remove-check">✓</span>
+        </div>`).join('');
+
+    // Reset confirm button
+    const confirmBtn = document.getElementById('removeItemConfirmBtn');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Remove Selected Item';
+
+    document.getElementById('removeItemModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function selectRemoveItem(el, itemId) {
+    // Deselect all, then select clicked row
+    document.querySelectorAll('#removeItemList .k-remove-item-row').forEach(r => r.classList.remove('selected'));
+    el.classList.add('selected');
+    _removeItemId = itemId;
+
+    const confirmBtn = document.getElementById('removeItemConfirmBtn');
+    confirmBtn.disabled = false;
+    const name = el.querySelector('.k-remove-item-name')?.textContent || 'item';
+    confirmBtn.textContent = 'Remove "' + name + '"';
+}
+
+function closeRemoveItemModal(e) {
+    if (e && e.target !== document.getElementById('removeItemModal')) return;
+    document.getElementById('removeItemModal').classList.remove('open');
+    document.body.style.overflow = '';
+    _removeOrderId = null;
+    _removeItemId  = null;
+}
+
+async function confirmRemoveItem() {
+    if (!_removeOrderId || !_removeItemId) return;
+
+    const confirmBtn = document.getElementById('removeItemConfirmBtn');
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Removing...';
+
+    try {
+        const res = await fetch(REMOVE_ITEM_URL(_removeOrderId, _removeItemId), {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+            showToast(data.message || 'Could not remove item.', 'error');
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Remove Selected Item';
+            return;
+        }
+
+        const msg = data.items_left === 0
+            ? 'All items removed — order cancelled.'
+            : 'Item removed. ' + data.items_left + ' item(s) remaining.';
+        showToast(msg, 'success');
+
+        document.getElementById('removeItemModal').classList.remove('open');
+        document.body.style.overflow = '';
+        _removeOrderId = null;
+        _removeItemId  = null;
+
+        // Force-refresh so the board reflects the change immediately
+        // Also bust the signature cache so the updated item list re-renders
+        columnSignatures = {};
+        await refreshKitchen(true);
+
+    } catch (err) {
+        showToast('Network error. Please try again.', 'error');
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Remove Selected Item';
+    }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeOrderModal(); closeRemoveItemModal(); } });
 
 function showToast(message, type = 'success', duration = 3000) {
     const toastContainer = document.getElementById('toastContainer') || (() => {

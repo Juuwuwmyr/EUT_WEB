@@ -85,6 +85,7 @@ Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(functi
     Route::post('/orders/{order}/start',                [\App\Http\Controllers\ChefController::class, 'startCooking'])->name('orders.start');
     Route::post('/orders/{order}/ready',                [\App\Http\Controllers\ChefController::class, 'markReady'])->name('orders.ready');
     Route::post('/orders/{order}/assign-rider',         [\App\Http\Controllers\ChefController::class, 'assignRider'])->name('orders.assign-rider');
+    Route::delete('/orders/{order}/items/{item}',       [\App\Http\Controllers\ChefController::class, 'cancelItem'])->name('orders.cancel-item');
     Route::get('/orders/{order}/receipt',               [\App\Http\Controllers\ChefController::class, 'receipt'])->name('orders.receipt');
     Route::get('/orders/{order}/receipt.html',          [\App\Http\Controllers\ChefController::class, 'receipt']);
     Route::get('/orders/{order}/table-receipt',         [\App\Http\Controllers\ChefController::class, 'tableReceipt'])->name('orders.table-receipt');

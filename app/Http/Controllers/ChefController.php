@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OrderStatusUpdated;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Rider;
 use Illuminate\Http\Request;
 
@@ -75,6 +76,67 @@ class ChefController extends Controller
             'queued'  => $this->formatKitchenOrders($orders['queued']),
             'cooking' => $this->formatKitchenOrders($orders['cooking']),
             'ready'   => $this->formatKitchenOrders($orders['ready']),
+        ]);
+    }
+
+    /**
+     * Remove a single item from a dine-in order in the kitchen queue.
+     * Recalculates order totals. If this was the last item, cancels the whole order.
+     */
+    public function cancelItem(Request $request, Order $order, \App\Models\OrderItem $item)
+    {
+        // Only dine-in orders support per-item removal from the kitchen
+        if ($order->order_type !== 'dine_in') {
+            return $this->kitchenActionResponse(false, 'Per-item removal is only available for dine-in orders.');
+        }
+
+        // Order must still be in a cancellable state
+        if (!$order->isCancellable()) {
+            return $this->kitchenActionResponse(false, 'This order can no longer be modified.');
+        }
+
+        // Make sure the item actually belongs to this order
+        if ($item->order_id !== $order->id) {
+            return $this->kitchenActionResponse(false, 'Item does not belong to this order.');
+        }
+
+        // Delete the item
+        $item->delete();
+
+        // Reload remaining items
+        $order->load('items');
+        $remaining = $order->items;
+
+        if ($remaining->isEmpty()) {
+            // No items left — cancel the whole order
+            $order->update([
+                'status'        => 'cancelled',
+                'cancel_reason' => 'All items removed by kitchen staff',
+                'cancelled_at'  => now(),
+                'subtotal'      => 0,
+                'total'         => 0,
+            ]);
+
+            broadcast(new OrderStatusUpdated($order));
+
+            return $this->kitchenActionResponse(true, "All items removed — order #{$order->order_number} has been cancelled.");
+        }
+
+        // Recalculate totals from remaining items
+        $newSubtotal = round($remaining->sum('subtotal'), 2);
+
+        $order->update([
+            'subtotal' => $newSubtotal,
+            'total'    => $newSubtotal, // dine-in has no delivery fee
+        ]);
+
+        broadcast(new OrderStatusUpdated($order));
+
+        return response()->json([
+            'success'       => true,
+            'message'       => "Item removed from order #{$order->order_number}.",
+            'new_subtotal'  => $newSubtotal,
+            'items_left'    => $remaining->count(),
         ]);
     }
 
