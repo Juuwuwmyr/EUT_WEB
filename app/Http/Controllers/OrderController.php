@@ -164,21 +164,24 @@ class OrderController extends Controller
             $total = round($subtotal + $deliveryFee, 2);
 
             // ── Dine-in: merge into existing active order for same table ────
-            // Only merge if the existing order is still PENDING and there is NO other
-            // order for this table already in the kitchen (accepted or preparing).
-            // Once any order is in the kitchen the customer's new items must become a
-            // brand-new separate queue entry — never merged into a cooking order.
+            // Rules:
+            //  • pending  → merge (admin hasn't seen it yet, just add items)
+            //  • accepted → merge (chef hasn't started yet, still one order)
+            //  • preparing → NEW separate order (chef is actively cooking, don't touch it)
+            //  • delivered/cancelled → NEW separate order (session boundary)
             if ($request->order_type === 'dine_in' && $request->table_number) {
-                // Block merge when the kitchen is already working on something for this table
-                $hasKitchenOrder = Order::where('order_type', 'dine_in')
+                // Only block merge if the chef is actively COOKING (preparing).
+                // accepted = still in the queue, safe to merge.
+                $isCooking = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
-                    ->whereIn('status', ['accepted', 'preparing'])
+                    ->where('status', 'preparing')
                     ->whereDate('created_at', today())
                     ->exists();
 
-                $existingOrder = $hasKitchenOrder ? null : Order::where('order_type', 'dine_in')
+                // Find the most recent pending OR accepted order to merge into
+                $existingOrder = $isCooking ? null : Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
-                    ->where('status', 'pending')   // only merge into un-accepted orders
+                    ->whereIn('status', ['pending', 'accepted'])  // merge while not yet cooking
                     ->whereDate('created_at', today())
                     ->latest()
                     ->first();
@@ -218,10 +221,9 @@ class OrderController extends Controller
                 // fall through and create a new separate order below.
             }
 
-            // For dine-in add-on orders, inherit the existing session ID so every order
-            // from this table-sitting appears on one combined receipt.
-            // Search across all non-cancelled/delivered statuses so we never lose the link
-            // even if a pending add-on order is sitting alongside a cooking one.
+            // For dine-in add-on orders that couldn't be merged (chef is cooking),
+            // inherit the existing session ID so every order from this table-sitting
+            // appears on one combined receipt at the end.
             $tableSessionId = null;
             if ($request->order_type === 'dine_in' && $request->table_number) {
                 $activeSession = Order::where('order_type', 'dine_in')
