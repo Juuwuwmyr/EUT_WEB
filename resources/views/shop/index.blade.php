@@ -153,6 +153,8 @@
             box-shadow: 0 2px 10px rgba(220,38,38,0.4);
         }
         .ot-btn.active svg { stroke: #fff; }
+        .ot-btn.locked { opacity: 0.3; cursor: not-allowed !important; pointer-events: none; }
+        .ot-btn.locked:hover { background: transparent; color: #6b7280; }
         .light-mode .order-type-switcher { background: rgba(0,0,0,0.06) !important; border-color: rgba(0,0,0,0.1) !important; }
         .light-mode .ot-btn { color: #6b7280 !important; }
         .light-mode .ot-btn.active { background: linear-gradient(135deg,#dc2626,#ef4444) !important; color: #fff !important; }
@@ -830,17 +832,37 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartBadge();
     updateCount();
 
-    // ── Table QR: if customer arrived via /checkout?table=N QR code ──────────
-    const _urlTable = new URLSearchParams(window.location.search).get('table');
+    // ── Table QR: if customer arrived via /shop?table=N QR code ─────────────
+    const _urlTable = new URLSearchParams(window.location.search).get('table')
+                   || sessionStorage.getItem('eutTableNumber');
     if (_urlTable && /^\d{1,2}$/.test(_urlTable.trim())) {
         sessionStorage.setItem('eutTableNumber', _urlTable.trim());
-        // Auto-select Dine-in since they scanned a table QR
+        // Auto-select & lock Dine-in since they scanned a table QR
         localStorage.setItem('eutOrderType', 'dine_in');
+        window._tableQrLocked = true; // signal to setOrderType to refuse switching
     }
 
     // Restore saved order type
     const savedType = localStorage.getItem('eutOrderType') || 'delivery';
     setOrderType(savedType, false); // false = don't save again on init
+
+    // If table QR locked, gray out Delivery & Pickup buttons
+    if (window._tableQrLocked) {
+        document.querySelectorAll('.ot-btn[data-type="delivery"], .ot-btn[data-type="pickup"]').forEach(btn => {
+            btn.classList.add('locked');
+            btn.setAttribute('disabled', 'disabled');
+            btn.title = 'Locked to Dine-in — scanned via table QR';
+        });
+        // Add lock icon to Dine-in button
+        const dineBtn = document.querySelector('.ot-btn[data-type="dine_in"]');
+        if (dineBtn && !dineBtn.querySelector('.lock-icon')) {
+            const lock = document.createElement('span');
+            lock.className = 'lock-icon';
+            lock.textContent = '🔒';
+            lock.style.cssText = 'font-size:9px;margin-left:2px;';
+            dineBtn.appendChild(lock);
+        }
+    }
 });
 
 /* -- Cart badge -- */
@@ -854,6 +876,8 @@ function updateCartBadge() {
 
 /* -- Order type switcher -- */
 function setOrderType(type, save = true) {
+    // If locked to dine_in via table QR, refuse any switch away from it
+    if (window._tableQrLocked && type !== 'dine_in') return;
     if (save) localStorage.setItem('eutOrderType', type);
     document.querySelectorAll('.ot-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.type === type);
