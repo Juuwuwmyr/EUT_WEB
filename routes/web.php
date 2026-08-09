@@ -113,7 +113,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/cart/item/{cartKey}',  [\App\Http\Controllers\CartController::class, 'removeItem'])->name('cart.remove');
     Route::delete('/cart',                 [\App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
 
-    Route::post('/orders',                  [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders',                   [\App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
 
     // Profile
