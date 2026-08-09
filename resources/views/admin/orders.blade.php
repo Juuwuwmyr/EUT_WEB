@@ -357,7 +357,14 @@ function renderTable(orders) {
         var topStatus = group.reduce(function(best, o) {
             return statusPriority.indexOf(o.status) < statusPriority.indexOf(best) ? o.status : best;
         }, group[0].status);
-        var sc = STATUS_COLOR_MAP[topStatus] || STATUS_COLOR_MAP['pending'];
+
+        // Override: if ALL orders are ready (prepared_at set), show "Ready to Serve" instead of "Preparing"
+        var allGroupReady = group.every(function(o) {
+            return o.status === 'preparing' && o.prepared_at && o.order_type !== 'delivery';
+        });
+        var sc = allGroupReady
+            ? { bg:'rgba(16,185,129,.12)', color:'#10b981', label:'Ready to Serve' }
+            : (STATUS_COLOR_MAP[topStatus] || STATUS_COLOR_MAP['pending']);
 
         // All items across all orders in the group
         var allItems = [];
