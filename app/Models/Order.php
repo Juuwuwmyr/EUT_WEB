@@ -13,7 +13,7 @@ class Order extends Model
         'subtotal', 'delivery_fee', 'total',
         'payment_method', 'payment_status',
         'delivery_address', 'delivery_barangay', 'delivery_lat', 'delivery_lng',
-        'table_number',
+        'table_number', 'table_session_id',
         'notes', 'proof_photo', 'delivery_type',
         'cancel_reason',
         'accepted_at', 'prepared_at', 'assigned_at', 'picked_up_at', 'delivered_at', 'cancelled_at',
