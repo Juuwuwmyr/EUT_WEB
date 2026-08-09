@@ -161,19 +161,27 @@ class OrderController extends Controller
             $total = round($subtotal + $deliveryFee, 2);
 
             // ── Dine-in: merge into existing active order for same table ────
-            // Always merge new items into the active table order (same table number, any user).
-            // If the order was already accepted/preparing, reset it to 'pending' so the
-            // admin must re-accept and the kitchen gets a new print for the added items.
+            // Only merge if the existing order is still PENDING and there is NO other
+            // order for this table already in the kitchen (accepted or preparing).
+            // Once any order is in the kitchen the customer's new items must become a
+            // brand-new separate queue entry — never merged into a cooking order.
             if ($request->order_type === 'dine_in' && $request->table_number) {
-                $existingOrder = Order::where('order_type', 'dine_in')
+                // Block merge when the kitchen is already working on something for this table
+                $hasKitchenOrder = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
-                    ->whereIn('status', ['pending', 'accepted', 'preparing'])
+                    ->whereIn('status', ['accepted', 'preparing'])
+                    ->whereDate('created_at', today())
+                    ->exists();
+
+                $existingOrder = $hasKitchenOrder ? null : Order::where('order_type', 'dine_in')
+                    ->where('table_number', $request->table_number)
+                    ->where('status', 'pending')   // only merge into un-accepted orders
                     ->whereDate('created_at', today())
                     ->latest()
                     ->first();
 
                 if ($existingOrder) {
-                    // Append new items to the existing order
+                    // Append new items to the existing pending order
                     foreach ($lineItems as $item) {
                         $existingOrder->items()->create($item);
                     }
@@ -181,7 +189,7 @@ class OrderController extends Controller
                     // Recalculate totals from all items
                     $newSubtotal = $existingOrder->items()->sum('subtotal');
 
-                    $updateData = [
+                    $existingOrder->update([
                         'subtotal' => round($newSubtotal, 2),
                         'total'    => round($newSubtotal, 2), // dine-in has no delivery fee
                         'notes'    => $request->notes
@@ -189,17 +197,7 @@ class OrderController extends Controller
                                 ? $existingOrder->notes . ' | ' . $request->notes
                                 : $request->notes)
                             : $existingOrder->notes,
-                    ];
-
-                    // If already in kitchen (accepted/preparing), push back to pending
-                    // so admin must re-accept — this triggers a new kitchen ticket print
-                    if (in_array($existingOrder->status, ['accepted', 'preparing'])) {
-                        $updateData['status']      = 'pending';
-                        $updateData['accepted_at'] = null;
-                        $updateData['prepared_at'] = null;
-                    }
-
-                    $existingOrder->update($updateData);
+                    ]);
 
                     DB::commit();
                     broadcast(new OrderStatusUpdated($existingOrder))->toOthers();
@@ -213,6 +211,25 @@ class OrderController extends Controller
                         'message'      => 'Items added to your table order.',
                     ]);
                 }
+                // If the table already has an order that is accepted/preparing,
+                // fall through and create a new separate order below.
+            }
+
+            // For dine-in add-on orders, inherit the existing session ID so every order
+            // from this table-sitting appears on one combined receipt.
+            // Search across all non-cancelled/delivered statuses so we never lose the link
+            // even if a pending add-on order is sitting alongside a cooking one.
+            $tableSessionId = null;
+            if ($request->order_type === 'dine_in' && $request->table_number) {
+                $activeSession = Order::where('order_type', 'dine_in')
+                    ->where('table_number', $request->table_number)
+                    ->whereIn('status', ['pending', 'accepted', 'preparing'])
+                    ->whereDate('created_at', today())
+                    ->whereNotNull('table_session_id')
+                    ->latest()
+                    ->value('table_session_id');
+
+                $tableSessionId = $activeSession ?? \Illuminate\Support\Str::uuid();
             }
 
             $order = Order::create([
@@ -230,10 +247,9 @@ class OrderController extends Controller
                 'delivery_lng'     => $request->delivery_lng,
                 'table_number'     => $request->order_type === 'dine_in' ? $request->table_number : null,
                 'notes'            => $request->notes,
-                // Each new dine-in sitting gets a unique session ID so the receipt
-                // query only groups orders from the same customer session, never
-                // bleeding into a previous session at the same table on the same day.
-                'table_session_id' => $request->order_type === 'dine_in' ? \Illuminate\Support\Str::uuid() : null,
+                // Reuse the existing session ID if this table already has an active order,
+                // so all orders from the same sitting appear on one combined table receipt.
+                'table_session_id' => $tableSessionId,
             ]);
 
             foreach ($lineItems as $item) {
