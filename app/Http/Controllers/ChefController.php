@@ -212,48 +212,25 @@ class ChefController extends Controller
     }
 
     /**
-     * Get a combined receipt for all dine-in orders at the same table for the
-     * current session. Shows every order in the session (not just delivered ones)
-     * so the receipt is always complete even when completing a mid-session order.
-     * Falls back to a single-order receipt if the order has no table number.
+     * Receipt for a completed dine-in order.
+     * Each order prints its own standalone receipt — items from other orders
+     * at the same table (different cooking rounds) are not included.
      */
     public function tableReceipt(Order $order)
     {
         $order->load(['items', 'user']);
 
-        if (!$order->table_number) {
-            return view('admin.partials.kitchen-receipt', compact('order'));
-        }
-
-        // Gather ALL non-cancelled orders for this table in the same sitting.
-        // We deliberately do NOT filter by status = 'delivered' — the full session
-        // receipt must include every order the customer placed, whether the last
-        // batch is still being cooked or has already been completed.
-        // Scope by table_session_id when available so a second customer on the same
-        // day never sees the previous session's items.
-        // Fall back to date-only scope for legacy orders that pre-date the column.
-        $sessionQuery = Order::with(['items'])
-            ->where('order_type', 'dine_in')
-            ->where('table_number', $order->table_number)
-            ->where('status', '!=', 'cancelled');
-
-        if ($order->table_session_id) {
-            $sessionQuery->where('table_session_id', $order->table_session_id);
-        } else {
-            // Legacy fallback: scope by date only (pre-session-id orders)
-            $sessionQuery->whereDate('created_at', $order->created_at->toDateString());
-        }
-
-        $orders = $sessionQuery->oldest()->get();
-
-        // Safety: if somehow empty, fall back to the single order
-        if ($orders->isEmpty()) {
-            $orders = collect([$order]);
-        }
-
+        // Always print just this single order as its own receipt.
+        // When a table places add-on orders while something is already cooking,
+        // those become independent orders with independent receipts.
+        $orders      = collect([$order]);
         $tableNumber = $order->table_number;
 
-        return view('admin.partials.table-receipt', compact('orders', 'tableNumber'));
+        if ($tableNumber) {
+            return view('admin.partials.table-receipt', compact('orders', 'tableNumber'));
+        }
+
+        return view('admin.partials.kitchen-receipt', compact('order'));
     }
 
     /**
