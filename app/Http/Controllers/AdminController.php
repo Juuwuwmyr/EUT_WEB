@@ -641,6 +641,15 @@ class AdminController extends Controller
     {
         $menuItem->update(['is_archived' => ! $menuItem->is_archived]);
         $state = $menuItem->is_archived ? 'archived' : 'restored';
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success'     => true,
+                'is_archived' => $menuItem->is_archived,
+                'state'       => $state,
+            ]);
+        }
+
         return back()->with('success', "Menu item \"{$menuItem->name}\" {$state}.");
     }
 

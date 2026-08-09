@@ -376,19 +376,26 @@
             </div>
 
             @guest
-            <div class="guest-notice">⚠️ Please <a href="{{ route('restaurant') }}">log in</a> to place your order.</div>
+            {{-- Guests can only place dine-in orders — button shown, JS enforces the rule --}}
+            <div id="guestDineInNotice" style="display:none;margin:4px 18px 10px;padding:10px 14px;background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.2);border-radius:12px;font-size:12px;color:#facc15;text-align:center;">
+                🪑 Dine-in only — no login required. Just enter your table number above.
+            </div>
+            <div id="guestLoginNotice" style="margin:4px 18px 18px;">
+                <div class="guest-notice">⚠️ Please <a href="{{ route('restaurant') }}">log in</a> to place a delivery or pickup order.</div>
+            </div>
             @endguest
             @auth
             @if(!auth()->user()->phone)
-            <div style="margin:4px 18px 12px;padding:12px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;display:flex;align-items:center;gap:10px;">
+            <div id="phoneNotice" style="display:none;margin:4px 18px 12px;padding:12px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;display:flex;align-items:center;gap:10px;">
                 <span style="font-size:20px;flex-shrink:0;">📞</span>
                 <div style="flex:1;min-width:0;">
-                    <p style="font-size:12px;font-weight:700;color:#f87171;margin:0 0 2px;">Mobile number required before ordering</p>
+                    <p style="font-size:12px;font-weight:700;color:#f87171;margin:0 0 2px;">Mobile number required for delivery</p>
                     <p style="font-size:11px;color:#9ca3af;margin:0;">Para matawagan ka ng rider para sa delivery.</p>
                 </div>
                 <a href="{{ route('shop.profile') }}" style="flex-shrink:0;padding:7px 14px;border-radius:99px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:11px;font-weight:800;text-decoration:none;">Add Now</a>
             </div>
             @endif
+            @endauth
             @if(!$isOpen)
             <div style="margin:4px 18px 12px;padding:12px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;">
                 <svg width="15" height="15" fill="none" stroke="#f87171" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
@@ -398,7 +405,6 @@
             @else
             <button type="submit" class="place-btn" id="placeOrderBtn">Place Order</button>
             @endif
-            @endauth
         </div>
       </div><!-- /right -->
 
@@ -630,6 +636,18 @@ function selectOrderType(el, type){
     el.classList.add('selected');
     el.querySelector('input').checked = true;
     currentOrderType = type;
+
+    // For guests: show dine-in notice or login notice
+    const guestDineInNotice = document.getElementById('guestDineInNotice');
+    const guestLoginNotice  = document.getElementById('guestLoginNotice');
+    if (guestDineInNotice && guestLoginNotice) {
+        guestDineInNotice.style.display = type === 'dine_in' ? 'block' : 'none';
+        guestLoginNotice.style.display  = type === 'dine_in' ? 'none'  : 'block';
+    }
+
+    // Hide phone notice for dine-in and pickup — only required for delivery
+    const phoneNotice = document.getElementById('phoneNotice');
+    if (phoneNotice) phoneNotice.style.display = type === 'delivery' ? 'flex' : 'none';
 
     // Hide/Show address card based on type
     const addrCard = document.getElementById('addressCard');
@@ -980,26 +998,35 @@ if (navigator.permissions && location.protocol === 'https:') {
 /* ── Place Order ── */
 document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    @guest alert('Please log in to place an order.'); return; @endguest
-
-    // ── Phone number gate ──────────────────────────────────────────────────
-    @auth
-    const userPhone = '{{ auth()->user()->phone ?? '' }}';
-    if (!userPhone || userPhone.trim() === '') {
-        const goProfile = confirm(
-            '📞 Mobile number required!\n\n' +
-            'Para matawagan ka ng rider, kailangan ng phone number mo bago mag-order.\n\n' +
-            'Click OK to add your number sa Profile → then come back to order.'
-        );
-        if (goProfile) window.location.href = '{{ route("shop.profile") }}';
-        return;
-    }
-    @endauth
 
     const cart = JSON.parse(localStorage.getItem('eutCart') || '[]');
     if (!cart.length) { alert('Your cart is empty.'); return; }
 
     const orderType = document.querySelector('input[name=order_type]:checked')?.value || 'delivery';
+    const isGuest   = {{ auth()->check() ? 'false' : 'true' }};
+
+    // Guests can only do dine-in
+    if (isGuest && orderType !== 'dine_in') {
+        alert('Please log in to place a delivery or pickup order.');
+        return;
+    }
+
+    // ── Phone number gate (delivery only) ────────────────────────────────
+    @auth
+    if (orderType === 'delivery') {
+        const userPhone = '{{ auth()->user()->phone ?? '' }}';
+        if (!userPhone || userPhone.trim() === '') {
+            const goProfile = confirm(
+                '📞 Mobile number required!\n\n' +
+                'Para matawagan ka ng rider, kailangan ng phone number mo bago mag-order.\n\n' +
+                'Click OK to add your number sa Profile → then come back to order.'
+            );
+            if (goProfile) window.location.href = '{{ route("shop.profile") }}';
+            return;
+        }
+    }
+    @endauth
+
     const addr = addresses.find(a => a.id === selectedAddressId);
     
     if (orderType === 'delivery' && !addr) { 

@@ -7,6 +7,21 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-head')
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    {{-- ── If the app is already installed (running as PWA / standalone), skip this
+         download page and go straight to the shop menu. Runs before any render. ── --}}
+    <script>
+        (function () {
+            var isStandalone =
+                window.matchMedia('(display-mode: standalone)').matches ||
+                window.navigator.standalone === true ||          // iOS Safari
+                document.referrer.startsWith('android-app://'); // TWA
+
+            if (isStandalone) {
+                window.location.replace('{{ route('shop.home') }}');
+            }
+        })();
+    </script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; font-family: 'Inter', sans-serif; }

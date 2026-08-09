@@ -136,24 +136,26 @@
                     @endif
                 </td>
                 <td>
-                    @if($item->is_archived)
-                        <span class="badge badge-cancelled" style="display:inline-flex;align-items:center;gap:.25rem;"><i data-lucide="archive" style="width:.65rem;height:.65rem;stroke-width:2;"></i> Archived</span>
-                    @else
-                        <span class="badge badge-delivered" style="display:inline-flex;align-items:center;gap:.25rem;"><i data-lucide="check-circle" style="width:.65rem;height:.65rem;stroke-width:2;"></i> Active</span>
-                    @endif
+                    <button
+                        onclick="toggleItemStatus(this, {{ $item->id }})"
+                        data-archived="{{ $item->is_archived ? '1' : '0' }}"
+                        style="
+                            display:inline-flex;align-items:center;gap:.3rem;
+                            padding:.25rem .65rem;border-radius:99px;font-size:.7rem;font-weight:700;
+                            cursor:pointer;border:1px solid;transition:all .2s;
+                            {{ $item->is_archived
+                                ? 'background:rgba(239,68,68,.1);color:#ef4444;border-color:rgba(239,68,68,.3);'
+                                : 'background:rgba(34,197,94,.1);color:#22c55e;border-color:rgba(34,197,94,.3);' }}
+                        ">
+                        <i data-lucide="{{ $item->is_archived ? 'archive' : 'check-circle' }}" style="width:.65rem;height:.65rem;stroke-width:2;"></i>
+                        <span>{{ $item->is_archived ? 'Archived' : 'Active' }}</span>
+                    </button>
                 </td>
                 <td>
                     <div style="display:flex;align-items:center;justify-content:center;gap:.375rem;">
                         <button onclick='openEditItemModal(@json($item->load("modifierGroups.options")), {{ $categories->toJson() }})' class="btn-icon-edit" title="Edit">
                             <i data-lucide="pencil" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i>
                         </button>
-                        <form method="POST" action="{{ route('admin.menu-items.archive',$item) }}">
-                            @csrf @method('PATCH')
-                            <button type="submit" class="{{ $item->is_archived ? 'btn-icon-restore' : 'btn-icon-archive' }}" title="{{ $item->is_archived?'Restore':'Archive' }}"
-                                    onclick="return confirm('{{ $item->is_archived?'Restore':'Archive' }} {{ addslashes($item->name) }}?')">
-                                <i data-lucide="{{ $item->is_archived?'archive-restore':'archive' }}" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i>
-                            </button>
-                        </form>
                         <form method="POST" action="{{ route('admin.menu-items.delete',$item) }}">
                             @csrf @method('DELETE')
                             <button type="submit" class="btn-icon-delete" title="Delete"
@@ -858,6 +860,56 @@ function removeOption(oid) {
 // ─────────────────────────────────────────────────────────
 // Serialize groups into hidden inputs before submit
 // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// Toggle Active / Archived status via AJAX
+// ─────────────────────────────────────────────────────────
+async function toggleItemStatus(btn, itemId) {
+    btn.disabled = true;
+    btn.style.opacity = '.6';
+
+    try {
+        const res = await fetch(`/admin/menu-items/${itemId}/archive`, {
+            method: 'PATCH',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept':       'application/json',
+                'Content-Type': 'application/json',
+            },
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Failed');
+
+        const isArchived = data.is_archived;
+        const span  = btn.querySelector('span');
+        const icon  = btn.querySelector('i');
+
+        if (isArchived) {
+            btn.style.background   = 'rgba(239,68,68,.1)';
+            btn.style.color        = '#ef4444';
+            btn.style.borderColor  = 'rgba(239,68,68,.3)';
+            span.textContent       = 'Archived';
+            icon.setAttribute('data-lucide', 'archive');
+            btn.closest('tr').style.opacity = '.55';
+        } else {
+            btn.style.background   = 'rgba(34,197,94,.1)';
+            btn.style.color        = '#22c55e';
+            btn.style.borderColor  = 'rgba(34,197,94,.3)';
+            span.textContent       = 'Active';
+            icon.setAttribute('data-lucide', 'check-circle');
+            btn.closest('tr').style.opacity = '1';
+        }
+
+        btn.dataset.archived = isArchived ? '1' : '0';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    } catch (e) {
+        alert('Failed to update status: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+}
+
 function escHtml(s) {
     return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
