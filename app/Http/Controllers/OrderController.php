@@ -187,15 +187,25 @@ class OrderController extends Controller
                     // Recalculate totals from all items
                     $newSubtotal = $existingOrder->items()->sum('subtotal');
 
-                    $existingOrder->update([
+                    $updateData = [
                         'subtotal' => round($newSubtotal, 2),
-                        'total'    => round($newSubtotal, 2), // dine-in has no delivery fee
+                        'total'    => round($newSubtotal, 2),
                         'notes'    => $request->notes
                             ? ($existingOrder->notes
                                 ? $existingOrder->notes . ' | ' . $request->notes
                                 : $request->notes)
                             : $existingOrder->notes,
-                    ]);
+                    ];
+
+                    // If already accepted or preparing, push back to pending
+                    // so admin must re-accept the updated order with new items
+                    if (in_array($existingOrder->status, ['accepted', 'preparing'])) {
+                        $updateData['status']      = 'pending';
+                        $updateData['accepted_at'] = null;
+                        $updateData['prepared_at'] = null;
+                    }
+
+                    $existingOrder->update($updateData);
 
                     DB::commit();
                     broadcast(new OrderStatusUpdated($existingOrder))->toOthers();
