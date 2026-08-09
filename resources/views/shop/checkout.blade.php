@@ -386,10 +386,10 @@
             @endguest
             @auth
             @if(!auth()->user()->phone)
-            <div id="phoneNotice" style="margin:4px 18px 12px;padding:12px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;display:flex;align-items:center;gap:10px;">
+            <div id="phoneNotice" style="display:none;margin:4px 18px 12px;padding:12px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;display:flex;align-items:center;gap:10px;">
                 <span style="font-size:20px;flex-shrink:0;">📞</span>
                 <div style="flex:1;min-width:0;">
-                    <p style="font-size:12px;font-weight:700;color:#f87171;margin:0 0 2px;">Mobile number required before ordering</p>
+                    <p style="font-size:12px;font-weight:700;color:#f87171;margin:0 0 2px;">Mobile number required for delivery</p>
                     <p style="font-size:11px;color:#9ca3af;margin:0;">Para matawagan ka ng rider para sa delivery.</p>
                 </div>
                 <a href="{{ route('shop.profile') }}" style="flex-shrink:0;padding:7px 14px;border-radius:99px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:11px;font-weight:800;text-decoration:none;">Add Now</a>
@@ -645,9 +645,9 @@ function selectOrderType(el, type){
         guestLoginNotice.style.display  = type === 'dine_in' ? 'none'  : 'block';
     }
 
-    // Hide phone notice for dine-in
+    // Hide phone notice for dine-in and pickup — only required for delivery
     const phoneNotice = document.getElementById('phoneNotice');
-    if (phoneNotice) phoneNotice.style.display = type === 'dine_in' ? 'none' : 'block';
+    if (phoneNotice) phoneNotice.style.display = type === 'delivery' ? 'flex' : 'none';
 
     // Hide/Show address card based on type
     const addrCard = document.getElementById('addressCard');
@@ -1011,9 +1011,9 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         return;
     }
 
-    // ── Phone number gate (logged-in, non-dine-in only) ────────────────────
+    // ── Phone number gate (delivery only) ────────────────────────────────
     @auth
-    if (orderType !== 'dine_in') {
+    if (orderType === 'delivery') {
         const userPhone = '{{ auth()->user()->phone ?? '' }}';
         if (!userPhone || userPhone.trim() === '') {
             const goProfile = confirm(
