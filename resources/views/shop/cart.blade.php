@@ -355,33 +355,58 @@
 <div class="page-body">
 
     @guest
-    <!-- ── GUEST GATE — shown only if localStorage cart is empty ── -->
+    <!-- ── GUEST GATE — content swapped by JS based on dine-in vs regular guest ── -->
     <div id="guestGate" style="text-align:center; padding: 60px 24px 40px;">
-        <div style="width:96px;height:96px;margin:0 auto 24px;background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,0.07);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
-            <svg width="44" height="44" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-            </svg>
-        </div>
-        <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">Your cart awaits</h2>
-        <p style="font-size:14px;color:#6b7280;line-height:1.7;margin-bottom:32px;max-width:280px;margin-left:auto;margin-right:auto;">
-            Sign in to view your cart, save items, and place orders.
-        </p>
-        <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto 24px;">
-            <a href="{{ route('restaurant') }}#login"
-               style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 18px rgba(220,38,38,0.38);transition:all 0.2s;">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-                Log In
+
+        <!-- Default: login gate (for non-dine-in guests) -->
+        <div id="guestLoginGate">
+            <div style="width:96px;height:96px;margin:0 auto 24px;background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,0.07);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+                <svg width="44" height="44" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                </svg>
+            </div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">Your cart awaits</h2>
+            <p style="font-size:14px;color:#6b7280;line-height:1.7;margin-bottom:32px;max-width:280px;margin-left:auto;margin-right:auto;">
+                Sign in to view your cart, save items, and place orders.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto 24px;">
+                <a href="{{ route('restaurant') }}#login"
+                   style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 18px rgba(220,38,38,0.38);transition:all 0.2s;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                    Log In
+                </a>
+                <a href="{{ route('restaurant') }}#register"
+                   style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(245,158,11,0.3);transition:all 0.2s;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                    Create Account
+                </a>
+            </div>
+            <a href="{{ route('shop.home') }}" style="font-size:13px;color:#4b5563;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                Continue browsing menu
             </a>
-            <a href="{{ route('restaurant') }}#register"
-               style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(245,158,11,0.3);transition:all 0.2s;">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                Create Account
+        </div>
+
+        <!-- Dine-in guest: empty cart — no login needed -->
+        <div id="guestDineInEmptyGate" style="display:none;">
+            <div style="width:96px;height:96px;margin:0 auto 24px;background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(250,204,21,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+                <svg width="44" height="44" fill="none" stroke="#facc15" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                </svg>
+            </div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:8px;">Your cart is empty</h2>
+            <p style="font-size:14px;color:#6b7280;line-height:1.7;margin-bottom:8px;max-width:280px;margin-left:auto;margin-right:auto;">
+                You're dining at <strong id="guestTableLabel" style="color:#facc15;"></strong> — no login needed.
+            </p>
+            <p style="font-size:13px;color:#4b5563;margin-bottom:32px;">Browse the menu and add items to get started.</p>
+            <a href="{{ route('shop.home') }}"
+               style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:800;text-decoration:none;box-shadow:0 6px 24px rgba(245,158,11,0.35);">
+                <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h7"/>
+                </svg>
+                Browse Menu
             </a>
         </div>
-        <a href="{{ route('shop.home') }}" style="font-size:13px;color:#4b5563;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:color 0.2s;" onmouseover="this.style.color='#9ca3af'" onmouseout="this.style.color='#4b5563'">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-            Continue browsing menu
-        </a>
     </div>
 
     {{-- Guest cart — for dine-in guests who have items in localStorage --}}
@@ -408,6 +433,23 @@
     <script>
     // ── Guest cart (dine-in) — fully interactive ─────────────────────────────
     let guestCart = JSON.parse(localStorage.getItem('eutCart') || '[]');
+    const _guestTable = sessionStorage.getItem('eutTableNumber') || localStorage.getItem('eutTableNumber');
+
+    // Decide which empty state to show
+    (function() {
+        if (guestCart.length > 0) {
+            document.getElementById('guestGate').style.display = 'none';
+            document.getElementById('guestCartWrap').style.display = 'block';
+            renderGuestCart();
+        } else if (_guestTable) {
+            // Dine-in guest with empty cart — show friendly empty state, no login prompt
+            document.getElementById('guestLoginGate').style.display = 'none';
+            document.getElementById('guestDineInEmptyGate').style.display = 'block';
+            const lbl = document.getElementById('guestTableLabel');
+            if (lbl) lbl.textContent = 'Table ' + _guestTable;
+        }
+        // else: regular guest, login gate already visible by default
+    })();
 
     function saveGuestCart() {
         localStorage.setItem('eutCart', JSON.stringify(guestCart));
@@ -418,9 +460,15 @@
         if (!list) return;
 
         if (guestCart.length === 0) {
-            // Cart emptied — show gate, hide cart
-            document.getElementById('guestGate').style.display = 'block';
+            // Cart emptied — show appropriate empty state
             document.getElementById('guestCartWrap').style.display = 'none';
+            document.getElementById('guestGate').style.display = 'block';
+            if (_guestTable) {
+                document.getElementById('guestLoginGate').style.display = 'none';
+                document.getElementById('guestDineInEmptyGate').style.display = 'block';
+                const lbl = document.getElementById('guestTableLabel');
+                if (lbl) lbl.textContent = 'Table ' + _guestTable;
+            }
             return;
         }
 
