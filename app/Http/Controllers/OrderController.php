@@ -169,12 +169,15 @@ class OrderController extends Controller
             //  preparing → NEW independent order (chef is actively cooking — never
             //               touch a cooking order; new items get their own queue
             //               entry, their own accept step, and their own receipt)
+            //  accepted/preparing → NEW independent order (admin has already accepted,
+            //               don't disrupt the existing queue entry; new items get
+            //               their own accept step and their own kitchen ticket)
             //  delivered/cancelled → NEW order (session already closed)
             if ($request->order_type === 'dine_in' && $request->table_number) {
-                // Only merge into pending/accepted — stop at preparing
+                // Only merge into pending — once accepted or cooking, always new order
                 $existingOrder = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
-                    ->whereIn('status', ['pending', 'accepted'])
+                    ->where('status', 'pending')
                     ->whereDate('created_at', today())
                     ->latest()
                     ->first();
@@ -197,13 +200,6 @@ class OrderController extends Controller
                                 : $request->notes)
                             : $existingOrder->notes,
                     ];
-
-                    // If accepted, reset to pending so admin must re-accept
-                    // the updated order (with the newly added items)
-                    if ($existingOrder->status === 'accepted') {
-                        $updateData['status']      = 'pending';
-                        $updateData['accepted_at'] = null;
-                    }
 
                     $existingOrder->update($updateData);
                     $existingOrder->refresh(); // reload so broadcast carries updated status
