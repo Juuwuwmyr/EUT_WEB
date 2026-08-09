@@ -515,12 +515,46 @@ document.addEventListener('DOMContentLoaded',()=>{
     renderSummary();
     @auth loadAddresses(); @endauth
 
-    // Restore order type selected on shop menu page
-    const savedType = localStorage.getItem('eutOrderType') || 'delivery';
-    const savedLabel = document.querySelector(`.pay-option input[value="${savedType}"]`);
-    if (savedLabel) {
-        const label = savedLabel.closest('.pay-option');
-        if (label) selectOrderType(label, savedType);
+    // ── Auto-detect table number from QR code URL param ──────────────────
+    // When customer scans a table QR: /checkout?table=7
+    // → auto-select Dine-in, fill table number, skip the QR scanner modal
+    const urlParams = new URLSearchParams(window.location.search);
+    const tableFromQr = urlParams.get('table');
+    if (tableFromQr && /^\d{1,2}$/.test(tableFromQr.trim())) {
+        const tableNum = tableFromQr.trim();
+
+        // Auto-select Dine-in order type
+        const dineInLabel = document.querySelector('.pay-option input[value="dine_in"]');
+        if (dineInLabel) {
+            const label = dineInLabel.closest('.pay-option');
+            if (label) selectOrderType(label, 'dine_in');
+        }
+
+        // Fill & lock the table number
+        document.getElementById('tableNumberInput').value = tableNum;
+
+        // Show a confirmation banner
+        const banner = document.createElement('div');
+        banner.style.cssText = 'margin:8px 18px 12px;padding:10px 14px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.25);border-radius:12px;display:flex;align-items:center;gap:10px;';
+        banner.innerHTML = `
+            <span style="font-size:20px;">🪑</span>
+            <div>
+                <p style="font-size:13px;font-weight:700;color:#facc15;margin:0 0 1px;">Table ${tableNum} — Dine-in</p>
+                <p style="font-size:11px;color:#9ca3af;margin:0;">Table number set from QR code</p>
+            </div>`;
+        const tableCard = document.getElementById('tableNumberCard');
+        if (tableCard) tableCard.parentNode.insertBefore(banner, tableCard);
+
+        // Clean URL so refreshing doesn't re-trigger
+        history.replaceState({}, '', window.location.pathname);
+    } else {
+        // Restore previously selected order type
+        const savedType = localStorage.getItem('eutOrderType') || 'delivery';
+        const savedLabel = document.querySelector(`.pay-option input[value="${savedType}"]`);
+        if (savedLabel) {
+            const label = savedLabel.closest('.pay-option');
+            if (label) selectOrderType(label, savedType);
+        }
     }
 });
 
@@ -1117,10 +1151,18 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
         return;
     }
 
-    // For dine-in: intercept and open QR scanner modal
+    // For dine-in: if table already filled from QR, place order directly
+    // otherwise open QR scanner modal
     if (orderType === 'dine_in') {
-        openTableScanner();
-        return; // will be resumed by confirmTableAndOrder()
+        const prefilledTable = document.getElementById('tableNumberInput').value.trim();
+        if (prefilledTable) {
+            // Table already set from QR scan — proceed directly
+            _detectedTable = prefilledTable;
+            await confirmTableAndOrder();
+        } else {
+            openTableScanner();
+        }
+        return;
     }
     const tableNumber = '';
 
@@ -1497,10 +1539,12 @@ function parseTableFromQr(raw) {
 
 /* ── Confirm & Resume Order ───────────────────────────────── */
 async function confirmTableAndOrder() {
-    if (!_detectedTable) return;
+    // Use pre-filled table number (from QR URL) or from scanner modal
+    const prefilledTable = document.getElementById('tableNumberInput').value.trim();
+    if (!_detectedTable && !prefilledTable) return;
 
-    // Inject into hidden field
-    document.getElementById('tableNumberInput').value = _detectedTable;
+    const tableNum = _detectedTable || prefilledTable;
+    document.getElementById('tableNumberInput').value = tableNum;
 
     closeTableScanner();
 
@@ -1513,7 +1557,7 @@ async function confirmTableAndOrder() {
 
     const cart = JSON.parse(localStorage.getItem('eutCart') || '[]');
     const orderType = 'dine_in';
-    const tableNumber = _detectedTable;
+    const tableNumber = tableNum;
     const payRaw  = document.querySelector('input[name=payment]:checked')?.value || 'cod';
     const payment = payRaw === 'cod' ? 'cash' : payRaw;
     const notes   = document.getElementById('orderNotes')?.value?.trim() || '';
