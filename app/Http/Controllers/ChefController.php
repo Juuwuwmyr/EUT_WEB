@@ -213,20 +213,35 @@ class ChefController extends Controller
 
     /**
      * Receipt for a completed dine-in order.
-     * Each order prints its own standalone receipt — items from other orders
-     * at the same table (different cooking rounds) are not included.
+     * Loads ALL orders from the same table session (same table_session_id or
+     * same table + same day) so the receipt shows the full combined bill.
      */
     public function tableReceipt(Order $order)
     {
         $order->load(['items', 'user']);
-
-        // Always print just this single order as its own receipt.
-        // When a table places add-on orders while something is already cooking,
-        // those become independent orders with independent receipts.
-        $orders      = collect([$order]);
         $tableNumber = $order->table_number;
 
         if ($tableNumber) {
+            // Fetch all orders for the same table today (excluding cancelled)
+            // Group by table_session_id if available, otherwise same table + same day
+            $query = Order::with('items')
+                ->where('table_number', $tableNumber)
+                ->where('order_type', 'dine_in')
+                ->whereNotIn('status', ['cancelled'])
+                ->whereDate('created_at', $order->created_at->toDateString());
+
+            // Prefer grouping by session ID so multi-session days work correctly
+            if ($order->table_session_id) {
+                $query->where('table_session_id', $order->table_session_id);
+            }
+
+            $orders = $query->oldest()->get();
+
+            // Ensure the triggered order is always included even if query missed it
+            if ($orders->where('id', $order->id)->isEmpty()) {
+                $orders = $orders->push($order)->sortBy('id')->values();
+            }
+
             return view('admin.partials.table-receipt', compact('orders', 'tableNumber'));
         }
 
