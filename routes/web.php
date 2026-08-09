@@ -196,6 +196,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/orders/{order}/accept',           [AdminController::class, 'acceptOrder'])->name('orders.accept');
     Route::post('/orders/{order}/assign-rider',     [AdminController::class, 'assignRider'])->name('orders.assign-rider');
     Route::patch('/orders/{order}/status',          [AdminController::class, 'updateOrderStatus'])->name('orders.status');
+    Route::post('/orders/{order}/complete-table',   [AdminController::class, 'completeTable'])->name('orders.complete-table');
     Route::patch('/orders/{order}/archive',         [AdminController::class, 'archiveOrder'])->name('orders.archive');
     Route::delete('/orders/{order}',                [AdminController::class, 'deleteOrder'])->name('orders.delete');
     Route::get('/orders/{order}/takeout-slip',       [\App\Http\Controllers\ChefController::class, 'takeoutSlip'])->name('orders.takeout-slip');

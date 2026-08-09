@@ -376,17 +376,50 @@ function renderTable(orders) {
 
         // Sub-order action pills — one per order in the group
         var subHtml = '<div style="display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;">';
-        group.forEach(function(o) {
-            var oSc  = STATUS_COLOR_MAP[o.status] || STATUS_COLOR_MAP['pending'];
-            var oBtns = buildActionBtns(o);
-            subHtml +=
-                '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.3rem .5rem;border-radius:.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">' +
-                '<span style="font-family:monospace;font-size:.7rem;font-weight:700;color:var(--accent);flex-shrink:0;">' + escHtml(o.order_number) + '</span>' +
-                '<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:9999px;font-size:.62rem;font-weight:700;background:' + oSc.bg + ';color:' + oSc.color + ';">' + oSc.label + '</span>' +
-                '<span style="font-size:.68rem;color:var(--text-muted);flex-shrink:0;">₱' + Number(o.total).toLocaleString() + '</span>' +
-                '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-left:auto;">' + oBtns + '</div>' +
-                '</div>';
+
+        // Check if ALL orders in the group are "ready" (prepared_at set, status preparing)
+        // If so, replace individual Complete buttons with one combined "Complete Table" button
+        var allReady = group.every(function(o) {
+            return o.status === 'preparing' && o.prepared_at && o.order_type !== 'delivery';
         });
+
+        if (allReady && group.length > 1) {
+            // Show status summary pills (no individual Complete buttons)
+            group.forEach(function(o) {
+                var oSc = STATUS_COLOR_MAP[o.status] || STATUS_COLOR_MAP['pending'];
+                subHtml +=
+                    '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.3rem .5rem;border-radius:.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">' +
+                    '<span style="font-family:monospace;font-size:.7rem;font-weight:700;color:var(--accent);flex-shrink:0;">' + escHtml(o.order_number) + '</span>' +
+                    '<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:9999px;font-size:.62rem;font-weight:700;background:rgba(16,185,129,.12);color:#10b981;">✓ Ready</span>' +
+                    '<span style="font-size:.68rem;color:var(--text-muted);flex-shrink:0;">₱' + Number(o.total).toLocaleString() + '</span>' +
+                    '<button class="btn-ghost" style="font-size:.65rem;padding:.2rem .45rem;margin-left:auto;" onclick="openManageModal(' + o.id + ')" title="Details">' +
+                    '<i data-lucide="settings-2" style="width:.65rem;height:.65rem;stroke-width:2;"></i></button>' +
+                    '</div>';
+            });
+            // Single Complete Table button covering all orders
+            subHtml +=
+                '<div style="margin-top:.2rem;">' +
+                '<button type="button" class="btn-success" style="width:100%;justify-content:center;font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.5rem;" ' +
+                'onclick="quickAction(' + rep.id + ',\'complete-table\',\'\',this)">' +
+                '<i data-lucide="circle-check" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i>' +
+                'Complete Table · ₱' + Number(grandTotal).toLocaleString() +
+                '</button>' +
+                '</div>';
+        } else {
+            // Normal: individual action buttons per sub-order
+            group.forEach(function(o) {
+                var oSc  = STATUS_COLOR_MAP[o.status] || STATUS_COLOR_MAP['pending'];
+                var oBtns = buildActionBtns(o);
+                subHtml +=
+                    '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.3rem .5rem;border-radius:.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">' +
+                    '<span style="font-family:monospace;font-size:.7rem;font-weight:700;color:var(--accent);flex-shrink:0;">' + escHtml(o.order_number) + '</span>' +
+                    '<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:9999px;font-size:.62rem;font-weight:700;background:' + oSc.bg + ';color:' + oSc.color + ';">' + oSc.label + '</span>' +
+                    '<span style="font-size:.68rem;color:var(--text-muted);flex-shrink:0;">₱' + Number(o.total).toLocaleString() + '</span>' +
+                    '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-left:auto;">' + oBtns + '</div>' +
+                    '</div>';
+            });
+        }
+
         subHtml += '</div>';
 
         html +=
@@ -630,6 +663,10 @@ async function quickAction(orderId, type, nextStatus, btn) {
 
         if (type === 'accept') {
             url = '{{ route("admin.orders.accept", ":id") }}'.replace(':id', orderId);
+
+        } else if (type === 'complete-table') {
+            url    = '{{ route("admin.orders.complete-table", ":id") }}'.replace(':id', orderId);
+            method = 'POST';
 
         } else if (type === 'dispatch') {
             // Open the manage modal so the admin can pick a rider

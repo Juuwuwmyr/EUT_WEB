@@ -930,6 +930,46 @@ class AdminController extends Controller
         return back()->with('success', "Order #{$order->order_number} updated to \"{$request->status}\".");
     }
 
+    /**
+     * Complete ALL active orders for a table session at once.
+     * Marks every preparing/accepted order at the same table as delivered
+     * and returns a single combined receipt URL.
+     */
+    public function completeTable(\App\Models\Order $order)
+    {
+        if (!$order->table_number || $order->order_type !== 'dine_in') {
+            return response()->json(['success' => false, 'message' => 'Not a dine-in table order.'], 422);
+        }
+
+        // Find all active orders for this table session
+        $tableOrders = \App\Models\Order::where('table_number', $order->table_number)
+            ->where('order_type', 'dine_in')
+            ->whereIn('status', ['preparing', 'accepted', 'pending'])
+            ->whereDate('created_at', today())
+            ->when($order->table_session_id, fn($q) => $q->where('table_session_id', $order->table_session_id))
+            ->get();
+
+        if ($tableOrders->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No active orders found for this table.'], 422);
+        }
+
+        $now = now();
+        foreach ($tableOrders as $o) {
+            $o->update([
+                'status'       => 'delivered',
+                'delivered_at' => $now,
+                'prepared_at'  => $o->prepared_at ?? $now,
+            ]);
+            broadcast(new \App\Events\OrderStatusUpdated($o))->toOthers();
+        }
+
+        return response()->json([
+            'success'     => true,
+            'message'     => 'Table ' . $order->table_number . ' — all orders completed.',
+            'receipt_url' => route('chef.orders.table-receipt', $order->id),
+        ]);
+    }
+
     public function archiveOrder(\App\Models\Order $order)
     {
         // Only allow archiving completed/cancelled orders
