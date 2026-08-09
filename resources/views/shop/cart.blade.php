@@ -355,8 +355,8 @@
 <div class="page-body">
 
     @guest
-    <!-- ── GUEST GATE ── -->
-    <div style="text-align:center; padding: 60px 24px 40px;">
+    <!-- ── GUEST GATE — shown only if localStorage cart is empty ── -->
+    <div id="guestGate" style="text-align:center; padding: 60px 24px 40px;">
         <div style="width:96px;height:96px;margin:0 auto 24px;background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,0.07);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
             <svg width="44" height="44" fill="none" stroke="#4b5563" stroke-width="1.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
@@ -383,6 +383,47 @@
             Continue browsing menu
         </a>
     </div>
+
+    {{-- Guest cart — for dine-in guests who have items in localStorage --}}
+    <div id="guestCartWrap" style="display:none;">
+        <div id="guestCartList" style="padding:8px 0;"></div>
+        <div style="padding:16px 18px 8px;border-top:1px solid rgba(255,255,255,.06);">
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#9ca3af;margin-bottom:6px;">
+                <span>Subtotal</span><span id="guestSubtotal">₱0</span>
+            </div>
+            <a href="{{ route('shop.checkout') }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;margin-top:8px;">
+                Proceed to Checkout →
+            </a>
+        </div>
+    </div>
+
+    <script>
+    // Show guest cart if they have items (dine-in guest), otherwise show login gate
+    (function() {
+        const cart = JSON.parse(localStorage.getItem('eutCart') || '[]');
+        if (cart.length > 0) {
+            document.getElementById('guestGate').style.display = 'none';
+            document.getElementById('guestCartWrap').style.display = 'block';
+            // Render items
+            const list = document.getElementById('guestCartList');
+            let sub = 0;
+            cart.forEach(item => {
+                sub += item.price * item.quantity;
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.05);';
+                row.innerHTML = `
+                    <img src="${item.image||''}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;" onerror="this.src='/images/menu/default-menu-item.webp'">
+                    <div style="flex:1;min-width:0;">
+                        <p style="font-size:13px;font-weight:600;color:#fff;margin:0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.name}</p>
+                        <p style="font-size:12px;color:#6b7280;margin:0;">× ${item.quantity} · ₱${Number(item.price).toLocaleString()} each</p>
+                    </div>
+                    <span style="font-size:13px;font-weight:700;color:#facc15;flex-shrink:0;">₱${(item.price*item.quantity).toLocaleString()}</span>`;
+                list.appendChild(row);
+            });
+            document.getElementById('guestSubtotal').textContent = '₱' + sub.toLocaleString();
+        }
+    })();
+    </script>
     @endguest
 
     @auth
