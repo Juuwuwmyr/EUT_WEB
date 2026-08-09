@@ -13,8 +13,10 @@ Route::get('/shop', [ShopController::class, 'index'])->name('shop.home');
 Route::get('/shop/product/{id}', [ShopController::class, 'product'])->name('shop.product');
 Route::get('/shop/cart', [ShopController::class, 'cart'])->name('shop.cart');
 Route::get('/shop/checkout', [ShopController::class, 'checkout'])->name('shop.checkout');
-// Alias: QR codes point to /checkout?table=N — send to shop menu first so customers can pick items
-Route::get('/checkout', fn() => redirect('/shop?' . request()->getQueryString()));
+// Alias: legacy QR codes point to /checkout?table=N — send to shop menu first (no-cache so browsers never cache this)
+Route::get('/checkout', fn() => redirect('/shop?' . request()->getQueryString(), 302)
+    ->header('Cache-Control', 'no-store, no-cache, must-revalidate')
+    ->header('Pragma', 'no-cache'));
 Route::get('/shop/tracking', [ShopController::class, 'tracking'])->name('shop.tracking');
 Route::get('/shop/profile', [ShopController::class, 'profile'])->name('shop.profile');
 

@@ -98,7 +98,7 @@
 // Generate all QR codes
 @foreach($tables as $tableNum)
 new QRCode(document.getElementById('qr-{{ $tableNum }}'), {
-    text: '{{ url("/checkout") }}?table={{ $tableNum }}',
+    text: '{{ url("/shop") }}?table={{ $tableNum }}',
     width: 200,
     height: 200,
     colorDark: '#000000',
