@@ -526,7 +526,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 /* ── Helpers ── */
 const CSRF = '{{ csrf_token() }}';
-let currentDeliveryFee = 50; // updated when address is selected (barangay-based)
+const DELIVERY_FEE_URL = '{{ route("delivery-fee") }}';
+let currentDeliveryFee = 30; // updated when address is selected
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function modChips(mods){
@@ -541,52 +542,138 @@ function modChips(mods){
     return chips.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;">${chips.join('')}</div>`:'';
 }
 
-/* ── Naujan barangay → flat delivery fee map ── */
-const BARANGAY_FEES = @json(config('naujan_barangays'));
+/* ── Naujan barangay → approximate center coordinates ── */
+// Used for instant fee preview when address has no GPS coords
+// Format: 'Barangay' => [lat, lng]
+const BARANGAY_COORDS = {
+    'Poblacion I (Barangay I)':            [13.3215, 121.3021],
+    'Poblacion II (Barangay II)':          [13.3220, 121.3015],
+    'Poblacion III (Barangay III)':        [13.3210, 121.3030],
+    'Andres Ylagan (Mag-asawang Tubig)':   [13.3280, 121.3100],
+    'Antipolo (Parusan)':                  [13.3350, 121.2950],
+    'Apitong':                             [13.3180, 121.2880],
+    'Arangin':                             [13.3400, 121.3150],
+    'Aurora':                              [13.3450, 121.3200],
+    'Bacungan':                            [13.3100, 121.2800],
+    'Bagong Buhay':                        [13.3050, 121.3050],
+    'Bancuro':                             [13.3300, 121.2900],
+    'Buhangin':                            [13.3150, 121.3100],
+    'Concepcion':                          [13.3250, 121.2850],
+    'Del Pilar':                           [13.3380, 121.3080],
+    'Estrella':                            [13.3420, 121.3120],
+    'Evangelista':                         [13.3320, 121.2980],
+    'Gamao':                               [13.3180, 121.3150],
+    'General Esco':                        [13.3050, 121.2950],
+    'Herrera':                             [13.3500, 121.3050],
+    'Kalinisan':                           [13.3060, 121.2920],
+    'Mabini':                              [13.3400, 121.2850],
+    'Malaya':                              [13.3100, 121.3200],
+    'Malinao':                             [13.3550, 121.3100],
+    'Malvar':                              [13.3480, 121.2900],
+    'Mulawin':                             [13.3000, 121.3000],
+    'Nag-Iba I':                           [13.3280, 121.3180],
+    'Nag-Iba II':                          [13.3320, 121.3220],
+    'Pagkakaisa':                          [13.3150, 121.2950],
+    'Sampaguita':                          [13.3250, 121.3050],
+    'San Agustin I':                       [13.3350, 121.2800],
+    'San Agustin II (Ilaya)':              [13.3380, 121.2820],
+    'San Andres':                          [13.3450, 121.2880],
+    'San Antonio':                         [13.3080, 121.3080],
+    'San Jose (San Jose Uno)':             [13.3700, 121.3100],
+    'San Luis':                            [13.3600, 121.2950],
+    'San Nicolas':                         [13.3550, 121.3200],
+    'San Pedro':                           [13.3480, 121.3150],
+    'Santa Cruz':                          [13.3400, 121.3250],
+    'Santa Maria':                         [13.3500, 121.3180],
+    'Santo Nino':                          [13.3050, 121.3150],
+    'Adrialuna':                           [13.2950, 121.3050],
+    'Balite':                              [13.3800, 121.3300],
+    'Banuton':                             [13.3850, 121.3200],
+    'Barcenaga':                           [13.3650, 121.3400],
+    'Bayani':                              [13.2900, 121.2900],
+    'Inarawan':                            [13.3750, 121.2800],
+    'Laguna (Balansig)':                   [13.3600, 121.3500],
+    'Magtibay':                            [13.3900, 121.3100],
+    'Mahabang Parang':                     [13.3200, 121.2700],
+    'Malabo':                              [13.2850, 121.3100],
+    'Masagana':                            [13.3700, 121.2700],
+    'Masaguing':                           [13.2800, 121.2950],
+    'Melgar A (San Jose Dos)':             [13.3750, 121.3050],
+    'Melgar B (San Jose Dos)':             [13.3780, 121.3000],
+    'Motoderazo':                          [13.2750, 121.3000],
+    'Paniquian':                           [13.3450, 121.2700],
+    'Pinagsabangan I':                     [13.3550, 121.2750],
+    'Pinagsabangan II':                    [13.3580, 121.2780],
+    'Pinahan':                             [13.2900, 121.3200],
+    'San Carlos':                          [13.3650, 121.2850],
+    'San Isidro (Calaguimay)':             [13.3500, 121.2650],
+    'Santa Isabel (Mapantat)':             [13.4000, 121.3050],
+    'Santiago':                            [13.3700, 121.3550],
+    'Tagumpay':                            [13.2700, 121.3050],
+    'Tigkan':                              [13.2650, 121.3100],
+    'Caburo':                              [13.4100, 121.3200],
+    'Dao':                                 [13.4200, 121.3300],
+    'Metolza':                             [13.4300, 121.3100],
+    'Montelago (Pungao)':                  [13.2500, 121.3200],
+    'Montemayor (Lugta)':                  [13.2600, 121.2800],
+    'Paitan':                              [13.4400, 121.3000],
+};
 
-/* ── Get delivery fee for a barangay name ── */
-function getBarangayFee(barangay) {
-    if (!barangay) return 50; // default if not selected
-    return BARANGAY_FEES[barangay] ?? 50;
+const SHOP_LAT = 13.321512;
+const SHOP_LNG = 121.302098;
+
+/* ── Compute delivery fee from coords (₱30 base + ₱10/km after 2km) ── */
+function calcDeliveryFeeLocal(lat, lng) {
+    const R = 6371;
+    const dLat = (lat - SHOP_LAT) * Math.PI / 180;
+    const dLng = (lng - SHOP_LNG) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2)
+            + Math.cos(SHOP_LAT * Math.PI / 180) * Math.cos(lat * Math.PI / 180)
+            * Math.sin(dLng/2) * Math.sin(dLng/2);
+    const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const fee = 30 + Math.max(0, Math.ceil(km - 2)) * 10;
+    const label = km <= 2
+        ? `₱${fee} (within 2 km)`
+        : `₱${fee} (${km.toFixed(1)} km)`;
+    return { km: parseFloat(km.toFixed(2)), fee, label };
 }
 
-/* ── Update fee when barangay dropdown changes ── */
-document.addEventListener('DOMContentLoaded', () => {
-    const brgySelect = document.getElementById('fBarangay');
-    if (brgySelect) {
-        brgySelect.addEventListener('change', function () {
-            // If the currently selected address matches what's being edited,
-            // update the fee preview immediately
-            const fee = getBarangayFee(this.value);
-            const distEl = document.getElementById('deliveryDistLabel');
-            if (distEl && currentOrderType === 'delivery') {
-                distEl.textContent = `₱${fee} flat rate — ${this.value || 'select barangay'}`;
-            }
-        });
-    }
-});
-
-/* ── Calculate delivery fee from barangay (replaces GPS-based calc) ── */
-function calcDeliveryFeeLocal(barangay) {
-    const fee = getBarangayFee(barangay);
-    return { fee, label: `₱${fee} flat rate — ${barangay || 'Naujan'}` };
-}
-
-/* ── Update delivery fee display when address is selected ── */
-async function updateDeliveryFeeByCoords(lat, lng) {
-    // Kept for backward compatibility but no longer used for fee calculation
-    // Fee is now barangay-based, updated in selectAddress()
-}
-
-/* ── Update fee when an address is selected ── */
+/* ── Update fee from address (uses GPS coords or barangay center fallback) ── */
 function updateFeeFromAddress(address) {
-    if (!address || currentOrderType !== 'delivery') return;
-    const barangay = address.barangay || '';
-    const result   = calcDeliveryFeeLocal(barangay);
-    currentDeliveryFee = result.fee;
+    if (!address) { renderSummary(); return; }
+
     const distEl = document.getElementById('deliveryDistLabel');
-    if (distEl) distEl.textContent = result.label;
+
+    // Only compute delivery fee when in delivery mode
+    if (currentOrderType !== 'delivery') {
+        renderSummary();
+        return;
+    }
+
+    let lat = parseFloat(address.lat) || 0;
+    let lng = parseFloat(address.lng) || 0;
+
+    // Fallback to barangay center coords if no GPS saved
+    if (!lat || !lng) {
+        const coords = BARANGAY_COORDS[address.barangay];
+        if (coords) { lat = coords[0]; lng = coords[1]; }
+    }
+
+    if (lat && lng) {
+        const result = calcDeliveryFeeLocal(lat, lng);
+        currentDeliveryFee = result.fee;
+        if (distEl) distEl.textContent = result.label;
+    } else {
+        currentDeliveryFee = 50;
+        if (distEl) distEl.textContent = address.barangay
+            ? `₱50 est. — ${address.barangay}`
+            : '₱50 est. (select barangay for exact fee)';
+    }
     renderSummary();
+}
+
+async function updateDeliveryFeeByCoords(lat, lng) {
+    // Kept for compatibility — now handled by updateFeeFromAddress
 }
 
 /* ── Order summary ── */
@@ -663,6 +750,7 @@ function selectOrderType(el, type){
     if(paymentCard) {
         paymentCard.style.display = type === 'delivery' ? 'block' : 'none';
     }
+    renderSummary();
 }
 
 /* ═══════════════════════════════════
@@ -681,9 +769,9 @@ async function loadAddresses(){
         const def=addresses.find(a=>a.is_default)||addresses[0]||null;
         selectedAddressId=def?def.id:null;
         renderSelectedAddress();
-        // Calculate delivery fee for default address barangay
+        // Calculate delivery fee for default address
         if (def) updateFeeFromAddress(def);
-        renderSummary();
+        else renderSummary();
     }catch(e){
         console.error('addr load failed',e);
         const distEl = document.getElementById('deliveryDistLabel');
