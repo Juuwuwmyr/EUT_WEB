@@ -638,7 +638,6 @@ class AdminController extends Controller
     }
 
     public function archiveMenuItem(MenuItem $menuItem)
-    public function archiveMenuItem(MenuItem $menuItem)
     {
         $menuItem->update(['is_archived' => ! $menuItem->is_archived]);
         $state = $menuItem->is_archived ? 'archived' : 'restored';
