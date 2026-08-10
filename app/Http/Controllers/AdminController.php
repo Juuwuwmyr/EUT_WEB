@@ -1130,8 +1130,12 @@ class AdminController extends Controller
 
     public function settings()
     {
-        $isOpen = cache()->get('shop_is_open', true);
-        return view('admin.settings', compact('isOpen'));
+        $isOpenDelivery = cache()->get('shop_is_open_delivery', true);
+        $isOpenPickup   = cache()->get('shop_is_open_pickup', true);
+        $isOpenDineIn   = cache()->get('shop_is_open_dine_in', true);
+        $isOpen         = $isOpenDelivery || $isOpenPickup || $isOpenDineIn;
+
+        return view('admin.settings', compact('isOpen', 'isOpenDelivery', 'isOpenPickup', 'isOpenDineIn'));
     }
 
     public function updateSettings(Request $request)
@@ -1145,36 +1149,77 @@ class AdminController extends Controller
             'min_order'       => 'nullable|numeric|min:0',
         ]);
 
-        // Persist open/close toggle
-        $isOpen = $request->boolean('is_open', true);
+        $isOpenDelivery = $request->boolean('is_open_delivery', true);
+        $isOpenPickup   = $request->boolean('is_open_pickup', true);
+        $isOpenDineIn   = $request->boolean('is_open_dine_in', true);
+        $isOpen         = $isOpenDelivery || $isOpenPickup || $isOpenDineIn;
+
+        cache()->forever('shop_is_open_delivery', $isOpenDelivery);
+        cache()->forever('shop_is_open_pickup', $isOpenPickup);
+        cache()->forever('shop_is_open_dine_in', $isOpenDineIn);
         cache()->forever('shop_is_open', $isOpen);
+
         cache()->forever('shop_settings', [
-            'restaurant_name' => $request->restaurant_name,
-            'contact_email'   => $request->contact_email,
-            'contact_phone'   => $request->contact_phone,
-            'address'         => $request->address,
-            'delivery_fee'    => $request->delivery_fee,
-            'min_order'       => $request->min_order,
-            'is_open'         => $isOpen,
+            'restaurant_name'  => $request->restaurant_name,
+            'contact_email'    => $request->contact_email,
+            'contact_phone'    => $request->contact_phone,
+            'address'          => $request->address,
+            'delivery_fee'     => $request->delivery_fee,
+            'min_order'        => $request->min_order,
+            'is_open_delivery' => $isOpenDelivery,
+            'is_open_pickup'   => $isOpenPickup,
+            'is_open_dine_in'  => $isOpenDineIn,
+            'is_open'          => $isOpen,
         ]);
 
-        return back()->with('success', $isOpen ? 'Settings saved. Shop is now OPEN.' : 'Settings saved. Shop is now CLOSED.');
+        broadcast(new \App\Events\ShopStatusUpdated($isOpen, $isOpenDelivery, $isOpenPickup, $isOpenDineIn));
+
+        return back()->with('success', 'Restaurant settings saved successfully.');
     }
 
-    // ── PATCH /admin/settings/toggle-open — quick open/close toggle ────────
+    // ── PATCH /admin/settings/toggle-open — quick open/close toggle per service ────────
     public function toggleOpen(Request $request)
     {
-        $current = cache()->get('shop_is_open', true);
-        $new = !$current;
-        cache()->forever('shop_is_open', $new);
+        $type = $request->input('type', 'all');
 
-        // Broadcast to all connected clients via a public channel
-        broadcast(new \App\Events\ShopStatusUpdated($new));
+        $isOpenDelivery = cache()->get('shop_is_open_delivery', true);
+        $isOpenPickup   = cache()->get('shop_is_open_pickup', true);
+        $isOpenDineIn   = cache()->get('shop_is_open_dine_in', true);
+
+        if ($type === 'delivery') {
+            $isOpenDelivery = !$isOpenDelivery;
+            cache()->forever('shop_is_open_delivery', $isOpenDelivery);
+        } elseif ($type === 'pickup') {
+            $isOpenPickup = !$isOpenPickup;
+            cache()->forever('shop_is_open_pickup', $isOpenPickup);
+        } elseif ($type === 'dine_in') {
+            $isOpenDineIn = !$isOpenDineIn;
+            cache()->forever('shop_is_open_dine_in', $isOpenDineIn);
+        } else {
+            // Toggle overall shop
+            $currentOverall = $isOpenDelivery || $isOpenPickup || $isOpenDineIn;
+            $newStatus = !$currentOverall;
+            $isOpenDelivery = $newStatus;
+            $isOpenPickup   = $newStatus;
+            $isOpenDineIn   = $newStatus;
+            cache()->forever('shop_is_open_delivery', $newStatus);
+            cache()->forever('shop_is_open_pickup', $newStatus);
+            cache()->forever('shop_is_open_dine_in', $newStatus);
+        }
+
+        $isOpen = $isOpenDelivery || $isOpenPickup || $isOpenDineIn;
+        cache()->forever('shop_is_open', $isOpen);
+
+        // Broadcast to all connected clients
+        broadcast(new \App\Events\ShopStatusUpdated($isOpen, $isOpenDelivery, $isOpenPickup, $isOpenDineIn));
 
         return response()->json([
-            'success' => true,
-            'is_open' => $new,
-            'message' => $new ? 'Shop is now OPEN 🟢' : 'Shop is now CLOSED 🔴',
+            'success'          => true,
+            'is_open'          => $isOpen,
+            'is_open_delivery' => $isOpenDelivery,
+            'is_open_pickup'   => $isOpenPickup,
+            'is_open_dine_in'  => $isOpenDineIn,
+            'message'          => 'Service status updated successfully.',
         ]);
     }
 

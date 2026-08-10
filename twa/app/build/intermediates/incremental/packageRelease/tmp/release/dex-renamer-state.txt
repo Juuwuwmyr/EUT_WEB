@@ -1,0 +1,4 @@
+#Mon Aug 10 04:16:54 PDT 2026
+base.0=C\:\\wamp64\\www\\EUT_WEB\\twa\\app\\build\\intermediates\\dex\\release\\minifyReleaseWithR8\\classes.dex
+renamed.0=classes.dex
+path.0=classes.dex

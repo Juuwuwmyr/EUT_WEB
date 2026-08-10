@@ -290,17 +290,17 @@
                 <label class="pay-option selected" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center;" onclick="selectOrderType(this, 'delivery')">
                     <input type="radio" name="order_type" value="delivery" checked style="display:none;">
                     <span style="display:flex;justify-content:center;"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19c-3.866 0-7-1.343-7-3V8m7 11c3.866 0 7-1.343 7-3V8M5 8c0-1.657 3.134-3 7-3s7 1.343 7 3M5 8c0 1.657 3.134 3 7 3s7-1.343 7-3"/><circle cx="17" cy="17" r="2"/><path stroke-linecap="round" d="M3 11h3l1.5 5h9l1.5-5h3"/></svg></span>
-                    <span style="font-size:12px; font-weight:700;">Delivery</span>
+                    <span style="font-size:12px; font-weight:700;">Delivery <span id="deliveryClosedBadge" style="display:{{ $isOpenDelivery ? 'none' : 'inline' }};color:#ef4444;font-size:10px;">(Closed)</span></span>
                 </label>
                 <label class="pay-option" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center;" onclick="selectOrderType(this, 'pickup')">
                     <input type="radio" name="order_type" value="pickup" style="display:none;">
                     <span style="display:flex;justify-content:center;"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></span>
-                    <span style="font-size:12px; font-weight:700;">Pickup</span>
+                    <span style="font-size:12px; font-weight:700;">Pickup <span id="pickupClosedBadge" style="display:{{ $isOpenPickup ? 'none' : 'inline' }};color:#ef4444;font-size:10px;">(Closed)</span></span>
                 </label>
                 <label class="pay-option" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center; display:none;" onclick="selectOrderType(this, 'dine_in')">
                     <input type="radio" name="order_type" value="dine_in" style="display:none;">
                     <span style="display:flex;justify-content:center;"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6M17 13l1.5 6M9 19h6"/></svg></span>
-                    <span style="font-size:12px; font-weight:700;">Dine-in</span>
+                    <span style="font-size:12px; font-weight:700;">Dine-in <span id="dineInClosedBadge" style="display:{{ $isOpenDineIn ? 'none' : 'inline' }};color:#ef4444;font-size:10px;">(Closed)</span></span>
                 </label>
             </div>
         </div>
@@ -783,6 +783,46 @@ function renderSummary(){
 function selectPay(el){document.querySelectorAll('.pay-option').forEach(l=>l.classList.remove('selected'));el.classList.add('selected');}
 
 /* ── Order Type highlight ── */
+let shopServiceStatus = {
+    is_open: @json($isOpen),
+    is_open_delivery: @json($isOpenDelivery),
+    is_open_pickup: @json($isOpenPickup),
+    is_open_dine_in: @json($isOpenDineIn)
+};
+
+function checkCheckoutStatus() {
+    const btn = document.getElementById('placeOrderBtn');
+    if (!btn) return;
+    let isClosed = false;
+    let closedMsg = '';
+
+    if (currentOrderType === 'delivery' && !shopServiceStatus.is_open_delivery) {
+        isClosed = true; closedMsg = '🔴 Delivery Closed';
+    } else if (currentOrderType === 'pickup' && !shopServiceStatus.is_open_pickup) {
+        isClosed = true; closedMsg = '🔴 Pickup Closed';
+    } else if (currentOrderType === 'dine_in' && !shopServiceStatus.is_open_dine_in) {
+        isClosed = true; closedMsg = '🔴 Dine-In Closed';
+    } else if (!shopServiceStatus.is_open) {
+        isClosed = true; closedMsg = '🔴 Store Closed';
+    }
+
+    if (isClosed) {
+        btn.disabled = true;
+        btn.textContent = closedMsg;
+        btn.style.background = 'linear-gradient(135deg,#374151,#4b5563)';
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+        btn.type = 'button';
+    } else {
+        btn.disabled = false;
+        btn.textContent = 'Place Order';
+        btn.style.background = '';
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+        btn.type = 'submit';
+    }
+}
+
 let currentOrderType = 'delivery';
 function selectOrderType(el, type){
     localStorage.setItem('eutOrderType', type); // persist selection across pages
@@ -791,6 +831,7 @@ function selectOrderType(el, type){
     el.classList.add('selected');
     el.querySelector('input').checked = true;
     currentOrderType = type;
+    checkCheckoutStatus();
 
     // For guests: show dine-in notice or login notice
     const guestDineInNotice = document.getElementById('guestDineInNotice');
@@ -1301,27 +1342,26 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
     }
 });
 
-// ── Echo: disable checkout if admin closes shop in real time ──
+// ── Echo: update service status in real time ──
 if (window.Echo) {
     window.Echo.channel('shop.status')
         .listen('.shop.status', (data) => {
-            const btn = document.getElementById('placeOrderBtn');
-            if (!btn) return;
-            if (!data.is_open) {
-                btn.disabled = true;
-                btn.textContent = '🔴 Shop Closed';
-                btn.style.background = 'linear-gradient(135deg,#374151,#4b5563)';
-                btn.style.opacity = '0.6';
-                btn.style.cursor = 'not-allowed';
-                btn.type = 'button'; // prevent form submit
-            } else {
-                btn.disabled = false;
-                btn.textContent = 'Place Order';
-                btn.style.background = '';
-                btn.style.opacity = '';
-                btn.style.cursor = '';
-                btn.type = 'submit';
-            }
+            shopServiceStatus = {
+                is_open: data.is_open,
+                is_open_delivery: data.is_open_delivery ?? true,
+                is_open_pickup: data.is_open_pickup ?? true,
+                is_open_dine_in: data.is_open_dine_in ?? true
+            };
+
+            const delBadge  = document.getElementById('deliveryClosedBadge');
+            const picBadge  = document.getElementById('pickupClosedBadge');
+            const dineBadge = document.getElementById('dineInClosedBadge');
+
+            if (delBadge)  delBadge.style.display  = shopServiceStatus.is_open_delivery ? 'none' : 'inline';
+            if (picBadge)  picBadge.style.display  = shopServiceStatus.is_open_pickup   ? 'none' : 'inline';
+            if (dineBadge) dineBadge.style.display = shopServiceStatus.is_open_dine_in  ? 'none' : 'inline';
+
+            checkCheckoutStatus();
         });
 }
 </script>

@@ -14,7 +14,32 @@ class OrderController extends Controller
     // ── POST /orders — place an order ──────────────────────
     public function store(Request $request)
     {
-        // Block ordering when shop is closed
+        $orderType      = $request->input('order_type', 'delivery');
+        $isOpenDelivery = cache()->get('shop_is_open_delivery', true);
+        $isOpenPickup   = cache()->get('shop_is_open_pickup', true);
+        $isOpenDineIn   = cache()->get('shop_is_open_dine_in', true);
+
+        if ($orderType === 'delivery' && !$isOpenDelivery) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sorry, Delivery service is currently closed. Please choose another option or check back later.',
+            ], 422);
+        }
+
+        if ($orderType === 'pickup' && !$isOpenPickup) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sorry, Pickup service is currently closed. Please choose another option or check back later.',
+            ], 422);
+        }
+
+        if ($orderType === 'dine_in' && !$isOpenDineIn) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sorry, Dine-In service is currently closed. Please check back later.',
+            ], 422);
+        }
+
         if (!cache()->get('shop_is_open', true)) {
             return response()->json([
                 'success' => false,
