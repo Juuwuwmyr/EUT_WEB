@@ -833,15 +833,31 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCount();
 
     // ── Table QR: if customer arrived via /shop?table=N QR code ─────────────
-    const _urlTable = new URLSearchParams(window.location.search).get('table')
-                   || sessionStorage.getItem('eutTableNumber')
-                   || localStorage.getItem('eutTableNumber'); // fallback: survives post-order sessionStorage clear
+    // IMPORTANT: Only lock to dine-in if table number is in the current URL
+    // or in sessionStorage (active tab session). Never lock from localStorage
+    // alone — that would trap logged-in delivery/pickup users from previous sessions.
+    const _urlTableParam = new URLSearchParams(window.location.search).get('table');
+    const _sessionTable  = sessionStorage.getItem('eutTableNumber');
+    const _urlTable      = _urlTableParam || _sessionTable
+                        || ({{ auth()->check() ? 'false' : 'true' }} ? localStorage.getItem('eutTableNumber') : null);
+
+    @auth
+    // Logged-in user: clear stale dine-in table context unless actively scanning
+    if (!_urlTableParam && !_sessionTable) {
+        localStorage.removeItem('eutTableNumber');
+        sessionStorage.removeItem('eutTableNumber');
+        if (localStorage.getItem('eutOrderType') === 'dine_in') {
+            localStorage.setItem('eutOrderType', 'delivery');
+        }
+    }
+    @endauth
+
     if (_urlTable && /^\d{1,2}$/.test(_urlTable.trim())) {
         sessionStorage.setItem('eutTableNumber', _urlTable.trim());
-        localStorage.setItem('eutTableNumber', _urlTable.trim()); // persist across page sessions
-        // Auto-select & lock Dine-in since they scanned a table QR
+        localStorage.setItem('eutTableNumber', _urlTable.trim());
         localStorage.setItem('eutOrderType', 'dine_in');
-        window._tableQrLocked = true; // signal to setOrderType to refuse switching
+        // Only lock the UI if table came from URL or active session — not stale localStorage
+        window._tableQrLocked = !!(_urlTableParam || _sessionTable);
     }
 
     // Restore saved order type

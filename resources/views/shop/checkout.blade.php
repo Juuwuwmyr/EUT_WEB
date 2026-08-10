@@ -580,8 +580,18 @@ document.addEventListener('DOMContentLoaded',()=>{
         history.replaceState({}, '', window.location.pathname);
 
     } else {
-        // Restore previously selected order type
-        const savedType = localStorage.getItem('eutOrderType') || 'delivery';
+        // Restore previously selected order type.
+        // For logged-in users, never default to dine_in from stale localStorage
+        // unless they actually have an active table session.
+        let savedType = localStorage.getItem('eutOrderType') || 'delivery';
+        const hasActiveTable = sessionStorage.getItem('eutTableNumber')
+            || new URLSearchParams(window.location.search).get('table');
+        @auth
+        // Logged-in user with no active table session — ignore stale dine_in preference
+        if (savedType === 'dine_in' && !hasActiveTable) {
+            savedType = 'delivery';
+        }
+        @endauth
         const savedLabel = document.querySelector(`.pay-option input[value="${savedType}"]`);
         if (savedLabel) {
             const label = savedLabel.closest('.pay-option');
