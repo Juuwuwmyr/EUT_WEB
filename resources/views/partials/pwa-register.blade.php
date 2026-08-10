@@ -15,9 +15,11 @@ window.addEventListener('beforeinstallprompt', e => {
     deferredPrompt = e;
 
     // Show install banner after 3 seconds if not already installed
+    // BUT suppress it when the user arrived via a table QR code (URL has ?table=...)
     setTimeout(() => {
         const banner = document.getElementById('pwaInstallBanner');
-        if (banner && !localStorage.getItem('pwaInstallDismissed')) {
+        const hasTable = new URLSearchParams(window.location.search).get('table');
+        if (banner && !localStorage.getItem('pwaInstallDismissed') && !hasTable) {
             banner.style.display = 'flex';
         }
     }, 3000);
