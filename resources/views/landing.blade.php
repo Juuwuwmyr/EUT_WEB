@@ -200,7 +200,7 @@
 
         <div class="btn-group">
 
-            <a href="#" class="btn-download">
+            <a href="https://www.mediafire.com/file/6evfuuijuoj6qxh/app-release-signef.apk/file" target="_blank" rel="noopener noreferrer" class="btn-download">
                 <!-- Android icon -->
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.341a5.03 5.03 0 0 1-1.364-.189l-1.345 2.33a.5.5 0 0 1-.866-.5l1.34-2.32a5.01 5.01 0 0 1-2.786-2.789L9.82 13.2a.5.5 0 0 1-.5-.866l2.33-1.346a5.03 5.03 0 0 1-.189-1.365c0-.186.01-.37.03-.55H6v9.434A1.09 1.09 0 0 0 7.087 19.6h9.826A1.09 1.09 0 0 0 18 18.507V9.073h-5.507a5.03 5.03 0 0 1 5.03 6.268ZM8.5 7.5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1Zm7 0a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1ZM7.5 5.006l-.87-1.506a.5.5 0 0 1 .866-.5l.9 1.558A5.978 5.978 0 0 1 12 4c.6 0 1.178.085 1.724.245l.9-1.558a.5.5 0 0 1 .866.5L14.62 4.78A5.985 5.985 0 0 1 18 10H6a5.985 5.985 0 0 1 1.5-4.994Z"/></svg>
                 Download on Android
