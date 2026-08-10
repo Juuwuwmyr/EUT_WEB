@@ -1,319 +1,273 @@
-# EUT Restaurant - Online Food Delivery System
+# E.U.T Snack House — Restaurant Ordering & Management System
 
 <div align="center">
 
-![EUT Restaurant Logo](https://img.shields.io/badge/EUT-Restaurant-red?style=for-the-badge&logo=restaurant&logoColor=white)
-![Laravel](https://img.shields.io/badge/Laravel-11.x-red?style=for-the-badge&logo=laravel&logoColor=white)
-![PHP](https://img.shields.io/badge/PHP-8.4+-blue?style=for-the-badge&logo=php&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.3+-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-38BDF8?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Laravel Reverb](https://img.shields.io/badge/Reverb-WebSockets-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
 
-**Professional Online Food Delivery Platform | Eat • Unwind • Tea**
+**E.U.T Snack House** — *Eat • Unwind • Tea*
 
-*Revolutionizing food delivery in the Philippines with cutting-edge technology and exceptional user experience.*
+A full-featured restaurant ordering platform with dine-in QR, delivery, pickup,
+real-time kitchen display, thermal auto-printing, and rider dispatch.
+Built for a real snack house in the Philippines.
 
 </div>
 
 ---
 
-## 🚀 **Project Overview**
+## Overview
 
-**EUT Restaurant** is a comprehensive online food delivery system similar to **GrabFood Philippines**, designed to provide seamless ordering experiences for customers and efficient restaurant management. Our platform combines modern web technologies with intuitive design to deliver restaurant-quality meals directly to your doorstep.
+EUT Web is a self-hosted, single-restaurant ordering system. Customers browse the menu, add items to cart, and place orders for **delivery**, **pickup**, or **dine-in** (via table QR code). Staff manage everything through role-specific dashboards: admin, kitchen (chef), and rider.
 
-### **Core Mission**
-> **"Bridging the gap between exceptional cuisine and convenient delivery through innovative technology."**
-
----
-
-## 🛠 **Technology Stack**
-
-### **Backend Framework**
-- **Laravel 11.x** - Robust PHP framework for enterprise-grade applications
-- **PHP 8.4+** - Modern PHP with enhanced performance and security
-- **MySQL 8.0** - Reliable database management system
-- **Composer** - Dependency management and autoloading
-
-### **Frontend Technologies**
-- **Tailwind CSS 3.x** - Utility-first CSS framework for rapid UI development
-- **Blade Templates** - Laravel's powerful templating engine
-- **Vanilla JavaScript ES6+** - Modern JavaScript for interactive features
-- **Alpine.js** (Future) - Lightweight JavaScript framework for dynamic behavior
-
-### **Development Tools**
-- **Vite** - Next-generation frontend build tool
-- **Laravel Mix** - Asset compilation and optimization
-- **PHPUnit** - Unit testing framework
-- **Laravel Sail** - Docker development environment
-
-### **Design & UI/UX**
-- **Google Fonts** - Professional typography (Playfair Display, Inter)
-- **Heroicons** - Beautiful hand-crafted SVG icons
-- **Responsive Design** - Mobile-first approach for all devices
-- **Progressive Web App** (Planned) - Native app-like experience
+Real-time updates across all panels are handled by **Laravel Reverb** (self-hosted WebSockets) — the kitchen sees new orders the moment they're placed, no page refresh needed.
 
 ---
 
-## 🌟 **Core Features**
+## Tech Stack
 
-### **🍔 Online Ordering System**
-- **Real-time Menu Management** - Dynamic menu updates and availability tracking
-- **Smart Cart System** - Persistent shopping cart with order customization
-- **Multiple Payment Gateways** - PayMaya, GCash, Credit/Debit Cards, Cash on Delivery
-- **Order Tracking** - Live delivery status with GPS integration
-- **Customer Reviews & Ratings** - Feedback system for continuous improvement
-
-### **📱 Customer Experience**
-- **User Authentication** - Secure registration and login system
-- **Profile Management** - Address book, order history, preferences
-- **Favorites System** - Save preferred items for quick reordering
-- **Promotional System** - Discount codes, loyalty points, special offers
-- **Multi-language Support** - English and Filipino language options
-
-### **🎯 Restaurant Management**
-- **Inventory Management** - Real-time stock tracking and alerts
-- **Order Processing Dashboard** - Streamlined order management interface
-- **Analytics & Reporting** - Sales insights and performance metrics
-- **Staff Management** - Role-based access control for restaurant teams
-- **Menu Customization** - Easy menu updates with rich media support
-
-### **🚚 Delivery Management**
-- **Delivery Partner Integration** - Third-party delivery service connectivity
-- **Route Optimization** - AI-powered delivery route planning
-- **Delivery Tracking** - Real-time GPS tracking for customers
-- **Delivery Fee Calculator** - Dynamic pricing based on distance and demand
-- **Delivery Partner Dashboard** - Dedicated interface for delivery personnel
+| Layer | Technology |
+|---|---|
+| Backend | Laravel 13, PHP 8.3+ |
+| Frontend | Blade templates, Vanilla JS ES6+, Tailwind CSS 4 |
+| Build | Vite 8, `@tailwindcss/vite` |
+| WebSockets | Laravel Reverb (self-hosted, no Pusher needed) |
+| Auth | Laravel session auth + Google OAuth (Socialite) |
+| Database | MySQL (production) / SQLite (local dev) |
+| File Storage | AWS S3 (production) / local disk (dev) |
+| Print Server | Node.js agent on kitchen PC → USB/network thermal printer |
 
 ---
 
-## 📋 **Current Menu Categories**
+## Features
 
-### **🍟 Premium Burgers** (₱320 - ₱420)
-| Item | Description | Price |
-|------|-------------|-------|
-| EUT Classic Burger | Signature beef patty with special sauce | ₱350 |
-| Gourmet Cheeseburger | Premium beef with aged cheddar & bacon | ₱420 |
-| Spicy Jalapeño Burger | Fire-grilled with jalapeños & chipotle | ₱380 |
-| Mushroom Swiss Burger | Sautéed mushrooms with garlic aioli | ₱395 |
-| BBQ Bacon Burger | Smoky BBQ with onion rings | ₱410 |
-| Veggie Delight Burger | Plant-based patty with avocado | ₱320 |
+### 🛒 Customer-facing Shop
 
-### **🍟 Signature Sides** (₱120 - ₱180)
-- Classic French Fries, Sweet Potato Fries, Loaded Cheese Fries
-- Beer-battered Onion Rings, Golden Mozzarella Sticks
+- **Menu browsing** — categories, item detail with modifier & add-on groups
+- **Persistent cart** — `localStorage`-backed; synced server-side for logged-in users
+- **Three order types** — Delivery (with map pin), Pickup, Dine-in
+- **Table QR scan** — scanning `/shop?table=N` auto-selects dine-in and locks the table number for the session
+- **Guest dine-in** — guests can place dine-in orders without creating an account
+- **Order tracking** — live status updates via WebSocket (pending → accepted → preparing → ready → delivered)
+- **Google OAuth** — one-tap sign-in
+- **Saved addresses** — address book with default address for delivery
+- **Progressive Web App** — installable on Android via TWA (Trusted Web Activity, see `twa/`)
+- **Upsell carousel** — random featured items shown on the cart page
 
-### **🥤 Beverages** (₱100 - ₱200)
-- Premium Tea Collection, Freshly Brewed Coffee
-- Fresh Fruit Smoothies, Craft Sodas
+### 🖥️ Admin Panel (`/admin`)
 
-### **🍽️ Value Combos** (₱550 - ₱650)
-- Complete meals with burger, side, and beverage combinations
+- **Dashboard** — order summary and live feeds
+- **Orders** — real-time order board; accept, assign rider, update status, complete table, archive, delete
+- **Menu Items** — create/edit/archive items, upload photos, set category & sort order, toggle availability
+- **Categories** — add/edit/archive with sort order control
+- **Modifier Groups & Options** — attach flavors, sizes, add-ons with min/max selection rules
+- **Users** — view all users, change roles (`admin` / `chef` / `rider` / customer), archive, delete
+- **Riders** — manage rider profiles
+- **Settings** — restaurant name, contact info, delivery fee, minimum order; per-service open/close toggles (Delivery / Pickup / Dine-In) that broadcast in real time via WebSocket
+- **Table QR Codes** — generate, download PNG, print A4 coupon sheet or POS roll for tables 1–30
+
+### 👨‍🍳 Kitchen Display (`/chef`)
+
+- Live order queue: **Queued → Cooking → Ready**
+- Accept, start cooking, mark ready, assign rider per order
+- Cancel individual items from an order
+- Auto-print kitchen tickets (browser popup or headless print server)
+- Print formats: kitchen ticket, customer receipt, table receipt, takeout slip
+
+### 🏍️ Rider Dashboard (`/rider`)
+
+- View assigned delivery orders
+- Update availability status & GPS location
+- Mark order as picked up / delivered
+- Earnings summary
+
+### 🖨️ Auto-Print Server (`/print-server`)
+
+A standalone **Node.js** script that runs on the kitchen PC. It polls the server every 3 seconds for unprinted kitchen jobs and sends them directly to a thermal printer (USB COM port or network IP). No browser interaction required. See [`print-server/README.md`](print-server/README.md) for full setup.
 
 ---
 
-## 🏗 **System Architecture**
+## User Roles
 
-### **Directory Structure**
+| Role | Access |
+|---|---|
+| `admin` | Full admin panel |
+| `chef` | Kitchen display dashboard |
+| `rider` | Rider dashboard |
+| *(no role / customer)* | Shop, cart, checkout, tracking, profile |
+
+Assign a role via **Admin → Users**, or directly with Tinker:
+
+```bash
+php artisan tinker
+```
+```php
+User::where('email', 'you@example.com')->update(['role' => 'admin']);
+```
+
+---
+
+## Project Structure
+
 ```
 EUT_WEB/
 ├── app/
-│   ├── Http/Controllers/     # Application controllers
-│   ├── Models/              # Eloquent models
-│   ├── Services/            # Business logic services
-│   └── Providers/           # Service providers
+│   ├── Events/               # WebSocket events (ShopStatusUpdated, OrderStatusUpdated, …)
+│   ├── Http/
+│   │   ├── Controllers/      # AdminController, ShopController, OrderController, ChefController, …
+│   │   └── Middleware/       # admin, chef, rider, auth.printserver guards
+│   └── Models/               # User, MenuItem, Category, Order, OrderItem, Rider, …
 ├── database/
-│   ├── migrations/          # Database schema management
-│   ├── seeders/            # Sample data generation
-│   └── factories/          # Model factories
+│   ├── migrations/
+│   └── seeders/
 ├── resources/
-│   ├── views/              # Blade templates
-│   ├── css/                # Stylesheets
-│   └── js/                 # JavaScript assets
+│   └── views/
+│       ├── admin/            # Admin panel Blade views
+│       ├── chef/             # Kitchen dashboard
+│       ├── rider/            # Rider dashboard
+│       ├── shop/             # Customer pages (index, cart, checkout, tracking, profile)
+│       └── partials/         # Shared components (PWA register, print partials)
 ├── routes/
-│   ├── web.php             # Web routes
-│   ├── api.php             # API endpoints
-│   └── admin.php           # Admin panel routes
-└── public/
-    ├── images/             # Food photography & assets
-    └── build/              # Compiled assets
+│   └── web.php               # All routes (shop, admin, chef, rider, auth, print-server API)
+├── print-server/             # Node.js kitchen auto-print agent
+├── twa/                      # Android TWA (Trusted Web Activity) wrapper
+├── deploy.sh                 # Production deployment script
+├── vite.config.js
+└── .env.production.example   # Reference for production environment variables
 ```
-
-### **Database Design**
-- **Users Table** - Customer and staff authentication
-- **Menus Table** - Food items with categories and pricing
-- **Orders Table** - Order management and tracking
-- **Payments Table** - Transaction records and receipts
-- **Reviews Table** - Customer feedback and ratings
-- **Delivery Table** - Delivery tracking and logistics
 
 ---
 
-## 🚀 **Installation & Setup**
+## Local Development Setup
 
-### **Prerequisites**
-- PHP 8.4+ with required extensions
-- Composer 2.x
-- MySQL 8.0 or PostgreSQL 13+
-- Node.js 18+ & NPM
+### Prerequisites
 
-### **Quick Start**
+- PHP 8.3+ (WAMP / Laragon / Herd on Windows)
+- Composer 2
+- Node.js 18+ & npm
+- MySQL, or use SQLite for zero-config dev
+
+### Steps
+
 ```bash
-# Clone the repository
-git clone https://github.com/eutrestaurant/delivery-system.git
-cd EUT_WEB
-
-# Install PHP dependencies
+# 1. Install PHP dependencies
 composer install
 
-# Install Node.js dependencies
+# 2. Install Node dependencies
 npm install
 
-# Environment setup
+# 3. Copy and configure environment
 cp .env.example .env
 php artisan key:generate
 
-# Database setup
-php artisan migrate --seed
+# 4. Set up the database
+#    SQLite (zero config):
+touch database/database.sqlite
+#    Or configure DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD in .env for MySQL
 
-# Build assets
-npm run build
+php artisan migrate
 
-# Start development server
-php artisan serve
+# 5. Start the dev server + Vite hot reload
+composer run dev
 ```
 
-### **Docker Setup** (Alternative)
+> `composer run dev` uses `concurrently` to run `php artisan serve` and `npm run dev` in parallel.
+
+For **real-time WebSocket** features (live order updates, shop open/close broadcast), also run:
+
 ```bash
-# Using Laravel Sail
-./vendor/bin/sail up -d
-./vendor/bin/sail artisan migrate --seed
+php artisan reverb:start
 ```
 
----
-
-## 📊 **Performance Metrics**
-
-### **Current Benchmarks**
-- **Page Load Time** < 2.5 seconds
-- **Mobile Performance Score** 95/100
-- **SEO Optimization** 98/100
-- **Accessibility Score** 96/100
-- **Database Query Optimization** 99.2% efficiency
-
-### **Scalability Features**
-- **Redis Caching** - Session and query result caching
-- **CDN Integration** - Global asset delivery
-- **Load Balancing Ready** - Multi-server deployment support
-- **API Rate Limiting** - DDoS protection and fair usage
+Then visit **http://localhost:8000**.
 
 ---
 
-## 🔐 **Security Features**
+## Environment Variables Reference
 
-- **CSRF Protection** - Cross-site request forgery prevention
-- **SQL Injection Prevention** - Parameterized queries and ORM
-- **XSS Protection** - Input sanitization and output encoding
-- **SSL/TLS Encryption** - End-to-end secure communications
-- **Payment Security** - PCI DSS compliance for card processing
-- **Two-Factor Authentication** - Enhanced account security
+Key variables beyond standard Laravel defaults:
 
----
+```env
+# App
+APP_NAME="E.U.T Snack House"
+APP_TIMEZONE=Asia/Manila
 
-## 📱 **API Documentation**
+# Broadcasting — Reverb WebSockets
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=eut-local
+REVERB_APP_KEY=your-app-key
+REVERB_APP_SECRET=your-app-secret
+REVERB_HOST=0.0.0.0
+REVERB_PORT=8080
+REVERB_SCHEME=http
 
-### **RESTful API Endpoints**
-```
-GET    /api/menus           # Fetch all menu items
-POST   /api/orders          # Create new order
-GET    /api/orders/{id}     # Get order details
-PUT    /api/orders/{id}     # Update order status
-DELETE /api/orders/{id}     # Cancel order
+VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+VITE_REVERB_HOST=localhost
+VITE_REVERB_PORT=8080
+VITE_REVERB_SCHEME=http
 
-GET    /api/restaurants     # List all restaurants
-GET    /api/delivery/track  # Track delivery status
-POST   /api/payments        # Process payments
-GET    /api/reviews         # Fetch reviews & ratings
+# Google OAuth
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+
+# Print Server shared secret (must match print-server/.env)
+PRINT_SERVER_TOKEN=eut-print-secret-2024
 ```
 
-### **Authentication**
-- **Laravel Sanctum** - Token-based API authentication
-- **OAuth 2.0** - Social login integration (Google, Facebook)
-- **JWT Tokens** - Secure mobile app authentication
+See [`.env.production.example`](.env.production.example) for a complete production reference covering AWS RDS, S3, SES, and Reverb over HTTPS.
 
 ---
 
-## 🎯 **Business Impact**
+## Production Deployment
 
-### **Target Market**
-- **Primary**: Urban professionals aged 18-45
-- **Secondary**: Families seeking convenient dining solutions
-- **Geographic**: Metro Manila, Cebu, Davao (expandable nationwide)
+The app runs on a single server (e.g. AWS EC2) with MySQL on RDS, file uploads to S3, Reverb as a background WebSocket process, and a database queue worker.
 
-### **Revenue Streams**
-- **Commission-based Model** (15-20% per order)
-- **Delivery Fee Structure** (₱25-45 based on distance)
-- **Premium Restaurant Partnerships**
-- **Advertising & Promotional Placements**
+```bash
+git pull
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+npm run build
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
 
-### **Competitive Advantages**
-- **Superior User Experience** - Intuitive design and faster performance
-- **Local Market Focus** - Filipino taste preferences and payment methods
-- **Restaurant Support** - Comprehensive merchant tools and analytics
-- **Technology Innovation** - AI-powered recommendations and logistics
+See [`deploy.sh`](deploy.sh) for the full automated deploy script.
 
 ---
 
-## 🌍 **Future Roadmap**
+## Table QR Code Flow
 
-### **Phase 2: Enhanced Features**
-- [ ] **AI Recommendation Engine** - Personalized menu suggestions
-- [ ] **Voice Ordering** - Hands-free ordering via voice commands
-- [ ] **Augmented Reality Menu** - Interactive food visualization
-- [ ] **Blockchain Loyalty Program** - Secure and transparent rewards
-
-### **Phase 3: Market Expansion**
-- [ ] **Multi-city Deployment** - Nationwide coverage
-- [ ] **Cloud Kitchen Integration** - Virtual restaurant partnerships
-- [ ] **B2B Corporate Catering** - Enterprise meal solutions
-- [ ] **International Franchise Model** - Regional expansion opportunities
+1. Admin generates QR codes from `/admin/table-qrcodes`
+2. Each QR points to `https://yourdomain.com/shop?table=N`
+3. Customer scans → shop auto-selects **Dine In**, pre-fills table number, locks order type
+4. Session stored in `sessionStorage` + `localStorage` under `eutTableNumber`
+5. When admin closes Dine-In (or the whole shop), the QR session clears automatically in real time via the Reverb WebSocket broadcast — customers are not left stuck in dine-in mode
 
 ---
 
-## 👥 **Team & Support**
+## Kitchen Print Server
 
-### **Development Team**
-- **Lead Developer**: Full-stack Laravel specialist
-- **UI/UX Designer**: Mobile-first design expert
-- **DevOps Engineer**: Cloud infrastructure management
-- **Quality Assurance**: Automated testing and validation
+See [`print-server/README.md`](print-server/README.md) for the full setup guide.
 
-### **Contact Information**
-- **📧 Email**: dev@eutrestaurant.com
-- **📞 Phone**: +63 912 345 6789
-- **🌐 Website**: https://eutrestaurant.com
-- **📍 Address**: 123 Food Street, Culinary District, Metro Manila
+**TL;DR:**
 
-### **Support Channels**
-- **Documentation**: https://docs.eutrestaurant.com
-- **Issue Tracking**: GitHub Issues
-- **Community Forum**: Discord Server
-- **24/7 Support**: Live chat and email assistance
+```bash
+cd print-server
+copy .env.example .env    # set APP_URL and PRINTER_INTERFACE
+npm install
+npm start
+```
+
+Supports USB (COM port), network IP, and Windows printer names. Can be installed as a Windows service using PM2.
 
 ---
 
-## 📄 **License & Legal**
+## License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
-**© 2026 EUT Restaurant Systems Inc.** All rights reserved.
+MIT © E.U.T Snack House
 
 Built with ❤️ in the Philippines 🇵🇭
-
----
-
-<div align="center">
-
-**[📱 Live Demo](http://127.0.0.1:8000)** | **[📚 Documentation](https://docs.eutrestaurant.com)** | **[🚀 Get Started](#installation--setup)**
-
-*Transforming the future of food delivery, one order at a time.*
-
-</div>
