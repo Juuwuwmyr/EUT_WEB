@@ -139,7 +139,7 @@
         // Generate all QR codes - 15mm size (half of previous)
         @foreach($tables as $tableNum)
         new QRCode(document.getElementById('qr-{{ $tableNum }}'), {
-            text: '{{ url("/shop") }}?table={{ $tableNum }}',
+            text: 'https://eut-delivery.duckdns.org/shop?table={{ $tableNum }}',
             width: 120,
             height: 120,
             colorDark: '#000000',
