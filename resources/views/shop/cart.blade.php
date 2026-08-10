@@ -1129,6 +1129,13 @@ window.addEventListener('popstate', function() {
 if (window.Echo) {
     window.Echo.channel('shop.status')
         .listen('.shop.status', (data) => {
+            // If dine-in just closed, clear the QR table session
+            if (!data.is_open_dine_in || !data.is_open) {
+                sessionStorage.removeItem('eutTableNumber');
+                localStorage.removeItem('eutTableNumber');
+                localStorage.setItem('eutOrderType', 'delivery');
+            }
+
             const bar = document.getElementById('buyNowBar');
             if (!bar) return;
             if (!data.is_open) {

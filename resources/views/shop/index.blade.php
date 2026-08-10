@@ -863,6 +863,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if Dine-In service is closed for table QR scan
     const isDineInOpen = @json($isOpenDineIn) && @json($isOpen);
     if (window._tableQrLocked && !isDineInOpen) {
+        // Clear the QR table session so customers aren't stuck in dine-in mode
+        sessionStorage.removeItem('eutTableNumber');
+        localStorage.removeItem('eutTableNumber');
+        localStorage.setItem('eutOrderType', 'delivery');
+        window._tableQrLocked = false;
+
         const banner = document.getElementById('shopClosedBanner');
         if (banner) {
             banner.style.display = 'block';
@@ -1135,6 +1141,15 @@ if (window.Echo) {
             const banner = document.getElementById('shopClosedBanner');
             const dot    = document.getElementById('shopStatusDot');
             const text   = document.getElementById('shopStatusText');
+
+            // If dine-in just closed, clear the QR table session
+            if (!data.is_open_dine_in || !data.is_open) {
+                sessionStorage.removeItem('eutTableNumber');
+                localStorage.removeItem('eutTableNumber');
+                localStorage.setItem('eutOrderType', 'delivery');
+                window._tableQrLocked = false;
+            }
+
             if (data.is_open) {
                 if (banner) banner.style.display = 'none';
                 if (dot)    { dot.style.background = '#22c55e'; }

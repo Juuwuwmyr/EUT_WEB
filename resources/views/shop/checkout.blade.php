@@ -1364,6 +1364,13 @@ if (window.Echo) {
                 is_open_dine_in: data.is_open_dine_in ?? true
             };
 
+            // If dine-in just closed, clear the QR table session
+            if (!shopServiceStatus.is_open_dine_in || !shopServiceStatus.is_open) {
+                sessionStorage.removeItem('eutTableNumber');
+                localStorage.removeItem('eutTableNumber');
+                localStorage.setItem('eutOrderType', 'delivery');
+            }
+
             const delBadge  = document.getElementById('deliveryClosedBadge');
             const picBadge  = document.getElementById('pickupClosedBadge');
             const dineBadge = document.getElementById('dineInClosedBadge');
