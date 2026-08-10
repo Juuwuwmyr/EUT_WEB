@@ -860,6 +860,19 @@ document.addEventListener('DOMContentLoaded', () => {
         window._tableQrLocked = !!(_urlTableParam || _sessionTable);
     }
 
+    // Check if Dine-In service is closed for table QR scan
+    const isDineInOpen = @json($isOpenDineIn) && @json($isOpen);
+    if (window._tableQrLocked && !isDineInOpen) {
+        const banner = document.getElementById('shopClosedBanner');
+        if (banner) {
+            banner.style.display = 'block';
+            const msg = banner.querySelector('p');
+            if (msg) {
+                msg.innerHTML = '<svg width="16" height="16" fill="none" stroke="#fca5a5" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg> Dine-In service is currently <strong style="color:#fff;margin:0 4px;">CLOSED</strong> — table orders cannot be placed right now.';
+            }
+        }
+    }
+
     // Restore saved order type
     const savedType = localStorage.getItem('eutOrderType') || 'delivery';
     setOrderType(savedType, false); // false = don't save again on init

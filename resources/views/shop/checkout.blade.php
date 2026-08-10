@@ -565,14 +565,25 @@ document.addEventListener('DOMContentLoaded',()=>{
         document.getElementById('tableNumberInput').value = tableNum;
 
         // Show a confirmation banner
+        const isDineInServiceOpen = @json($isOpenDineIn) && @json($isOpen);
         const banner = document.createElement('div');
-        banner.style.cssText = 'margin:8px 18px 12px;padding:10px 14px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.25);border-radius:12px;display:flex;align-items:center;gap:10px;';
-        banner.innerHTML = `
-            <span style="font-size:20px;">🪑</span>
-            <div>
-                <p style="font-size:13px;font-weight:700;color:#facc15;margin:0 0 1px;">Table ${tableNum} — Dine-in</p>
-                <p style="font-size:11px;color:#9ca3af;margin:0;">Table number set from QR code</p>
-            </div>`;
+        if (isDineInServiceOpen) {
+            banner.style.cssText = 'margin:8px 18px 12px;padding:10px 14px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.25);border-radius:12px;display:flex;align-items:center;gap:10px;';
+            banner.innerHTML = `
+                <span style="font-size:20px;">🪑</span>
+                <div>
+                    <p style="font-size:13px;font-weight:700;color:#facc15;margin:0 0 1px;">Table ${tableNum} — Dine-in</p>
+                    <p style="font-size:11px;color:#9ca3af;margin:0;">Table number set from QR code</p>
+                </div>`;
+        } else {
+            banner.style.cssText = 'margin:8px 18px 12px;padding:10px 14px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:12px;display:flex;align-items:center;gap:10px;';
+            banner.innerHTML = `
+                <span style="font-size:20px;">🔴</span>
+                <div>
+                    <p style="font-size:13px;font-weight:700;color:#ef4444;margin:0 0 1px;">Table ${tableNum} — Dine-In CLOSED</p>
+                    <p style="font-size:11px;color:#fca5a5;margin:0;">Dine-in service is currently closed. Orders cannot be placed right now.</p>
+                </div>`;
+        }
         const tableCard = document.getElementById('tableNumberCard');
         if (tableCard) tableCard.parentNode.insertBefore(banner, tableCard);
 
