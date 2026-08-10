@@ -697,7 +697,7 @@
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                     Pickup
                 </button>
-                <button class="ot-btn" data-type="dine_in" onclick="setOrderType('dine_in')">
+                <button class="ot-btn" data-type="dine_in" onclick="setOrderType('dine_in')" style="display:none;">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18M3 7h18M3 11h18M3 15h12M3 19h8"/></svg>
                     Dine In
                 </button>

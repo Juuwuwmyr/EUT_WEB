@@ -297,7 +297,7 @@
                     <span style="display:flex;justify-content:center;"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg></span>
                     <span style="font-size:12px; font-weight:700;">Pickup</span>
                 </label>
-                <label class="pay-option" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center;" onclick="selectOrderType(this, 'dine_in')">
+                <label class="pay-option" style="flex:1; flex-direction: column; padding: 10px; gap: 4px; text-align: center; display:none;" onclick="selectOrderType(this, 'dine_in')">
                     <input type="radio" name="order_type" value="dine_in" style="display:none;">
                     <span style="display:flex;justify-content:center;"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6M17 13l1.5 6M9 19h6"/></svg></span>
                     <span style="font-size:12px; font-weight:700;">Dine-in</span>
