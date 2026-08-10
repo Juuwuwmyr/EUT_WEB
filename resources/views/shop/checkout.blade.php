@@ -597,11 +597,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
         // Fill the hidden input and sync the visible confirmed-display inside the card
         document.getElementById('tableNumberInput').value = tableNum;
-<<<<<<< HEAD
         syncTableDisplay(tableNum);
-=======
 
-        // Show a confirmation banner
+        // Show a status banner (open vs closed dine-in service)
         const isDineInServiceOpen = @json($isOpenDineIn) && @json($isOpen);
         const banner = document.createElement('div');
         if (isDineInServiceOpen) {
@@ -623,7 +621,6 @@ document.addEventListener('DOMContentLoaded',()=>{
         }
         const tableCard = document.getElementById('tableNumberCard');
         if (tableCard) tableCard.parentNode.insertBefore(banner, tableCard);
->>>>>>> 0e471181cec44573bab6c7606a20303287e6041b
 
         // Clean URL so refreshing doesn't re-trigger (sessionStorage keeps the value)
         history.replaceState({}, '', window.location.pathname);
