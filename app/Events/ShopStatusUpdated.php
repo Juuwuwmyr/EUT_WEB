@@ -12,7 +12,12 @@ class ShopStatusUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public function __construct(public bool $isOpen) {}
+    public function __construct(
+        public bool $isOpen,
+        public bool $isOpenDelivery = true,
+        public bool $isOpenPickup = true,
+        public bool $isOpenDineIn = true,
+    ) {}
 
     public function broadcastOn(): array
     {
@@ -27,6 +32,11 @@ class ShopStatusUpdated implements ShouldBroadcast
 
     public function broadcastWith(): array
     {
-        return ['is_open' => $this->isOpen];
+        return [
+            'is_open'          => $this->isOpen,
+            'is_open_delivery' => $this->isOpenDelivery,
+            'is_open_pickup'   => $this->isOpenPickup,
+            'is_open_dine_in'  => $this->isOpenDineIn,
+        ];
     }
 }

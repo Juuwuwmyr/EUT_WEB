@@ -697,7 +697,7 @@
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                     Pickup
                 </button>
-                <button class="ot-btn" data-type="dine_in" onclick="setOrderType('dine_in')">
+                <button class="ot-btn" data-type="dine_in" onclick="setOrderType('dine_in')" style="display:none;">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18M3 7h18M3 11h18M3 15h12M3 19h8"/></svg>
                     Dine In
                 </button>
@@ -858,6 +858,25 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('eutOrderType', 'dine_in');
         // Only lock the UI if table came from URL or active session — not stale localStorage
         window._tableQrLocked = !!(_urlTableParam || _sessionTable);
+    }
+
+    // Check if Dine-In service is closed for table QR scan
+    const isDineInOpen = @json($isOpenDineIn) && @json($isOpen);
+    if (window._tableQrLocked && !isDineInOpen) {
+        // Clear the QR table session so customers aren't stuck in dine-in mode
+        sessionStorage.removeItem('eutTableNumber');
+        localStorage.removeItem('eutTableNumber');
+        localStorage.setItem('eutOrderType', 'delivery');
+        window._tableQrLocked = false;
+
+        const banner = document.getElementById('shopClosedBanner');
+        if (banner) {
+            banner.style.display = 'block';
+            const msg = banner.querySelector('p');
+            if (msg) {
+                msg.innerHTML = '<svg width="16" height="16" fill="none" stroke="#fca5a5" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg> Dine-In service is currently <strong style="color:#fff;margin:0 4px;">CLOSED</strong> — table orders cannot be placed right now.';
+            }
+        }
     }
 
     // Restore saved order type
@@ -1122,6 +1141,15 @@ if (window.Echo) {
             const banner = document.getElementById('shopClosedBanner');
             const dot    = document.getElementById('shopStatusDot');
             const text   = document.getElementById('shopStatusText');
+
+            // If dine-in just closed, clear the QR table session
+            if (!data.is_open_dine_in || !data.is_open) {
+                sessionStorage.removeItem('eutTableNumber');
+                localStorage.removeItem('eutTableNumber');
+                localStorage.setItem('eutOrderType', 'delivery');
+                window._tableQrLocked = false;
+            }
+
             if (data.is_open) {
                 if (banner) banner.style.display = 'none';
                 if (dot)    { dot.style.background = '#22c55e'; }

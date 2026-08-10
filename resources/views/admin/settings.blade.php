@@ -1,4 +1,4 @@
-﻿@extends('admin.layout')
+@extends('admin.layout')
 @section('title', 'Settings')
 
 @section('content')
@@ -18,30 +18,100 @@
 </style>
 <div id="settingsGrid">
 
-    {{-- ── SHOP STATUS CARD ── --}}
+    {{-- ── SHOP SERVICE STATUS CARD (DELIVERY / PICKUP / DINE-IN) ── --}}
     <div class="section-card" style="grid-column:1/-1;">
         <div class="px-5 py-4 card-header-border" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
-            <div style="display:flex;align-items:center;gap:.5rem;">
-                <div style="width:10px;height:10px;border-radius:50%;background:{{ $isOpen ? '#22c55e' : '#ef4444' }};box-shadow:0 0 8px {{ $isOpen ? '#22c55e' : '#ef4444' }};"></div>
-                <div>
-                    <h2 style="font-size:.875rem;font-weight:700;color:var(--text-strong);margin:0 0 .1rem;">
-                        Shop is currently <span style="color:{{ $isOpen ? '#22c55e' : '#ef4444' }};">{{ $isOpen ? 'OPEN' : 'CLOSED' }}</span>
-                    </h2>
-                    <p style="font-size:.72rem;color:var(--text-muted);margin:0;">Customers {{ $isOpen ? 'can' : 'cannot' }} place orders right now.</p>
-                </div>
+            <div>
+                <h2 style="font-size:1rem;font-weight:700;color:var(--text-strong);margin:0 0 .2rem;display:flex;align-items:center;gap:.5rem;">
+                    <i data-lucide="store" style="width:1.1rem;height:1.1rem;color:var(--accent);"></i>
+                    Store Operating Status per Service
+                </h2>
+                <p style="font-size:.78rem;color:var(--text-muted);margin:0;">Control whether Delivery, Pickup, and Dine In services are independently OPEN or CLOSED.</p>
             </div>
-            <button id="toggleOpenBtn" onclick="toggleShopOpen()"
-                style="display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.4rem;border-radius:.6rem;border:none;cursor:pointer;font-size:.8rem;font-weight:700;transition:all .2s;
+            <button id="toggleAllBtn" onclick="toggleService('all')"
+                style="display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:.6rem;cursor:pointer;font-size:.78rem;font-weight:700;transition:all .2s;
                 background:{{ $isOpen ? 'rgba(239,68,68,.12)' : 'rgba(34,197,94,.12)' }};
                 color:{{ $isOpen ? '#ef4444' : '#22c55e' }};
                 border:1px solid {{ $isOpen ? 'rgba(239,68,68,.3)' : 'rgba(34,197,94,.3)' }};">
-                <i data-lucide="{{ $isOpen ? 'door-closed' : 'door-open' }}" style="width:.85rem;height:.85rem;stroke-width:2.5;"></i>
-                {{ $isOpen ? 'Close Shop Now' : 'Open Shop Now' }}
+                <i data-lucide="{{ $isOpen ? 'power-off' : 'power' }}" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i>
+                {{ $isOpen ? 'Close All Services' : 'Open All Services' }}
             </button>
         </div>
-        <div style="padding:14px 20px;font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:8px;">
+
+        <div style="padding:1.25rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;">
+            {{-- Delivery Service --}}
+            <div style="background:var(--bg-card-subtle,#1e2030);border:1px solid var(--border-divider,rgba(255,255,255,.08));border-radius:.8rem;padding:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <div style="width:38px;height:38px;border-radius:.6rem;background:rgba(56,189,248,.12);color:#38bdf8;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+                        🛵
+                    </div>
+                    <div>
+                        <div style="font-size:.875rem;font-weight:700;color:var(--text-strong);">Delivery</div>
+                        <div style="font-size:.72rem;display:flex;align-items:center;gap:.3rem;color:{{ $isOpenDelivery ? '#22c55e' : '#ef4444' }};font-weight:600;">
+                            <span style="width:7px;height:7px;border-radius:50%;background:{{ $isOpenDelivery ? '#22c55e' : '#ef4444' }};display:inline-block;"></span>
+                            {{ $isOpenDelivery ? 'OPEN' : 'CLOSED' }}
+                        </div>
+                    </div>
+                </div>
+                <button id="toggleDeliveryBtn" onclick="toggleService('delivery')"
+                    style="padding:.45rem 1rem;border-radius:.5rem;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;
+                    background:{{ $isOpenDelivery ? 'rgba(239,68,68,.15)' : 'rgba(34,197,94,.15)' }};
+                    color:{{ $isOpenDelivery ? '#ef4444' : '#22c55e' }};
+                    border:1px solid {{ $isOpenDelivery ? 'rgba(239,68,68,.3)' : 'rgba(34,197,94,.3)' }};">
+                    {{ $isOpenDelivery ? 'Close Delivery' : 'Open Delivery' }}
+                </button>
+            </div>
+
+            {{-- Pickup Service --}}
+            <div style="background:var(--bg-card-subtle,#1e2030);border:1px solid var(--border-divider,rgba(255,255,255,.08));border-radius:.8rem;padding:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <div style="width:38px;height:38px;border-radius:.6rem;background:rgba(250,204,21,.12);color:#facc15;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+                        📦
+                    </div>
+                    <div>
+                        <div style="font-size:.875rem;font-weight:700;color:var(--text-strong);">Pickup</div>
+                        <div style="font-size:.72rem;display:flex;align-items:center;gap:.3rem;color:{{ $isOpenPickup ? '#22c55e' : '#ef4444' }};font-weight:600;">
+                            <span style="width:7px;height:7px;border-radius:50%;background:{{ $isOpenPickup ? '#22c55e' : '#ef4444' }};display:inline-block;"></span>
+                            {{ $isOpenPickup ? 'OPEN' : 'CLOSED' }}
+                        </div>
+                    </div>
+                </div>
+                <button id="togglePickupBtn" onclick="toggleService('pickup')"
+                    style="padding:.45rem 1rem;border-radius:.5rem;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;
+                    background:{{ $isOpenPickup ? 'rgba(239,68,68,.15)' : 'rgba(34,197,94,.15)' }};
+                    color:{{ $isOpenPickup ? '#ef4444' : '#22c55e' }};
+                    border:1px solid {{ $isOpenPickup ? 'rgba(239,68,68,.3)' : 'rgba(34,197,94,.3)' }};">
+                    {{ $isOpenPickup ? 'Close Pickup' : 'Open Pickup' }}
+                </button>
+            </div>
+
+            {{-- Dine-In Service --}}
+            <div style="background:var(--bg-card-subtle,#1e2030);border:1px solid var(--border-divider,rgba(255,255,255,.08));border-radius:.8rem;padding:1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <div style="width:38px;height:38px;border-radius:.6rem;background:rgba(168,85,247,.12);color:#c084fc;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+                        🪑
+                    </div>
+                    <div>
+                        <div style="font-size:.875rem;font-weight:700;color:var(--text-strong);">Dine In</div>
+                        <div style="font-size:.72rem;display:flex;align-items:center;gap:.3rem;color:{{ $isOpenDineIn ? '#22c55e' : '#ef4444' }};font-weight:600;">
+                            <span style="width:7px;height:7px;border-radius:50%;background:{{ $isOpenDineIn ? '#22c55e' : '#ef4444' }};display:inline-block;"></span>
+                            {{ $isOpenDineIn ? 'OPEN' : 'CLOSED' }}
+                        </div>
+                    </div>
+                </div>
+                <button id="toggleDineInBtn" onclick="toggleService('dine_in')"
+                    style="padding:.45rem 1rem;border-radius:.5rem;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;
+                    background:{{ $isOpenDineIn ? 'rgba(239,68,68,.15)' : 'rgba(34,197,94,.15)' }};
+                    color:{{ $isOpenDineIn ? '#ef4444' : '#22c55e' }};
+                    border:1px solid {{ $isOpenDineIn ? 'rgba(239,68,68,.3)' : 'rgba(34,197,94,.3)' }};">
+                    {{ $isOpenDineIn ? 'Close Dine In' : 'Open Dine In' }}
+                </button>
+            </div>
+        </div>
+
+        <div style="padding:10px 20px 16px;font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:8px;border-top:1px solid var(--border-divider,rgba(255,255,255,.05));">
             <i data-lucide="info" style="width:.75rem;height:.75rem;stroke-width:2;flex-shrink:0;"></i>
-            Toggling updates instantly — customers see "Closed" banner in real time without refreshing.
+            Toggling a service updates real-time for all active customers without requiring a page refresh.
         </div>
     </div>
 
@@ -224,27 +294,38 @@
 
 @push('scripts')
 <script>
-async function toggleShopOpen() {
-    const btn = document.getElementById('toggleOpenBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" style="width:.85rem;height:.85rem;animation:spin 1s linear infinite;"></i> Updating…';
+async function toggleService(type) {
+    let btnId = 'toggleAllBtn';
+    if (type === 'delivery') btnId = 'toggleDeliveryBtn';
+    if (type === 'pickup')   btnId = 'togglePickupBtn';
+    if (type === 'dine_in')  btnId = 'toggleDineInBtn';
+
+    const btn = document.getElementById(btnId);
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" style="width:.85rem;height:.85rem;animation:spin 1s linear infinite;"></i> Updating…';
+    }
 
     try {
         const res = await fetch('{{ route("admin.settings.toggle-open") }}', {
             method: 'PATCH',
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ type })
         });
         const data = await res.json();
         if (data.success) {
-            // Reload page to reflect new state cleanly
             window.location.reload();
         } else {
-            alert('Failed to update shop status.');
-            btn.disabled = false;
+            alert('Failed to update service status.');
+            if (btn) btn.disabled = false;
         }
     } catch(e) {
         alert('Network error.');
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
     }
 }
 </script>

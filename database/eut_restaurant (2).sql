@@ -2669,9 +2669,6 @@ CREATE TABLE `migrations` (
   `batch` int NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `migrations`
---
 
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (1, '0001_01_01_000000_create_users_table', 1),
@@ -2695,11 +2692,6 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (19, '2026_07_26_160659_add_order_type_to_orders_table', 11),
 (20, '2026_07_28_000001_create_cart_items_table', 12);
 
--- --------------------------------------------------------
-
---
--- Table structure for table `modifier_groups`
---
 
 CREATE TABLE `modifier_groups` (
   `id` bigint UNSIGNED NOT NULL,
@@ -2715,9 +2707,7 @@ CREATE TABLE `modifier_groups` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `modifier_groups`
---
+
 
 INSERT INTO `modifier_groups` (`id`, `menu_item_id`, `type`, `name`, `description`, `required`, `max_selections`, `is_active`, `sort_order`, `created_at`, `updated_at`) VALUES
 (27, 20, 'addon', 'Upgrade', 'Add 60 for an upgrade option', 0, NULL, 1, 1, '2026-07-19 06:37:33', '2026-07-19 06:37:33'),
@@ -2869,11 +2859,7 @@ INSERT INTO `modifier_groups` (`id`, `menu_item_id`, `type`, `name`, `descriptio
 (180, 173, 'addon', 'Pineapple Juice', NULL, 0, NULL, 1, 5, '2026-08-07 20:27:04', '2026-08-07 20:27:04'),
 (181, 173, 'addon', 'Red Ice Tea', NULL, 0, NULL, 1, 6, '2026-08-07 20:27:04', '2026-08-07 20:27:04');
 
--- --------------------------------------------------------
 
---
--- Table structure for table `modifier_options`
---
 
 CREATE TABLE `modifier_options` (
   `id` bigint UNSIGNED NOT NULL,

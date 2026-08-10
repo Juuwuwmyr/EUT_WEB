@@ -68,15 +68,15 @@
     <div style="padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
         <div>
             <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 4px; color: #111;">Table QR Codes</h1>
-            <p style="color: #666; font-size: 14px; margin: 0;">Generate and print QR codes for dine-in table numbers (1-30)</p>
+            <p style="color: #666; font-size: 14px; margin: 0;">Generate and print QR codes for dine-in table numbers (1-20) targeting <code>https://eut-delivery.duckdns.org/shop?table=N</code></p>
         </div>
-        <div style="display: flex; gap: 12px;">
-            <button class="btn-print-all" onclick="printAllCodes()">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: inline-block; margin-right: 6px; vertical-align: -3px;">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                </svg>
-                Print All (POS)
-            </button>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="{{ route('admin.table-qrcodes.coupon') }}" style="display:inline-flex;align-items:center;gap:6px;padding:12px 20px;background:linear-gradient(135deg, #10b981, #059669);color:#fff;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 4px 12px rgba(16,185,129,0.3);">
+                📄 Print A4 Coupon Sheet (1-20)
+            </a>
+            <a href="{{ route('admin.table-qrcodes.print') }}" style="display:inline-flex;align-items:center;gap:6px;padding:12px 20px;background:linear-gradient(135deg, #2563eb, #1d4ed8);color:#fff;border-radius:8px;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 4px 12px rgba(37,99,235,0.3);">
+                🖨️ Print POS Rolls (1-30)
+            </a>
         </div>
     </div>
 
@@ -86,8 +86,9 @@
             <div class="table-label">Table {{ $tableNum }}</div>
             <div class="table-subtitle">Dine-in QR Code</div>
             <div class="qr-code-container" id="qr-{{ $tableNum }}"></div>
+            <div style="font-size:10px;color:#888;margin-bottom:8px;word-break:break-all;">https://eut-delivery.duckdns.org/shop?table={{ $tableNum }}</div>
             <button onclick="downloadQR({{ $tableNum }})" style="width: 100%; padding: 8px 12px; border: 1px solid #e5e7eb; background: #fff; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: #333; transition: all 0.2s;">
-                ↓ Download
+                ↓ Download PNG
             </button>
         </div>
         @endforeach
@@ -98,7 +99,7 @@
 // Generate all QR codes
 @foreach($tables as $tableNum)
 new QRCode(document.getElementById('qr-{{ $tableNum }}'), {
-    text: '{{ url("/shop") }}?table={{ $tableNum }}',
+    text: 'https://eut-delivery.duckdns.org/shop?table={{ $tableNum }}',
     width: 200,
     height: 200,
     colorDark: '#000000',
@@ -117,11 +118,6 @@ function downloadQR(tableNum) {
     link.href = canvas.toDataURL('image/png');
     link.download = `table-${tableNum}-qr.png`;
     link.click();
-}
-
-function printAllCodes() {
-    // Redirect to print view
-    window.location.href = '{{ route("admin.table-qrcodes.print") }}';
 }
 </script>
 @endsection
