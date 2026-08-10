@@ -19,8 +19,8 @@
     "path": "C:\\wamp64\\www\\EUT_WEB\\twa\\android.keystore",
     "alias": "android"
   },
-  "appVersionName": "1",
-  "appVersionCode": 1,
+  "appVersionName": "2",
+  "appVersionCode": 2,
   "shortcuts": [
     {
       "name": "Order Now",
@@ -52,12 +52,14 @@
   "fullScopeUrl": "https://eut-delivery.duckdns.org/",
   "minSdkVersion": 21,
   "orientation": "portrait-primary",
-  "fingerprints": [],
+  "fingerprints": [
+    "88:74:62:A3:8E:4E:60:88:83:C9:14:E0:E5:C0:C9:25:56:A7:75:98:5E:8B:29:A2:34:CC:B3:5D:02:38:E8:6E"
+  ],
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
   "protocolHandlers": [],
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "1"
+  "appVersion": "2"
 }
