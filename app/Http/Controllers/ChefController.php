@@ -192,7 +192,7 @@ class ChefController extends Controller
 
         $order->update([
             'rider_id'    => $request->rider_id,
-            'status'      => 'rider_assigned',
+            'status'      => $order->status === 'out_for_delivery' ? 'out_for_delivery' : 'rider_assigned',
             'assigned_at' => now(),
             'prepared_at' => $order->prepared_at ?? now(),
         ]);
