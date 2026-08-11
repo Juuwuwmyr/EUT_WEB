@@ -150,20 +150,6 @@
                 </label>
                 <input type="text" name="address" value="{{ old('address', $settings['address'] ?? '') }}" class="admin-input" placeholder="Full address">
             </div>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;">
-                <div>
-                    <label class="field-label" style="display:flex;align-items:center;gap:.3rem;">
-                        <i data-lucide="bike" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Delivery Fee (₱)
-                    </label>
-                    <input type="number" name="delivery_fee" value="{{ old('delivery_fee', $settings['delivery_fee'] ?? 50) }}" min="0" class="admin-input">
-                </div>
-                <div>
-                    <label class="field-label" style="display:flex;align-items:center;gap:.3rem;">
-                        <i data-lucide="shopping-cart" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Minimum Order (₱)
-                    </label>
-                    <input type="number" name="min_order" value="{{ old('min_order', $settings['min_order'] ?? 200) }}" min="0" class="admin-input">
-                </div>
-            </div>
             <button type="submit" class="btn-primary w-full" style="display:flex;align-items:center;justify-content:center;gap:.4rem;">
                 <i data-lucide="save" style="width:.9rem;height:.9rem;stroke-width:2.5;"></i> Save Restaurant Settings
             </button>

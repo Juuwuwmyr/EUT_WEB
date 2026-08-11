@@ -1213,11 +1213,9 @@ class AdminController extends Controller
 
         $settings = cache()->get('shop_settings', [
             'restaurant_name' => 'E.U.T Snack House',
-            'contact_email'   => 'info@eutrestaurant.com',
+            'contact_email'   => '',
             'contact_phone'   => '',
             'address'         => '',
-            'delivery_fee'    => 50,
-            'min_order'       => 200,
         ]);
 
         return view('admin.settings', compact('isOpen', 'isOpenDelivery', 'isOpenPickup', 'isOpenDineIn', 'settings'));
@@ -1230,8 +1228,6 @@ class AdminController extends Controller
             'contact_email'   => 'required|email|max:150',
             'contact_phone'   => 'nullable|string|max:30',
             'address'         => 'nullable|string|max:255',
-            'delivery_fee'    => 'nullable|numeric|min:0',
-            'min_order'       => 'nullable|numeric|min:0',
         ]);
 
         $isOpenDelivery = $request->boolean('is_open_delivery', true);
@@ -1249,8 +1245,6 @@ class AdminController extends Controller
             'contact_email'    => $request->contact_email,
             'contact_phone'    => $request->contact_phone,
             'address'          => $request->address,
-            'delivery_fee'     => $request->delivery_fee,
-            'min_order'        => $request->min_order,
             'is_open_delivery' => $isOpenDelivery,
             'is_open_pickup'   => $isOpenPickup,
             'is_open_dine_in'  => $isOpenDineIn,
