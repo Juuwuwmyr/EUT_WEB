@@ -839,13 +839,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const _urlTableParam = new URLSearchParams(window.location.search).get('table');
     const _sessionTable  = sessionStorage.getItem('eutTableNumber');
     const _urlTable      = _urlTableParam || _sessionTable
-                        || ({{ auth()->check() ? 'false' : 'true' }} ? localStorage.getItem('eutTableNumber') : null);
+                        || localStorage.getItem('eutTableNumber');
 
     @auth
-    // Logged-in user: clear stale dine-in table context unless actively scanning
-    if (!_urlTableParam && !_sessionTable) {
-        localStorage.removeItem('eutTableNumber');
-        sessionStorage.removeItem('eutTableNumber');
+    // Logged-in user: clear stale dine-in table context ONLY if there is truly no active table context
+    // (no URL param, no sessionStorage, AND no localStorage from the same session)
+    if (!_urlTableParam && !_sessionTable && !localStorage.getItem('eutTableNumber')) {
         if (localStorage.getItem('eutOrderType') === 'dine_in') {
             localStorage.setItem('eutOrderType', 'delivery');
         }
