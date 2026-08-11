@@ -760,7 +760,7 @@ function calcDeliveryFeeLocal(lat, lng) {
     return { km: parseFloat(km.toFixed(2)), fee, label };
 }
 
-/* ── Update fee from address (uses GPS coords or barangay center fallback) ── */
+/* ── Update fee from address (uses barangay fee or GPS coords fallback) ── */
 function updateFeeFromAddress(address) {
     if (!address) { renderSummary(); return; }
 
@@ -772,6 +772,21 @@ function updateFeeFromAddress(address) {
         return;
     }
 
+    // First, try to get fee from barangay config
+    if (address.barangay) {
+        const brgyOption = document.querySelector(`#fBarangay option[value="${address.barangay}"]`);
+        if (brgyOption) {
+            const configFee = parseInt(brgyOption.getAttribute('data-fee')) || 0;
+            if (configFee > 0) {
+                currentDeliveryFee = configFee;
+                if (distEl) distEl.textContent = `₱${configFee} — ${address.barangay}`;
+                renderSummary();
+                return;
+            }
+        }
+    }
+
+    // Fallback to GPS-based calculation if no barangay fee found
     let lat = parseFloat(address.lat) || 0;
     let lng = parseFloat(address.lng) || 0;
 
