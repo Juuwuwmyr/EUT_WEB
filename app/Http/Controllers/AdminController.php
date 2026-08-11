@@ -962,12 +962,20 @@ class AdminController extends Controller
             return response()->json(['success' => false, 'message' => 'No active orders found for this table.'], 422);
         }
 
+        $cashReceived = (float) request()->input('cash_received', 0);
+        $grandTotal   = $tableOrders->sum('total');
+        $changeDue    = $cashReceived > 0 ? round($cashReceived - $grandTotal, 2) : null;
+
         $now = now();
         foreach ($tableOrders as $o) {
             $o->update([
-                'status'       => 'delivered',
-                'delivered_at' => $now,
-                'prepared_at'  => $o->prepared_at ?? $now,
+                'status'         => 'delivered',
+                'delivered_at'   => $now,
+                'prepared_at'    => $o->prepared_at ?? $now,
+                'payment_status' => 'paid',
+                'payment_method' => 'cash',
+                'cash_received'  => $cashReceived > 0 ? $cashReceived : null,
+                'change_due'     => $changeDue,
             ]);
             broadcast(new \App\Events\OrderStatusUpdated($o))->toOthers();
         }

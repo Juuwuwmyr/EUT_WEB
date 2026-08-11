@@ -681,8 +681,19 @@ async function quickAction(orderId, type, nextStatus, btn) {
             url = '{{ route("admin.orders.accept", ":id") }}'.replace(':id', orderId);
 
         } else if (type === 'complete-table') {
-            url    = '{{ route("admin.orders.complete-table", ":id") }}'.replace(':id', orderId);
-            method = 'POST';
+            // Intercept — open payment modal first
+            var o = ORDERS_MAP[orderId];
+            var tableNum   = o ? (o.table_number || '—') : '—';
+            var grandTotal = o ? (o.grand_total || o.total || 0) : 0;
+            // For grouped tables, get total from the button label if available
+            var btnText = btn.textContent || '';
+            var match   = btnText.match(/₱([\d,]+)/);
+            if (match) grandTotal = parseFloat(match[1].replace(/,/g, ''));
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            btn._origHtml = originalHtml;
+            openPaymentModal(orderId, grandTotal, tableNum, btn);
+            return;
 
         } else if (type === 'dispatch') {
             // Open the manage modal so the admin can pick a rider
@@ -1277,6 +1288,164 @@ function computeStatusCounts(orders) {
     return counts;
 }
 
+</script>
+
+{{-- ── Payment Collection Modal (Dine-in Complete Table) ── --}}
+<div id="paymentModal" class="modal-backdrop" style="display:none;z-index:9999;">
+    <div class="modal-box" style="max-width:380px;width:calc(100% - 32px);">
+        <div class="modal-header">
+            <div>
+                <h3 class="modal-title" style="font-size:1rem;">💵 Collect Payment</h3>
+                <p style="font-size:.72rem;color:var(--text-muted);margin:.1rem 0 0;" id="pmTableLabel">Table —</p>
+            </div>
+            <button class="modal-close" onclick="closePaymentModal()">✕</button>
+        </div>
+        <div style="padding:1.25rem 1.4rem;">
+
+            {{-- Total --}}
+            <div style="background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.2);border-radius:.75rem;padding:1rem 1.25rem;margin-bottom:1.25rem;text-align:center;">
+                <p style="font-size:.72rem;color:var(--text-muted);margin:0 0 .25rem;text-transform:uppercase;letter-spacing:.06em;">Total Amount Due</p>
+                <p style="font-size:2rem;font-weight:800;color:#facc15;margin:0;" id="pmTotal">₱0</p>
+            </div>
+
+            {{-- Cash received input --}}
+            <div style="margin-bottom:1rem;">
+                <label style="font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.4rem;">Cash Received</label>
+                <div style="position:relative;">
+                    <span style="position:absolute;left:.875rem;top:50%;transform:translateY(-50%);font-size:.95rem;color:var(--text-muted);font-weight:700;">₱</span>
+                    <input type="number" id="pmCashInput" min="0" step="1"
+                        placeholder="0"
+                        oninput="updateChange()"
+                        style="width:100%;padding:.75rem .875rem .75rem 2rem;background:var(--bg-input,rgba(255,255,255,.06));border:1.5px solid var(--border-input,rgba(255,255,255,.12));border-radius:.625rem;font-size:1.1rem;font-weight:700;color:var(--text-strong);outline:none;">
+                </div>
+                {{-- Quick cash buttons --}}
+                <div id="pmQuickBtns" style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.6rem;"></div>
+            </div>
+
+            {{-- Change --}}
+            <div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:.625rem;padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                <span style="font-size:.8rem;font-weight:600;color:#10b981;">Change</span>
+                <span style="font-size:1.25rem;font-weight:800;color:#10b981;" id="pmChange">₱0</span>
+            </div>
+
+            {{-- Actions --}}
+            <button type="button" id="pmConfirmBtn" onclick="confirmPayment()"
+                style="width:100%;padding:.85rem;border-radius:.75rem;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;font-size:.9rem;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Complete &amp; Print Receipt
+            </button>
+            <button type="button" onclick="closePaymentModal()" style="width:100%;margin-top:.5rem;padding:.65rem;border-radius:.75rem;background:transparent;border:1px solid var(--border-input);color:var(--text-muted);font-size:.8rem;cursor:pointer;">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let _pmOrderId   = null;
+let _pmTotal     = 0;
+let _pmOrigBtn   = null;
+
+function openPaymentModal(orderId, grandTotal, tableNum, origBtn) {
+    _pmOrderId  = orderId;
+    _pmTotal    = parseFloat(grandTotal);
+    _pmOrigBtn  = origBtn;
+
+    document.getElementById('pmTableLabel').textContent  = 'Table ' + tableNum;
+    document.getElementById('pmTotal').textContent       = '₱' + _pmTotal.toLocaleString();
+    document.getElementById('pmCashInput').value         = '';
+    document.getElementById('pmChange').textContent      = '₱0';
+
+    // Quick cash buttons: round up to nearest 50/100/200/500
+    const btns = [50, 100, 200, 500, 1000].filter(v => v >= _pmTotal);
+    // Also include exact and next round numbers
+    const rounded = [
+        Math.ceil(_pmTotal / 50)  * 50,
+        Math.ceil(_pmTotal / 100) * 100,
+        Math.ceil(_pmTotal / 500) * 500,
+    ];
+    const quickAmounts = [...new Set([...rounded, ...btns])].sort((a,b)=>a-b).slice(0, 5);
+    const qWrap = document.getElementById('pmQuickBtns');
+    qWrap.innerHTML = quickAmounts.map(v =>
+        `<button type="button" onclick="setCash(${v})"
+            style="flex:1;min-width:60px;padding:.35rem .5rem;border-radius:.5rem;background:rgba(255,255,255,.06);
+                   border:1px solid rgba(255,255,255,.1);color:var(--text-body);font-size:.75rem;font-weight:600;cursor:pointer;">
+            ₱${v.toLocaleString()}
+        </button>`
+    ).join('');
+
+    document.getElementById('paymentModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => document.getElementById('pmCashInput').focus(), 150);
+}
+
+function setCash(amount) {
+    document.getElementById('pmCashInput').value = amount;
+    updateChange();
+}
+
+function updateChange() {
+    const cash   = parseFloat(document.getElementById('pmCashInput').value) || 0;
+    const change = cash - _pmTotal;
+    const el     = document.getElementById('pmChange');
+    if (cash <= 0) {
+        el.textContent = '₱0';
+        el.style.color = '#10b981';
+    } else if (change < 0) {
+        el.textContent = '−₱' + Math.abs(change).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+        el.style.color = '#ef4444';
+    } else {
+        el.textContent = '₱' + change.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+        el.style.color = '#10b981';
+    }
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+    document.body.style.overflow = '';
+    if (_pmOrigBtn) { _pmOrigBtn.disabled = false; _pmOrigBtn.innerHTML = _pmOrigBtn._origHtml || _pmOrigBtn.innerHTML; }
+    _pmOrderId = null; _pmOrigBtn = null;
+}
+
+async function confirmPayment() {
+    const cash = parseFloat(document.getElementById('pmCashInput').value) || 0;
+    if (cash > 0 && cash < _pmTotal) {
+        alert('Cash received is less than the total amount.');
+        return;
+    }
+
+    const btn = document.getElementById('pmConfirmBtn');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Processing…';
+
+    try {
+        const url = '{{ route("admin.orders.complete-table", ":id") }}'.replace(':id', _pmOrderId);
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cash_received: cash }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            closePaymentModal();
+            if (data.receipt_url) printReceipt(data.receipt_url);
+            await fetchOrders();
+        } else {
+            alert(data.message || 'Failed to complete table.');
+            btn.disabled = false;
+            btn.innerHTML = '✓ Complete & Print Receipt';
+        }
+    } catch(e) {
+        alert('Network error. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = '✓ Complete & Print Receipt';
+    }
+}
+
+// Close on backdrop click
+document.getElementById('paymentModal').addEventListener('click', function(e) {
+    if (e.target === this) closePaymentModal();
+});
 </script>
 
 @endsection

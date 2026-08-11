@@ -11,7 +11,7 @@ class Order extends Model
     protected $fillable = [
         'user_id', 'rider_id', 'status', 'order_type',
         'subtotal', 'delivery_fee', 'total',
-        'payment_method', 'payment_status',
+        'payment_method', 'payment_status', 'cash_received', 'change_due',
         'delivery_address', 'delivery_barangay', 'delivery_lat', 'delivery_lng',
         'table_number', 'table_session_id',
         'notes', 'proof_photo', 'delivery_type',
@@ -24,6 +24,8 @@ class Order extends Model
         'subtotal'      => 'float',
         'delivery_fee'  => 'float',
         'total'         => 'float',
+        'cash_received' => 'float',
+        'change_due'    => 'float',
         'is_archived'   => 'boolean',
         'archived_at'   => 'datetime',
         'delivery_lat'  => 'float',
