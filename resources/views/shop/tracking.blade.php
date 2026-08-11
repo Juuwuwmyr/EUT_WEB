@@ -698,7 +698,11 @@ function buildDetailBody(o) {
         ` : ''}
         <div class="irow">
             <div class="irow-icon" style="background:rgba(96,165,250,.1);"><svg width="14" height="14" fill="none" stroke="#60a5fa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></div>
-            <div><p class="irow-label">Payment</p><p class="irow-val" style="text-transform:capitalize;">${escHtml(o.payment_method)}</p></div>
+            <div>
+                <p class="irow-label">Payment</p>
+                <p class="irow-val" style="text-transform:capitalize;">${escHtml(o.payment_method)}${o.payment_status === 'paid' ? ' <span style="display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.25);vertical-align:middle;">✓ Paid</span>' : ' <span style="display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.25);vertical-align:middle;">Pending</span>'}</p>
+                ${(o.cash_received && o.payment_method === 'cash') ? `<p class="irow-sub" style="margin-top:4px;">Cash received: <span style="color:#e5e7eb;font-weight:600;">₱${Number(o.cash_received).toLocaleString()}</span></p><p class="irow-sub">Change: <span style="color:#4ade80;font-weight:700;">₱${Number(o.change_due || 0).toLocaleString()}</span></p>` : ''}
+            </div>
         </div>
         ${o.rider?`<div class="irow">
             <div class="irow-icon" style="background:rgba(167,139,250,.1);"><svg width="14" height="14" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
@@ -757,6 +761,8 @@ async function loadAllOrders() {
             return;
         }
         allOrders = [...(data.active||[]), ...(data.past||[]), ...(data.cancelled||[])];
+        // Sort all orders newest-first using the raw timestamp
+        allOrders.sort((a, b) => (b.created_at_ts || 0) - (a.created_at_ts || 0));
         // Keep timestamp fields
         allOrders.forEach(o => {
             o.accepted_at  = o.accepted_at  || null;
@@ -860,8 +866,10 @@ function handleOrderUpdate(order) {
     if (idx !== -1) {
         allOrders[idx] = order;
     } else {
-        allOrders.unshift(order);
+        allOrders.push(order);
     }
+    // Keep sorted newest-first after any update
+    allOrders.sort((a, b) => (b.created_at_ts || 0) - (a.created_at_ts || 0));
     renderAll();
     if (detailOrderId === order.id) {
         const detailBody = document.getElementById('detailBody');
