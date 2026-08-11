@@ -403,11 +403,17 @@ function renderTable(orders) {
 
         if (allReady && group.length > 1) {
             // Show status summary pills (no individual Complete buttons)
-            group.forEach(function(o) {
+            group.forEach(function(o, idx) {
+                var isPahabol = idx > 0;
+                var pahabolBadge = isPahabol
+                    ? '<span style="font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:4px;background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3);">➕ PAHABOL</span>'
+                    : '';
                 var oSc = statusChip(o.status, o.order_type);
                 subHtml +=
-                    '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.3rem .5rem;border-radius:.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">' +
+                    '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.3rem .5rem;border-radius:.5rem;' +
+                    (isPahabol ? 'background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.18);' : 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);') + '">' +
                     '<span style="font-family:monospace;font-size:.7rem;font-weight:700;color:var(--accent);flex-shrink:0;">' + escHtml(o.order_number) + '</span>' +
+                    pahabolBadge +
                     '<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:9999px;font-size:.62rem;font-weight:700;background:rgba(16,185,129,.12);color:#10b981;">✓ Ready</span>' +
                     '<span style="font-size:.68rem;color:var(--text-muted);flex-shrink:0;">₱' + Number(o.total).toLocaleString() + '</span>' +
                     '<button class="btn-ghost" style="font-size:.65rem;padding:.2rem .45rem;margin-left:auto;" onclick="openManageModal(' + o.id + ')" title="Details">' +
@@ -425,15 +431,41 @@ function renderTable(orders) {
                 '</div>';
         } else {
             // Normal: individual action buttons per sub-order
-            group.forEach(function(o) {
-                var oSc  = statusChip(o.status, o.order_type);
+            // First order = original, subsequent = pahabol (follow-up)
+            group.forEach(function(o, idx) {
+                var oSc   = statusChip(o.status, o.order_type);
                 var oBtns = buildActionBtns(o);
+                var isPahabol = idx > 0; // oldest order is original, rest are follow-ups
+
+                var pahabolBadge = isPahabol
+                    ? '<span style="font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:4px;background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3);letter-spacing:.04em;flex-shrink:0;">➕ PAHABOL</span>'
+                    : '<span style="font-size:.58rem;font-weight:800;padding:1px 6px;border-radius:4px;background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.25);letter-spacing:.04em;flex-shrink:0;">1ST ORDER</span>';
+
+                // Item preview for this specific sub-order
+                var subItems = (o.items || []).slice(0, 2).map(function(item) {
+                    return '<span style="font-size:.68rem;color:var(--text-muted);">x' + item.qty + ' ' + escHtml(item.name) + '</span>';
+                }).join('<span style="color:var(--text-muted);margin:0 2px;">·</span>');
+                if ((o.items || []).length > 2) subItems += '<span style="font-size:.65rem;color:var(--text-muted);">+' + (o.items.length - 2) + ' more</span>';
+
                 subHtml +=
-                    '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.3rem .5rem;border-radius:.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">' +
+                    '<div style="display:flex;flex-direction:column;gap:.25rem;padding:.4rem .55rem;border-radius:.5rem;' +
+                    (isPahabol
+                        ? 'background:rgba(245,158,11,.04);border:1px solid rgba(245,158,11,.18);'
+                        : 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);') +
+                    '">' +
+                    // Header row: order# + pahabol badge + status + price
+                    '<div style="display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;">' +
                     '<span style="font-family:monospace;font-size:.7rem;font-weight:700;color:var(--accent);flex-shrink:0;">' + escHtml(o.order_number) + '</span>' +
+                    pahabolBadge +
                     '<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:9999px;font-size:.62rem;font-weight:700;background:' + oSc.bg + ';color:' + oSc.color + ';">' + oSc.label + '</span>' +
-                    '<span style="font-size:.68rem;color:var(--text-muted);flex-shrink:0;">₱' + Number(o.total).toLocaleString() + '</span>' +
-                    '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-left:auto;">' + oBtns + '</div>' +
+                    '<span style="font-size:.72rem;font-weight:700;color:var(--accent);margin-left:auto;">₱' + Number(o.total).toLocaleString() + '</span>' +
+                    '</div>' +
+                    // Items preview row
+                    (subItems ? '<div style="display:flex;flex-wrap:wrap;gap:3px;">' + subItems + '</div>' : '') +
+                    // Time placed
+                    '<div style="font-size:.62rem;color:var(--text-muted);">Placed ' + escHtml(o.date_short || o.date) + '</div>' +
+                    // Action buttons row
+                    '<div style="display:flex;gap:.3rem;flex-wrap:wrap;">' + oBtns + '</div>' +
                     '</div>';
             });
         }
@@ -455,7 +487,7 @@ function renderTable(orders) {
                     '<p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">' + escHtml(rep.customer) + '</p>' +
                     '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(250,204,21,.1);color:#facc15;font-weight:700;">🪑 Table ' + escHtml(tableNum) + '</span>' +
                     '</div>' +
-                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">' + group.length + (group.every(function(o){ return o.status === 'delivered'; }) ? ' order(s) · Served' : ' order(s) active') + '</p>' +
+                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">' + group.length + (group.every(function(o){ return o.status === 'delivered'; }) ? ' order(s) · Served' : ' order(s) active') + (group.length > 1 ? ' · <span style="color:#f59e0b;font-weight:700;">' + (group.length - 1) + ' pahabol</span>' : '') + '</p>' +
                 '</div>' +
                 '</div>' +
             '</td>' +
