@@ -49,12 +49,12 @@ class AdminController extends Controller
             'slug'  => $c->slug,
         ])->toArray();
 
-        // Top-selling menu items (by total quantity sold from delivered orders)
+        // Top-selling menu items today (by quantity sold from today's orders)
         $topItems = \App\Models\OrderItem::select('menu_item_id', 'item_name',
                 \Illuminate\Support\Facades\DB::raw('SUM(quantity) as total_sold'),
                 \Illuminate\Support\Facades\DB::raw('SUM(subtotal) as total_revenue')
             )
-            ->whereHas('order', fn($q) => $q->where('status', 'delivered'))
+            ->whereHas('order', fn($q) => $q->whereDate('created_at', today()))
             ->groupBy('menu_item_id', 'item_name')
             ->orderByDesc('total_sold')
             ->take(10)

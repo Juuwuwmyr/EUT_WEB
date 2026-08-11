@@ -121,7 +121,7 @@
         <div class="px-5 py-4 card-header-border" style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:.5rem;">
                 <i data-lucide="trending-up" style="width:1rem;height:1rem;color:var(--accent);stroke-width:2;"></i>
-                <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Top Selling Items</h2>
+                <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Top Selling Items Today</h2>
             </div>
             <a href="{{ route('admin.orders') }}" style="font-size:.7rem;color:var(--accent);text-decoration:none;font-weight:500;">View orders →</a>
         </div>
