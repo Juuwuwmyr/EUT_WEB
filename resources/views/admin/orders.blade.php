@@ -320,18 +320,20 @@ function renderTable(orders) {
         return;
     }
 
-    // ── Group active dine-in orders by table so same-table orders appear as
-    //    one row (with sub-order cards inside) until the session is done.
-    //    Non-dine-in, no-table, delivered, cancelled, and archived orders
-    //    are always shown as individual rows.
+    // ── Group dine-in orders by table — both active AND completed (served) ────
+    //    Active statuses are grouped so the chef/admin can manage the whole table.
+    //    Completed (delivered) dine-in orders are ALSO grouped so the orders list
+    //    shows one row per table session rather than one row per sub-order.
+    //    Non-dine-in, no-table, cancelled, and archived orders are always solo rows.
     var ACTIVE_STATUSES = ['pending','accepted','preparing','rider_assigned','out_for_delivery'];
+    var GROUPABLE_STATUSES = ACTIVE_STATUSES.concat(['delivered']);
     var tableGroups = {}; // table_number -> [orders]
     var soloOrders  = [];
 
     orders.forEach(function(o) {
         var canGroup = o.order_type === 'dine_in'
             && o.table_number
-            && ACTIVE_STATUSES.indexOf(o.status) !== -1
+            && GROUPABLE_STATUSES.indexOf(o.status) !== -1
             && !o.is_archived
             && !activeFilter; // don't collapse when a specific status filter is active
         if (canGroup) {
@@ -453,7 +455,7 @@ function renderTable(orders) {
                     '<p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">' + escHtml(rep.customer) + '</p>' +
                     '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(250,204,21,.1);color:#facc15;font-weight:700;">🪑 Table ' + escHtml(tableNum) + '</span>' +
                     '</div>' +
-                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">' + group.length + ' order(s) active</p>' +
+                    '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">' + group.length + (group.every(function(o){ return o.status === 'delivered'; }) ? ' order(s) · Served' : ' order(s) active') + '</p>' +
                 '</div>' +
                 '</div>' +
             '</td>' +
@@ -461,7 +463,12 @@ function renderTable(orders) {
             '<td style="font-weight:700;color:var(--accent);">&#x20B1;' + Number(grandTotal).toLocaleString() + '</td>' +
             '<td><span style="display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:9999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:' + sc.bg + ';color:' + sc.color + ';">' + sc.label + '</span></td>' +
             '<td style="color:var(--text-muted);font-size:.72rem;white-space:nowrap;">' + escHtml(rep.date_short || rep.date) + '</td>' +
-            '<td>' + subHtml + '</td>' +
+            '<td>' + subHtml +
+                // Archive button for the whole group when all orders are served
+                (group.every(function(o){ return o.status === 'delivered'; })
+                    ? '<div style="margin-top:.4rem;"><button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:var(--text-muted);" onclick="archiveOrder(' + rep.id + ',this)" title="Archive Table Session"><i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button></div>'
+                    : '') +
+            '</td>' +
             '</tr>';
     });
 
