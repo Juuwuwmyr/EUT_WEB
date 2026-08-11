@@ -421,8 +421,8 @@ const STATUS_CFG = {
 
 // Returns the display label for a delivered order based on order type
 function deliveredLabel(orderType) {
-    if (orderType === 'dine_in') return 'Completed';
-    if (orderType === 'pickup')  return 'Completed';
+    if (orderType === 'dine_in') return 'Served';
+    if (orderType === 'pickup')  return 'Done';
     return 'Delivered';
 }
 

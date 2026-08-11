@@ -110,13 +110,21 @@ class Order extends Model
 
     public function getStatusLabelAttribute(): string
     {
+        // 'delivered' means different things depending on order type
+        if ($this->status === 'delivered') {
+            return match($this->order_type) {
+                'dine_in' => 'Served',
+                'pickup'  => 'Done',
+                default   => 'Delivered',
+            };
+        }
+
         return match($this->status) {
             'pending'          => 'Pending',
             'accepted'         => 'Accepted',
             'preparing'        => 'Preparing',
             'rider_assigned'   => 'Rider Assigned',
             'out_for_delivery' => 'On the Way',
-            'delivered'        => 'Delivered',
             'cancelled'        => 'Cancelled',
             default            => ucfirst($this->status),
         };
