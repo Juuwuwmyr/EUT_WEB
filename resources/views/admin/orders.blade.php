@@ -401,6 +401,9 @@ function renderTable(orders) {
             return o.status === 'preparing' && o.prepared_at && o.order_type !== 'delivery';
         });
 
+        // Check if session is locked (any order in the group has ordering_locked = true)
+        var isSessionLocked = group.some(function(o) { return o.ordering_locked; });
+
         if (allReady && group.length > 1) {
             // Show status summary pills (no individual Complete buttons)
             group.forEach(function(o) {
@@ -416,12 +419,16 @@ function renderTable(orders) {
             });
             // Single Complete Table button covering all orders
             subHtml +=
-                '<div style="margin-top:.2rem;">' +
-                '<button type="button" class="btn-success" style="width:100%;justify-content:center;font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.5rem;" ' +
+                '<div style="margin-top:.2rem;display:flex;gap:.35rem;">' +
+                '<button type="button" class="btn-success" style="flex:1;justify-content:center;font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.5rem;" ' +
                 'onclick="quickAction(' + rep.id + ',\'complete-table\',\'\',this)">' +
                 '<i data-lucide="circle-check" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i>' +
-                'Complete Table · ₱' + Number(grandTotal).toLocaleString() +
+                'Complete Table \u00B7 \u20B1' + Number(grandTotal).toLocaleString() +
                 '</button>' +
+                // Lock button (only if not already locked)
+                (isSessionLocked
+                    ? '<span style="display:inline-flex;align-items:center;gap:.3rem;padding:.4rem .65rem;border-radius:.45rem;background:rgba(251,146,60,.12);color:#fb923c;font-size:.72rem;font-weight:700;">\uD83D\uDD12 Locked</span>'
+                    : '<button type="button" class="btn-ghost" title="Done Ordering — lock this session" style="flex-shrink:0;padding:.4rem .6rem;font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;border:1px solid rgba(251,146,60,.35);color:#fb923c;border-radius:.45rem;" onclick="quickAction(' + rep.id + ',\'lock-table\',\'\',this)"><i data-lucide="lock" style="width:.75rem;height:.75rem;stroke-width:2;"></i>Done Ordering</button>') +
                 '</div>';
         } else {
             // Normal: individual action buttons per sub-order
@@ -432,10 +439,19 @@ function renderTable(orders) {
                     '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.3rem .5rem;border-radius:.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">' +
                     '<span style="font-family:monospace;font-size:.7rem;font-weight:700;color:var(--accent);flex-shrink:0;">' + escHtml(o.order_number) + '</span>' +
                     '<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .5rem;border-radius:9999px;font-size:.62rem;font-weight:700;background:' + oSc.bg + ';color:' + oSc.color + ';">' + oSc.label + '</span>' +
-                    '<span style="font-size:.68rem;color:var(--text-muted);flex-shrink:0;">₱' + Number(o.total).toLocaleString() + '</span>' +
+                    '<span style="font-size:.68rem;color:var(--text-muted);flex-shrink:0;">\u20B1' + Number(o.total).toLocaleString() + '</span>' +
                     '<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-left:auto;">' + oBtns + '</div>' +
                     '</div>';
             });
+            // Lock button at bottom of normal group (only when there are active non-locked orders)
+            var hasActiveOrders = group.some(function(o) {
+                return ['pending','accepted','preparing'].indexOf(o.status) !== -1;
+            });
+            if (hasActiveOrders) {
+                subHtml += isSessionLocked
+                    ? '<div style="margin-top:.3rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .65rem;border-radius:.45rem;background:rgba(251,146,60,.1);color:#fb923c;font-size:.72rem;font-weight:700;">\uD83D\uDD12 Done Ordering — Locked</div>'
+                    : '<div style="margin-top:.3rem;"><button type="button" class="btn-ghost" title="Mark as Done Ordering — prevents further pahabol merges" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .6rem;border:1px solid rgba(251,146,60,.35);color:#fb923c;border-radius:.45rem;" onclick="quickAction(' + rep.id + ',\'lock-table\',\'\',this)"><i data-lucide="lock" style="width:.75rem;height:.75rem;stroke-width:2;"></i>Done Ordering</button></div>';
+            }
         }
 
         subHtml += '</div>';
@@ -453,7 +469,8 @@ function renderTable(orders) {
                 '<div>' +
                     '<div style="display:flex;align-items:center;gap:.3rem;margin-bottom:.1rem;">' +
                     '<p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">' + escHtml(rep.customer) + '</p>' +
-                    '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(250,204,21,.1);color:#facc15;font-weight:700;">🪑 Table ' + escHtml(tableNum) + '</span>' +
+                    '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(250,204,21,.1);color:#facc15;font-weight:700;">\uD83E\uDE91 Table ' + escHtml(tableNum) + '</span>' +
+                    (isSessionLocked ? '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(251,146,60,.1);color:#fb923c;font-weight:700;">\uD83D\uDD12 Locked</span>' : '') +
                     '</div>' +
                     '<p style="font-size:.68rem;color:var(--text-muted);margin:0;">' + group.length + (group.every(function(o){ return o.status === 'delivered'; }) ? ' order(s) · Served' : ' order(s) active') + '</p>' +
                 '</div>' +
@@ -690,11 +707,11 @@ async function quickAction(orderId, type, nextStatus, btn) {
         } else if (type === 'complete-table') {
             // Intercept — open payment modal first
             var o = ORDERS_MAP[orderId];
-            var tableNum   = o ? (o.table_number || '—') : '—';
+            var tableNum   = o ? (o.table_number || '\u2014') : '\u2014';
             var grandTotal = o ? (o.grand_total || o.total || 0) : 0;
             // For grouped tables, get total from the button label if available
             var btnText = btn.textContent || '';
-            var match   = btnText.match(/₱([\d,]+)/);
+            var match   = btnText.match(/\u20B1([\d,]+)/);
             if (match) grandTotal = parseFloat(match[1].replace(/,/g, ''));
             btn.disabled = false;
             btn.innerHTML = originalHtml;
@@ -702,7 +719,20 @@ async function quickAction(orderId, type, nextStatus, btn) {
             openPaymentModal(orderId, grandTotal, tableNum, btn);
             return;
 
-        } else if (type === 'dispatch') {
+        } else if (type === 'lock-table') {
+            // Lock ordering for this table session — no more pahabol merges allowed
+            var o = ORDERS_MAP[orderId];
+            var tableNum = o ? ('Table ' + (o.table_number || '?')) : 'this table';
+            if (!confirm('Mark ' + tableNum + ' as Done Ordering?\n\nAfter locking:\n\u2022 No new pahabol orders will be merged into this session.\n\u2022 A new customer on the same table will get a fresh session.')) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                return;
+            }
+            url = '{{ route("admin.orders.lock-table", ":id") }}'.replace(':id', orderId);
+            method = 'POST';
+            body = null;
+
+
             // Open the manage modal so the admin can pick a rider
             btn.disabled = false;
             btn.innerHTML = originalHtml;
