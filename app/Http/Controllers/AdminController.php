@@ -968,15 +968,21 @@ class AdminController extends Controller
 
         $now = now();
         foreach ($tableOrders as $o) {
-            $o->update([
+            $updateData = [
                 'status'         => 'delivered',
                 'delivered_at'   => $now,
                 'prepared_at'    => $o->prepared_at ?? $now,
                 'payment_status' => 'paid',
                 'payment_method' => 'cash',
-                'cash_received'  => $cashReceived > 0 ? $cashReceived : null,
-                'change_due'     => $changeDue,
-            ]);
+            ];
+
+            // Only save payment fields if the columns exist
+            if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'cash_received')) {
+                $updateData['cash_received'] = $cashReceived > 0 ? $cashReceived : null;
+                $updateData['change_due']    = $changeDue;
+            }
+
+            $o->update($updateData);
             broadcast(new \App\Events\OrderStatusUpdated($o))->toOthers();
         }
 
