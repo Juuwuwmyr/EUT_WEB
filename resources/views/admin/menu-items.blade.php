@@ -269,15 +269,6 @@
             </label>
           </div>
         </div>
-        <div class="form-group" style="width:100%;">
-          <label style="display:flex;align-items:center;gap:.4rem;">
-            <i data-lucide="activity" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Status
-          </label>
-          <select name="status" id="iStatus" class="admin-input">
-            <option value="active">Active — visible to customers</option>
-            <option value="archived">Archived — hidden from customers</option>
-          </select>
-        </div>
       </div>
 
       {{-- ── TAB 2: CUSTOMIZATION (Flavors + Modifiers combined) ── --}}
@@ -467,7 +458,6 @@ function openAddItemModal() {
     document.getElementById('iImagePreviewWrap').style.display = 'none';
     document.getElementById('iImagePreview').src = '';
     document.getElementById('iFeatured').checked = false;
-    document.getElementById('iStatus').value    = 'active';
     // Reset first category option
     var sel = document.getElementById('iCategory');
     if(sel.options.length) sel.selectedIndex = 0;
@@ -499,7 +489,6 @@ function openEditItemModal(item, categories) {
         document.getElementById('iImagePreviewWrap').style.display = 'none';
     }
     document.getElementById('iFeatured').checked = !!item.featured;
-    document.getElementById('iStatus').value     = item.is_archived ? 'archived':'active';
     // Populate categories
     var sel = document.getElementById('iCategory');
     sel.innerHTML = '';
@@ -922,10 +911,10 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
 
     // Handle status field -> is_archived hidden input
-    var statusVal = document.getElementById('iStatus').value;
+    // New items always created as Active (status toggled via table button after creation)
     var existing  = this.querySelector('input[name="is_archived_flag"]');
     if(!existing){ existing = document.createElement('input'); existing.type='hidden'; existing.name='is_archived_flag'; this.appendChild(existing); }
-    existing.value = statusVal === 'archived' ? '1':'0';
+    existing.value = '0';
 
     // Remove any previously injected group inputs
     this.querySelectorAll('.dyn-group-input').forEach(function(el){ el.remove(); });
