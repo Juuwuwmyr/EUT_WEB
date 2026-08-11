@@ -914,6 +914,14 @@ function updateCartBadge() {
 function setOrderType(type, save = true) {
     // If locked to dine_in via table QR, refuse any switch away from it
     if (window._tableQrLocked && type !== 'dine_in') return;
+    
+    // When manually switching away from dine_in, clear table context
+    if (save && type !== 'dine_in') {
+        sessionStorage.removeItem('eutTableNumber');
+        localStorage.removeItem('eutTableNumber');
+        window._tableQrLocked = false;
+    }
+    
     if (save) localStorage.setItem('eutOrderType', type);
     document.querySelectorAll('.ot-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.type === type);
