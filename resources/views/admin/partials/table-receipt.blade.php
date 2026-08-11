@@ -151,15 +151,15 @@ hr.solid {
 </div>
 
 @php
-    $cashReceived = $orders->first()?->cash_received;
-    $changeDue    = $orders->first()?->change_due;
+    $cashReceived = $orders->max('cash_received') ?? 0;
+    $changeDue    = $orders->whereNotNull('change_due')->first()?->change_due ?? 0;
 @endphp
 @if($cashReceived > 0)
 <div style="display:flex;justify-content:space-between;margin:2px 0;font-size:9px;width:100%;">
     <span>Cash</span><span>P{{ number_format($cashReceived, 2) }}</span>
 </div>
 <div style="display:flex;justify-content:space-between;margin:2px 0;font-size:9px;font-weight:bold;width:100%;">
-    <span>Change</span><span>P{{ number_format(max(0, $changeDue ?? 0), 2) }}</span>
+    <span>Change</span><span>P{{ number_format(max(0, $changeDue), 2) }}</span>
 </div>
 @endif
 

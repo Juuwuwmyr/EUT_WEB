@@ -163,6 +163,15 @@ hr.solid {
     <span>TOTAL</span><span>P{{ number_format($order->total, 2) }}</span>
 </div>
 
+@if($order->cash_received > 0)
+<div style="display:flex;justify-content:space-between;margin:2px 0;font-size:9px;width:100%;">
+    <span>Cash</span><span>P{{ number_format($order->cash_received, 2) }}</span>
+</div>
+<div style="display:flex;justify-content:space-between;margin:2px 0;font-size:9px;font-weight:bold;width:100%;">
+    <span>Change</span><span>P{{ number_format(max(0, $order->change_due ?? 0), 2) }}</span>
+</div>
+@endif
+
 @if($order->order_type === 'delivery' && $order->delivery_address)
 <div class="address-box">
     <div class="bold" style="margin-bottom:1px;">Deliver to:</div>
@@ -179,8 +188,8 @@ hr.solid {
 
 <hr class="solid" style="margin-top:5px;">
 <div class="footer">
-    <div>Thank you for your order!</div>
-    <div style="margin-top:1px;">Accepted at {{ now()->format('g:i A') }}</div>
+    <div>{{ $order->order_type === 'dine_in' ? 'Thank you for dining with us!' : 'Thank you for your order!' }}</div>
+    <div style="margin-top:1px;">{{ now()->format('g:i A') }}</div>
     <div style="margin-top:2px;">*** EAT * UNWIND * TEA ***</div>
 </div>
 
