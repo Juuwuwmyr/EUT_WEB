@@ -151,14 +151,17 @@ hr.solid {
 </div>
 
 @php
-    $cashReceived = $orders->max('cash_received') ?? 0;
-    $changeDue    = $orders->whereNotNull('change_due')->first()?->change_due ?? 0;
+    // Get cash payment details from any order in the group (they all have the same values after table completion)
+    $cashReceived = $orders->whereNotNull('cash_received')->max('cash_received') ?? 0;
+    $changeDue    = $orders->whereNotNull('change_due')->max('change_due') ?? 0;
 @endphp
 @if($cashReceived > 0)
-<div style="display:flex;justify-content:space-between;margin:2px 0;font-size:9px;width:100%;">
-    <span>Cash</span><span>P{{ number_format($cashReceived, 2) }}</span>
+<hr style="margin-top:2px;margin-bottom:2px;">
+<div style="font-size:9px;font-weight:bold;margin-bottom:2px;">Payment: CASH</div>
+<div style="display:flex;justify-content:space-between;margin:1px 0;font-size:9px;width:100%;">
+    <span>Cash Received</span><span>P{{ number_format($cashReceived, 2) }}</span>
 </div>
-<div style="display:flex;justify-content:space-between;margin:2px 0;font-size:9px;font-weight:bold;width:100%;">
+<div style="display:flex;justify-content:space-between;margin:1px 0;font-size:10px;font-weight:bold;width:100%;">
     <span>Change</span><span>P{{ number_format(max(0, $changeDue), 2) }}</span>
 </div>
 @endif
