@@ -1010,7 +1010,7 @@ function openManageModal(id) {
             '</div>';
     }
 
-    if (o.status === 'preparing' && sp.dispatchReady) {
+    if (sp.dispatchReady) {
         var riderCards   = '';
         var ridersToShow = RIDERS.length > 0 ? RIDERS : [];
 
