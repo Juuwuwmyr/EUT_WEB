@@ -487,17 +487,9 @@ function renderTable(orders) {
             '<td><span style="display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:9999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:' + sc.bg + ';color:' + sc.color + ';">' + sc.label + '</span></td>' +
             '<td style="color:var(--text-muted);font-size:.72rem;white-space:nowrap;">' + escHtml(rep.date_short || rep.date) + '</td>' +
             '<td>' + subHtml +
-                // Footer buttons: Print combined bill always visible; Archive when all served
-                '<div style="margin-top:.4rem;display:flex;gap:.4rem;align-items:center;">' +
-                '<button class="btn-ghost" title="Print combined bill for ALL orders at Table ' + escHtml(tableNum) + ' today" ' +
-                    'style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#a78bfa;" ' +
-                    'onclick="printTableBill(\'' + escHtml(tableNum) + '\')">' +
-                    '<i data-lucide="receipt" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Print Bill' +
-                '</button>' +
                 (group.every(function(o){ return o.status === 'delivered'; })
-                    ? '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:var(--text-muted);" onclick="archiveOrder(' + rep.id + ',this)" title="Archive Table Session"><i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button>'
+                    ? '<div style="margin-top:.4rem;"><button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:var(--text-muted);" onclick="archiveOrder(' + rep.id + ',this)" title="Archive Table Session"><i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button></div>'
                     : '') +
-                '</div>' +
             '</td>' +
             '</tr>';
     });
@@ -526,7 +518,7 @@ function buildActionBtns(o) {
         } else if (o.order_type === 'delivery') {
             act = { label:'Dispatch Rider', icon:'bike', btnClass:'btn-warning', type:'dispatch' };
         } else {
-            act = { label: o.order_type === 'pickup' ? 'Picked Up' : (o.order_type === 'dine_in' ? 'Serve' : 'Complete'), icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
+            act = { label: o.order_type === 'pickup' ? 'Picked Up' : (o.order_type === 'dine_in' ? 'Serve' : 'Complete'), icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type: o.order_type === 'dine_in' ? 'serve-dine-in' : 'status', next:'delivered' };
         }
     }
 
@@ -588,16 +580,7 @@ function renderSingleOrderRow(o) {
                 '<i data-lucide="printer" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
                 '</button>';
         }
-        // For dine-in solo rows: show a "Print All Table Bill" button so the admin can
-        // get a combined receipt for ALL of today's orders at that table — even if the
-        // customer's pahabol orders ended up in different sessions.
-        if (o.order_type === 'dine_in' && o.table_number) {
-            actionBtn += '<button class="btn-ghost" title="Print combined bill for ALL orders at Table ' + escHtml(o.table_number) + ' today" ' +
-                'style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#a78bfa;" ' +
-                'onclick="printTableBill(\'' + escHtml(o.table_number) + '\')">' +
-                '<i data-lucide="receipt" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
-                '</button>';
-        }
+        // For dine-in solo rows — no print bill button needed
         if (['delivered','cancelled'].indexOf(o.status) !== -1) {
             actionBtn += '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';" onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '">' +
                 '<i data-lucide="' + (o.is_archived ? 'archive-restore' : 'archive') + '" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
@@ -749,6 +732,17 @@ async function quickAction(orderId, type, nextStatus, btn) {
             btn.innerHTML = originalHtml;
             btn._origHtml = originalHtml;
             openPaymentModal(orderId, grandTotal, tableNum, btn);
+            return;
+
+        } else if (type === 'serve-dine-in') {
+            // Individual dine-in "Serve" — open payment modal
+            var oDine = ORDERS_MAP[orderId];
+            var tableNumDine   = oDine ? (oDine.table_number || '\u2014') : '\u2014';
+            var grandTotalDine = oDine ? parseFloat(oDine.total || 0) : 0;
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            btn._origHtml = originalHtml;
+            openPaymentModal(orderId, grandTotalDine, tableNumDine, btn, 'serve-dine-in');
             return;
 
         } else if (type === 'lock-table') {
@@ -1414,11 +1408,13 @@ function computeStatusCounts(orders) {
 let _pmOrderId   = null;
 let _pmTotal     = 0;
 let _pmOrigBtn   = null;
+let _pmType      = 'complete-table'; // 'complete-table' or 'serve-dine-in'
 
-function openPaymentModal(orderId, grandTotal, tableNum, origBtn) {
+function openPaymentModal(orderId, grandTotal, tableNum, origBtn, type) {
     _pmOrderId  = orderId;
     _pmTotal    = parseFloat(grandTotal);
     _pmOrigBtn  = origBtn;
+    _pmType     = type || 'complete-table';
 
     document.getElementById('pmTableLabel').textContent  = 'Table ' + tableNum;
     document.getElementById('pmTotal').textContent       = '₱' + _pmTotal.toLocaleString();
@@ -1488,11 +1484,22 @@ async function confirmPayment() {
     btn.innerHTML = '⏳ Processing…';
 
     try {
-        const url = '{{ route("admin.orders.complete-table", ":id") }}'.replace(':id', _pmOrderId);
+        let url, method = 'POST', body = { cash_received: cash };
+
+        if (_pmType === 'serve-dine-in') {
+            // Individual dine-in order — mark single order as delivered
+            url = '{{ route("admin.orders.status", ":id") }}'.replace(':id', _pmOrderId);
+            method = 'PATCH';
+            body = { status: 'delivered', cash_received: cash };
+        } else {
+            // Complete entire table session
+            url = '{{ route("admin.orders.complete-table", ":id") }}'.replace(':id', _pmOrderId);
+        }
+
         const res = await fetch(url, {
-            method: 'POST',
+            method: method,
             headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cash_received: cash }),
+            body: JSON.stringify(body),
         });
         const data = await res.json();
         if (data.success) {
@@ -1500,7 +1507,7 @@ async function confirmPayment() {
             if (data.receipt_url) printReceipt(data.receipt_url);
             await fetchOrders();
         } else {
-            alert(data.message || 'Failed to complete table.');
+            alert(data.message || 'Failed to complete.');
             btn.disabled = false;
             btn.innerHTML = '✓ Complete & Print Receipt';
         }

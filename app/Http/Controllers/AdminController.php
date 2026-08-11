@@ -927,8 +927,18 @@ class AdminController extends Controller
             ];
             // Auto-print receipt when admin marks as complete (delivered)
             if ($request->status === 'delivered') {
-                // Dine-in with a table number → combined table receipt (all orders at that table)
-                // Everything else → single-order receipt
+                // Save cash received and change for dine-in orders
+                if ($order->order_type === 'dine_in') {
+                    $cashReceived = (float) $request->input('cash_received', 0);
+                    $changeDue    = $cashReceived > 0 ? round($cashReceived - $order->total, 2) : null;
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'cash_received')) {
+                        $order->update([
+                            'cash_received' => $cashReceived > 0 ? $cashReceived : null,
+                            'change_due'    => $changeDue,
+                        ]);
+                    }
+                }
+                // Generate receipt
                 if ($order->order_type === 'dine_in' && $order->table_number) {
                     $response['receipt_url'] = route('chef.orders.table-receipt', $order->id);
                 } else {
