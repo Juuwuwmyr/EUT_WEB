@@ -906,9 +906,10 @@ function renderColumn(col, orders) {
     if (!el) return;
 
     // ── Smart diff: skip re-render if nothing actually changed ────────────────
-    // Build a lightweight signature from order IDs + updated_at timestamps.
-    // If it matches the last render, skip innerHTML to prevent flicker.
-    const sig = orders.map(o => o.id + ':' + (o.updated_at || o.elapsed_mins || '')).join('|');
+    // Build a lightweight signature from order IDs + updated_at timestamps only.
+    // Do NOT include elapsed_mins — it changes every minute and causes unnecessary
+    // re-renders that reset the column and lose in-progress UI state.
+    const sig = orders.map(o => o.id + ':' + (o.updated_at || o.status || '')).join('|');
     const countChanged = countEl.textContent != orders.length;
     if (!countChanged && columnSignatures[col] === sig) return; // nothing changed
     columnSignatures[col] = sig;
@@ -925,7 +926,23 @@ function renderColumn(col, orders) {
         return;
     }
 
-    el.innerHTML = orders.map(o => renderOrderCard(o, col)).join('');
+    el.innerHTML = orders.map(o => {
+        // Guard: never regress an order to an earlier column than what the client already knows.
+        // e.g. if the client already has this order as 'preparing' (cooking column),
+        // and the server briefly returns it as 'accepted' (race condition), skip it.
+        const STATUS_RANK = { pending:0, accepted:1, preparing:2, rider_assigned:3, out_for_delivery:4, delivered:5, cancelled:5 };
+        const colRank     = { new:0, queued:1, cooking:2, ready:3 };
+        const known = orderDataMap[o.id];
+        if (known) {
+            const knownRank  = STATUS_RANK[known.status]  ?? 0;
+            const serverRank = STATUS_RANK[o.status]      ?? 0;
+            if (knownRank > serverRank) {
+                // Client is ahead — use client's version to avoid regression
+                return renderOrderCard(known, known.column || col);
+            }
+        }
+        return renderOrderCard(o, col);
+    }).join('');
     orders.forEach(o => { orderDataMap[o.id] = { ...o, column: col }; });
 }
 
