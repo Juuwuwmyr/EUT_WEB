@@ -426,7 +426,7 @@ function renderTable(orders) {
             // Single Complete Table button covering all orders
             subHtml +=
                 '<div style="margin-top:.2rem;display:flex;gap:.35rem;">' +
-                '<button type="button" class="btn-success" style="flex:1;justify-content:center;font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.5rem;" ' +
+                '<button type="button" class="btn-success" data-grand-total="' + grandTotal + '" style="flex:1;justify-content:center;font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.5rem;" ' +
                 'onclick="quickAction(' + rep.id + ',\'complete-table\',\'\',this)">' +
                 '<i data-lucide="circle-check" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i>' +
                 'Complete Table \u00B7 \u20B1' + Number(grandTotal).toLocaleString() +
@@ -723,11 +723,14 @@ async function quickAction(orderId, type, nextStatus, btn) {
             // Intercept — open payment modal first
             var o = ORDERS_MAP[orderId];
             var tableNum   = o ? (o.table_number || '\u2014') : '\u2014';
-            var grandTotal = o ? (o.grand_total || o.total || 0) : 0;
-            // For grouped tables, get total from the button label if available
-            var btnText = btn.textContent || '';
-            var match   = btnText.match(/\u20B1([\d,]+)/);
-            if (match) grandTotal = parseFloat(match[1].replace(/,/g, ''));
+            // Try data attribute first, then button text, then fallback to single order total
+            var grandTotal = parseFloat(btn.getAttribute('data-grand-total')) || 0;
+            if (!grandTotal) {
+                var btnText = btn.textContent || '';
+                var match   = btnText.match(/\u20B1([\d,]+)/);
+                if (match) grandTotal = parseFloat(match[1].replace(/,/g, ''));
+            }
+            if (!grandTotal) grandTotal = o ? parseFloat(o.total || 0) : 0;
             btn.disabled = false;
             btn.innerHTML = originalHtml;
             btn._origHtml = originalHtml;
