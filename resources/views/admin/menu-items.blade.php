@@ -881,25 +881,34 @@ async function toggleItemStatus(btn, itemId) {
 
         const isArchived = data.is_archived;
         const span  = btn.querySelector('span');
-        const icon  = btn.querySelector('i');
+        // Lucide replaces <i> with <svg> after first render — handle both
+        const icon  = btn.querySelector('i') || btn.querySelector('svg');
 
         if (isArchived) {
             btn.style.background   = 'rgba(239,68,68,.1)';
             btn.style.color        = '#ef4444';
             btn.style.borderColor  = 'rgba(239,68,68,.3)';
             span.textContent       = 'Archived';
-            icon.setAttribute('data-lucide', 'archive');
+            if (icon) icon.setAttribute('data-lucide', 'archive');
             btn.closest('tr').style.opacity = '.55';
         } else {
             btn.style.background   = 'rgba(34,197,94,.1)';
             btn.style.color        = '#22c55e';
             btn.style.borderColor  = 'rgba(34,197,94,.3)';
             span.textContent       = 'Active';
-            icon.setAttribute('data-lucide', 'check-circle');
+            if (icon) icon.setAttribute('data-lucide', 'check-circle');
             btn.closest('tr').style.opacity = '1';
         }
 
         btn.dataset.archived = isArchived ? '1' : '0';
+
+        // Re-render the icon: replace svg with a fresh <i> so lucide can re-process it
+        if (icon && icon.tagName === 'SVG') {
+            const newI = document.createElement('i');
+            newI.setAttribute('data-lucide', isArchived ? 'archive' : 'check-circle');
+            newI.style.cssText = 'width:.65rem;height:.65rem;stroke-width:2;';
+            icon.replaceWith(newI);
+        }
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
     } catch (e) {
