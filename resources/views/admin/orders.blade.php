@@ -487,10 +487,17 @@ function renderTable(orders) {
             '<td><span style="display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:9999px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:' + sc.bg + ';color:' + sc.color + ';">' + sc.label + '</span></td>' +
             '<td style="color:var(--text-muted);font-size:.72rem;white-space:nowrap;">' + escHtml(rep.date_short || rep.date) + '</td>' +
             '<td>' + subHtml +
-                // Archive button for the whole group when all orders are served
+                // Footer buttons: Print combined bill always visible; Archive when all served
+                '<div style="margin-top:.4rem;display:flex;gap:.4rem;align-items:center;">' +
+                '<button class="btn-ghost" title="Print combined bill for ALL orders at Table ' + escHtml(tableNum) + ' today" ' +
+                    'style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#a78bfa;" ' +
+                    'onclick="printTableBill(\'' + escHtml(tableNum) + '\')">' +
+                    '<i data-lucide="receipt" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Print Bill' +
+                '</button>' +
                 (group.every(function(o){ return o.status === 'delivered'; })
-                    ? '<div style="margin-top:.4rem;"><button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:var(--text-muted);" onclick="archiveOrder(' + rep.id + ',this)" title="Archive Table Session"><i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button></div>'
+                    ? '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:var(--text-muted);" onclick="archiveOrder(' + rep.id + ',this)" title="Archive Table Session"><i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button>'
                     : '') +
+                '</div>' +
             '</td>' +
             '</tr>';
     });
@@ -581,6 +588,16 @@ function renderSingleOrderRow(o) {
                 '<i data-lucide="printer" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
                 '</button>';
         }
+        // For dine-in solo rows: show a "Print All Table Bill" button so the admin can
+        // get a combined receipt for ALL of today's orders at that table — even if the
+        // customer's pahabol orders ended up in different sessions.
+        if (o.order_type === 'dine_in' && o.table_number) {
+            actionBtn += '<button class="btn-ghost" title="Print combined bill for ALL orders at Table ' + escHtml(o.table_number) + ' today" ' +
+                'style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#a78bfa;" ' +
+                'onclick="printTableBill(\'' + escHtml(o.table_number) + '\')">' +
+                '<i data-lucide="receipt" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+                '</button>';
+        }
         if (['delivered','cancelled'].indexOf(o.status) !== -1) {
             actionBtn += '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';" onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '">' +
                 '<i data-lucide="' + (o.is_archived ? 'archive-restore' : 'archive') + '" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
@@ -630,7 +647,16 @@ function adminPrintTakeoutSlip(orderId) {
     var url = '/admin/orders/' + orderId + '/takeout-slip';
     var win = window.open(url, '_blank', 'width=320,height=620,menubar=no,toolbar=no,location=no,status=no');
     if (!win) {
-        // Popup blocked — open in new tab so user can print manually
+        window.open(url, '_blank');
+    }
+}
+
+// -- Print combined table bill (all today's dine-in orders at a table) ------
+// Used for pahabol orders that ended up in different sessions but same table.
+function printTableBill(tableNumber) {
+    var url = '/chef/orders/table-bill/' + encodeURIComponent(tableNumber);
+    var win = window.open(url, '_blank', 'width=380,height=700,menubar=no,toolbar=no,location=no,status=no');
+    if (!win) {
         window.open(url, '_blank');
     }
 }

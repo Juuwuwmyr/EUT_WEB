@@ -249,6 +249,37 @@ class ChefController extends Controller
     }
 
     /**
+     * Combined bill for all of today's dine-in orders at a given table number.
+     *
+     * Unlike tableReceipt() which filters by table_session_id, this method
+     * gathers EVERY non-cancelled order for the table today — across ALL sessions.
+     * Use this when a customer placed multiple pahabol orders that ended up in
+     * different sessions (because earlier batches were already cooking/served).
+     *
+     * Route: GET /chef/orders/table-bill/{table}
+     */
+    public function tableReceiptByNumber(string $tableNumber)
+    {
+        if (!preg_match('/^\d{1,3}$/', $tableNumber)) {
+            abort(404);
+        }
+
+        $orders = Order::with('items')
+            ->where('table_number', $tableNumber)
+            ->where('order_type', 'dine_in')
+            ->whereNotIn('status', ['cancelled'])
+            ->whereDate('created_at', today())
+            ->oldest()
+            ->get();
+
+        if ($orders->isEmpty()) {
+            abort(404, 'No orders found for Table ' . $tableNumber . ' today.');
+        }
+
+        return view('admin.partials.table-receipt', compact('orders', 'tableNumber'));
+    }
+
+    /**
      * Get the kitchen ticket (no prices) for an order.
      */
     public function kitchenTicket(Order $order, Request $request)
