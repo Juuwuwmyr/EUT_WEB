@@ -320,14 +320,15 @@ function renderTable(orders) {
         return;
     }
 
-    // ── Group dine-in orders by table — both active AND completed (served) ────
-    //    Active statuses are grouped so the chef/admin can manage the whole table.
-    //    Completed (delivered) dine-in orders are ALSO grouped so the orders list
-    //    shows one row per table session rather than one row per sub-order.
+    // ── Group dine-in orders by SESSION — both active AND completed (served) ────
+    //    Group key = table_session_id (unique per customer sitting).
+    //    Falling back to table_number only when session ID is missing (legacy rows).
+    //    This ensures a NEW customer at the same table NEVER gets mixed into a
+    //    previous customer's row — even if the old orders are still visible today.
     //    Non-dine-in, no-table, cancelled, and archived orders are always solo rows.
     var ACTIVE_STATUSES = ['pending','accepted','preparing','rider_assigned','out_for_delivery'];
     var GROUPABLE_STATUSES = ACTIVE_STATUSES.concat(['delivered']);
-    var tableGroups = {}; // table_number -> [orders]
+    var tableGroups = {}; // session_key -> [orders]
     var soloOrders  = [];
 
     orders.forEach(function(o) {
@@ -337,20 +338,24 @@ function renderTable(orders) {
             && !o.is_archived
             && !activeFilter; // don't collapse when a specific status filter is active
         if (canGroup) {
-            if (!tableGroups[o.table_number]) tableGroups[o.table_number] = [];
-            tableGroups[o.table_number].push(o);
+            // Use session_id as the unique group key — different sittings at the same
+            // table get their own row; fall back to table_number for orders without a session.
+            var groupKey = o.table_session_id ? ('session_' + o.table_session_id) : ('table_' + o.table_number);
+            if (!tableGroups[groupKey]) tableGroups[groupKey] = [];
+            tableGroups[groupKey].push(o);
         } else {
             soloOrders.push(o);
         }
     });
 
-    // Flatten: tables with only one order just go into soloOrders too
-    Object.keys(tableGroups).forEach(function(t) {
-        if (tableGroups[t].length === 1) {
-            soloOrders.push(tableGroups[t][0]);
-            delete tableGroups[t];
+    // Flatten: groups with only one order go into soloOrders
+    Object.keys(tableGroups).forEach(function(k) {
+        if (tableGroups[k].length === 1) {
+            soloOrders.push(tableGroups[k][0]);
+            delete tableGroups[k];
         }
     });
+
 
     var rowCount = soloOrders.length + Object.keys(tableGroups).length;
     if (countEl) countEl.textContent = rowCount + ' row(s) · ' + orders.length + ' order(s)';
@@ -358,9 +363,10 @@ function renderTable(orders) {
     var html = '';
 
     // ── Render grouped table rows first (most urgent on top) ─────────────────
-    Object.keys(tableGroups).forEach(function(tableNum) {
-        var group = tableGroups[tableNum].sort(function(a,b){ return a.id - b.id; }); // oldest first
-        var rep   = group[0]; // representative order (oldest / first placed)
+    Object.keys(tableGroups).forEach(function(sessionKey) {
+        var group   = tableGroups[sessionKey].sort(function(a,b){ return a.id - b.id; }); // oldest first
+        var rep     = group[0]; // representative order (oldest / first placed)
+        var tableNum = rep.table_number || sessionKey; // real table number for display
         var initial = (rep.customer || 'G').charAt(0).toUpperCase();
 
         // Determine the most urgent status in the group for display
@@ -457,7 +463,7 @@ function renderTable(orders) {
         subHtml += '</div>';
 
         html +=
-            '<tr id="order-row-group-' + tableNum.replace(/\s/g,'_') + '">' +
+            '<tr id="order-row-group-' + sessionKey.replace(/[^a-z0-9]/gi,'_') + '">' +
             '<td>' +
                 '<div style="display:flex;flex-direction:column;gap:.15rem;">' +
                 group.map(function(o){ return '<span style="font-family:monospace;font-size:.72rem;color:var(--accent);">' + escHtml(o.order_number) + '</span>'; }).join('') +
