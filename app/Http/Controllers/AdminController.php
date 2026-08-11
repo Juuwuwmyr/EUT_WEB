@@ -814,9 +814,16 @@ class AdminController extends Controller
 
     public function acceptOrder(\App\Models\Order $order)
     {
+        // Already accepted — treat as success (idempotent)
+        if ($order->status === 'accepted') {
+            return request()->expectsJson()
+                ? response()->json(['success' => true, 'message' => 'Order already accepted.'])
+                : back()->with('success', 'Order already accepted.');
+        }
+
         if ($order->status !== 'pending') {
             return request()->expectsJson()
-                ? response()->json(['success' => false, 'message' => 'Order cannot be accepted.'], 422)
+                ? response()->json(['success' => false, 'message' => 'Order cannot be accepted (status: ' . $order->status . ').'], 422)
                 : back()->with('error', 'Order cannot be accepted.');
         }
 
