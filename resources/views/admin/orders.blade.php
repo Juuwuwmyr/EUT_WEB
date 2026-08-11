@@ -758,14 +758,7 @@ async function quickAction(orderId, type, nextStatus, btn) {
             method = 'POST';
             body = null;
 
-
-            // Open the manage modal so the admin can pick a rider
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-            openManageModal(orderId);
-            return;
-
-        } else if (type === 'auto-assign') {
+        } else if (type === 'dispatch') {
             if (!RIDERS.length) {
                 logError('AutoAssign', '[Order #' + orderId + '] No riders in the system.');
                 alert('No riders available. Please add a rider first.');
