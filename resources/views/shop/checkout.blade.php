@@ -305,8 +305,42 @@
             </div>
         </div>
 
-        <!-- Table Number — hidden field, filled by QR scanner modal -->
-        <input type="hidden" id="tableNumberInput" name="table_number">
+        <!-- Table Number Card — visible only when Dine-in is selected -->
+        <div class="card" id="tableNumberCard" style="display:none;">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(250,204,21,.1);">
+                    <svg width="15" height="15" fill="none" stroke="#facc15" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18M3 7h18M3 11h18M3 15h12M3 19h8"/></svg>
+                </div>
+                <span class="card-title">Table Number</span>
+            </div>
+            <div class="card-body" style="padding-bottom:16px;">
+                <!-- Confirmed table display (shown after scan/QR) -->
+                <div id="tableConfirmedDisplay" style="display:none;align-items:center;gap:14px;padding:12px 14px;background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.22);border-radius:14px;margin-bottom:10px;">
+                    <span style="font-size:28px;">🪑</span>
+                    <div style="flex:1;min-width:0;">
+                        <p style="font-size:14px;font-weight:800;color:#facc15;margin:0 0 2px;" id="tableConfirmedLabel">Table —</p>
+                        <p style="font-size:11px;color:#9ca3af;margin:0;">Table number confirmed from QR code</p>
+                    </div>
+                    <button type="button" onclick="openTableScanner()" style="flex-shrink:0;padding:6px 13px;border-radius:99px;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.3);color:#facc15;font-size:11px;font-weight:700;cursor:pointer;">
+                        Change
+                    </button>
+                </div>
+                <!-- Prompt to scan (shown when no table is set) -->
+                <div id="tableScanPrompt" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 14px;border:1.5px dashed rgba(250,204,21,.25);border-radius:14px;">
+                    <span style="font-size:32px;">📷</span>
+                    <div style="text-align:center;">
+                        <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 3px;">Scan Your Table QR Code</p>
+                        <p style="font-size:11px;color:#6b7280;margin:0;">Point your camera at the QR code on your table</p>
+                    </div>
+                    <button type="button" onclick="openTableScanner()" style="padding:11px 28px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);border:none;color:#000;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 3px 14px rgba(250,204,21,.3);">
+                        📷 Scan QR Code
+                    </button>
+                    <p style="font-size:11px;color:#4b5563;margin:0;">Or select your table number manually below</p>
+                </div>
+                <!-- Hidden input that actually goes into the form payload -->
+                <input type="hidden" id="tableNumberInput" name="table_number">
+            </div>
+        </div>
 
 
 
@@ -378,7 +412,7 @@
             @guest
             {{-- Guests can only place dine-in orders — button shown, JS enforces the rule --}}
             <div id="guestDineInNotice" style="display:none;margin:4px 18px 10px;padding:10px 14px;background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.2);border-radius:12px;font-size:12px;color:#facc15;text-align:center;">
-                🪑 Dine-in only — no login required. Just enter your table number above.
+                🪑 Dine-in only — no login required. Scan the QR code on your table to confirm your seat.
             </div>
             <div id="guestLoginNotice" style="display:none;margin:4px 18px 18px;">
                 <div class="guest-notice">⚠️ Please <a href="{{ route('restaurant') }}">log in</a> to place a delivery or pickup order.</div>
@@ -561,10 +595,11 @@ document.addEventListener('DOMContentLoaded',()=>{
             dineInBtn.appendChild(lockBadge);
         }
 
-        // Fill & lock the table number input
+        // Fill the hidden input and sync the visible confirmed-display inside the card
         document.getElementById('tableNumberInput').value = tableNum;
+        syncTableDisplay(tableNum);
 
-        // Show a confirmation banner
+        // Show a status banner (open vs closed dine-in service)
         const isDineInServiceOpen = @json($isOpenDineIn) && @json($isOpen);
         const banner = document.createElement('div');
         if (isDineInServiceOpen) {
@@ -867,18 +902,39 @@ function selectOrderType(el, type){
         addrCard.style.display = 'none';
     }
 
-    // Show table number field only for dine-in
+    // Show table number card only for dine-in
     const tableCard = document.getElementById('tableNumberCard');
     if (tableCard) tableCard.style.display = type === 'dine_in' ? 'block' : 'none';
     const tableInput = document.getElementById('tableNumberInput');
     if (tableInput) tableInput.required = (type === 'dine_in');
+    // Sync confirmed/scan-prompt display whenever card becomes visible
+    if (type === 'dine_in') syncTableDisplay();
 
     // Hide/Show payment method card — only visible for delivery
+
     const paymentCard = document.getElementById('paymentMethodCard');
     if(paymentCard) {
         paymentCard.style.display = type === 'delivery' ? 'block' : 'none';
     }
     renderSummary();
+}
+
+/* ── Sync the table-number card UI to the current hidden input value ── */
+function syncTableDisplay(tableNum) {
+    // If tableNum not passed, read from the hidden input
+    const val = tableNum !== undefined ? tableNum : (document.getElementById('tableNumberInput')?.value || '').trim();
+    const confirmed = document.getElementById('tableConfirmedDisplay');
+    const prompt    = document.getElementById('tableScanPrompt');
+    const label     = document.getElementById('tableConfirmedLabel');
+    if (!confirmed || !prompt) return;
+    if (val && /^\d{1,2}$/.test(val)) {
+        if (label) label.textContent = 'Table ' + val + ' — Dine-in';
+        confirmed.style.display = 'flex';
+        prompt.style.display    = 'none';
+    } else {
+        confirmed.style.display = 'none';
+        prompt.style.display    = 'flex';
+    }
 }
 
 /* ═══════════════════════════════════
@@ -1649,6 +1705,7 @@ async function confirmTableAndOrder() {
 
     const tableNum = _detectedTable || prefilledTable;
     document.getElementById('tableNumberInput').value = tableNum;
+    syncTableDisplay(tableNum); // flip card to confirmed state
 
     closeTableScanner();
 
