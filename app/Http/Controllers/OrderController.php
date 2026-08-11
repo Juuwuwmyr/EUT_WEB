@@ -148,42 +148,49 @@ class OrderController extends Controller
                 ];
             }
 
-            // ── Distance-based delivery fee ─────────────────────────────
-            // ₱30 base (covers first 2 km) + ₱10 per km beyond 2 km.
-            // Uses barangay approximate coordinates as fallback when GPS unavailable.
+            // ── Barangay-based flat delivery fee ─────────────────────────────
+            // Uses exact fee from naujan_barangays config per barangay.
+            // Falls back to distance calculation only if barangay not found in config.
             $deliveryFee = 0;
             if ($request->order_type === 'delivery') {
-                $lat = (float) $request->delivery_lat;
-                $lng = (float) $request->delivery_lng;
-
-                // Fallback: use barangay center coords if GPS not provided
-                if (!$lat || !$lng) {
-                    $barangayCoords = config('naujan_barangay_coords', []);
-                    $brgy = $request->delivery_barangay ?? '';
-                    if ($brgy && isset($barangayCoords[$brgy])) {
-                        $lat = $barangayCoords[$brgy][0];
-                        $lng = $barangayCoords[$brgy][1];
-                    }
-                }
-
-                if ($lat && $lng) {
-                    $restLat = 13.321512;
-                    $restLng = 121.302098;
-                    $earthR  = 6371;
-                    $dLat    = deg2rad($lat - $restLat);
-                    $dLng    = deg2rad($lng - $restLng);
-                    $a       = sin($dLat/2) * sin($dLat/2)
-                             + cos(deg2rad($restLat)) * cos(deg2rad($lat))
-                             * sin($dLng/2) * sin($dLng/2);
-                    $km      = $earthR * 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-                    // ₱30 for first 2 km, +₱10 per km after that
-                    $deliveryFee = 30 + max(0, ceil($km - 2)) * 10;
+                // First: try to get flat fee from barangay config
+                $barangays   = config('naujan_barangays', []);
+                $barangay    = $request->delivery_barangay ?? '';
+                
+                if ($barangay && isset($barangays[$barangay])) {
+                    // Use exact barangay fee from config
+                    $deliveryFee = $barangays[$barangay];
                 } else {
-                    // No coords at all — use barangay flat fee as fallback
-                    $barangays   = config('naujan_barangays', []);
-                    $barangay    = $request->delivery_barangay ?? '';
-                    $deliveryFee = $barangays[$barangay] ?? 50;
+                    // Fallback: calculate from GPS distance if barangay not in config
+                    $lat = (float) $request->delivery_lat;
+                    $lng = (float) $request->delivery_lng;
+
+                    // Use barangay center coords if GPS not provided
+                    if (!$lat || !$lng) {
+                        $barangayCoords = config('naujan_barangay_coords', []);
+                        if ($barangay && isset($barangayCoords[$barangay])) {
+                            $lat = $barangayCoords[$barangay][0];
+                            $lng = $barangayCoords[$barangay][1];
+                        }
+                    }
+
+                    if ($lat && $lng) {
+                        $restLat = 13.321512;
+                        $restLng = 121.302098;
+                        $earthR  = 6371;
+                        $dLat    = deg2rad($lat - $restLat);
+                        $dLng    = deg2rad($lng - $restLng);
+                        $a       = sin($dLat/2) * sin($dLat/2)
+                                 + cos(deg2rad($restLat)) * cos(deg2rad($lat))
+                                 * sin($dLng/2) * sin($dLng/2);
+                        $km      = $earthR * 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+                        // ₱30 for first 2 km, +₱10 per km after that
+                        $deliveryFee = 30 + max(0, ceil($km - 2)) * 10;
+                    } else {
+                        // No barangay config and no coords — default to ₱50
+                        $deliveryFee = 50;
+                    }
                 }
             }
             $total = round($subtotal + $deliveryFee, 2);
