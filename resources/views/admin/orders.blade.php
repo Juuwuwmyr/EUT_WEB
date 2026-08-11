@@ -762,16 +762,11 @@ async function quickAction(orderId, type, nextStatus, btn) {
             body = null;
 
         } else if (type === 'dispatch') {
-            if (!RIDERS.length) {
-                logError('AutoAssign', '[Order #' + orderId + '] No riders in the system.');
-                alert('No riders available. Please add a rider first.');
-                btn.disabled = false; btn.innerHTML = originalHtml;
-                return;
-            }
-            var rider = RIDERS[0]; // first free rider, or least-busy if all occupied
-            url    = '{{ route("admin.orders.assign-rider", ":id") }}'.replace(':id', orderId);
-            method = 'POST';
-            body   = JSON.stringify({ rider_id: rider.id });
+            // Open the manage modal so the admin can pick a rider
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            openManageModal(orderId);
+            return;
 
         } else {
             url    = '{{ route("admin.orders.status", ":id") }}'.replace(':id', orderId);
