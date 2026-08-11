@@ -60,7 +60,7 @@
                 <option value="preparing">Preparing</option>
                 <option value="rider_assigned">Rider Assigned</option>
                 <option value="out_for_delivery">Out for Delivery</option>
-                <option value="delivered">Delivered</option>
+                <option value="delivered">Served / Done / Delivered</option>
                 <option value="cancelled">Cancelled</option>
             </select>
         </div>
@@ -213,6 +213,15 @@ var STATUS_COLOR_MAP = {
     cancelled:        { bg:'rgba(239,68,68,.12)',   color:'#dc2626',  label:'Cancelled'      },
 };
 
+// Returns a status colour+label object, making 'delivered' label order-type aware
+function statusChip(status, orderType) {
+    var chip = Object.assign({}, STATUS_COLOR_MAP[status] || STATUS_COLOR_MAP['pending']);
+    if (status === 'delivered') {
+        chip.label = orderType === 'dine_in' ? 'Served' : (orderType === 'pickup' ? 'Done' : 'Delivered');
+    }
+    return chip;
+}
+
 // -- Status pipeline for modal
 // Admin: Accept (? auto preparing) | Dispatch rider (after chef marks ready) | Cancel
 // Chef: Mark Ready (on Kitchen Dashboard)
@@ -223,7 +232,7 @@ var STATUS_PIPELINE = {
     preparing:        { label:'Preparing',      color:'#dc2626', next:null,        nextLabel:null,              btnClass:'', chefAction:true },
     rider_assigned:   { label:'Rider Assigned', color:'#8b5cf6', next:null,        nextLabel:null,              btnClass:'', riderAction:true },
     out_for_delivery: { label:'On the Way',     color:'#8b5cf6', next:null,        nextLabel:null,              btnClass:'' },
-    delivered:        { label:'Delivered',      color:'#10b981', next:null,        nextLabel:null,              btnClass:'' },
+    delivered:        { label:'Served/Done',   color:'#10b981', next:null,        nextLabel:null,              btnClass:'' },
     cancelled:        { label:'Cancelled',      color:'#ef4444', next:null,        nextLabel:null,              btnClass:'' },
 };
 
@@ -364,7 +373,7 @@ function renderTable(orders) {
         });
         var sc = allGroupReady
             ? { bg:'rgba(16,185,129,.12)', color:'#10b981', label:'Ready to Serve' }
-            : (STATUS_COLOR_MAP[topStatus] || STATUS_COLOR_MAP['pending']);
+            : statusChip(topStatus, group[0].order_type);
 
         // All items across all orders in the group
         var allItems = [];
@@ -393,7 +402,7 @@ function renderTable(orders) {
         if (allReady && group.length > 1) {
             // Show status summary pills (no individual Complete buttons)
             group.forEach(function(o) {
-                var oSc = STATUS_COLOR_MAP[o.status] || STATUS_COLOR_MAP['pending'];
+                var oSc = statusChip(o.status, o.order_type);
                 subHtml +=
                     '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.3rem .5rem;border-radius:.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">' +
                     '<span style="font-family:monospace;font-size:.7rem;font-weight:700;color:var(--accent);flex-shrink:0;">' + escHtml(o.order_number) + '</span>' +
@@ -415,7 +424,7 @@ function renderTable(orders) {
         } else {
             // Normal: individual action buttons per sub-order
             group.forEach(function(o) {
-                var oSc  = STATUS_COLOR_MAP[o.status] || STATUS_COLOR_MAP['pending'];
+                var oSc  = statusChip(o.status, o.order_type);
                 var oBtns = buildActionBtns(o);
                 subHtml +=
                     '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.3rem .5rem;border-radius:.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);">' +
@@ -480,7 +489,7 @@ function buildActionBtns(o) {
         } else if (o.order_type === 'delivery') {
             act = { label:'Dispatch Rider', icon:'bike', btnClass:'btn-warning', type:'dispatch' };
         } else {
-            act = { label: o.order_type === 'pickup' ? 'Picked Up' : 'Complete', icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
+            act = { label: o.order_type === 'pickup' ? 'Picked Up' : (o.order_type === 'dine_in' ? 'Serve' : 'Complete'), icon: o.order_type === 'pickup' ? 'package-check' : 'circle-check', btnClass:'btn-success', type:'status', next:'delivered' };
         }
     }
 
@@ -517,7 +526,7 @@ function buildActionBtns(o) {
 }
 
 function renderSingleOrderRow(o) {
-        var sc = STATUS_COLOR_MAP[o.status] || STATUS_COLOR_MAP['pending'];
+        var sc = statusChip(o.status, o.order_type);
         var initial = (o.customer || 'G').charAt(0).toUpperCase();
 
         // Items preview
