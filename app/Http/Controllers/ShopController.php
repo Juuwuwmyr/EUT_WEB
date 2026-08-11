@@ -16,7 +16,10 @@ class ShopController extends Controller
         $isOpenDineIn   = cache()->get('shop_is_open_dine_in', true);
         $isOpen         = $isOpenDelivery || $isOpenPickup || $isOpenDineIn;
 
-        return view('shop.index', compact('categories', 'menuItems', 'isOpen', 'isOpenDelivery', 'isOpenPickup', 'isOpenDineIn'));
+        $settings     = cache()->get('shop_settings', []);
+        $contactPhone = $settings['contact_phone'] ?? null;
+
+        return view('shop.index', compact('categories', 'menuItems', 'isOpen', 'isOpenDelivery', 'isOpenPickup', 'isOpenDineIn', 'contactPhone'));
     }
 
     public function product($id)

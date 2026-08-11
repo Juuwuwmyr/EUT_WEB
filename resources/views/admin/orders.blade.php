@@ -360,11 +360,40 @@ function renderTable(orders) {
     var rowCount = soloOrders.length + Object.keys(tableGroups).length;
     if (countEl) countEl.textContent = rowCount + ' row(s) · ' + orders.length + ' order(s)';
 
+    // ── Build unified row list and sort: active first, then newest ID ─────────
+    var ACTIVE_SORT_STATUSES = ['pending','accepted','preparing','rider_assigned','out_for_delivery'];
+    function rowIsActive(row) {
+        if (row.type === 'group') {
+            return row.group.some(function(o) { return ACTIVE_SORT_STATUSES.indexOf(o.status) !== -1; });
+        }
+        return ACTIVE_SORT_STATUSES.indexOf(row.order.status) !== -1;
+    }
+    var allRows = [];
+    Object.keys(tableGroups).forEach(function(sessionKey) {
+        var group = tableGroups[sessionKey];
+        var newestId = Math.max.apply(null, group.map(function(o){ return o.id; }));
+        allRows.push({ type: 'group', sessionKey: sessionKey, group: group, newestId: newestId });
+    });
+    soloOrders.forEach(function(o) {
+        allRows.push({ type: 'solo', order: o, newestId: o.id });
+    });
+    allRows.sort(function(a, b) {
+        var aActive = rowIsActive(a) ? 0 : 1;
+        var bActive = rowIsActive(b) ? 0 : 1;
+        if (aActive !== bActive) return aActive - bActive;
+        return b.newestId - a.newestId;
+    });
+
     var html = '';
 
-    // ── Render grouped table rows first (most urgent on top) ─────────────────
-    Object.keys(tableGroups).forEach(function(sessionKey) {
-        var group   = tableGroups[sessionKey].sort(function(a,b){ return a.id - b.id; }); // oldest first
+    allRows.forEach(function(row) {
+        if (row.type === 'solo') {
+            html += renderSingleOrderRow(row.order);
+            return;
+        }
+        // ── Render grouped table row ──────────────────────────────────────────
+        var sessionKey = row.sessionKey;
+        var group   = row.group.sort(function(a,b){ return a.id - b.id; }); // oldest first
         var rep     = group[0]; // representative order (oldest / first placed)
         var tableNum = rep.table_number || sessionKey; // real table number for display
         var initial = (rep.customer || 'G').charAt(0).toUpperCase();
@@ -492,12 +521,7 @@ function renderTable(orders) {
                     : '') +
             '</td>' +
             '</tr>';
-    });
-
-    // ── Render individual (non-grouped) order rows ────────────────────────────
-    soloOrders.forEach(function(o) {
-        html += renderSingleOrderRow(o);
-    });
+    }); // end allRows.forEach
 
     tbody.innerHTML = html;
     if (typeof lucide !== 'undefined') lucide.createIcons();

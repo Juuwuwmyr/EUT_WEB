@@ -1211,7 +1211,16 @@ class AdminController extends Controller
         $isOpenDineIn   = cache()->get('shop_is_open_dine_in', true);
         $isOpen         = $isOpenDelivery || $isOpenPickup || $isOpenDineIn;
 
-        return view('admin.settings', compact('isOpen', 'isOpenDelivery', 'isOpenPickup', 'isOpenDineIn'));
+        $settings = cache()->get('shop_settings', [
+            'restaurant_name' => 'E.U.T Snack House',
+            'contact_email'   => 'info@eutrestaurant.com',
+            'contact_phone'   => '',
+            'address'         => '',
+            'delivery_fee'    => 50,
+            'min_order'       => 200,
+        ]);
+
+        return view('admin.settings', compact('isOpen', 'isOpenDelivery', 'isOpenPickup', 'isOpenDineIn', 'settings'));
     }
 
     public function updateSettings(Request $request)

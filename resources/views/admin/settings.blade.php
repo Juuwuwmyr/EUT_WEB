@@ -130,38 +130,38 @@
                 <label class="field-label" style="display:flex;align-items:center;gap:.3rem;">
                     <i data-lucide="building-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Restaurant Name
                 </label>
-                <input type="text" name="restaurant_name" value="E.U.T Snack House" class="admin-input" placeholder="e.g. E.U.T Snack House">
+                <input type="text" name="restaurant_name" value="{{ old('restaurant_name', $settings['restaurant_name'] ?? 'E.U.T Snack House') }}" class="admin-input" placeholder="e.g. E.U.T Snack House">
             </div>
             <div>
                 <label class="field-label" style="display:flex;align-items:center;gap:.3rem;">
                     <i data-lucide="mail" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Contact Email
                 </label>
-                <input type="email" name="contact_email" value="info@eutrestaurant.com" class="admin-input" placeholder="info@restaurant.com">
+                <input type="email" name="contact_email" value="{{ old('contact_email', $settings['contact_email'] ?? '') }}" class="admin-input" placeholder="info@restaurant.com">
             </div>
             <div>
                 <label class="field-label" style="display:flex;align-items:center;gap:.3rem;">
                     <i data-lucide="phone" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Contact Phone
                 </label>
-                <input type="text" name="contact_phone" value="+63 912 345 6789" class="admin-input" placeholder="+63 900 000 0000">
+                <input type="text" name="contact_phone" value="{{ old('contact_phone', $settings['contact_phone'] ?? '') }}" class="admin-input" placeholder="+63 900 000 0000">
             </div>
             <div>
                 <label class="field-label" style="display:flex;align-items:center;gap:.3rem;">
                     <i data-lucide="map-pin" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Address
                 </label>
-                <input type="text" name="address" value="123 Food Street, Culinary District" class="admin-input" placeholder="Full address">
+                <input type="text" name="address" value="{{ old('address', $settings['address'] ?? '') }}" class="admin-input" placeholder="Full address">
             </div>
             <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;">
                 <div>
                     <label class="field-label" style="display:flex;align-items:center;gap:.3rem;">
                         <i data-lucide="bike" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Delivery Fee (₱)
                     </label>
-                    <input type="number" name="delivery_fee" value="50" min="0" class="admin-input">
+                    <input type="number" name="delivery_fee" value="{{ old('delivery_fee', $settings['delivery_fee'] ?? 50) }}" min="0" class="admin-input">
                 </div>
                 <div>
                     <label class="field-label" style="display:flex;align-items:center;gap:.3rem;">
                         <i data-lucide="shopping-cart" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Minimum Order (₱)
                     </label>
-                    <input type="number" name="min_order" value="200" min="0" class="admin-input">
+                    <input type="number" name="min_order" value="{{ old('min_order', $settings['min_order'] ?? 200) }}" min="0" class="admin-input">
                 </div>
             </div>
             <button type="submit" class="btn-primary w-full" style="display:flex;align-items:center;justify-content:center;gap:.4rem;">
