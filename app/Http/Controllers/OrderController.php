@@ -199,10 +199,12 @@ class OrderController extends Controller
             //               their own accept step and their own kitchen ticket)
             //  delivered/cancelled → NEW order (session already closed)
             if ($request->order_type === 'dine_in' && $request->table_number) {
-                // Only merge into pending — once accepted or cooking, always new order
+                // Only merge into pending — once accepted or cooking, always new order.
+                // Also skip merge if the session was locked by admin (Done Ordering).
                 $existingOrder = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
                     ->where('status', 'pending')
+                    ->where('ordering_locked', false)   // ← never merge into a locked session
                     ->whereDate('created_at', today())
                     ->latest()
                     ->first();
@@ -241,18 +243,22 @@ class OrderController extends Controller
                         'message'      => 'Items added to your table order.',
                     ]);
                 }
-                // No pending/accepted order for this table — chef is already cooking
-                // or session is done. Fall through and create a fresh independent order.
+                // No pending/unlocked order for this table — chef is already cooking,
+                // session is done, or admin locked ordering. Fall through to create a fresh order.
             }
 
             // For brand-new table sessions (no pending/accepted order to merge into),
-            // inherit the session ID from any active order at this table so all
-            // orders from the same sitting appear together on the final receipt.
+            // inherit the session ID from any active, UNLOCKED order at this table so
+            // all orders from the same sitting appear together on the final receipt.
+            // If the active session is locked (admin marked Done Ordering), generate a
+            // brand-new UUID so this order starts a fresh session — this also protects
+            // against a new customer accidentally joining a previous customer's bill.
             $tableSessionId = null;
             if ($request->order_type === 'dine_in' && $request->table_number) {
                 $activeSession = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
                     ->whereIn('status', ['pending', 'accepted', 'preparing'])
+                    ->where('ordering_locked', false)   // ← only inherit unlocked sessions
                     ->whereDate('created_at', today())
                     ->whereNotNull('table_session_id')
                     ->latest()

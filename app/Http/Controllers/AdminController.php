@@ -802,6 +802,8 @@ class AdminController extends Controller
                     'subtotal'  => $i->subtotal,
                     'modifiers' => $i->modifiers ?? [],
                 ])->toArray(),
+                'ordering_locked'  => (bool) $o->ordering_locked,
+                'table_session_id' => $o->table_session_id,
             ];
         });
 
@@ -990,6 +992,47 @@ class AdminController extends Controller
             'success'     => true,
             'message'     => 'Table ' . $order->table_number . ' — all orders completed.',
             'receipt_url' => route('chef.orders.table-receipt', $order->id),
+        ]);
+    }
+
+    /**
+     * Lock ordering for a dine-in table session.
+     *
+     * Sets ordering_locked = true on every active (non-delivered/non-cancelled)
+     * order in the same table session.  After this:
+     *   - No subsequent pahabol order from the customer will be merged in.
+     *   - A new customer ordering at the same table always gets a fresh session.
+     */
+    public function lockTable(\App\Models\Order $order)
+    {
+        if (!$order->table_number || $order->order_type !== 'dine_in') {
+            return response()->json(['success' => false, 'message' => 'Not a dine-in table order.'], 422);
+        }
+
+        // Find all non-closed orders for this table session
+        $tableOrders = \App\Models\Order::where('order_type', 'dine_in')
+            ->where('table_number', $order->table_number)
+            ->whereNotIn('status', ['delivered', 'cancelled'])
+            ->whereDate('created_at', today())
+            ->when(
+                $order->table_session_id,
+                fn($q) => $q->where('table_session_id', $order->table_session_id)
+            )
+            ->get();
+
+        if ($tableOrders->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No active orders found for this table.'], 422);
+        }
+
+        foreach ($tableOrders as $o) {
+            $o->update(['ordering_locked' => true]);
+            broadcast(new \App\Events\OrderStatusUpdated($o))->toOthers();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Table ' . $order->table_number . ' — ordering locked. No more pahabol orders will be merged.',
+            'locked_count' => $tableOrders->count(),
         ]);
     }
 
