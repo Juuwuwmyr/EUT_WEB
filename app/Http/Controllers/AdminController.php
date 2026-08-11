@@ -33,6 +33,7 @@ class AdminController extends Controller
             'featured_items'   => MenuItem::featured()->count(),
             'total_orders'     => \App\Models\Order::count(),
             'today_orders'     => \App\Models\Order::whereDate('created_at', today())->count(),
+            'items_sold_today' => \App\Models\OrderItem::whereHas('order', fn($q) => $q->whereDate('created_at', today()))->sum('quantity'),
             'pending_orders'   => \App\Models\Order::where('status', 'pending')->count(),
             'today_revenue'    => \App\Models\Order::where('status', 'delivered')->whereDate('delivered_at', today())->sum('total'),
             'total_revenue'    => \App\Models\Order::where('status', 'delivered')->sum('total'),
