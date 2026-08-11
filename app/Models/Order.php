@@ -76,7 +76,7 @@ class Order extends Model
 
     public function isAssignable(): bool
     {
-        return in_array($this->status, ['accepted', 'preparing', 'rider_assigned']);
+        return in_array($this->status, ['accepted', 'preparing', 'rider_assigned', 'out_for_delivery']);
     }
 
     public function isCancellable(): bool

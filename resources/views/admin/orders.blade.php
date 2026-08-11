@@ -863,6 +863,12 @@ function openManageModal(id) {
         }
     }
 
+    // Allow rider reassignment for rider_assigned and out_for_delivery
+    if (o.order_type === 'delivery' && ['rider_assigned', 'out_for_delivery'].includes(o.status)) {
+        sp.dispatchReady = true;
+        sp.chefAction    = false;
+    }
+
     // Non-delivery (pickup/dine-in), preparing ? only allow Complete AFTER kitchen marks ready
     if (o.order_type !== 'delivery' && o.status === 'preparing') {
         if (o.prepared_at) {
@@ -1032,7 +1038,8 @@ function openManageModal(id) {
                     '</div>' +
                     '<input type="hidden" id="selectedRider_' + o.id + '" value="">' +
                     '<button type="button" onclick="assignRider(' + o.id + ',this)" class="btn-primary" style="width:100%;justify-content:center;font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;" disabled id="assignBtn_' + o.id + '">' +
-                        '<i data-lucide="bike" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Assign Rider' +
+                        '<i data-lucide="bike" style="width:.8rem;height:.8rem;stroke-width:2;"></i> ' +
+                        (['rider_assigned','out_for_delivery'].includes(o.status) ? 'Reassign Rider' : 'Assign Rider') +
                     '</button>' +
                 '</div>';
         } else {
