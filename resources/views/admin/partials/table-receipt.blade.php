@@ -154,16 +154,27 @@ hr.solid {
     // Get cash payment details from any order in the group (they all have the same values after table completion)
     $cashReceived = $orders->whereNotNull('cash_received')->max('cash_received') ?? 0;
     $changeDue    = $orders->whereNotNull('change_due')->max('change_due') ?? 0;
+    
+    // DEBUG: Show all cash values
+    // dd([
+    //     'orders' => $orders->pluck('cash_received', 'order_number'),
+    //     'cashReceived' => $cashReceived,
+    //     'changeDue' => $changeDue
+    // ]);
 @endphp
-@if($cashReceived > 0)
+
+{{-- Always show payment section for dine-in --}}
 <hr style="margin-top:2px;margin-bottom:2px;">
 <div style="font-size:9px;font-weight:bold;margin-bottom:2px;">Payment: CASH</div>
+@if($cashReceived > 0)
 <div style="display:flex;justify-content:space-between;margin:1px 0;font-size:9px;width:100%;">
     <span>Cash Received</span><span>P{{ number_format($cashReceived, 2) }}</span>
 </div>
 <div style="display:flex;justify-content:space-between;margin:1px 0;font-size:10px;font-weight:bold;width:100%;">
     <span>Change</span><span>P{{ number_format(max(0, $changeDue), 2) }}</span>
 </div>
+@else
+<div style="font-size:8px;color:#666;font-style:italic;">No payment data recorded</div>
 @endif
 
 <hr class="solid" style="margin-top:5px;">
