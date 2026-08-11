@@ -375,8 +375,13 @@
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                 <div class="form-field">
-                    <label class="form-label">Barangay</label>
-                    <input type="text" id="addrBarangay" class="form-input" placeholder="Barangay">
+                    <label class="form-label">Barangay <span style="color:#ef4444;">*</span></label>
+                    <select id="addrBarangay" class="form-input" style="background:var(--bg-input,#1a1b2e);color:var(--text-input,#e5e7eb);border:1px solid var(--border-input,rgba(255,255,255,.1));border-radius:10px;padding:10px 12px;font-size:13px;width:100%;cursor:pointer;">
+                        <option value="">— Select Barangay —</option>
+                        @foreach(config('naujan_barangays') as $brgy => $fee)
+                            <option value="{{ $brgy }}">{{ $brgy }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="form-field">
                     <label class="form-label">City</label>
