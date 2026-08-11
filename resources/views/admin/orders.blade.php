@@ -1369,7 +1369,7 @@ function computeStatusCounts(orders) {
 
             {{-- Cash received input --}}
             <div style="margin-bottom:1rem;">
-                <label style="font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.4rem;">Cash Received</label>
+                <label style="font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:.4rem;">Cash</label>
                 <div style="position:relative;">
                     <span style="position:absolute;left:.875rem;top:50%;transform:translateY(-50%);font-size:.95rem;color:var(--text-muted);font-weight:700;">₱</span>
                     <input type="number" id="pmCashInput" min="0" step="1"

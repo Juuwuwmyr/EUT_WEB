@@ -168,7 +168,7 @@ hr.solid {
 <div style="font-size:9px;font-weight:bold;margin-bottom:2px;">Payment: CASH</div>
 @if($cashReceived > 0)
 <div style="display:flex;justify-content:space-between;margin:1px 0;font-size:9px;width:100%;">
-    <span>Cash Received</span><span>P{{ number_format($cashReceived, 2) }}</span>
+    <span>Cash</span><span>P{{ number_format($cashReceived, 2) }}</span>
 </div>
 <div style="display:flex;justify-content:space-between;margin:1px 0;font-size:10px;font-weight:bold;width:100%;">
     <span>Change</span><span>P{{ number_format(max(0, $changeDue), 2) }}</span>
