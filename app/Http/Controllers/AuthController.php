@@ -222,6 +222,13 @@ class AuthController extends Controller
     // -------------------------------------------------------
     public function redirectToGoogle()
     {
+        // If already logged in, log out first so they can switch Google accounts
+        if (auth()->check()) {
+            auth()->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+        }
+
         return Socialite::driver('google')->stateless()->redirect();
     }
 
