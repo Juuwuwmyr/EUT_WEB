@@ -165,18 +165,9 @@ trait HasPermissions
     }
 
     /**
-     * Check if user can access a feature
-     * Alias for hasPermission for better readability
-     */
-    public function can(string $permissionSlug): bool
-    {
-        return $this->hasPermission($permissionSlug);
-    }
-
-    /**
      * Check if user cannot access a feature
      */
-    public function cannot(string $permissionSlug): bool
+    public function cannotAccess(string $permissionSlug): bool
     {
         return !$this->hasPermission($permissionSlug);
     }
