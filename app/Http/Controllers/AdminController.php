@@ -998,6 +998,8 @@ class AdminController extends Controller
         );
 
         return request()->expectsJson()
+            ? response()->json(['success' => true, 'message' => "Rider assigned to order #{$order->order_number}."])
+            : back()->with('success', "Rider assigned to order #{$order->order_number}.");
     }
 
     public function updateOrderStatus(Request $request, \App\Models\Order $order)
