@@ -776,6 +776,31 @@ img { display: block; }
     transition: all 0.18s; z-index: 1;
 }
 .auth-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.auth-loading {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    background: rgba(10,10,10,.72);
+    backdrop-filter: blur(3px);
+    border-radius: inherit;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+}
+.auth-loading.active { display: flex; }
+.auth-spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid rgba(255,255,255,.12);
+    border-top-color: #f59e0b;
+    border-radius: 50%;
+    animation: authSpin .7s linear infinite;
+}
+.auth-loading-text { font-size: 13px; color: #d1d5db; font-weight: 600; }
+@keyframes authSpin { to { transform: rotate(360deg); } }
+.auth-modal { position: relative; }
 
 /* ------------------------------------------------------
    RESPONSIVE
@@ -1752,6 +1777,10 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
 -------------------------------------------------- -->
 <div class="auth-modal-backdrop" id="authModal">
     <div class="auth-modal">
+        <div class="auth-loading" id="authLoading">
+            <div class="auth-spinner"></div>
+            <div class="auth-loading-text" id="authLoadingText">Creating account…</div>
+        </div>
         <button class="auth-close" onclick="closeModal()" aria-label="Close">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
@@ -1940,6 +1969,7 @@ function openModal(tab) {
 }
 
 function closeModal() {
+    if (document.getElementById('authLoading').classList.contains('active')) return;
     document.getElementById('authModal').classList.remove('open');
     document.body.style.overflow = '';
     clearAlert();
@@ -1985,6 +2015,21 @@ function clearAlert() {
     el.textContent = '';
 }
 
+let authBusy = false;
+
+function setAuthLoading(on, text) {
+    authBusy = on;
+    const overlay = document.getElementById('authLoading');
+    const label   = document.getElementById('authLoadingText');
+    label.textContent = text || 'Please wait…';
+    overlay.classList.toggle('active', on);
+    document.querySelectorAll('#authModal input, #authModal button, #authModal a.auth-google').forEach(el => {
+        if (el.closest('.auth-loading')) return;
+        el.style.pointerEvents = on ? 'none' : '';
+        el.setAttribute('aria-disabled', on ? 'true' : 'false');
+    });
+}
+
 /* ------------------------------------------------------
    LOGIN FETCH
 ------------------------------------------------------ */
@@ -2028,6 +2073,8 @@ async function doLogin() {
    SIGNUP FETCH
 ------------------------------------------------------ */
 async function doSignup() {
+    if (authBusy) return;
+
     const name     = document.getElementById('signupName').value.trim();
     const email    = document.getElementById('signupEmail').value.trim();
     const phoneRaw = document.getElementById('signupPhone').value.trim();
@@ -2038,12 +2085,11 @@ async function doSignup() {
     if (password.length < 6) { showAlert('Password must be at least 6 characters.'); return; }
     if (phoneRaw.length < 10) { showAlert('Please enter a valid mobile number.'); return; }
 
-    // Normalize: if starts with 0 keep as-is, otherwise prepend 0
     const phone = phoneRaw.startsWith('0') ? phoneRaw : '0' + phoneRaw;
 
     clearAlert();
-    btn.disabled  = true;
-    btn.innerHTML = 'Creating account...';
+    btn.disabled = true;
+    setAuthLoading(true, 'Sending verification code…');
 
     try {
         const res  = await fetch('{{ route("auth.signup") }}', {
@@ -2058,20 +2104,25 @@ async function doSignup() {
         });
         const data = await res.json();
         if (res.ok && data.success) {
+            setAuthLoading(true, 'Redirecting…');
             if (data.redirect) {
                 window.location.href = data.redirect;
                 return;
             }
-            showAlert(data.message || 'Check your email for the verification code.');
+            showAlert(data.message || 'Check your email for the verification code.', 'success');
             return;
         }
-        showAlert(data.message || 'Could not create account. Please try again.');
+        if (res.status === 429) {
+            showAlert('Too many attempts. Please wait a moment and try again.');
+        } else {
+            showAlert(data.message || 'Could not create account. Please try again.');
+        }
     } catch (err) {
         showAlert('Something went wrong. Please try again.');
     }
 
+    setAuthLoading(false);
     btn.disabled  = false;
-    btn.innerHTML = 'Create Account <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>';
 }
 
 /* ------------------------------------------------------

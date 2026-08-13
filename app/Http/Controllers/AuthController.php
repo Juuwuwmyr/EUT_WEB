@@ -163,8 +163,9 @@ class AuthController extends Controller
         }
 
         return view('auth.verify-email', [
-            'email'   => $email,
-            'pending' => PendingSignup::has(),
+            'email'          => $email,
+            'pending'        => PendingSignup::has(),
+            'resendCooldown' => PendingSignup::resendCooldownRemaining(),
         ]);
     }
 
@@ -242,6 +243,12 @@ class AuthController extends Controller
 
     public function resendVerificationEmail(Request $request)
     {
+        $cooldown = PendingSignup::resendCooldownRemaining();
+
+        if ($cooldown > 0) {
+            return back()->with('error', "Please wait {$cooldown}s before requesting a new code.");
+        }
+
         if (PendingSignup::has()) {
             if (PendingSignup::isExpired()) {
                 PendingSignup::forget();
@@ -256,6 +263,7 @@ class AuthController extends Controller
 
             try {
                 PendingSignup::sendCodeEmail($pending['email'], $pending['name'], $code);
+                PendingSignup::markCodeSent();
             } catch (\Throwable $e) {
                 \Log::error('Resend pending signup code failed', [
                     'email' => $pending['email'],
@@ -284,6 +292,7 @@ class AuthController extends Controller
 
         try {
             $this->dispatchVerificationEmail($request->user());
+            PendingSignup::markCodeSent();
         } catch (\Throwable $e) {
             \Log::error('Resend verification email failed', [
                 'email'  => $request->user()->email,

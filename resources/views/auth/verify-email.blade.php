@@ -172,6 +172,36 @@
             padding: 0;
         }
         .link-btn:hover { color: #f59e0b; }
+        .link-btn:disabled {
+            color: #4b5563;
+            cursor: not-allowed;
+        }
+        .link-btn:disabled:hover { color: #4b5563; }
+        .card { position: relative; }
+        .card-loading {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            background: rgba(10,10,10,.78);
+            backdrop-filter: blur(3px);
+            border-radius: inherit;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .card-loading.active { display: flex; }
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(255,255,255,.12);
+            border-top-color: #f59e0b;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: .82rem; color: #d1d5db; font-weight: 600; }
         .hint {
             margin-top: 1rem;
             font-size: .74rem;
@@ -189,6 +219,10 @@
     </div>
 
     <div class="card">
+        <div class="card-loading" id="cardLoading">
+            <div class="spinner"></div>
+            <div class="loading-text" id="cardLoadingText">Please wait…</div>
+        </div>
         <div class="step">Step 2 of 2 · Verify email</div>
         <h1>Enter your code</h1>
         <p class="sub">
@@ -220,9 +254,9 @@
         </form>
 
         <div class="footer-actions">
-            <form method="POST" action="{{ route('verification.send') }}">
+            <form method="POST" action="{{ route('verification.send') }}" id="resendForm">
                 @csrf
-                <button type="submit" class="link-btn">Resend code</button>
+                <button type="submit" class="link-btn" id="resendBtn">Resend code</button>
             </form>
             <form method="POST" action="{{ route('verification.cancel') }}">
                 @csrf
@@ -239,6 +273,45 @@
     const boxes = Array.from(document.querySelectorAll('.otp-box'));
     const hidden = document.getElementById('codeValue');
     const submitBtn = document.getElementById('submitBtn');
+    const verifyForm = document.getElementById('verifyForm');
+    const resendForm = document.getElementById('resendForm');
+    const resendBtn = document.getElementById('resendBtn');
+    const cardLoading = document.getElementById('cardLoading');
+    const cardLoadingText = document.getElementById('cardLoadingText');
+    let resendSeconds = {{ (int) ($resendCooldown ?? 0) }};
+    let resendTimer = null;
+
+    function setCardLoading(on, text) {
+        cardLoadingText.textContent = text || 'Please wait…';
+        cardLoading.classList.toggle('active', on);
+        verifyForm.querySelectorAll('input, button').forEach(el => { el.disabled = on; });
+        if (!on) syncHidden();
+    }
+
+    function updateResendBtn() {
+        if (resendSeconds > 0) {
+            resendBtn.disabled = true;
+            resendBtn.textContent = 'Resend code (' + resendSeconds + 's)';
+        } else {
+            resendBtn.disabled = false;
+            resendBtn.textContent = 'Resend code';
+        }
+    }
+
+    function startResendCooldown(seconds) {
+        resendSeconds = seconds;
+        updateResendBtn();
+        if (resendTimer) clearInterval(resendTimer);
+        resendTimer = setInterval(() => {
+            resendSeconds -= 1;
+            if (resendSeconds <= 0) {
+                resendSeconds = 0;
+                clearInterval(resendTimer);
+            }
+            updateResendBtn();
+        }, 1000);
+    }
+
     const oldCode = (hidden.value || '').replace(/\D/g, '').slice(0, 6);
 
     if (oldCode.length) {
@@ -273,7 +346,22 @@
         });
     });
 
+    verifyForm.addEventListener('submit', () => {
+        setCardLoading(true, 'Verifying code…');
+    });
+
+    resendForm.addEventListener('submit', (e) => {
+        if (resendSeconds > 0) {
+            e.preventDefault();
+            return;
+        }
+        setCardLoading(true, 'Sending new code…');
+        startResendCooldown(60);
+    });
+
     syncHidden();
+    if (resendSeconds > 0) startResendCooldown(resendSeconds);
+    else updateResendBtn();
     boxes[0].focus();
 })();
 </script>

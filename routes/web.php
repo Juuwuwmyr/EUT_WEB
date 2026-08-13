@@ -142,7 +142,7 @@ Route::prefix('api/print-server')->middleware(['auth.printserver'])->group(funct
 });
 
 Route::post('/auth/login',  [AuthController::class, 'login'])->name('auth.login');
-Route::post('/auth/signup', [AuthController::class, 'signup'])->name('auth.signup');
+Route::post('/auth/signup', [AuthController::class, 'signup'])->middleware('throttle:5,1')->name('auth.signup');
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout')->middleware('auth');
 
 Route::get('/auth/google',          [AuthController::class, 'redirectToGoogle'])->name('auth.google');
