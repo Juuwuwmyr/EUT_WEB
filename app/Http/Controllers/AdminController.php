@@ -410,10 +410,10 @@ class AdminController extends Controller
         $this->syncModifierGroups($item, $request->input('groups', []));
         $this->syncAddons($item, $request->input('addons', []));
 
-        return back()->with('success', "Menu item \"{$item->name}\" created.");
+        return redirect()->route('admin.menu-items')->with('success', "Menu item \"{$item->name}\" created.");
         } catch (\Exception $e) {
             \Log::error('storeMenuItem error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return back()->with('error', 'Failed to save: ' . $e->getMessage())->withInput();
+            return redirect()->route('admin.menu-items')->with('error', 'Failed to save: ' . $e->getMessage());
         }
     }
 
@@ -467,10 +467,10 @@ class AdminController extends Controller
         $this->syncModifierGroups($menuItem, $request->input('groups', []));
         $this->syncAddons($menuItem, $request->input('addons', []));
 
-        return back()->with('success', "Menu item \"{$menuItem->name}\" updated.");
+        return redirect()->route('admin.menu-items')->with('success', "Menu item \"{$menuItem->name}\" updated.");
         } catch (\Exception $e) {
             \Log::error('updateMenuItem error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return back()->with('error', 'Failed to save: ' . $e->getMessage())->withInput();
+            return redirect()->route('admin.menu-items')->with('error', 'Failed to save: ' . $e->getMessage());
         }
     }
 
