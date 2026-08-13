@@ -206,8 +206,8 @@ VITE_REVERB_SCHEME=https
 MAIL_MAILER=log
 MAIL_FROM_ADDRESS="no-reply@eut.com"
 MAIL_FROM_NAME="E.U.T Snack House"
-GOOGLE_CLIENT_ID=300566746053-97b183aok41zimqqdof81r2fipp49mbf.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_REDIRECT_URI=https://eut-test.duckdns.org/auth/google/callback
 VITE_APP_NAME="E.U.T Snack House"
 EOF
