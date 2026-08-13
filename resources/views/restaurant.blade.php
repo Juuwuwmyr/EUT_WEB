@@ -2062,7 +2062,7 @@ async function doSignup() {
                 window.location.href = data.redirect;
                 return;
             }
-            showAlert(data.message || 'Account created!');
+            showAlert(data.message || 'Check your email for the verification code.');
             return;
         }
         showAlert(data.message || 'Could not create account. Please try again.');

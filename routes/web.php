@@ -37,6 +37,9 @@ Route::get('/', function () {
         }
         return redirect()->route('shop.home');
     }
+    if (\App\Services\PendingSignup::has()) {
+        return redirect()->route('verification.notice');
+    }
     return view('landing');
 })->name('home');
 
@@ -146,9 +149,10 @@ Route::get('/auth/google',          [AuthController::class, 'redirectToGoogle'])
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
 // Email verification routes
-Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->middleware('auth')->name('verification.notice');
-Route::post('/email/verify', [AuthController::class, 'verifyEmailCode'])->middleware(['auth', 'throttle:10,1'])->name('verification.verify');
-Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
+Route::post('/email/verify', [AuthController::class, 'verifyEmailCode'])->middleware(['throttle:10,1'])->name('verification.verify');
+Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->middleware(['throttle:6,1'])->name('verification.send');
+Route::post('/email/verify/cancel', [AuthController::class, 'cancelPendingSignup'])->name('verification.cancel');
 
 // -------------------------------------------------------
 // Admin panel — protected by auth + admin middleware
