@@ -17,6 +17,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('orders', 'ordering_locked')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             $table->boolean('ordering_locked')
                   ->default(false)
@@ -27,6 +31,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasColumn('orders', 'ordering_locked')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             $table->dropColumn('ordering_locked');
         });
