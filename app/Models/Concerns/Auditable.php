@@ -28,8 +28,12 @@ trait Auditable
         static::updated(function ($model) {
             $dirty = $model->getDirty();
 
-            // Nothing meaningful changed (e.g. only updated_at bumped)
-            $ignored = ['updated_at'];
+            // Strip noisy fields that change automatically and have no audit value
+            $ignored = [
+                'updated_at', 'created_at',
+                'email_verified_at', 'remember_token',
+                'last_login_at', 'last_seen_at',
+            ];
             $changed = array_diff_key($dirty, array_flip($ignored));
             if (empty($changed)) {
                 return;

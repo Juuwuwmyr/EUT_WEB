@@ -288,7 +288,7 @@ function escapeHtml(str) {
 @endpush
 {{-- ── DIFF MODAL ───────────────────────────────────────────── --}}
 <div id="diffModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'diffModal')">
-    <div class="modal-box modal-lg" style="max-width:780px;">
+    <div class="modal-box modal-lg" style="max-width:860px;width:95vw;">
         <div class="modal-header">
             <div style="display:flex;align-items:center;gap:.5rem;">
                 <i data-lucide="diff" style="width:1.1rem;height:1.1rem;color:#eab308;stroke-width:2;"></i>
@@ -298,7 +298,7 @@ function escapeHtml(str) {
                 <i data-lucide="x" style="width:1rem;height:1rem;stroke-width:2.5;"></i>
             </button>
         </div>
-        <div id="diffModalBody" class="modal-body" style="max-height:70vh;">
+        <div id="diffModalBody" class="modal-body" style="max-height:72vh;overflow-y:auto;">
         </div>
     </div>
 </div>
