@@ -16,6 +16,29 @@ use Illuminate\Validation\Rule;
 class AdminController extends Controller
 {
     // ════════════════════════════════════════════════════════
+    // CREDENTIAL RE-VERIFICATION (Menu & Categories gate)
+    // ════════════════════════════════════════════════════════
+
+    public function showVerify()
+    {
+        return view('admin.verify');
+    }
+
+    public function submitVerify(Request $request)
+    {
+        $request->validate(['password' => 'required|string']);
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->password, auth()->user()->password)) {
+            return back()->withErrors(['password' => 'Incorrect password. Please try again.']);
+        }
+
+        session(['admin_verified_at' => time()]);
+
+        $intended = session()->pull('admin_verify_intended', route('admin.menu-items'));
+        return redirect($intended);
+    }
+
+    // ════════════════════════════════════════════════════════
     // DASHBOARD
     // ════════════════════════════════════════════════════════
 
