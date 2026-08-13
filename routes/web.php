@@ -29,7 +29,7 @@ Route::get('/delivery-fee', [\App\Http\Controllers\OrderController::class, 'calc
 Route::get('/', function () {
     if (auth()->check()) {
         $user = auth()->user();
-        if ($user->isAdmin()) return redirect()->route('admin.dashboard');
+        if ($user->isAdmin()) return redirect()->route('admin.verify');
         if ($user->isRider()) return redirect()->route('rider.dashboard');
         if ($user->isChef())  return redirect()->route('chef.dashboard');
         return redirect()->route('shop.home');
@@ -104,16 +104,10 @@ Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(functi
 // -------------------------------------------------------
 // Orders (authenticated customers)
 // -------------------------------------------------------
-// Orders — store is public (guests can place dine-in orders)
 Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');
-
-// Public: dine-in guests poll this to see their table's order status (no auth needed)
 Route::get('/orders/table/{table}', [\App\Http\Controllers\OrderController::class, 'tableStatus'])->name('orders.table-status');
 
 Route::middleware('auth')->group(function () {
-    // -------------------------------------------------------
-    // Cart sync (server-side cart for logged-in users)
-    // -------------------------------------------------------
     Route::get   ('/cart/sync',            [\App\Http\Controllers\CartController::class, 'index'])->name('cart.sync');
     Route::post  ('/cart/sync',            [\App\Http\Controllers\CartController::class, 'bulkSync'])->name('cart.bulk-sync');
     Route::post  ('/cart/item',            [\App\Http\Controllers\CartController::class, 'upsertItem'])->name('cart.upsert');
@@ -123,11 +117,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/orders',                   [\App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
 
-    // Profile
     Route::post ('/profile',          [AuthController::class, 'updateProfile'])->name('profile.update');
     Route::post ('/profile/password', [AuthController::class, 'updatePassword'])->name('profile.password');
 
-    // Saved addresses
     Route::get   ('/addresses',                      [\App\Http\Controllers\AddressController::class, 'index'])->name('addresses.index');
     Route::post  ('/addresses',                      [\App\Http\Controllers\AddressController::class, 'store'])->name('addresses.store');
     Route::put   ('/addresses/{address}',            [\App\Http\Controllers\AddressController::class, 'update'])->name('addresses.update');
@@ -136,19 +128,17 @@ Route::middleware('auth')->group(function () {
 });
 
 // -------------------------------------------------------
-// Print Server API — used by kitchen print agent
+// Print Server API
 // -------------------------------------------------------
 Route::prefix('api/print-server')->middleware(['auth.printserver'])->group(function () {
     Route::get('/pending-prints', [\App\Http\Controllers\PrintServerController::class, 'pendingPrints']);
     Route::post('/mark-printed/{id}', [\App\Http\Controllers\PrintServerController::class, 'markPrinted']);
 });
+
 Route::post('/auth/login',  [AuthController::class, 'login'])->name('auth.login');
 Route::post('/auth/signup', [AuthController::class, 'signup'])->name('auth.signup');
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout')->middleware('auth');
 
-// -------------------------------------------------------
-// Auth — Google OAuth
-// -------------------------------------------------------
 Route::get('/auth/google',          [AuthController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
@@ -157,77 +147,79 @@ Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallbac
 // -------------------------------------------------------
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
 
-    // ── Credential re-verification (no verify needed for this itself) ──
+    // ── Credential re-verification (exempt — no verify needed here) ────
     Route::get ('/verify', [AdminController::class, 'showVerify'])->name('verify');
     Route::post('/verify', [AdminController::class, 'submitVerify'])->name('verify.submit');
 
-    // ── Routes requiring password re-verification every visit ──────────
+    // ── ALL other admin routes require password every visit ─────────────
     Route::middleware('admin.verify')->group(function () {
+
         Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 
-        // ── Categories ────────────────────────────────────────
+        // ── Users ──────────────────────────────────────────────
+        Route::get   ('/users',                  [AdminController::class, 'users'])->name('users');
+        Route::post  ('/users',                  [AdminController::class, 'storeUser'])->name('users.store');
+        Route::put   ('/users/{user}',           [AdminController::class, 'updateUser'])->name('users.update');
+        Route::patch ('/users/{user}/role',      [AdminController::class, 'updateUserRole'])->name('users.role');
+        Route::patch ('/users/{user}/archive',   [AdminController::class, 'archiveUser'])->name('users.archive');
+        Route::delete('/users/{user}',           [AdminController::class, 'deleteUser'])->name('users.delete');
+
+        // ── Categories ─────────────────────────────────────────
         Route::get   ('/categories',             [AdminController::class, 'categories'])->name('categories');
         Route::post  ('/categories',             [AdminController::class, 'storeCategory'])->name('categories.store');
         Route::put   ('/categories/{category}',  [AdminController::class, 'updateCategory'])->name('categories.update');
         Route::patch ('/categories/{category}/archive', [AdminController::class, 'archiveCategory'])->name('categories.archive');
         Route::delete('/categories/{category}', [AdminController::class, 'deleteCategory'])->name('categories.delete');
 
-        // ── Menu Items ────────────────────────────────────────
+        // ── Menu Items ─────────────────────────────────────────
         Route::get   ('/menu-items',             [AdminController::class, 'menuItems'])->name('menu-items');
         Route::post  ('/menu-items',             [AdminController::class, 'storeMenuItem'])->name('menu-items.store');
         Route::put   ('/menu-items/{menuItem}',  [AdminController::class, 'updateMenuItem'])->name('menu-items.update');
         Route::patch ('/menu-items/{menuItem}/archive', [AdminController::class, 'archiveMenuItem'])->name('menu-items.archive');
         Route::delete('/menu-items/{menuItem}',  [AdminController::class, 'deleteMenuItem'])->name('menu-items.delete');
 
-        // ── Modifier Groups ───────────────────────────────────
+        // ── Modifier Groups ────────────────────────────────────
         Route::post  ('/menu-items/{menuItem}/modifier-groups',         [AdminController::class, 'storeModifierGroup'])->name('modifier-groups.store');
         Route::put   ('/menu-items/{menuItem}/modifier-groups/{group}', [AdminController::class, 'updateModifierGroup'])->name('modifier-groups.update');
         Route::delete('/menu-items/{menuItem}/modifier-groups/{group}', [AdminController::class, 'deleteModifierGroup'])->name('modifier-groups.delete');
 
-        // ── Modifier Options ──────────────────────────────────
+        // ── Modifier Options ───────────────────────────────────
         Route::post  ('/modifier-groups/{group}/options',          [AdminController::class, 'storeModifierOption'])->name('modifier-options.store');
         Route::put   ('/modifier-groups/{group}/options/{option}', [AdminController::class, 'updateModifierOption'])->name('modifier-options.update');
         Route::delete('/modifier-groups/{group}/options/{option}', [AdminController::class, 'deleteModifierOption'])->name('modifier-options.delete');
-    });
 
-    // ── Users ──────────────────────────────────────────────
-    Route::get   ('/users',                  [AdminController::class, 'users'])->name('users');
-    Route::post  ('/users',                  [AdminController::class, 'storeUser'])->name('users.store');
-    Route::put   ('/users/{user}',           [AdminController::class, 'updateUser'])->name('users.update');
-    Route::patch ('/users/{user}/role',      [AdminController::class, 'updateUserRole'])->name('users.role');
-    Route::patch ('/users/{user}/archive',   [AdminController::class, 'archiveUser'])->name('users.archive');
-    Route::delete('/users/{user}',           [AdminController::class, 'deleteUser'])->name('users.delete');
+        // ── Orders ─────────────────────────────────────────────
+        Route::get('/orders',                           [AdminController::class, 'orders'])->name('orders');
+        Route::get('/orders/poll',                      [AdminController::class, 'ordersPoll'])->name('orders.poll');
+        Route::post('/orders/{order}/accept',           [AdminController::class, 'acceptOrder'])->name('orders.accept');
+        Route::post('/orders/{order}/assign-rider',     [AdminController::class, 'assignRider'])->name('orders.assign-rider');
+        Route::patch('/orders/{order}/status',          [AdminController::class, 'updateOrderStatus'])->name('orders.status');
+        Route::post('/orders/{order}/complete-table',   [AdminController::class, 'completeTable'])->name('orders.complete-table');
+        Route::post('/orders/{order}/lock-table',       [AdminController::class, 'lockTable'])->name('orders.lock-table');
+        Route::patch('/orders/{order}/archive',         [AdminController::class, 'archiveOrder'])->name('orders.archive');
+        Route::delete('/orders/{order}',                [AdminController::class, 'deleteOrder'])->name('orders.delete');
+        Route::get('/orders/{order}/takeout-slip',      [\App\Http\Controllers\ChefController::class, 'takeoutSlip'])->name('orders.takeout-slip');
+        Route::get('/riders/locations',                 [AdminController::class, 'riderLocations'])->name('riders.locations');
 
-    // ── Orders ─────────────────────────────────────────────
-    Route::get('/orders',                           [AdminController::class, 'orders'])->name('orders');
-    Route::get('/orders/poll',                      [AdminController::class, 'ordersPoll'])->name('orders.poll');
-    Route::post('/orders/{order}/accept',           [AdminController::class, 'acceptOrder'])->name('orders.accept');
-    Route::post('/orders/{order}/assign-rider',     [AdminController::class, 'assignRider'])->name('orders.assign-rider');
-    Route::patch('/orders/{order}/status',          [AdminController::class, 'updateOrderStatus'])->name('orders.status');
-    Route::post('/orders/{order}/complete-table',   [AdminController::class, 'completeTable'])->name('orders.complete-table');
-    Route::post('/orders/{order}/lock-table',        [AdminController::class, 'lockTable'])->name('orders.lock-table');
-    Route::patch('/orders/{order}/archive',         [AdminController::class, 'archiveOrder'])->name('orders.archive');
-    Route::delete('/orders/{order}',                [AdminController::class, 'deleteOrder'])->name('orders.delete');
-    Route::get('/orders/{order}/takeout-slip',       [\App\Http\Controllers\ChefController::class, 'takeoutSlip'])->name('orders.takeout-slip');
-    Route::get('/riders/locations',                 [AdminController::class, 'riderLocations'])->name('riders.locations');
+        // ── Riders ─────────────────────────────────────────────
+        Route::get('/riders',                           [AdminController::class, 'riders'])->name('riders');
+        Route::post('/riders',                          [AdminController::class, 'storeRider'])->name('riders.store');
+        Route::patch('/riders/{rider}',                 [AdminController::class, 'updateRider'])->name('riders.update');
+        Route::delete('/riders/{rider}',                [AdminController::class, 'removeRider'])->name('riders.destroy');
 
-    // ── Riders ─────────────────────────────────────────────
-    Route::get('/riders',                           [AdminController::class, 'riders'])->name('riders');
-    Route::post('/riders',                          [AdminController::class, 'storeRider'])->name('riders.store');
-    Route::patch('/riders/{rider}',                 [AdminController::class, 'updateRider'])->name('riders.update');
-    Route::delete('/riders/{rider}',                [AdminController::class, 'removeRider'])->name('riders.destroy');
+        // ── Settings ───────────────────────────────────────────
+        Route::get ('/settings',              [AdminController::class, 'settings'])->name('settings');
+        Route::post('/settings',              [AdminController::class, 'updateSettings'])->name('settings.update');
+        Route::post('/settings/password',     [AdminController::class, 'updatePassword'])->name('settings.password');
+        Route::patch('/settings/toggle-open', [AdminController::class, 'toggleOpen'])->name('settings.toggle-open');
 
-    // ── Settings ───────────────────────────────────────────
-    Route::get ('/settings',          [AdminController::class, 'settings'])->name('settings');
-    Route::post('/settings',          [AdminController::class, 'updateSettings'])->name('settings.update');
-    Route::post('/settings/password', [AdminController::class, 'updatePassword'])->name('settings.password');
-    Route::patch('/settings/toggle-open', [AdminController::class, 'toggleOpen'])->name('settings.toggle-open');
+        // ── Table QR Codes ─────────────────────────────────────
+        Route::get('/table-qrcodes',       [TableQrController::class, 'index'])->name('table-qrcodes');
+        Route::get('/table-qrcodes/print', [TableQrController::class, 'print'])->name('table-qrcodes.print');
+        Route::get('/table-qrcodes/coupon',[TableQrController::class, 'coupon'])->name('table-qrcodes.coupon');
 
-    // ── Table QR Codes ─────────────────────────────────────
-    Route::get('/table-qrcodes',      [TableQrController::class, 'index'])->name('table-qrcodes');
-    Route::get('/table-qrcodes/print', [TableQrController::class, 'print'])->name('table-qrcodes.print');
-    Route::get('/table-qrcodes/coupon', [TableQrController::class, 'coupon'])->name('table-qrcodes.coupon');
+        // ── Audit Logs ─────────────────────────────────────────
+        Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs');
 
-    // ── Audit Logs ─────────────────────────────────────────
-    Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs');
+    }); // end admin.verify group
 });
