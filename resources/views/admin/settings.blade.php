@@ -109,10 +109,6 @@
             </div>
         </div>
 
-        <div style="padding:10px 20px 16px;font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:8px;border-top:1px solid var(--border-divider,rgba(255,255,255,.05));">
-            <i data-lucide="info" style="width:.75rem;height:.75rem;stroke-width:2;flex-shrink:0;"></i>
-            Toggling a service updates real-time for all active customers without requiring a page refresh.
-        </div>
     </div>
 
     {{-- Restaurant Information --}}
