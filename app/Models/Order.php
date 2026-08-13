@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    use Auditable;
     protected $fillable = [
         'user_id', 'rider_id', 'status', 'order_type',
         'subtotal', 'delivery_fee', 'total',

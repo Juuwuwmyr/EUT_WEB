@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OrderStatusUpdated;
+use App\Models\AuditLog;
 use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\ModifierGroup;
@@ -1291,6 +1292,21 @@ class AdminController extends Controller
 
         broadcast(new \App\Events\ShopStatusUpdated($isOpen, $isOpenDelivery, $isOpenPickup, $isOpenDineIn));
 
+        AuditLog::record(
+            action:      'settings_changed',
+            description: 'Restaurant settings updated.',
+            newValues:   [
+                'restaurant_name'  => $request->restaurant_name,
+                'contact_email'    => $request->contact_email,
+                'contact_phone'    => $request->contact_phone,
+                'delivery_fee'     => $request->delivery_fee,
+                'min_order'        => $request->min_order,
+                'is_open_delivery' => $isOpenDelivery,
+                'is_open_pickup'   => $isOpenPickup,
+                'is_open_dine_in'  => $isOpenDineIn,
+            ],
+        );
+
         return back()->with('success', 'Restaurant settings saved successfully.');
     }
 
@@ -1330,6 +1346,18 @@ class AdminController extends Controller
         // Broadcast to all connected clients
         broadcast(new \App\Events\ShopStatusUpdated($isOpen, $isOpenDelivery, $isOpenPickup, $isOpenDineIn));
 
+        AuditLog::record(
+            action:      'settings_changed',
+            description: "Shop open/close toggled ({$type}).",
+            newValues:   [
+                'toggle_type'      => $type,
+                'is_open'          => $isOpen,
+                'is_open_delivery' => $isOpenDelivery,
+                'is_open_pickup'   => $isOpenPickup,
+                'is_open_dine_in'  => $isOpenDineIn,
+            ],
+        );
+
         return response()->json([
             'success'          => true,
             'is_open'          => $isOpen,
@@ -1354,5 +1382,61 @@ class AdminController extends Controller
 
         $user->update(['password' => Hash::make($request->password)]);
         return back()->with('success', 'Password updated successfully.');
+    }
+
+    // ════════════════════════════════════════════════════════
+    // AUDIT LOGS
+    // ════════════════════════════════════════════════════════
+
+    public function auditLogs(Request $request)
+    {
+        $query = \App\Models\AuditLog::latest();
+
+        if ($request->filled('action')) {
+            $query->where('action', $request->action);
+        }
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->filled('model')) {
+            $query->where('auditable_type', 'like', '%' . $request->model . '%');
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('description', 'like', "%{$s}%")
+                  ->orWhere('user_name', 'like', "%{$s}%")
+                  ->orWhere('auditable_label', 'like', "%{$s}%")
+                  ->orWhere('ip_address', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $logs = $query->paginate(50)->withQueryString();
+
+        // Distinct actions for the filter dropdown
+        $actions = \App\Models\AuditLog::select('action')
+            ->distinct()
+            ->orderBy('action')
+            ->pluck('action');
+
+        // Distinct users for the filter dropdown
+        $users = \App\Models\AuditLog::select('user_id', 'user_name')
+            ->whereNotNull('user_id')
+            ->distinct()
+            ->orderBy('user_name')
+            ->get();
+
+        return view('admin.audit-logs', compact('logs', 'actions', 'users'));
     }
 }
