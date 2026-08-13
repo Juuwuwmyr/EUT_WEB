@@ -339,6 +339,11 @@ class AdminController extends Controller
 
     public function storeMenuItem(Request $request)
     {
+        \Log::info('storeMenuItem payload', [
+            'groups' => $request->input('groups'),
+            'addons' => $request->input('addons'),
+        ]);
+
         $request->validate([
             'name'                                  => 'required|string|max:120',
             'category_id'                           => 'required|exists:categories,id',
@@ -384,6 +389,12 @@ class AdminController extends Controller
 
     public function updateMenuItem(Request $request, MenuItem $menuItem)
     {
+        \Log::info('updateMenuItem payload', [
+            'id'     => $menuItem->id,
+            'groups' => $request->input('groups'),
+            'addons' => $request->input('addons'),
+        ]);
+
         $request->validate([
             'name'                                  => 'required|string|max:120',
             'category_id'                           => 'required|exists:categories,id',
