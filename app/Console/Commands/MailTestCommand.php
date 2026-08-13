@@ -44,6 +44,8 @@ class MailTestCommand extends Command
             );
 
             $this->info('Test email sent successfully.');
+            $this->newLine();
+            $this->line('If inbox is empty: check Spam, search "EUT", and check Sent on ' . config('mail.mailers.smtp.username'));
 
             return self::SUCCESS;
         } catch (\Throwable $e) {

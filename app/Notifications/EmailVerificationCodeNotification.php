@@ -5,7 +5,6 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\HtmlString;
 
 class EmailVerificationCodeNotification extends Notification
 {
@@ -21,14 +20,11 @@ class EmailVerificationCodeNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Your E.U.T Snack House verification code')
+            ->subject("E.U.T Snack House code: {$this->code}")
             ->greeting('Welcome to E.U.T Snack House!')
-            ->line('Thanks for signing up. Enter this code on the verification page to activate your account:')
-            ->line(new HtmlString(
-                '<p style="font-size:36px;font-weight:700;letter-spacing:10px;text-align:center;margin:28px 0;color:#111;">'
-                . e($this->code)
-                . '</p>'
-            ))
+            ->line('Your email verification code is:')
+            ->line($this->code)
+            ->line('Enter this 6-digit code on the verification page to activate your account.')
             ->line('This code expires in 15 minutes.')
             ->line('If you did not create an account, you can safely ignore this email.');
     }
