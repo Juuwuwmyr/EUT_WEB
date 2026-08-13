@@ -243,6 +243,7 @@
 
         <form method="POST" action="{{ route('admin.verify.submit') }}">
             @csrf
+            <input type="hidden" name="scope" value="dashboard">
             <label for="dashboardPassword">Password</label>
             <input type="password" id="dashboardPassword" name="password" placeholder="Enter your password" required autofocus>
             <button type="submit">Verify &amp; Unlock</button>

@@ -23,20 +23,46 @@ class AdminController extends Controller
 
     public function showVerify()
     {
-        return view('admin.verify');
+        $scope = session('admin_verify_scope', 'menu');
+
+        if (! in_array($scope, RequireAdminVerification::SCOPES, true)) {
+            $scope = 'menu';
+        }
+
+        return view('admin.verify', compact('scope'));
     }
 
     public function submitVerify(Request $request)
     {
-        $request->validate(['password' => 'required|string']);
+        $request->validate([
+            'password' => 'required|string',
+            'scope'    => ['nullable', Rule::in(RequireAdminVerification::SCOPES)],
+        ]);
 
         if (!\Illuminate\Support\Facades\Hash::check($request->password, auth()->user()->password)) {
             return back()->withErrors(['password' => 'Incorrect password. Please try again.']);
         }
 
-        session(['admin_verified_at' => time()]);
+        $scope = $request->input('scope')
+            ?? session('admin_verify_scope')
+            ?? 'dashboard';
 
-        $intended = session()->pull('admin_verify_intended', route('admin.dashboard'));
+        if (! in_array($scope, RequireAdminVerification::SCOPES, true)) {
+            $scope = 'dashboard';
+        }
+
+        RequireAdminVerification::markVerified($scope);
+        session()->forget('admin_verify_scope');
+
+        $defaultIntended = match ($scope) {
+            'dashboard'  => route('admin.dashboard'),
+            'categories' => route('admin.categories'),
+            'menu'       => route('admin.menu-items'),
+            default      => route('admin.dashboard'),
+        };
+
+        $intended = session()->pull('admin_verify_intended', $defaultIntended);
+
         return redirect($intended);
     }
 
@@ -93,10 +119,13 @@ class AdminController extends Controller
                 'category_color'=> optional(\App\Models\MenuItem::with('category')->find($i->menu_item_id))->category?->color ?? '#6b7280',
             ])->toArray();
 
-        $dashboardVerified = RequireAdminVerification::isVerified();
+        $dashboardVerified = RequireAdminVerification::isVerified('dashboard');
 
         if (! $dashboardVerified) {
-            session(['admin_verify_intended' => route('admin.dashboard')]);
+            session([
+                'admin_verify_intended' => route('admin.dashboard'),
+                'admin_verify_scope'    => 'dashboard',
+            ]);
         }
 
         return view('admin.dashboard', compact('stats', 'recent_users', 'categories', 'topItems', 'dashboardVerified'));

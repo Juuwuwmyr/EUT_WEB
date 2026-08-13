@@ -183,7 +183,7 @@
     </div>
 
     <h1>Confirm Your Identity</h1>
-    <p class="subtitle">Enter your password to view sensitive admin data.<br>Verification lasts 30 minutes.</p>
+    <p class="subtitle">Enter your password to access {{ \App\Http\Middleware\RequireAdminVerification::scopeLabel($scope) }}.<br>Each area is verified separately. Access lasts 30 minutes.</p>
 
     {{-- Logged-in user badge --}}
     <div class="user-badge">
@@ -204,6 +204,7 @@
 
     <form method="POST" action="{{ route('admin.verify.submit') }}" onsubmit="handleSubmit(this)">
         @csrf
+        <input type="hidden" name="scope" value="{{ $scope }}">
         <label for="password">Password</label>
         <div class="input-wrap">
             <input type="password" id="password" name="password" placeholder="Enter your password" autofocus required>

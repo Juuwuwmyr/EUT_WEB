@@ -161,8 +161,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get ('/verify', [AdminController::class, 'showVerify'])->name('verify');
     Route::post('/verify', [AdminController::class, 'submitVerify'])->name('verify.submit');
 
-    // ── Categories — password verification required ────────────────────
-    Route::middleware('admin.verify')->group(function () {
+    // ── Categories — separate password verification ────────────────────
+    Route::middleware('admin.verify:categories')->group(function () {
         Route::get   ('/categories',                      [AdminController::class, 'categories'])->name('categories');
         Route::post  ('/categories',                      [AdminController::class, 'storeCategory'])->name('categories.store');
         Route::put   ('/categories/{category}',           [AdminController::class, 'updateCategory'])->name('categories.update');
@@ -170,8 +170,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
         Route::delete('/categories/{category}',           [AdminController::class, 'deleteCategory'])->name('categories.delete');
     });
 
-    // ── Menu Items — password verification required ────────────────────
-    Route::middleware('admin.verify')->group(function () {
+    // ── Menu Items — separate password verification ────────────────────
+    Route::middleware('admin.verify:menu')->group(function () {
         Route::get   ('/menu-items',                              [AdminController::class, 'menuItems'])->name('menu-items');
         Route::post  ('/menu-items',                              [AdminController::class, 'storeMenuItem'])->name('menu-items.store');
         Route::put   ('/menu-items/{menuItem}',                   [AdminController::class, 'updateMenuItem'])->name('menu-items.update');
