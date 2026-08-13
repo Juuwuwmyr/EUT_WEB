@@ -71,4 +71,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(\App\Models\UserAddress::class)->where('is_default', true);
     }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new \App\Notifications\VerifyEmailNotification);
+    }
 }

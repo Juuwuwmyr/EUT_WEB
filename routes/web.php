@@ -32,6 +32,9 @@ Route::get('/', function () {
         if ($user->isAdmin()) return redirect()->route('admin.dashboard');
         if ($user->isRider()) return redirect()->route('rider.dashboard');
         if ($user->isChef())  return redirect()->route('chef.dashboard');
+        if ($user->provider === 'email' && ! $user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
         return redirect()->route('shop.home');
     }
     return view('landing');
@@ -144,8 +147,8 @@ Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallbac
 
 // Email verification routes
 Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->middleware('auth')->name('verification.notice');
-Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])->middleware(['auth', 'signed'])->name('verification.verify');
-Route::post('/email/verification-notification', [AuthController::class, 'resend'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 // -------------------------------------------------------
 // Admin panel — protected by auth + admin middleware

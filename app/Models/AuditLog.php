@@ -102,6 +102,8 @@ class AuditLog extends Model
                 => ['#ec4899', 'rgba(236,72,153,.12)', 'settings'],
             'login'
                 => ['#6366f1', 'rgba(99,102,241,.12)', 'log-in'],
+            'signup'
+                => ['#6366f1', 'rgba(99,102,241,.12)', 'user-plus'],
             'logout'
                 => ['#6b7280', 'rgba(107,114,128,.1)', 'log-out'],
             'password_changed'
@@ -124,6 +126,7 @@ class AuditLog extends Model
             'created', 'updated', 'deleted', 'archived', 'restored', 'status_changed',
             'role_changed', 'settings_changed', 'login', 'logout', 'password_changed',
             'profile_updated', 'user_archived', 'user_deleted', 'category_deleted',
+            'signup',
             'order_accepted', 'order_status_updated', 'order_deleted', 'order_cancelled',
             'order_picked_up', 'order_delivered', 'order_cooking_started', 'order_marked_ready',
             'order_item_removed', 'pickup_slip_printed', 'rider_assigned', 'rider_created',

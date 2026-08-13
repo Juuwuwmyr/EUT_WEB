@@ -2057,9 +2057,13 @@ async function doSignup() {
             body: JSON.stringify({ name, email, phone, password, password_confirmation: password })
         });
         const data = await res.json();
-        if (res.ok && data.redirect) {
-            window.location.href = data.redirect;
-            return; // keep button disabled while redirecting
+        if (res.ok && data.success) {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
+            showAlert(data.message || 'Account created!');
+            return;
         }
         showAlert(data.message || 'Could not create account. Please try again.');
     } catch (err) {

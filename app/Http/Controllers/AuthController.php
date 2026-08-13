@@ -4,17 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\User;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Foundation\Auth\VerifiesEmails;
 
 class AuthController extends Controller
 {
-    use VerifiesEmails;
-
     protected $redirectTo = '/shop';
 
     // -------------------------------------------------------
@@ -42,6 +40,14 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $loggedIn = Auth::user();
+
+            if ($loggedIn->provider === 'email' && ! $loggedIn->hasVerifiedEmail()) {
+                return response()->json([
+                    'success'  => true,
+                    'message'  => 'Please verify your email address to continue.',
+                    'redirect' => route('verification.notice'),
+                ]);
+            }
 
             AuditLog::record(
                 action:      'login',
@@ -101,22 +107,85 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = User::create([
-            'name'     => trim($request->name),
-            'email'    => $request->email,
-            'phone'    => $request->phone,
-            'password' => Hash::make($request->password),
-            'provider' => 'email',
-            'role'     => 'user',
-        ]);
+        $user = User::withoutEvents(function () use ($request) {
+            return User::create([
+                'name'     => trim($request->name),
+                'email'    => $request->email,
+                'phone'    => $request->phone,
+                'password' => Hash::make($request->password),
+                'provider' => 'email',
+                'role'     => 'user',
+            ]);
+        });
 
-        // Send email verification notification
-        $user->sendEmailVerificationNotification();
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            \Log::error('Signup verification email failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Account created but we could not send the verification email. Please contact support.',
+            ], 500);
+        }
+
+        AuditLog::record(
+            action:      'signup',
+            description: "{$user->name} signed up with email.",
+            model:       $user,
+        );
 
         return response()->json([
             'success'  => true,
-            'message'  => 'Account created successfully. Please check your email to verify your account.',
+            'message'  => 'Account created! Check your email for a verification link.',
+            'redirect' => route('verification.notice'),
         ]);
+    }
+
+    // -------------------------------------------------------
+    // EMAIL VERIFICATION
+    // -------------------------------------------------------
+    public function showVerificationNotice(Request $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->route('shop.home');
+        }
+
+        return view('auth.verify-email');
+    }
+
+    public function verifyEmail(Request $request, int $id, string $hash)
+    {
+        $user = User::findOrFail($id);
+
+        if (! hash_equals($hash, sha1($user->getEmailForVerification()))) {
+            abort(403, 'Invalid verification link.');
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+            event(new Verified($user));
+        }
+
+        Auth::login($user);
+
+        return redirect()
+            ->route('shop.home')
+            ->with('success', 'Email verified! Welcome to E.U.T Snack House.');
+    }
+
+    public function resendVerificationEmail(Request $request)
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->route('shop.home');
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return back()->with('resent', true);
     }
 
     // -------------------------------------------------------
