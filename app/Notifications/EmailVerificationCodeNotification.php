@@ -20,12 +20,10 @@ class EmailVerificationCodeNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject("E.U.T Snack House code: {$this->code}")
-            ->greeting('Welcome to E.U.T Snack House!')
-            ->line('Your email verification code is:')
-            ->line($this->code)
-            ->line('Enter this 6-digit code on the verification page to activate your account.')
-            ->line('This code expires in 15 minutes.')
-            ->line('If you did not create an account, you can safely ignore this email.');
+            ->subject("E.U.T Snack House — Verification code: {$this->code}")
+            ->view('emails.verification-code', [
+                'code' => $this->code,
+                'name' => $notifiable->name ?? 'there',
+            ]);
     }
 }

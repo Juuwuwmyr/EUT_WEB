@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\User;
+use App\Services\PendingSignup;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -107,44 +108,40 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = User::withoutEvents(function () use ($request) {
-            return User::create([
-                'name'     => trim($request->name),
-                'email'    => $request->email,
-                'phone'    => $request->phone,
-                'password' => Hash::make($request->password),
-                'provider' => 'email',
-                'role'     => 'user',
-            ]);
-        });
+        $code = PendingSignup::generateCode();
 
-        Auth::login($user);
-        $request->session()->regenerate();
+        PendingSignup::put([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'phone'    => $request->phone,
+            'password' => $request->password,
+        ], $code);
 
         try {
-            $this->dispatchVerificationEmail($user);
+            PendingSignup::sendCodeEmail($request->email, trim($request->name), $code);
         } catch (\Throwable $e) {
+            PendingSignup::forget();
+
             \Log::error('Signup verification email failed', [
-                'email'  => $user->email,
+                'email'  => $request->email,
                 'mailer' => config('mail.default'),
                 'error'  => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Account created but we could not send the verification email. Please contact support.',
+                'message' => 'Could not send the verification email. Please try again.',
             ], 500);
         }
 
-        AuditLog::record(
-            action:      'signup',
-            description: "{$user->name} signed up with email.",
-            model:       $user,
-        );
+        \Log::info('Pending signup verification code sent', [
+            'email'  => $request->email,
+            'mailer' => config('mail.default'),
+        ]);
 
         return response()->json([
             'success'  => true,
-            'message'  => 'Account created! Check your email for a 6-digit verification code.',
+            'message'  => 'Check your email for a 6-digit code to complete signup.',
             'redirect' => route('verification.notice'),
         ]);
     }
@@ -154,23 +151,83 @@ class AuthController extends Controller
     // -------------------------------------------------------
     public function showVerificationNotice(Request $request)
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        if ($request->user()?->hasVerifiedEmail()) {
             return redirect()->route('shop.home');
         }
 
-        return view('auth.verify-email');
+        $email = PendingSignup::email() ?? $request->user()?->email;
+
+        if (! $email) {
+            return redirect()->route('restaurant')
+                ->with('error', 'No signup in progress. Please create an account first.');
+        }
+
+        return view('auth.verify-email', [
+            'email'          => $email,
+            'pending'        => PendingSignup::has(),
+            'resendCooldown' => PendingSignup::resendCooldownRemaining(),
+        ]);
     }
 
     public function verifyEmailCode(Request $request)
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->route('shop.home');
-        }
-
         $code = preg_replace('/\D/', '', (string) $request->input('code'));
 
         if (strlen($code) !== 6) {
             return back()->with('error', 'Please enter the 6-digit code from your email.');
+        }
+
+        if (PendingSignup::has()) {
+            if (PendingSignup::isExpired()) {
+                PendingSignup::forget();
+
+                return redirect()->route('restaurant')
+                    ->with('error', 'Your verification code expired. Please sign up again.');
+            }
+
+            if (! PendingSignup::verifyCode($code)) {
+                return back()->with('error', 'Invalid code. Check your email and try again.');
+            }
+
+            $pending = PendingSignup::get();
+
+            $user = User::withoutEvents(function () use ($pending) {
+                return User::create([
+                    'name'              => $pending['name'],
+                    'email'             => $pending['email'],
+                    'phone'             => $pending['phone'],
+                    'password'          => $pending['password'],
+                    'provider'          => 'email',
+                    'role'              => 'user',
+                    'email_verified_at' => now(),
+                ]);
+            });
+
+            PendingSignup::forget();
+
+            Auth::login($user);
+            $request->session()->regenerate();
+
+            event(new Verified($user));
+
+            AuditLog::record(
+                action:      'signup',
+                description: "{$user->name} signed up with email.",
+                model:       $user,
+            );
+
+            return redirect()
+                ->route('shop.home')
+                ->with('success', 'Welcome to E.U.T Snack House! Your account is ready.');
+        }
+
+        if ($request->user()?->hasVerifiedEmail()) {
+            return redirect()->route('shop.home');
+        }
+
+        if (! $request->user()) {
+            return redirect()->route('restaurant')
+                ->with('error', 'No signup in progress. Please create an account first.');
         }
 
         if (! $request->user()->verifyEmailWithCode($code)) {
@@ -186,12 +243,56 @@ class AuthController extends Controller
 
     public function resendVerificationEmail(Request $request)
     {
+        $cooldown = PendingSignup::resendCooldownRemaining();
+
+        if ($cooldown > 0) {
+            return back()->with('error', "Please wait {$cooldown}s before requesting a new code.");
+        }
+
+        if (PendingSignup::has()) {
+            if (PendingSignup::isExpired()) {
+                PendingSignup::forget();
+
+                return redirect()->route('restaurant')
+                    ->with('error', 'Your verification session expired. Please sign up again.');
+            }
+
+            $pending = PendingSignup::get();
+            $code    = PendingSignup::generateCode();
+            PendingSignup::refreshCode($code);
+
+            try {
+                PendingSignup::sendCodeEmail($pending['email'], $pending['name'], $code);
+                PendingSignup::markCodeSent();
+            } catch (\Throwable $e) {
+                \Log::error('Resend pending signup code failed', [
+                    'email' => $pending['email'],
+                    'error' => $e->getMessage(),
+                ]);
+
+                return back()->with(
+                    'error',
+                    config('mail.default') === 'log'
+                        ? 'Email is not configured on the server. Please contact support.'
+                        : 'Could not send the code right now. Please try again in a minute.'
+                );
+            }
+
+            return back()->with('resent', true);
+        }
+
+        if (! $request->user()) {
+            return redirect()->route('restaurant')
+                ->with('error', 'No signup in progress. Please create an account first.');
+        }
+
         if ($request->user()->hasVerifiedEmail()) {
             return redirect()->route('shop.home');
         }
 
         try {
             $this->dispatchVerificationEmail($request->user());
+            PendingSignup::markCodeSent();
         } catch (\Throwable $e) {
             \Log::error('Resend verification email failed', [
                 'email'  => $request->user()->email,
@@ -208,6 +309,21 @@ class AuthController extends Controller
         }
 
         return back()->with('resent', true);
+    }
+
+    public function cancelPendingSignup(Request $request)
+    {
+        PendingSignup::forget();
+
+        if ($request->user() && ! $request->user()->hasVerifiedEmail()) {
+            $request->user()->delete();
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
+        return redirect()->route('restaurant')
+            ->with('success', 'Signup cancelled. You can create a new account anytime.');
     }
 
     /**
