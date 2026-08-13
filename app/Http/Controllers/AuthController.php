@@ -253,6 +253,11 @@ class AuthController extends Controller
 
         Auth::login($user, true);
 
+        // If admin, mark as verified so they don't hit the verify gate right after login
+        if ($user->isAdmin()) {
+            session(['admin_verified_at' => time()]);
+        }
+
         $redirect = $user->isAdmin()
             ? route('admin.dashboard')
             : ($user->isRider()
