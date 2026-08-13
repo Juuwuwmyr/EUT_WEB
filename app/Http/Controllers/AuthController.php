@@ -249,7 +249,7 @@ class AuthController extends Controller
 
         if ($user) {
             // Existing Google user — refresh their info
-            $user->update([
+            $user->updateQuietly([
                 'name'              => $googleUser->getName(),
                 'avatar'            => $googleUser->getAvatar(),
                 'email_verified_at' => now(),
@@ -260,7 +260,7 @@ class AuthController extends Controller
 
             if ($existing) {
                 // Link the Google ID to the existing account
-                $existing->update([
+                $existing->updateQuietly([
                     'google_id'         => $googleUser->getId(),
                     'avatar'            => $existing->avatar ?? $googleUser->getAvatar(),
                     'email_verified_at' => now(),
@@ -268,19 +268,27 @@ class AuthController extends Controller
                 $user = $existing;
             } else {
                 // Brand-new user via Google
-                $user = User::create([
-                    'google_id'         => $googleUser->getId(),
-                    'name'              => $googleUser->getName(),
-                    'email'             => $googleUser->getEmail(),
-                    'avatar'            => $googleUser->getAvatar(),
-                    'provider'          => 'google',
-                    'role'              => 'user',
-                    'email_verified_at' => now(),
-                ]);
+                $user = User::withoutEvents(function () use ($googleUser) {
+                    return User::create([
+                        'google_id'         => $googleUser->getId(),
+                        'name'              => $googleUser->getName(),
+                        'email'             => $googleUser->getEmail(),
+                        'avatar'            => $googleUser->getAvatar(),
+                        'provider'          => 'google',
+                        'role'              => 'user',
+                        'email_verified_at' => now(),
+                    ]);
+                });
             }
         }
 
         Auth::login($user, true);
+
+        AuditLog::record(
+            action:      'login',
+            description: "{$user->name} logged in via Google.",
+            model:       $user,
+        );
 
         // If admin, mark as verified so they don't hit the verify gate right after login
         if ($user->isAdmin()) {
