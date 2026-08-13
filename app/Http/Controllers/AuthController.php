@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,20 +36,28 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            $redirect = Auth::user()->isAdmin()
+            $loggedIn = Auth::user();
+
+            AuditLog::record(
+                action:      'login',
+                description: "{$loggedIn->name} logged in.",
+                model:       $loggedIn,
+            );
+
+            $redirect = $loggedIn->isAdmin()
                 ? route('admin.dashboard')
-                : (Auth::user()->isRider()
+                : ($loggedIn->isRider()
                     ? route('rider.dashboard')
-                    : (Auth::user()->isChef() ? route('chef.dashboard') : route('shop.home')));
+                    : ($loggedIn->isChef() ? route('chef.dashboard') : route('shop.home')));
 
             return response()->json([
                 'success'  => true,
                 'message'  => 'Login successful.',
                 'redirect' => $redirect,
                 'user'     => [
-                    'name'   => Auth::user()->name,
-                    'email'  => Auth::user()->email,
-                    'avatar' => Auth::user()->avatar,
+                    'name'   => $loggedIn->name,
+                    'email'  => $loggedIn->email,
+                    'avatar' => $loggedIn->avatar,
                 ],
             ]);
         }
@@ -116,6 +125,14 @@ class AuthController extends Controller
     // -------------------------------------------------------
     public function logout(Request $request)
     {
+        $user = auth()->user();
+
+        AuditLog::record(
+            action:      'logout',
+            description: ($user?->name ?? 'User') . ' logged out.',
+            model:       $user,
+        );
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -147,6 +164,12 @@ class AuthController extends Controller
         }
 
         $user->update($data);
+
+        AuditLog::record(
+            action:      'profile_updated',
+            description: "{$user->name} updated their profile.",
+            model:       $user,
+        );
 
         return response()->json([
             'success' => true,
@@ -184,6 +207,12 @@ class AuthController extends Controller
         }
 
         $user->update(['password' => Hash::make($request->password)]);
+
+        AuditLog::record(
+            action:      'password_changed',
+            description: "{$user->name} changed their password.",
+            model:       $user,
+        );
 
         return response()->json(['success' => true, 'message' => 'Password updated successfully.']);
     }

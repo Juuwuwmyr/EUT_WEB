@@ -177,6 +177,14 @@ class AdminController extends Controller
             return back()->with('error', 'You cannot remove your own admin role.');
         }
         $user->update(['role' => $request->role]);
+
+        AuditLog::record(
+            action:      'role_changed',
+            description: "Admin changed \"{$user->name}\" role to {$request->role}.",
+            model:       $user,
+            newValues:   ['role' => $request->role],
+        );
+
         return back()->with('success', "Role updated to {$request->role}.");
     }
 
@@ -187,6 +195,14 @@ class AdminController extends Controller
         }
         // Uses soft "role" disable — sets role to 'archived' to block login
         $user->update(['role' => 'archived']);
+
+        AuditLog::record(
+            action:      'user_archived',
+            description: "Admin archived user \"{$user->name}\".",
+            model:       $user,
+            newValues:   ['role' => 'archived'],
+        );
+
         return back()->with('success', "User \"{$user->name}\" archived.");
     }
 
@@ -197,6 +213,12 @@ class AdminController extends Controller
         }
         $name = $user->name;
         $user->delete();
+
+        AuditLog::record(
+            action:      'user_deleted',
+            description: "Admin deleted user \"{$name}\".",
+        );
+
         return back()->with('success', "User \"{$name}\" deleted.");
     }
 
@@ -299,6 +321,13 @@ class AdminController extends Controller
     {
         $category->update(['is_archived' => ! $category->is_archived]);
         $state = $category->is_archived ? 'archived' : 'restored';
+
+        AuditLog::record(
+            action:      $state,
+            description: "Admin {$state} category \"{$category->name}\".",
+            model:       $category,
+        );
+
         return back()->with('success', "Category \"{$category->name}\" {$state}.");
     }
 
@@ -309,6 +338,12 @@ class AdminController extends Controller
         }
         $name = $category->name;
         $category->delete();
+
+        AuditLog::record(
+            action:      'category_deleted',
+            description: "Admin deleted category \"{$name}\".",
+        );
+
         return back()->with('success', "Category \"{$name}\" deleted.");
     }
 
@@ -708,6 +743,12 @@ class AdminController extends Controller
         $menuItem->update(['is_archived' => ! $menuItem->is_archived]);
         $state = $menuItem->is_archived ? 'archived' : 'restored';
 
+        AuditLog::record(
+            action:      $state,
+            description: "Admin {$state} menu item \"{$menuItem->name}\".",
+            model:       $menuItem,
+        );
+
         if (request()->expectsJson()) {
             return response()->json([
                 'success'     => true,
@@ -723,6 +764,12 @@ class AdminController extends Controller
     {
         $name = $menuItem->name;
         $menuItem->delete();
+
+        AuditLog::record(
+            action:      'deleted',
+            description: "Admin deleted menu item \"{$name}\".",
+        );
+
         return back()->with('success', "Menu item \"{$name}\" deleted.");
     }
 
@@ -911,11 +958,13 @@ class AdminController extends Controller
 
         broadcast(new OrderStatusUpdated($order));
 
+        AuditLog::record(
+            action:      'order_accepted',
+            description: "Admin accepted {$order->order_number}.",
+            model:       $order,
+        );
+
         if (request()->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => "Order #{$order->order_number} accepted & sent to kitchen.",
-            ]);
         }
 
         return back()->with('success', "Order #{$order->order_number} accepted & sent to kitchen.");
@@ -941,9 +990,14 @@ class AdminController extends Controller
 
         broadcast(new OrderStatusUpdated($order));
 
+        AuditLog::record(
+            action:      'rider_assigned',
+            description: "Admin assigned rider to {$order->order_number}.",
+            model:       $order,
+            newValues:   ['rider_id' => $request->rider_id],
+        );
+
         return request()->expectsJson()
-            ? response()->json(['success' => true, 'message' => "Rider assigned to order #{$order->order_number}."])
-            : back()->with('success', "Rider assigned to order #{$order->order_number}.");
     }
 
     public function updateOrderStatus(Request $request, \App\Models\Order $order)
@@ -984,6 +1038,13 @@ class AdminController extends Controller
         $order->update($data);
 
         broadcast(new OrderStatusUpdated($order));
+
+        AuditLog::record(
+            action:      'order_status_updated',
+            description: "Admin updated {$order->order_number} to \"{$request->status}\".",
+            model:       $order,
+            newValues:   ['status' => $request->status],
+        );
 
         if (request()->expectsJson()) {
             $response = [
@@ -1070,6 +1131,9 @@ class AdminController extends Controller
         ]);
     }
 
+    // completeTable audit
+    // (recorded inline above via the Order model's Auditable trait per-row)
+
     /**
      * Lock ordering for a dine-in table session.
      *
@@ -1143,6 +1207,11 @@ class AdminController extends Controller
         $orderNum = $order->order_number;
         $order->items()->delete();
         $order->delete();
+
+        AuditLog::record(
+            action:      'order_deleted',
+            description: "Admin permanently deleted order {$orderNum}.",
+        );
 
         return request()->expectsJson()
             ? response()->json(['success' => true, 'message' => "Order {$orderNum} permanently deleted."])
@@ -1243,6 +1312,13 @@ class AdminController extends Controller
             'is_available' => false,
         ]);
 
+        AuditLog::record(
+            action:      'rider_created',
+            description: "Admin created rider \"{$user->name}\".",
+            model:       $user,
+            newValues:   ['email' => $user->email, 'vehicle_type' => $request->vehicle_type],
+        );
+
         return back()->with('success', "Rider {$user->name} created successfully.");
     }
 
@@ -1255,13 +1331,27 @@ class AdminController extends Controller
         ]);
 
         $rider->update($request->only('phone', 'vehicle_type', 'plate_number'));
+
+        AuditLog::record(
+            action:      'rider_updated',
+            description: "Admin updated rider \"{$rider->user->name}\".",
+            model:       $rider,
+        );
+
         return back()->with('success', 'Rider updated.');
     }
 
     public function removeRider(\App\Models\Rider $rider)
     {
+        $riderName = $rider->user->name;
         $rider->user->update(['role' => 'user']);
         $rider->delete();
+
+        AuditLog::record(
+            action:      'rider_removed',
+            description: "Admin removed rider \"{$riderName}\".",
+        );
+
         return back()->with('success', 'Rider removed.');
     }
 

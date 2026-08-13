@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\OrderStatusUpdated;
 use App\Events\RiderLocationUpdated;
+use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\Rider;
 use Illuminate\Http\Request;
@@ -45,6 +46,14 @@ class RiderController extends Controller
         $request->validate(['is_available' => 'required|boolean']);
         $rider = auth()->user()->rider;
         $rider->update(['is_available' => $request->is_available]);
+
+        AuditLog::record(
+            action:      'rider_status_changed',
+            description: auth()->user()->name . ' went ' . ($request->is_available ? 'online' : 'offline') . '.',
+            model:       $rider,
+            newValues:   ['is_available' => $request->is_available],
+        );
+
         return response()->json(['success' => true, 'is_available' => $rider->is_available]);
     }
 
@@ -86,6 +95,12 @@ class RiderController extends Controller
 
         broadcast(new OrderStatusUpdated($order));
 
+        AuditLog::record(
+            action:      'order_picked_up',
+            description: auth()->user()->name . " picked up {$order->order_number}.",
+            model:       $order,
+        );
+
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'status' => 'out_for_delivery']);
         }
@@ -121,6 +136,13 @@ class RiderController extends Controller
 
         // Increment rider stats
         $rider->increment('total_deliveries');
+
+        AuditLog::record(
+            action:      'order_delivered',
+            description: auth()->user()->name . " delivered {$order->order_number}.",
+            model:       $order,
+            newValues:   ['delivery_type' => $order->delivery_type, 'has_proof_photo' => (bool) $photoPath],
+        );
 
         return response()->json(['success' => true, 'status' => 'delivered']);
     }
@@ -213,6 +235,12 @@ class RiderController extends Controller
         $this->authorizeRiderOrder($order, $rider);
 
         $order->update(['pickup_slip_printed_at' => now()]);
+
+        AuditLog::record(
+            action:      'pickup_slip_printed',
+            description: auth()->user()->name . " printed pickup slip for {$order->order_number}.",
+            model:       $order,
+        );
 
         return response()->json(['success' => true]);
     }

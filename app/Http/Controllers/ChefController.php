@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OrderStatusUpdated;
+use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Rider;
@@ -119,6 +120,12 @@ class ChefController extends Controller
 
             broadcast(new OrderStatusUpdated($order));
 
+            AuditLog::record(
+                action:      'order_cancelled',
+                description: "Kitchen removed last item — {$order->order_number} cancelled.",
+                model:       $order,
+            );
+
             return $this->kitchenActionResponse(true, "All items removed — order #{$order->order_number} has been cancelled.");
         }
 
@@ -131,6 +138,13 @@ class ChefController extends Controller
         ]);
 
         broadcast(new OrderStatusUpdated($order));
+
+        AuditLog::record(
+            action:      'order_item_removed',
+            description: "Kitchen removed item from {$order->order_number}.",
+            model:       $order,
+            newValues:   ['items_remaining' => $remaining->count(), 'new_subtotal' => $newSubtotal],
+        );
 
         return response()->json([
             'success'       => true,
@@ -156,6 +170,12 @@ class ChefController extends Controller
 
         broadcast(new OrderStatusUpdated($order));
 
+        AuditLog::record(
+            action:      'order_cooking_started',
+            description: "Chef started cooking {$order->order_number}.",
+            model:       $order,
+        );
+
         return $this->kitchenActionResponse(true, "Order #{$order->order_number} is now cooking.");
     }
 
@@ -175,6 +195,12 @@ class ChefController extends Controller
         $order->update(['prepared_at' => now()]);
 
         broadcast(new OrderStatusUpdated($order));
+
+        AuditLog::record(
+            action:      'order_marked_ready',
+            description: "Chef marked {$order->order_number} as ready.",
+            model:       $order,
+        );
 
         return $this->kitchenActionResponse(true, "Order #{$order->order_number} is ready for pickup.");
     }
@@ -198,6 +224,13 @@ class ChefController extends Controller
         ]);
 
         broadcast(new OrderStatusUpdated($order));
+
+        AuditLog::record(
+            action:      'rider_assigned',
+            description: "Chef assigned rider to {$order->order_number}.",
+            model:       $order,
+            newValues:   ['rider_id' => $request->rider_id],
+        );
 
         return $this->kitchenActionResponse(true, "Rider assigned to order #{$order->order_number}.");
     }
