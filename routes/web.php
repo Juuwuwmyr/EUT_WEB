@@ -145,7 +145,7 @@ Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallbac
 // -------------------------------------------------------
 // Admin panel — protected by auth + admin middleware
 // -------------------------------------------------------
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'admin.sync-verify'])->group(function () {
 
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 

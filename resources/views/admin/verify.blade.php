@@ -183,7 +183,7 @@
     </div>
 
     <h1>Confirm Your Identity</h1>
-    <p class="subtitle">Enter your password to access {{ \App\Http\Middleware\RequireAdminVerification::scopeLabel($scope) }}.<br>Each area is verified separately. Access lasts 30 minutes.</p>
+    <p class="subtitle">Enter your password to access {{ \App\Http\Middleware\RequireAdminVerification::scopeLabel($scope) }}.<br>You will be asked again each time you leave and return.</p>
 
     {{-- Logged-in user badge --}}
     <div class="user-badge">

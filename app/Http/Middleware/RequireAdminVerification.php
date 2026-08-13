@@ -8,9 +8,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RequireAdminVerification
 {
-    /** Verification window in seconds (must match verify page copy). */
-    private const TTL = 30 * 60;
-
     public const SCOPES = ['dashboard', 'categories', 'menu'];
 
     public function handle(Request $request, Closure $next, string $scope = 'menu'): Response
@@ -54,12 +51,6 @@ class RequireAdminVerification
         $verifiedAt = session($key);
 
         if (! $verifiedAt) {
-            return false;
-        }
-
-        if ((time() - (int) $verifiedAt) > self::TTL) {
-            session()->forget($key);
-
             return false;
         }
 

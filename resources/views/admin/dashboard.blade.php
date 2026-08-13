@@ -235,7 +235,7 @@
             </svg>
         </div>
         <h2>Verify to View Dashboard</h2>
-        <p>Sales, revenue, and user data are hidden until you confirm your password.</p>
+        <p>Sales, revenue, and user data are hidden until you confirm your password. You will be asked again when you leave this page.</p>
 
         @if($errors->has('password'))
         <div class="dashboard-verify-error">{{ $errors->first('password') }}</div>

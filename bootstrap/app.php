@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'chef'             => \App\Http\Middleware\ChefMiddleware::class,
             'auth.printserver' => \App\Http\Middleware\PrintServerMiddleware::class,
             'admin.verify'     => \App\Http\Middleware\RequireAdminVerification::class,
+            'admin.sync-verify'=> \App\Http\Middleware\SyncAdminVerificationScope::class,
         ]);
 
         // This project uses a modal-based login on the home page,
