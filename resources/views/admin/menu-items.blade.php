@@ -999,6 +999,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Now actually submit the form programmatically
+    // DEBUG: log what's being sent
+    var debugData = {};
+    new FormData(form).forEach(function(v, k){ debugData[k] = v; });
+    console.log('[EUT] Form submit data:', debugData);
+    console.log('[EUT] Form action:', form.action);
+    console.log('[EUT] Groups count:', allCards.length);
+    
     this.submit();
 }); // end submit
 }); // end DOMContentLoaded

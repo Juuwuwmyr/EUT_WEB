@@ -106,7 +106,19 @@ class OrderController extends Controller
             foreach ($request->items as $line) {
                 // Cart IDs may be composite like "5_12-14" — extract the base menu item ID
                 $menuItemId = (int) explode('_', $line['id'])[0];
-                $menuItem   = MenuItem::findOrFail($menuItemId);
+                $menuItem   = MenuItem::find($menuItemId);
+
+                if (!$menuItem) {
+                    DB::rollBack();
+                    // Clear the stale cart item — item no longer exists on this server
+                    return response()->json([
+                        'success'       => false,
+                        'message'       => 'One or more items in your cart are no longer available. Please refresh the page and try again.',
+                        'stale_item_id' => $menuItemId,
+                        'clear_cart'    => true,
+                    ], 422);
+                }
+
                 $qty        = (int) $line['qty'];
                 $price      = (float) $menuItem->price;
 
@@ -211,7 +223,9 @@ class OrderController extends Controller
                 $existingOrder = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
                     ->where('status', 'pending')
-                    ->where('ordering_locked', false)   // ← never merge into a locked session
+                    ->when(\Illuminate\Support\Facades\Schema::hasColumn('orders', 'ordering_locked'),
+                        fn($q) => $q->where('ordering_locked', false)
+                    )
                     ->whereDate('created_at', today())
                     ->latest()
                     ->first();
@@ -265,7 +279,9 @@ class OrderController extends Controller
                 $activeSession = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
                     ->whereIn('status', ['pending', 'accepted', 'preparing'])
-                    ->where('ordering_locked', false)   // ← only inherit unlocked sessions
+                    ->when(\Illuminate\Support\Facades\Schema::hasColumn('orders', 'ordering_locked'),
+                        fn($q) => $q->where('ordering_locked', false)
+                    )
                     ->whereDate('created_at', today())
                     ->whereNotNull('table_session_id')
                     ->latest()

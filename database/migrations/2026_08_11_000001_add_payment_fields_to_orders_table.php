@@ -9,8 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->decimal('cash_received', 10, 2)->nullable()->after('payment_status');
-            $table->decimal('change_due',    10, 2)->nullable()->after('cash_received');
+            if (! \Illuminate\Support\Facades\Schema::hasColumn('orders', 'cash_received')) {
+                $table->decimal('cash_received', 10, 2)->nullable()->after('payment_status');
+            }
+            if (! \Illuminate\Support\Facades\Schema::hasColumn('orders', 'change_due')) {
+                $table->decimal('change_due',    10, 2)->nullable()->after('cash_received');
+            }
         });
     }
 

@@ -1485,6 +1485,15 @@ function closePaymentModal() {
     document.body.style.overflow = '';
     if (_pmOrigBtn) { _pmOrigBtn.disabled = false; _pmOrigBtn.innerHTML = _pmOrigBtn._origHtml || _pmOrigBtn.innerHTML; }
     _pmOrderId = null; _pmOrigBtn = null;
+    // Always reset the confirm button so it's ready for next use
+    var confirmBtn = document.getElementById('pmConfirmBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Complete &amp; Print Receipt';
+    }
+    // Also reset cash input
+    var cashInput = document.getElementById('pmCashInput');
+    if (cashInput) cashInput.value = '';
 }
 
 async function confirmPayment() {
