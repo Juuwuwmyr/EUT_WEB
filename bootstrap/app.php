@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'rider'            => \App\Http\Middleware\RiderMiddleware::class,
             'chef'             => \App\Http\Middleware\ChefMiddleware::class,
             'auth.printserver' => \App\Http\Middleware\PrintServerMiddleware::class,
+            'admin.verify'     => \App\Http\Middleware\RequireAdminVerification::class,
         ]);
 
         // This project uses a modal-based login on the home page,
