@@ -438,6 +438,8 @@ class AdminController extends Controller
         $keptGroupIds = [];
 
         foreach ($groups as $idx => $groupData) {
+            $group = null; // reset each iteration to avoid stale references
+
             $groupPayload = [
                 'menu_item_id' => $item->id,
                 'type'         => $groupData['type'],
@@ -449,7 +451,12 @@ class AdminController extends Controller
 
             if (!empty($groupData['id'])) {
                 $group = ModifierGroup::where('id', $groupData['id'])->where('menu_item_id', $item->id)->first();
-                if ($group) $group->update($groupPayload);
+                if ($group) {
+                    $group->update($groupPayload);
+                } else {
+                    // ID not found — treat as new
+                    $group = ModifierGroup::create($groupPayload);
+                }
             } else {
                 $group = ModifierGroup::create($groupPayload);
             }
@@ -478,6 +485,8 @@ class AdminController extends Controller
                 }
 
                 foreach ($options as $oIdx => $optData) {
+                    $opt = null; // reset each iteration
+
                     $optPayload = [
                         'modifier_group_id' => $group->id,
                         'name'              => $optData['name'],
@@ -490,12 +499,17 @@ class AdminController extends Controller
 
                     if (!empty($optData['id'])) {
                         $opt = ModifierOption::where('id', $optData['id'])->where('modifier_group_id', $group->id)->first();
-                        if ($opt) $opt->update($optPayload);
+                        if ($opt) {
+                            $opt->update($optPayload);
+                        } else {
+                            // ID not found — treat as new
+                            $opt = ModifierOption::create($optPayload);
+                        }
                     } else {
                         $opt = ModifierOption::create($optPayload);
                     }
 
-                    if ($opt ?? null) $keptOptionIds[] = $opt->id;
+                    if ($opt) $keptOptionIds[] = $opt->id;
                 }
 
                 $group->options()->whereNotIn('id', $keptOptionIds)->delete();
@@ -514,6 +528,8 @@ class AdminController extends Controller
         $keptIds = [];
 
         foreach ($addons as $i => $addonData) {
+            $group = null; // reset each iteration to avoid stale references
+
             $name      = $addonData['name']             ?? '';
             $desc      = $addonData['description']      ?? '';
             $pType     = $addonData['price_type']       ?? 'none';
@@ -537,6 +553,9 @@ class AdminController extends Controller
                                       ->first();
                 if ($group) {
                     $group->update(array_merge($groupPayload, ['description' => $desc]));
+                } else {
+                    // ID not found — treat as new
+                    $group = ModifierGroup::create($groupPayload);
                 }
             } else {
                 $group = ModifierGroup::create($groupPayload);
