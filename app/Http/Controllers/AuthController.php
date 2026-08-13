@@ -122,9 +122,13 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         try {
-            $user->sendEmailVerificationNotification();
+            $this->dispatchVerificationEmail($user);
         } catch (\Throwable $e) {
-            \Log::error('Signup verification email failed: ' . $e->getMessage());
+            \Log::error('Signup verification email failed', [
+                'email'  => $user->email,
+                'mailer' => config('mail.default'),
+                'error'  => $e->getMessage(),
+            ]);
 
             return response()->json([
                 'success' => false,
@@ -140,7 +144,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success'  => true,
-            'message'  => 'Account created! Check your email for a verification link.',
+            'message'  => 'Account created! Check your email for a 6-digit verification code.',
             'redirect' => route('verification.notice'),
         ]);
     }
@@ -157,20 +161,23 @@ class AuthController extends Controller
         return view('auth.verify-email');
     }
 
-    public function verifyEmail(Request $request, int $id, string $hash)
+    public function verifyEmailCode(Request $request)
     {
-        $user = User::findOrFail($id);
-
-        if (! hash_equals($hash, sha1($user->getEmailForVerification()))) {
-            abort(403, 'Invalid verification link.');
+        if ($request->user()->hasVerifiedEmail()) {
+            return redirect()->route('shop.home');
         }
 
-        if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
-            event(new Verified($user));
+        $code = preg_replace('/\D/', '', (string) $request->input('code'));
+
+        if (strlen($code) !== 6) {
+            return back()->with('error', 'Please enter the 6-digit code from your email.');
         }
 
-        Auth::login($user);
+        if (! $request->user()->verifyEmailWithCode($code)) {
+            return back()->with('error', 'Invalid or expired code. Request a new one and try again.');
+        }
+
+        event(new Verified($request->user()));
 
         return redirect()
             ->route('shop.home')
@@ -183,9 +190,45 @@ class AuthController extends Controller
             return redirect()->route('shop.home');
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        try {
+            $this->dispatchVerificationEmail($request->user());
+        } catch (\Throwable $e) {
+            \Log::error('Resend verification email failed', [
+                'email'  => $request->user()->email,
+                'mailer' => config('mail.default'),
+                'error'  => $e->getMessage(),
+            ]);
+
+            return back()->with(
+                'error',
+                config('mail.default') === 'log'
+                    ? 'Email is not configured on the server (MAIL_MAILER=log). Ask the admin to fix SMTP settings.'
+                    : 'Could not send the email right now. Please try again in a minute or check spam.'
+            );
+        }
 
         return back()->with('resent', true);
+    }
+
+    /**
+     * Send verification email via SMTP and log delivery attempt.
+     *
+     * @throws \RuntimeException
+     */
+    protected function dispatchVerificationEmail(User $user): void
+    {
+        if (config('mail.default') === 'log') {
+            throw new \RuntimeException('MAIL_MAILER is log — emails are written to the log file only.');
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        \Log::info('Verification email dispatched', [
+            'user_id' => $user->id,
+            'email'   => $user->email,
+            'mailer'  => config('mail.default'),
+            'host'    => config('mail.mailers.smtp.host'),
+        ]);
     }
 
     // -------------------------------------------------------

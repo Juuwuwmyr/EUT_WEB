@@ -50,7 +50,30 @@
             font-size: .8rem;
             margin-bottom: 1rem;
         }
-        .actions { display: flex; flex-direction: column; gap: .75rem; margin-top: 1.25rem; }
+        .alert-error {
+            background: rgba(239,68,68,.12);
+            border: 1px solid rgba(239,68,68,.25);
+            color: #fca5a5;
+        }
+        .code-input {
+            width: 100%;
+            margin: 1rem 0 .5rem;
+            padding: 1rem;
+            border-radius: .85rem;
+            border: 1px solid rgba(255,255,255,.12);
+            background: #0a0a0a;
+            color: #fff;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: .75rem;
+            text-align: center;
+            outline: none;
+        }
+        .code-input:focus {
+            border-color: rgba(245,158,11,.55);
+            box-shadow: 0 0 0 3px rgba(245,158,11,.12);
+        }
+        .actions { display: flex; flex-direction: column; gap: .75rem; margin-top: 1rem; }
         .btn {
             display: inline-flex;
             align-items: center;
@@ -74,26 +97,52 @@
             border: 1px solid rgba(255,255,255,.12);
         }
         .hint { font-size: .75rem; color: #6b7280; margin-top: 1rem; }
+        .field-error { color: #fca5a5; font-size: .75rem; margin-bottom: .75rem; text-align: left; }
     </style>
 </head>
 <body>
 <div class="card">
     <div class="icon">✉️</div>
-    <h1>Check your email</h1>
+    <h1>Enter verification code</h1>
     <p>
-        We sent a verification link to<br>
+        We sent a 6-digit code to<br>
         <span class="email">{{ auth()->user()->email }}</span>
     </p>
-    <p>Click the link in that email to activate your account and start ordering.</p>
+    <p>Enter the code below to activate your account.</p>
 
     @if (session('resent'))
-    <div class="alert">A fresh verification link has been sent.</div>
+    <div class="alert">A new code has been sent. Check inbox and spam — it can take 1–2 minutes.</div>
     @endif
+
+    @if (session('error'))
+    <div class="alert alert-error">{{ session('error') }}</div>
+    @endif
+
+    <form method="POST" action="{{ route('verification.verify') }}">
+        @csrf
+        <input
+            type="text"
+            name="code"
+            id="code"
+            class="code-input"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="6"
+            autocomplete="one-time-code"
+            placeholder="000000"
+            value="{{ old('code') }}"
+            required
+        >
+        @error('code')
+        <div class="field-error">{{ $message }}</div>
+        @enderror
+        <button type="submit" class="btn btn-primary">Verify email</button>
+    </form>
 
     <div class="actions">
         <form method="POST" action="{{ route('verification.send') }}">
             @csrf
-            <button type="submit" class="btn btn-primary">Resend verification email</button>
+            <button type="submit" class="btn btn-ghost">Resend code</button>
         </form>
         <form method="POST" action="{{ route('auth.logout') }}">
             @csrf
@@ -102,7 +151,12 @@
         <a href="{{ route('restaurant') }}" class="btn btn-ghost">Back to home</a>
     </div>
 
-    <p class="hint">Didn't get it? Check your spam folder or click resend above.</p>
+    <p class="hint">Search for <strong style="color:#9ca3af;">E.U.T Snack House</strong> in Gmail. Codes expire after 15 minutes.</p>
 </div>
+<script>
+document.getElementById('code').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 6);
+});
+</script>
 </body>
 </html>

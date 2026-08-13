@@ -32,6 +32,7 @@ trait Auditable
             $ignored = [
                 'updated_at', 'created_at',
                 'email_verified_at', 'remember_token',
+                'email_verification_code', 'email_verification_code_expires_at',
                 'last_login_at', 'last_seen_at',
                 // High-frequency / low-value fields
                 'current_lat', 'current_lng',
