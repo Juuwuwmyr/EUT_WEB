@@ -157,15 +157,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::patch ('/users/{user}/archive',   [AdminController::class, 'archiveUser'])->name('users.archive');
     Route::delete('/users/{user}',           [AdminController::class, 'deleteUser'])->name('users.delete');
 
-    // ── Categories ─────────────────────────────────────────
-    Route::get   ('/categories',             [AdminController::class, 'categories'])->name('categories');
+    // ── Credential re-verification (verify page itself is exempt) ─────
+    Route::get ('/verify', [AdminController::class, 'showVerify'])->name('verify');
+    Route::post('/verify', [AdminController::class, 'submitVerify'])->name('verify.submit');
+
+    // ── Categories — GET page requires verification ────────────────────
+    Route::get('/categories', [AdminController::class, 'categories'])->name('categories')->middleware('admin.verify');
     Route::post  ('/categories',             [AdminController::class, 'storeCategory'])->name('categories.store');
     Route::put   ('/categories/{category}',  [AdminController::class, 'updateCategory'])->name('categories.update');
     Route::patch ('/categories/{category}/archive', [AdminController::class, 'archiveCategory'])->name('categories.archive');
     Route::delete('/categories/{category}', [AdminController::class, 'deleteCategory'])->name('categories.delete');
 
-    // ── Menu Items ─────────────────────────────────────────
-    Route::get   ('/menu-items',             [AdminController::class, 'menuItems'])->name('menu-items');
+    // ── Menu Items — GET page requires verification ────────────────────
+    Route::get('/menu-items', [AdminController::class, 'menuItems'])->name('menu-items')->middleware('admin.verify');
     Route::post  ('/menu-items',             [AdminController::class, 'storeMenuItem'])->name('menu-items.store');
     Route::put   ('/menu-items/{menuItem}',  [AdminController::class, 'updateMenuItem'])->name('menu-items.update');
     Route::patch ('/menu-items/{menuItem}/archive', [AdminController::class, 'archiveMenuItem'])->name('menu-items.archive');
