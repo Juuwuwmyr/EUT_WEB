@@ -176,8 +176,7 @@
                     {{-- Diff toggle --}}
                     <td style="text-align:center;">
                         @if($log->old_values || $log->new_values)
-                        <button onclick="toggleDiff({{ $log->id }}, this)"
-                            id="diffbtn-{{ $log->id }}"
+                        <button onclick="openDiffModal({{ $log->id }})"
                             class="btn-ghost"
                             style="font-size:.72rem;padding:.25rem .6rem;display:inline-flex;align-items:center;gap:.3rem;">
                             <i data-lucide="diff" style="width:.72rem;height:.72rem;stroke-width:2;"></i> View
@@ -188,31 +187,7 @@
                     </td>
                 </tr>
 
-                {{-- Expandable diff row --}}
-                @if($log->old_values || $log->new_values)
-                <tr id="diff-{{ $log->id }}" style="display:none;">
-                    <td colspan="6" style="padding:.5rem 1rem 1.1rem;background:rgba(0,0,0,.18);">
-                        <div style="display:grid;grid-template-columns:{{ $log->old_values && $log->new_values ? '1fr 1fr' : '1fr' }};gap:.875rem;max-width:800px;">
-                            @if($log->old_values)
-                            <div>
-                                <div style="font-size:.65rem;font-weight:700;color:#f87171;margin-bottom:.35rem;display:flex;align-items:center;gap:.3rem;text-transform:uppercase;letter-spacing:.06em;">
-                                    <i data-lucide="minus-circle" style="width:.7rem;height:.7rem;stroke-width:2.5;"></i> Before
-                                </div>
-                                <pre style="margin:0;font-size:.7rem;font-family:'Courier New',monospace;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:.5rem;padding:.625rem .8rem;overflow:auto;max-height:200px;color:rgba(252,165,165,.9);white-space:pre-wrap;word-break:break-all;line-height:1.6;">{{ json_encode($log->old_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                            </div>
-                            @endif
-                            @if($log->new_values)
-                            <div>
-                                <div style="font-size:.65rem;font-weight:700;color:#34d399;margin-bottom:.35rem;display:flex;align-items:center;gap:.3rem;text-transform:uppercase;letter-spacing:.06em;">
-                                    <i data-lucide="plus-circle" style="width:.7rem;height:.7rem;stroke-width:2.5;"></i> After
-                                </div>
-                                <pre style="margin:0;font-size:.7rem;font-family:'Courier New',monospace;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:.5rem;padding:.625rem .8rem;overflow:auto;max-height:200px;color:rgba(110,231,183,.9);white-space:pre-wrap;word-break:break-all;line-height:1.6;">{{ json_encode($log->new_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                            </div>
-                            @endif
-                        </div>
-                    </td>
-                </tr>
-                @endif
+
 
                 @empty
                 <tr>
@@ -249,17 +224,83 @@
 
 @push('scripts')
 <script>
-function toggleDiff(id, btn) {
-    const row = document.getElementById('diff-' + id);
-    if (!row) return;
-    const open = row.style.display === 'none';
-    row.style.display = open ? 'table-row' : 'none';
-    if (btn) {
-        btn.style.background    = open ? 'rgba(99,102,241,.12)' : '';
-        btn.style.borderColor   = open ? 'rgba(99,102,241,.4)'  : '';
-        btn.style.color         = open ? '#818cf8'              : '';
+// Store diff data from PHP so JS can access it without DOM hacks
+var DIFF_DATA = {
+@foreach($logs as $log)
+@if($log->old_values || $log->new_values)
+    {{ $log->id }}: {
+        action:    "{{ addslashes(str_replace('_', ' ', $log->action)) }}",
+        label:     "{{ addslashes($log->auditable_label ?? class_basename($log->auditable_type ?? '')) }}",
+        model:     "{{ addslashes(class_basename($log->auditable_type ?? '')) }}",
+        id:        {{ $log->auditable_id ?? 'null' }},
+        old:       {!! $log->old_values ? json_encode($log->old_values, JSON_UNESCAPED_UNICODE) : 'null' !!},
+        new:       {!! $log->new_values ? json_encode($log->new_values, JSON_UNESCAPED_UNICODE) : 'null' !!},
+    },
+@endif
+@endforeach
+};
+
+function openDiffModal(id) {
+    var d = DIFF_DATA[id];
+    if (!d) return;
+
+    document.getElementById('diffModalTitle').textContent =
+        (d.label || d.model || 'Record') +
+        (d.id ? ' #' + d.id : '') +
+        ' — ' + d.action;
+
+    var body = document.getElementById('diffModalBody');
+    var html = '<div style="display:grid;grid-template-columns:' + (d.old && d.new ? '1fr 1fr' : '1fr') + ';gap:1rem;">';
+
+    if (d.old) {
+        html += '<div>' +
+            '<div style="font-size:.65rem;font-weight:700;color:#f87171;margin-bottom:.5rem;display:flex;align-items:center;gap:.35rem;text-transform:uppercase;letter-spacing:.07em;">' +
+                '<svg width="11" height="11" fill="none" stroke="#f87171" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 9l-6 6M9 9l6 6"/></svg>' +
+                'Before' +
+            '</div>' +
+            '<pre style="margin:0;font-size:.72rem;font-family:\'Courier New\',monospace;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.22);border-radius:.625rem;padding:.75rem .9rem;overflow:auto;max-height:320px;color:rgba(252,165,165,.9);white-space:pre-wrap;word-break:break-all;line-height:1.65;">' +
+                escapeHtml(JSON.stringify(d.old, null, 2)) +
+            '</pre>' +
+        '</div>';
     }
+
+    if (d.new) {
+        html += '<div>' +
+            '<div style="font-size:.65rem;font-weight:700;color:#34d399;margin-bottom:.5rem;display:flex;align-items:center;gap:.35rem;text-transform:uppercase;letter-spacing:.07em;">' +
+                '<svg width="11" height="11" fill="none" stroke="#34d399" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8M8 12h8"/></svg>' +
+                'After' +
+            '</div>' +
+            '<pre style="margin:0;font-size:.72rem;font-family:\'Courier New\',monospace;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.22);border-radius:.625rem;padding:.75rem .9rem;overflow:auto;max-height:320px;color:rgba(110,231,183,.9);white-space:pre-wrap;word-break:break-all;line-height:1.65;">' +
+                escapeHtml(JSON.stringify(d.new, null, 2)) +
+            '</pre>' +
+        '</div>';
+    }
+
+    html += '</div>';
+    body.innerHTML = html;
+    openModal('diffModal');
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 </script>
 @endpush
+{{-- ── DIFF MODAL ───────────────────────────────────────────── --}}
+<div id="diffModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'diffModal')">
+    <div class="modal-box modal-lg" style="max-width:780px;">
+        <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="diff" style="width:1.1rem;height:1.1rem;color:#eab308;stroke-width:2;"></i>
+                <h3 class="modal-title" id="diffModalTitle">Changes</h3>
+            </div>
+            <button onclick="closeModal('diffModal')" class="modal-close">
+                <i data-lucide="x" style="width:1rem;height:1rem;stroke-width:2.5;"></i>
+            </button>
+        </div>
+        <div id="diffModalBody" class="modal-body" style="max-height:70vh;">
+        </div>
+    </div>
+</div>
+
 @endsection
