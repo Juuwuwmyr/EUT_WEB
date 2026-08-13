@@ -142,6 +142,11 @@ Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logou
 Route::get('/auth/google',          [AuthController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
+// Email verification routes
+Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->middleware('auth')->name('verification.notice');
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify'])->middleware(['auth', 'signed'])->name('verification.verify');
+Route::post('/email/verification-notification', [AuthController::class, 'resend'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
 // -------------------------------------------------------
 // Admin panel — protected by auth + admin middleware
 // -------------------------------------------------------

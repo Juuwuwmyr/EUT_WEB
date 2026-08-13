@@ -9,9 +9,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Foundation\Auth\VerifiesEmails;
 
 class AuthController extends Controller
 {
+    use VerifiesEmails;
+
+    protected $redirectTo = '/shop';
+
     // -------------------------------------------------------
     // EMAIL LOGIN
     // -------------------------------------------------------
@@ -105,18 +110,12 @@ class AuthController extends Controller
             'role'     => 'user',
         ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
+        // Send email verification notification
+        $user->sendEmailVerificationNotification();
 
         return response()->json([
             'success'  => true,
-            'message'  => 'Account created successfully.',
-            'redirect' => route('shop.home'),
-            'user'     => [
-                'name'   => $user->name,
-                'email'  => $user->email,
-                'avatar' => $user->avatar,
-            ],
+            'message'  => 'Account created successfully. Please check your email to verify your account.',
         ]);
     }
 
