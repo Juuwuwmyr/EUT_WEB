@@ -183,7 +183,7 @@
     </div>
 
     <h1>Confirm Your Identity</h1>
-    <p class="subtitle">Enter your password to access {{ \App\Http\Middleware\RequireAdminVerification::scopeLabel($scope) }}.<br>You will be asked again each time you leave and return.</p>
+    <p class="subtitle">Enter your password to access {{ \App\Http\Middleware\RequireAdminVerification::scopeLabel($scope) }}.<br>Your password is required every time you open this page.</p>
 
     {{-- Logged-in user badge --}}
     <div class="user-badge">

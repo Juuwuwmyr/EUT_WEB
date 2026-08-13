@@ -16,7 +16,14 @@ class RequireAdminVerification
             $scope = 'menu';
         }
 
+        // Allow form saves on the current visit without re-prompting
+        if (! $request->isMethod('GET')) {
+            return $next($request);
+        }
+
         if (static::isVerified($scope)) {
+            static::clearVerified($scope);
+
             return $next($request);
         }
 
@@ -60,7 +67,14 @@ class RequireAdminVerification
     public static function markVerified(string $scope): void
     {
         if (in_array($scope, self::SCOPES, true)) {
-            session([static::sessionKey($scope) => time()]);
+            session([static::sessionKey($scope) => true]);
+        }
+    }
+
+    public static function clearVerified(string $scope): void
+    {
+        if (in_array($scope, self::SCOPES, true)) {
+            session()->forget(static::sessionKey($scope));
         }
     }
 

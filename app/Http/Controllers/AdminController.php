@@ -121,7 +121,9 @@ class AdminController extends Controller
 
         $dashboardVerified = RequireAdminVerification::isVerified('dashboard');
 
-        if (! $dashboardVerified) {
+        if ($dashboardVerified) {
+            RequireAdminVerification::clearVerified('dashboard');
+        } else {
             session([
                 'admin_verify_intended' => route('admin.dashboard'),
                 'admin_verify_scope'    => 'dashboard',
