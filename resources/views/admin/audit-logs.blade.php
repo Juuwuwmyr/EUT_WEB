@@ -7,30 +7,33 @@
 .audit-hero {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, #0f0f0f 0%, #1a0a0a 50%, #0f0a1a 100%);
-    border: 1px solid rgba(255,255,255,.07);
+    background: linear-gradient(135deg, #1c0a0a 0%, #200d0d 40%, #140a1e 100%);
+    border: 1px solid rgba(220,38,38,.25);
     border-radius: 1.25rem;
     padding: 2rem 2rem 1.75rem;
     margin-bottom: 1.75rem;
+    box-shadow: 0 0 0 1px rgba(220,38,38,.08), 0 8px 32px rgba(0,0,0,.5);
 }
 .audit-hero::before {
     content: '';
     position: absolute;
-    top: -80px; right: -80px;
-    width: 320px; height: 320px;
-    background: radial-gradient(circle, rgba(220,38,38,.18) 0%, transparent 70%);
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(220,38,38,.28) 0%, transparent 65%);
     pointer-events: none;
 }
 .audit-hero::after {
     content: '';
     position: absolute;
-    bottom: -60px; left: 15%;
-    width: 240px; height: 240px;
-    background: radial-gradient(circle, rgba(139,92,246,.1) 0%, transparent 70%);
+    bottom: -50px; left: 20%;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(139,92,246,.18) 0%, transparent 65%);
     pointer-events: none;
 }
 html.light .audit-hero {
     background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #0f172a 100%);
+    border-color: rgba(255,255,255,.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,.3);
 }
 .audit-stat-pill {
     display: inline-flex;
@@ -38,14 +41,15 @@ html.light .audit-hero {
     gap: .5rem;
     padding: .55rem .9rem;
     border-radius: .75rem;
-    background: rgba(255,255,255,.05);
-    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.13);
+    backdrop-filter: blur(6px);
 }
 
 /* ── FILTER PANEL ────────────────────────────────────────── */
 .audit-filter-panel {
-    background: var(--bg-section);
-    border: 1px solid var(--border-section);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
     border-radius: 1rem;
     margin-bottom: 1.5rem;
     overflow: hidden;
@@ -59,13 +63,13 @@ html.light .audit-hero {
     user-select: none;
     transition: background .2s;
 }
-.audit-filter-header:hover { background: rgba(255,255,255,.02); }
+.audit-filter-header:hover { background: rgba(255,255,255,.03); }
 .audit-filter-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: .875rem;
     padding: 1.25rem;
-    border-top: 1px solid var(--border-section);
+    border-top: 1px solid var(--border-card);
 }
 @media(max-width:780px){ .audit-filter-grid { grid-template-columns: 1fr 1fr; } }
 @media(max-width:480px){ .audit-filter-grid { grid-template-columns: 1fr; } }
@@ -73,8 +77,8 @@ html.light .audit-hero {
 
 /* ── TIMELINE ────────────────────────────────────────────── */
 .timeline-wrap {
-    background: var(--bg-section);
-    border: 1px solid var(--border-section);
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
     border-radius: 1rem;
     overflow: hidden;
 }
@@ -114,22 +118,22 @@ html.light .audit-hero {
     flex: 1;
     min-height: 24px;
     margin-top: 5px;
-    background: linear-gradient(to bottom, rgba(255,255,255,.09), rgba(255,255,255,.02));
+    background: linear-gradient(to bottom, var(--border-card), transparent);
 }
 .timeline-entry:last-child .tl-rail { opacity: 0; }
 
 /* card */
 .tl-card {
     margin: .75rem 0 .75rem 1rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-card);
+    background: var(--bg-section);
+    border: 1px solid var(--border-section);
     border-radius: .875rem;
     padding: .9rem 1.1rem;
     transition: border-color .2s, box-shadow .2s, transform .15s;
 }
 .timeline-entry:hover .tl-card {
-    border-color: rgba(255,255,255,.15);
-    box-shadow: 0 6px 24px rgba(0,0,0,.22);
+    border-color: rgba(255,255,255,.18);
+    box-shadow: 0 4px 20px rgba(0,0,0,.35);
     transform: translateX(3px);
 }
 
