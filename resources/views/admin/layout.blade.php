@@ -340,12 +340,6 @@
                 </span>
             </button>
 
-            <a href="{{ route('home') }}" target="_blank" class="btn-ghost" style="font-size:.75rem;color:rgba(255,255,255,.75);border-color:rgba(255,255,255,.25);display:inline-flex;align-items:center;gap:.35rem;"
-               onmouseenter="this.style.color='#fff';this.style.background='rgba(255,255,255,.1)'" onmouseleave="this.style.color='rgba(255,255,255,.75)';this.style.background='transparent'">
-                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                View Site
-            </a>
-
             <div style="display:flex;align-items:center;gap:.5rem;padding-left:.75rem;border-left:1px solid rgba(255,255,255,.15);">
                 @if(auth()->user()->avatar)
                     <img src="{{ auth()->user()->avatar }}" alt="{{ auth()->user()->name }}" width="32" height="32" style="border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.4);flex-shrink:0;">
