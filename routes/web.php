@@ -159,7 +159,7 @@ Route::post('/email/verify/cancel', [AuthController::class, 'cancelPendingSignup
 // -------------------------------------------------------
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'admin.sync-verify'])->group(function () {
 
-    Route::get('/', [AdminController::class, 'dashboard'])->middleware('permission:view_dashboard')->name('dashboard');
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 
     // ── Users ──────────────────────────────────────────────
     Route::get   ('/users',                  [AdminController::class, 'users'])->middleware('permission:view_users')->name('users');
