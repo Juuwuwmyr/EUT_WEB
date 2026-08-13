@@ -163,7 +163,7 @@ class AuthController extends Controller
             $data['avatar'] = asset('storage/' . $path);
         }
 
-        $user->update($data);
+        $user->updateQuietly($data);
 
         AuditLog::record(
             action:      'profile_updated',
@@ -206,7 +206,7 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Current password is incorrect.'], 422);
         }
 
-        $user->update(['password' => Hash::make($request->password)]);
+        $user->updateQuietly(['password' => Hash::make($request->password)]);
 
         AuditLog::record(
             action:      'password_changed',

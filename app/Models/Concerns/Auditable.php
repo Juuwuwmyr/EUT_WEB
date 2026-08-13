@@ -33,6 +33,10 @@ trait Auditable
                 'updated_at', 'created_at',
                 'email_verified_at', 'remember_token',
                 'last_login_at', 'last_seen_at',
+                // High-frequency / low-value fields
+                'current_lat', 'current_lng',
+                'pickup_slip_printed_at', 'total_deliveries',
+                'ordering_locked', 'cash_received', 'change_due',
             ];
             $changed = array_diff_key($dirty, array_flip($ignored));
             if (empty($changed)) {

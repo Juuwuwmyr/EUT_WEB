@@ -216,5 +216,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/table-qrcodes/coupon',[TableQrController::class, 'coupon'])->name('table-qrcodes.coupon');
 
     // ── Audit Logs ─────────────────────────────────────────
-    Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs');
+    Route::get('/audit-logs',      [AdminController::class, 'auditLogs'])->name('audit-logs');
+    Route::get('/audit-logs/poll', [AdminController::class, 'auditLogsPoll'])->name('audit-logs.poll');
 });

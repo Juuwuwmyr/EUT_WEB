@@ -45,7 +45,8 @@ class RiderController extends Controller
     {
         $request->validate(['is_available' => 'required|boolean']);
         $rider = auth()->user()->rider;
-        $rider->update(['is_available' => $request->is_available]);
+        $rider->updateQuietly(['is_available' => $request->is_available]);
+        $rider->refresh();
 
         AuditLog::record(
             action:      'rider_status_changed',
@@ -88,10 +89,11 @@ class RiderController extends Controller
             return back()->with('error', 'Order cannot be picked up at this stage.');
         }
 
-        $order->update([
+        $order->updateQuietly([
             'status'       => 'out_for_delivery',
             'picked_up_at' => now(),
         ]);
+        $order->refresh();
 
         broadcast(new OrderStatusUpdated($order));
 
@@ -124,13 +126,14 @@ class RiderController extends Controller
                 ->store('proof_photos/' . $order->id, config('filesystems.default', 'public'));
         }
 
-        $order->update([
+        $order->updateQuietly([
             'status'        => 'delivered',
             'delivered_at'  => now(),
             'proof_photo'   => $photoPath,
             // 'present' (direct handover) maps to DB enum value 'handover'
             'delivery_type' => $request->input('delivery_type') === 'photo' ? 'photo' : 'handover',
         ]);
+        $order->refresh();
 
         broadcast(new OrderStatusUpdated($order));
 
@@ -234,7 +237,8 @@ class RiderController extends Controller
         $rider = auth()->user()->rider;
         $this->authorizeRiderOrder($order, $rider);
 
-        $order->update(['pickup_slip_printed_at' => now()]);
+        $order->updateQuietly(['pickup_slip_printed_at' => now()]);
+        $order->refresh();
 
         AuditLog::record(
             action:      'pickup_slip_printed',

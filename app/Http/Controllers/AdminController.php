@@ -176,7 +176,7 @@ class AdminController extends Controller
         if ($user->id === auth()->id() && $request->role !== 'admin') {
             return back()->with('error', 'You cannot remove your own admin role.');
         }
-        $user->update(['role' => $request->role]);
+        $user->updateQuietly(['role' => $request->role]);
 
         AuditLog::record(
             action:      'role_changed',
@@ -194,7 +194,7 @@ class AdminController extends Controller
             return back()->with('error', 'You cannot archive your own account.');
         }
         // Uses soft "role" disable — sets role to 'archived' to block login
-        $user->update(['role' => 'archived']);
+        $user->updateQuietly(['role' => 'archived']);
 
         AuditLog::record(
             action:      'user_archived',
@@ -212,7 +212,7 @@ class AdminController extends Controller
             return back()->with('error', 'You cannot delete your own account.');
         }
         $name = $user->name;
-        $user->delete();
+        $user->deleteQuietly();
 
         AuditLog::record(
             action:      'user_deleted',
@@ -319,7 +319,8 @@ class AdminController extends Controller
 
     public function archiveCategory(Category $category)
     {
-        $category->update(['is_archived' => ! $category->is_archived]);
+        $category->updateQuietly(['is_archived' => ! $category->is_archived]);
+        $category->refresh();
         $state = $category->is_archived ? 'archived' : 'restored';
 
         AuditLog::record(
@@ -337,7 +338,7 @@ class AdminController extends Controller
             return back()->with('error', "Cannot delete \"{$category->name}\" — it still has menu items. Archive it or move items first.");
         }
         $name = $category->name;
-        $category->delete();
+        $category->deleteQuietly();
 
         AuditLog::record(
             action:      'category_deleted',
@@ -740,7 +741,8 @@ class AdminController extends Controller
 
     public function archiveMenuItem(MenuItem $menuItem)
     {
-        $menuItem->update(['is_archived' => ! $menuItem->is_archived]);
+        $menuItem->updateQuietly(['is_archived' => ! $menuItem->is_archived]);
+        $menuItem->refresh();
         $state = $menuItem->is_archived ? 'archived' : 'restored';
 
         AuditLog::record(
@@ -763,7 +765,7 @@ class AdminController extends Controller
     public function deleteMenuItem(MenuItem $menuItem)
     {
         $name = $menuItem->name;
-        $menuItem->delete();
+        $menuItem->deleteQuietly();
 
         AuditLog::record(
             action:      'deleted',
@@ -942,10 +944,11 @@ class AdminController extends Controller
         }
 
         // Accept the order — chef will start cooking manually
-        $order->update([
+        $order->updateQuietly([
             'status'      => 'accepted',
             'accepted_at' => now(),
         ]);
+        $order->refresh();
 
         // Queue kitchen ticket for auto-print agent
         \Illuminate\Support\Facades\DB::table('kitchen_print_jobs')->insert([
@@ -965,6 +968,7 @@ class AdminController extends Controller
         );
 
         if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => "Order #{$order->order_number} accepted & sent to kitchen."]);
         }
 
         return back()->with('success', "Order #{$order->order_number} accepted & sent to kitchen.");
@@ -980,13 +984,14 @@ class AdminController extends Controller
                 : back()->with('error', 'Order cannot be assigned at this stage.');
         }
 
-        $order->update([
+        $order->updateQuietly([
             'rider_id'    => $request->rider_id,
             // Keep out_for_delivery status if already on the way, otherwise set rider_assigned
             'status'      => $order->status === 'out_for_delivery' ? 'out_for_delivery' : 'rider_assigned',
             'assigned_at' => now(),
             'prepared_at' => $order->prepared_at ?? now(),
         ]);
+        $order->refresh();
 
         broadcast(new OrderStatusUpdated($order));
 
@@ -1037,7 +1042,8 @@ class AdminController extends Controller
             default            => null,
         };
 
-        $order->update($data);
+        $order->updateQuietly($data);
+        $order->refresh();
 
         broadcast(new OrderStatusUpdated($order));
 
@@ -1060,7 +1066,7 @@ class AdminController extends Controller
                     $cashReceived = (float) $request->input('cash_received', 0);
                     $changeDue    = $cashReceived > 0 ? round($cashReceived - $order->total, 2) : null;
                     if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'cash_received')) {
-                        $order->update([
+                        $order->updateQuietly([
                             'cash_received' => $cashReceived > 0 ? $cashReceived : null,
                             'change_due'    => $changeDue,
                         ]);
@@ -1122,7 +1128,7 @@ class AdminController extends Controller
                 $updateData['change_due']    = $changeDue;
             }
 
-            $o->update($updateData);
+            $o->updateQuietly($updateData);
             broadcast(new \App\Events\OrderStatusUpdated($o))->toOthers();
         }
 
@@ -1166,7 +1172,7 @@ class AdminController extends Controller
         }
 
         foreach ($tableOrders as $o) {
-            $o->update(['ordering_locked' => true]);
+            $o->updateQuietly(['ordering_locked' => true]);
             broadcast(new \App\Events\OrderStatusUpdated($o))->toOthers();
         }
 
@@ -1186,12 +1192,22 @@ class AdminController extends Controller
                 : back()->with('error', 'Only completed or cancelled orders can be archived.');
         }
 
-        $order->update([
-            'is_archived' => !$order->is_archived,
-            'archived_at' => $order->is_archived ? null : now(),
-        ]);
+        $archiving = ! $order->is_archived;
 
-        $label = $order->is_archived ? 'archived' : 'restored';
+        $order->updateQuietly([
+            'is_archived' => $archiving,
+            'archived_at' => $archiving ? now() : null,
+        ]);
+        $order->refresh();
+
+        $label = $archiving ? 'archived' : 'restored';
+
+        AuditLog::record(
+            action:      $label,
+            description: "Admin {$label} order {$order->order_number}.",
+            model:       $order,
+        );
+
         return request()->expectsJson()
             ? response()->json(['success' => true, 'message' => "Order #{$order->order_number} {$label}.", 'is_archived' => $order->is_archived])
             : back()->with('success', "Order #{$order->order_number} {$label}.");
@@ -1208,7 +1224,7 @@ class AdminController extends Controller
 
         $orderNum = $order->order_number;
         $order->items()->delete();
-        $order->delete();
+        $order->deleteQuietly();
 
         AuditLog::record(
             action:      'order_deleted',
@@ -1299,20 +1315,24 @@ class AdminController extends Controller
             'password'     => 'required|string|min:8',
         ]);
 
-        $user = \App\Models\User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => bcrypt($request->password),
-            'role'     => 'rider',
-        ]);
+        $user = \App\Models\User::withoutEvents(function () use ($request) {
+            return \App\Models\User::create([
+                'name'     => $request->name,
+                'email'    => $request->email,
+                'password' => bcrypt($request->password),
+                'role'     => 'rider',
+            ]);
+        });
 
-        \App\Models\Rider::create([
-            'user_id'      => $user->id,
-            'phone'        => $request->phone,
-            'vehicle_type' => $request->vehicle_type,
-            'plate_number' => $request->plate_number,
-            'is_available' => false,
-        ]);
+        \App\Models\Rider::withoutEvents(function () use ($user, $request) {
+            \App\Models\Rider::create([
+                'user_id'      => $user->id,
+                'phone'        => $request->phone,
+                'vehicle_type' => $request->vehicle_type,
+                'plate_number' => $request->plate_number,
+                'is_available' => false,
+            ]);
+        });
 
         AuditLog::record(
             action:      'rider_created',
@@ -1332,7 +1352,8 @@ class AdminController extends Controller
             'plate_number' => 'nullable|string|max:20',
         ]);
 
-        $rider->update($request->only('phone', 'vehicle_type', 'plate_number'));
+        $rider->updateQuietly($request->only('phone', 'vehicle_type', 'plate_number'));
+        $rider->refresh();
 
         AuditLog::record(
             action:      'rider_updated',
@@ -1346,8 +1367,8 @@ class AdminController extends Controller
     public function removeRider(\App\Models\Rider $rider)
     {
         $riderName = $rider->user->name;
-        $rider->user->update(['role' => 'user']);
-        $rider->delete();
+        $rider->user->updateQuietly(['role' => 'user']);
+        $rider->deleteQuietly();
 
         AuditLog::record(
             action:      'rider_removed',
@@ -1553,5 +1574,37 @@ class AdminController extends Controller
             ->get();
 
         return view('admin.audit-logs', compact('logs', 'actions', 'users'));
+    }
+
+    // ── GET /admin/audit-logs/poll — new entries since last seen id ──────────
+    public function auditLogsPoll(Request $request)
+    {
+        $afterId = (int) $request->input('after', 0);
+
+        $entries = \App\Models\AuditLog::where('id', '>', $afterId)
+            ->latest()
+            ->limit(50)
+            ->get()
+            ->map(fn($log) => [
+                'id'              => $log->id,
+                'action'          => $log->action,
+                'description'     => $log->description,
+                'user_name'       => $log->user_name,
+                'user_role'       => $log->user_role,
+                'auditable_type'  => class_basename($log->auditable_type ?? ''),
+                'auditable_label' => $log->auditable_label,
+                'auditable_id'    => $log->auditable_id,
+                'ip_address'      => $log->ip_address,
+                'old_values'      => $log->old_values,
+                'new_values'      => $log->new_values,
+                'time'            => $log->created_at->format('g:i A'),
+                'date'            => $log->created_at->format('M d, Y'),
+                'ago'             => $log->created_at->diffForHumans(),
+            ]);
+
+        return response()->json([
+            'entries'    => $entries,
+            'latest_id'  => $entries->max('id') ?? $afterId,
+        ]);
     }
 }

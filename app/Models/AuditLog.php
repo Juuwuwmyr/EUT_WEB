@@ -80,6 +80,62 @@ class AuditLog extends Model
     // ── Helpers ────────────────────────────────────────────
 
     /**
+     * UI colors/icons for an action badge (fg, bg, lucide icon name).
+     */
+    public static function actionMeta(string $action): array
+    {
+        return match ($action) {
+            'created', 'restored', 'order_accepted', 'order_delivered', 'rider_created'
+                => ['#10b981', 'rgba(16,185,129,.12)', 'plus-circle'],
+            'updated', 'profile_updated', 'rider_updated'
+                => ['#3b82f6', 'rgba(59,130,246,.12)', 'pencil'],
+            'deleted', 'user_deleted', 'category_deleted', 'order_deleted', 'order_cancelled'
+                => ['#ef4444', 'rgba(239,68,68,.12)', 'trash-2'],
+            'archived', 'user_archived'
+                => ['#f59e0b', 'rgba(245,158,11,.12)', 'archive'],
+            'status_changed', 'order_status_updated', 'order_picked_up', 'order_cooking_started',
+            'order_marked_ready', 'rider_status_changed', 'rider_assigned'
+                => ['#8b5cf6', 'rgba(139,92,246,.12)', 'refresh-cw'],
+            'role_changed'
+                => ['#f59e0b', 'rgba(245,158,11,.12)', 'shield'],
+            'settings_changed'
+                => ['#ec4899', 'rgba(236,72,153,.12)', 'settings'],
+            'login'
+                => ['#6366f1', 'rgba(99,102,241,.12)', 'log-in'],
+            'logout'
+                => ['#6b7280', 'rgba(107,114,128,.1)', 'log-out'],
+            'password_changed'
+                => ['#f97316', 'rgba(249,115,22,.12)', 'key'],
+            'order_item_removed', 'pickup_slip_printed'
+                => ['#64748b', 'rgba(100,116,139,.12)', 'file-text'],
+            'rider_removed'
+                => ['#ef4444', 'rgba(239,68,68,.12)', 'user-x'],
+            default
+                => ['#a3a3a3', 'rgba(163,163,163,.08)', 'activity'],
+        };
+    }
+
+    /**
+     * Action badge colors for the audit log UI (fg + bg only).
+     */
+    public static function actionMetaForJs(): array
+    {
+        $actions = [
+            'created', 'updated', 'deleted', 'archived', 'restored', 'status_changed',
+            'role_changed', 'settings_changed', 'login', 'logout', 'password_changed',
+            'profile_updated', 'user_archived', 'user_deleted', 'category_deleted',
+            'order_accepted', 'order_status_updated', 'order_deleted', 'order_cancelled',
+            'order_picked_up', 'order_delivered', 'order_cooking_started', 'order_marked_ready',
+            'order_item_removed', 'pickup_slip_printed', 'rider_assigned', 'rider_created',
+            'rider_updated', 'rider_removed', 'rider_status_changed',
+        ];
+
+        return collect($actions)
+            ->mapWithKeys(fn (string $action) => [$action => array_slice(static::actionMeta($action), 0, 2)])
+            ->all();
+    }
+
+    /**
      * Derive a human-readable label for any model instance.
      * Add more cases as needed.
      */

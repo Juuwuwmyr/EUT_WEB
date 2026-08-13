@@ -3,6 +3,11 @@
 
 @section('content')
 
+@php
+    $livePolling = ! request()->hasAny(['search', 'action', 'user_id', 'model', 'date_from', 'date_to'])
+        && $logs->onFirstPage();
+@endphp
+
 {{-- ── PAGE HEADER ─────────────────────────────────────────── --}}
 <div class="page-header" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;">
     <div style="display:flex;align-items:center;gap:.75rem;">
@@ -14,7 +19,22 @@
             <p style="margin:0;">Complete trail of every action taken in the system.</p>
         </div>
     </div>
-    <span style="font-size:.8rem;color:var(--text-muted);">{{ number_format($logs->total()) }} total entries</span>
+    <span style="font-size:.8rem;color:var(--text-muted);display:flex;align-items:center;gap:.6rem;">
+        <span id="auditTotalCount">{{ number_format($logs->total()) }}</span> total entries
+        <span id="liveBadge" style="display:none;align-items:center;gap:.3rem;padding:.15rem .5rem;border-radius:9999px;font-size:.68rem;font-weight:700;background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.3);">
+            <span style="width:6px;height:6px;border-radius:50%;background:#818cf8;display:inline-block;animation:pulse 1s infinite;"></span>
+            <span id="liveBadgeText"></span>
+        </span>
+        <span style="display:inline-flex;align-items:center;gap:.25rem;font-size:.68rem;color:var(--text-muted);">
+            @if($livePolling)
+            <span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block;animation:pulse 1.5s infinite;"></span>
+            Live
+            @else
+            <span style="width:6px;height:6px;border-radius:50%;background:#6b7280;display:inline-block;"></span>
+            Paused
+            @endif
+        </span>
+    </span>
 </div>
 
 {{-- ── FILTERS ──────────────────────────────────────────────── --}}
@@ -90,19 +110,7 @@
             <tbody>
                 @forelse($logs as $log)
                 @php
-                    $ac = match($log->action) {
-                        'created'          => ['#10b981','rgba(16,185,129,.12)','plus-circle'],
-                        'updated'          => ['#3b82f6','rgba(59,130,246,.12)','pencil'],
-                        'deleted'          => ['#ef4444','rgba(239,68,68,.12)','trash-2'],
-                        'archived'         => ['#f59e0b','rgba(245,158,11,.12)','archive'],
-                        'restored'         => ['#10b981','rgba(16,185,129,.12)','rotate-ccw'],
-                        'status_changed'   => ['#8b5cf6','rgba(139,92,246,.12)','refresh-cw'],
-                        'role_changed'     => ['#f59e0b','rgba(245,158,11,.12)','shield'],
-                        'settings_changed' => ['#ec4899','rgba(236,72,153,.12)','settings'],
-                        'login'            => ['#6366f1','rgba(99,102,241,.12)','log-in'],
-                        'logout'           => ['#6b7280','rgba(107,114,128,.1)', 'log-out'],
-                        default            => ['#a3a3a3','rgba(163,163,163,.08)','activity'],
-                    };
+                    $ac = \App\Models\AuditLog::actionMeta($log->action);
                     $modelIcon = match(class_basename($log->auditable_type ?? '')) {
                         'Order'    => 'shopping-bag',
                         'User'     => 'user',
@@ -210,10 +218,10 @@
             @if($logs->onFirstPage())
                 <span class="btn-ghost" style="opacity:.4;cursor:not-allowed;">← Prev</span>
             @else
-                <a href="{{ $logs->previousPageUrl() }}&{{ http_build_query(request()->except('page')) }}" class="btn-ghost">← Prev</a>
+                <a href="{{ $logs->previousPageUrl() }}" class="btn-ghost">← Prev</a>
             @endif
             @if($logs->hasMorePages())
-                <a href="{{ $logs->nextPageUrl() }}&{{ http_build_query(request()->except('page')) }}" class="btn-ghost">Next →</a>
+                <a href="{{ $logs->nextPageUrl() }}" class="btn-ghost">Next →</a>
             @else
                 <span class="btn-ghost" style="opacity:.4;cursor:not-allowed;">Next →</span>
             @endif
@@ -224,7 +232,7 @@
 
 @push('scripts')
 <script>
-// Store diff data from PHP so JS can access it without DOM hacks
+// ── DIFF MODAL ────────────────────────────────────────────
 var DIFF_DATA = {
 @foreach($logs as $log)
 @if($log->old_values || $log->new_values)
@@ -282,9 +290,185 @@ function openDiffModal(id) {
 }
 
 function escapeHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
+// ── REAL-TIME POLLING ─────────────────────────────────────
+var pollEnabled = {{ $livePolling ? 'true' : 'false' }};
+var latestId    = {{ $logs->first()?->id ?? 0 }};
+var pollTimer   = null;
+var newCount    = 0;
+
+var ACTION_META = @json(\App\Models\AuditLog::actionMetaForJs());
+
+var ROLE_COLORS = {
+    'admin': '#dc2626',
+    'chef':  '#f59e0b',
+    'rider': '#8b5cf6',
+    'user':  '#3b82f6',
+};
+
+function getActionColor(action) {
+    if (ACTION_META[action]) return ACTION_META[action];
+    var key = action.replace(/_/g, ' ').toLowerCase();
+    for (var act in ACTION_META) {
+        if (act.replace(/_/g, ' ').toLowerCase() === key) return ACTION_META[act];
+    }
+    return ['#a3a3a3','rgba(163,163,163,.08)'];
+}
+
+function getRoleColor(role) {
+    return ROLE_COLORS[role] || '#6b7280';
+}
+
+function getInitials(name) {
+    if (!name) return '?';
+    return name.split(' ').slice(0,2).map(function(p){ return p[0]; }).join('').toUpperCase();
+}
+
+function buildRow(entry) {
+    var ac       = getActionColor(entry.action);
+    var avColor  = getRoleColor(entry.user_role);
+    var initials = getInitials(entry.user_name);
+    var label    = entry.action.replace(/_/g,' ').toUpperCase();
+    var hasDiff  = entry.old_values || entry.new_values;
+
+    // Store diff data for modal
+    if (hasDiff) {
+        DIFF_DATA[entry.id] = {
+            action: entry.action.replace(/_/g,' '),
+            label:  entry.auditable_label || entry.auditable_type || 'Record',
+            model:  entry.auditable_type || '',
+            id:     entry.auditable_id,
+            old:    entry.old_values,
+            new:    entry.new_values,
+        };
+    }
+
+    var recordHtml = '';
+    if (entry.auditable_type) {
+        recordHtml = '<div style="margin-top:.35rem;font-size:.72rem;color:var(--text-muted);">'
+            + escapeHtml(entry.auditable_label || entry.auditable_type)
+            + ' · ' + escapeHtml(entry.auditable_type)
+            + (entry.auditable_id ? ' #' + entry.auditable_id : '')
+            + '</div>';
+    }
+
+    var diffBtn = hasDiff
+        ? '<button onclick="openDiffModal(' + entry.id + ')" class="btn-ghost" style="font-size:.72rem;padding:.25rem .6rem;display:inline-flex;align-items:center;gap:.3rem;">'
+            + '<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg> View'
+          + '</button>'
+        : '<span style="color:var(--text-muted);font-size:.75rem;">—</span>';
+
+    return '<tr style="animation:fadeInRow .4s ease;">'
+        + '<td style="white-space:nowrap;">'
+            + '<div style="font-size:.8rem;font-weight:600;color:var(--text-body);">' + escapeHtml(entry.time) + '</div>'
+            + '<div style="font-size:.68rem;color:var(--text-muted);">' + escapeHtml(entry.date) + '</div>'
+            + '<div style="font-size:.65rem;color:var(--text-muted);margin-top:.1rem;">' + escapeHtml(entry.ago) + '</div>'
+        + '</td>'
+        + '<td>'
+            + '<div style="display:flex;align-items:center;gap:.5rem;">'
+                + '<div style="width:2rem;height:2rem;border-radius:50%;background:' + avColor + '22;border:1.5px solid ' + avColor + '55;color:' + avColor + ';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.62rem;flex-shrink:0;">' + escapeHtml(initials) + '</div>'
+                + '<div>'
+                    + (entry.user_name
+                        ? '<div style="font-weight:600;font-size:.82rem;color:var(--text-strong);">' + escapeHtml(entry.user_name) + '</div>'
+                          + (entry.user_role ? '<span style="background:' + avColor + '18;color:' + avColor + ';font-size:.6rem;padding:.1rem .4rem;border-radius:.25rem;">' + entry.user_role + '</span>' : '')
+                        : '<div style="font-size:.78rem;color:var(--text-muted);font-style:italic;">Guest</div>')
+                + '</div>'
+            + '</div>'
+        + '</td>'
+        + '<td>'
+            + '<span style="display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:9999px;font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:' + ac[1] + ';color:' + ac[0] + ';">' + escapeHtml(label) + '</span>'
+            + recordHtml
+        + '</td>'
+        + '<td style="font-size:.78rem;color:var(--text-subtle);max-width:200px;">' + escapeHtml(entry.description || '—') + '</td>'
+        + '<td style="font-size:.72rem;color:var(--text-muted);font-family:monospace;white-space:nowrap;">' + escapeHtml(entry.ip_address || '—') + '</td>'
+        + '<td style="text-align:center;">' + diffBtn + '</td>'
+        + '</tr>';
+}
+
+function pollAuditLogs() {
+    if (!pollEnabled) return;
+
+    fetch('{{ route("admin.audit-logs.poll") }}?after=' + latestId, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+        if (!data.entries || data.entries.length === 0) return;
+
+        var tbody = document.querySelector('.admin-table tbody');
+        if (!tbody) return;
+
+        // Remove "no entries" placeholder if present
+        var empty = tbody.querySelector('[colspan="6"]');
+        if (empty) empty.closest('tr').remove();
+
+        // Prepend new rows (newest first)
+        data.entries.slice().reverse().forEach(function(entry) {
+            tbody.insertAdjacentHTML('afterbegin', buildRow(entry));
+        });
+
+        latestId = data.latest_id;
+        newCount += data.entries.length;
+
+        // Update counter in header
+        var counter = document.getElementById('auditTotalCount');
+        if (counter) {
+            var current = parseInt(counter.textContent.replace(/,/g,'')) || 0;
+            counter.textContent = (current + data.entries.length).toLocaleString();
+        }
+
+        // Show live badge
+        var badge = document.getElementById('liveBadge');
+        var badgeText = document.getElementById('liveBadgeText');
+        if (badge && badgeText) {
+            badgeText.textContent = '+' + newCount + ' new';
+            badge.style.display = 'inline-flex';
+        }
+
+        // Re-run lucide icons on new rows
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    })
+    .catch(function(){});
+}
+
+function startPolling() {
+    if (!pollEnabled) return;
+    if (pollTimer) clearInterval(pollTimer);
+    pollAuditLogs();
+    pollTimer = setInterval(pollAuditLogs, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    startPolling();
+});
+
+document.addEventListener('visibilitychange', function() {
+    if (!pollEnabled) return;
+
+    if (document.hidden) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+    } else {
+        newCount = 0;
+        var badge = document.getElementById('liveBadge');
+        if (badge) badge.style.display = 'none';
+        startPolling();
+    }
+});
 </script>
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .45; transform: scale(.92); }
+}
+@keyframes fadeInRow {
+    from { opacity: 0; transform: translateY(-6px); background: rgba(99,102,241,.08); }
+    to   { opacity: 1; transform: translateY(0);    background: transparent; }
+}
+</style>
 @endpush
 {{-- ── DIFF MODAL ───────────────────────────────────────────── --}}
 <div id="diffModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'diffModal')">

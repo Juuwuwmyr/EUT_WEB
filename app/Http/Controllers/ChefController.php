@@ -110,13 +110,14 @@ class ChefController extends Controller
 
         if ($remaining->isEmpty()) {
             // No items left — cancel the whole order
-            $order->update([
+            $order->updateQuietly([
                 'status'        => 'cancelled',
                 'cancel_reason' => 'All items removed by kitchen staff',
                 'cancelled_at'  => now(),
                 'subtotal'      => 0,
                 'total'         => 0,
             ]);
+            $order->refresh();
 
             broadcast(new OrderStatusUpdated($order));
 
@@ -132,10 +133,11 @@ class ChefController extends Controller
         // Recalculate totals from remaining items
         $newSubtotal = round($remaining->sum('subtotal'), 2);
 
-        $order->update([
+        $order->updateQuietly([
             'subtotal' => $newSubtotal,
             'total'    => $newSubtotal, // dine-in has no delivery fee
         ]);
+        $order->refresh();
 
         broadcast(new OrderStatusUpdated($order));
 
@@ -163,10 +165,11 @@ class ChefController extends Controller
             return $this->kitchenActionResponse(false, 'Only accepted orders can start cooking.');
         }
 
-        $order->update([
+        $order->updateQuietly([
             'status'      => 'preparing',
             'prepared_at' => null,
         ]);
+        $order->refresh();
 
         broadcast(new OrderStatusUpdated($order));
 
@@ -192,7 +195,8 @@ class ChefController extends Controller
             return $this->kitchenActionResponse(false, 'Order is already marked ready.');
         }
 
-        $order->update(['prepared_at' => now()]);
+        $order->updateQuietly(['prepared_at' => now()]);
+        $order->refresh();
 
         broadcast(new OrderStatusUpdated($order));
 
@@ -216,12 +220,13 @@ class ChefController extends Controller
             return $this->kitchenActionResponse(false, 'Order cannot be assigned at this stage.');
         }
 
-        $order->update([
+        $order->updateQuietly([
             'rider_id'    => $request->rider_id,
             'status'      => $order->status === 'out_for_delivery' ? 'out_for_delivery' : 'rider_assigned',
             'assigned_at' => now(),
             'prepared_at' => $order->prepared_at ?? now(),
         ]);
+        $order->refresh();
 
         broadcast(new OrderStatusUpdated($order));
 
