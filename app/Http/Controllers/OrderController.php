@@ -211,7 +211,9 @@ class OrderController extends Controller
                 $existingOrder = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
                     ->where('status', 'pending')
-                    ->where('ordering_locked', false)   // ← never merge into a locked session
+                    ->when(\Illuminate\Support\Facades\Schema::hasColumn('orders', 'ordering_locked'),
+                        fn($q) => $q->where('ordering_locked', false)
+                    )
                     ->whereDate('created_at', today())
                     ->latest()
                     ->first();
@@ -265,7 +267,9 @@ class OrderController extends Controller
                 $activeSession = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
                     ->whereIn('status', ['pending', 'accepted', 'preparing'])
-                    ->where('ordering_locked', false)   // ← only inherit unlocked sessions
+                    ->when(\Illuminate\Support\Facades\Schema::hasColumn('orders', 'ordering_locked'),
+                        fn($q) => $q->where('ordering_locked', false)
+                    )
                     ->whereDate('created_at', today())
                     ->whereNotNull('table_session_id')
                     ->latest()
