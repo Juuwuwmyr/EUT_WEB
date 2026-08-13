@@ -8,18 +8,16 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RequireAdminVerification
 {
-    // How long (seconds) the verification stays valid — 30 minutes
-    const TTL = 1800;
-
     public function handle(Request $request, Closure $next): Response
     {
-        $verifiedAt = session('admin_verified_at');
-
-        if (!$verifiedAt || (time() - $verifiedAt) > self::TTL) {
-            // Store the intended URL so we redirect back after verification
+        // Always require verification on every visit — no TTL/caching
+        if (!session('admin_verified_at')) {
             session(['admin_verify_intended' => $request->fullUrl()]);
             return redirect()->route('admin.verify');
         }
+
+        // Clear the flag immediately so next visit requires re-verification
+        session()->forget('admin_verified_at');
 
         return $next($request);
     }
