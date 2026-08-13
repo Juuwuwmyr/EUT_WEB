@@ -50,8 +50,13 @@ trait HasPermissions
      */
     public function hasPermission(string $permissionSlug): bool
     {
+        // Admin role has all permissions automatically
+        if ($this->role === 'admin') {
+            return true;
+        }
+
         // Super admin bypass (optional)
-        if ($this->role === 'admin' && $this->email === env('SUPER_ADMIN_EMAIL')) {
+        if ($this->email === env('SUPER_ADMIN_EMAIL')) {
             return true;
         }
 
