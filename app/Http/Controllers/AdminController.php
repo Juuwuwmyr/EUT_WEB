@@ -35,7 +35,7 @@ class AdminController extends Controller
 
         session(['admin_verified_at' => time()]);
 
-        $intended = session()->pull('admin_verify_intended', route('admin.menu-items'));
+        $intended = session()->pull('admin_verify_intended', route('admin.categories'));
         return redirect($intended);
     }
 

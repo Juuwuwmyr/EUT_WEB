@@ -8,22 +8,42 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RequireAdminVerification
 {
+    /** Verification window in seconds (must match verify page copy). */
+    private const TTL = 30 * 60;
+
     public function handle(Request $request, Closure $next): Response
     {
-        // Only gate GET requests (page views) — skip for POST/PUT/PATCH/DELETE
-        if (!$request->isMethod('GET')) {
+        if ($this->isVerified()) {
             return $next($request);
         }
 
-        // Require verification on every visit
-        if (!session('admin_verified_at')) {
-            session(['admin_verify_intended' => $request->fullUrl()]);
-            return redirect()->route('admin.verify');
+        session(['admin_verify_intended' => $request->fullUrl()]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success'  => false,
+                'message'  => 'Password verification required.',
+                'redirect' => route('admin.verify'),
+            ], 403);
         }
 
-        // Clear flag so next visit requires re-verification
-        session()->forget('admin_verified_at');
+        return redirect()->route('admin.verify');
+    }
 
-        return $next($request);
+    private function isVerified(): bool
+    {
+        $verifiedAt = session('admin_verified_at');
+
+        if (! $verifiedAt) {
+            return false;
+        }
+
+        if ((time() - (int) $verifiedAt) > self::TTL) {
+            session()->forget('admin_verified_at');
+
+            return false;
+        }
+
+        return true;
     }
 }

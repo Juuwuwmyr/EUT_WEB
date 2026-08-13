@@ -161,29 +161,31 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get ('/verify', [AdminController::class, 'showVerify'])->name('verify');
     Route::post('/verify', [AdminController::class, 'submitVerify'])->name('verify.submit');
 
-    // ── Categories — GET page requires verification ────────────────────
-    Route::get('/categories', [AdminController::class, 'categories'])->name('categories')->middleware('admin.verify');
-    Route::post  ('/categories',             [AdminController::class, 'storeCategory'])->name('categories.store');
-    Route::put   ('/categories/{category}',  [AdminController::class, 'updateCategory'])->name('categories.update');
-    Route::patch ('/categories/{category}/archive', [AdminController::class, 'archiveCategory'])->name('categories.archive');
-    Route::delete('/categories/{category}', [AdminController::class, 'deleteCategory'])->name('categories.delete');
+    // ── Categories — password verification required ────────────────────
+    Route::middleware('admin.verify')->group(function () {
+        Route::get   ('/categories',                      [AdminController::class, 'categories'])->name('categories');
+        Route::post  ('/categories',                      [AdminController::class, 'storeCategory'])->name('categories.store');
+        Route::put   ('/categories/{category}',           [AdminController::class, 'updateCategory'])->name('categories.update');
+        Route::patch ('/categories/{category}/archive',   [AdminController::class, 'archiveCategory'])->name('categories.archive');
+        Route::delete('/categories/{category}',           [AdminController::class, 'deleteCategory'])->name('categories.delete');
+    });
 
-    // ── Menu Items — GET page requires verification ────────────────────
-    Route::get('/menu-items', [AdminController::class, 'menuItems'])->name('menu-items')->middleware('admin.verify');
-    Route::post  ('/menu-items',             [AdminController::class, 'storeMenuItem'])->name('menu-items.store');
-    Route::put   ('/menu-items/{menuItem}',  [AdminController::class, 'updateMenuItem'])->name('menu-items.update');
-    Route::patch ('/menu-items/{menuItem}/archive', [AdminController::class, 'archiveMenuItem'])->name('menu-items.archive');
-    Route::delete('/menu-items/{menuItem}',  [AdminController::class, 'deleteMenuItem'])->name('menu-items.delete');
+    // ── Menu Items — password verification required ────────────────────
+    Route::middleware('admin.verify')->group(function () {
+        Route::get   ('/menu-items',                              [AdminController::class, 'menuItems'])->name('menu-items');
+        Route::post  ('/menu-items',                              [AdminController::class, 'storeMenuItem'])->name('menu-items.store');
+        Route::put   ('/menu-items/{menuItem}',                   [AdminController::class, 'updateMenuItem'])->name('menu-items.update');
+        Route::patch ('/menu-items/{menuItem}/archive',          [AdminController::class, 'archiveMenuItem'])->name('menu-items.archive');
+        Route::delete('/menu-items/{menuItem}',                   [AdminController::class, 'deleteMenuItem'])->name('menu-items.delete');
 
-    // ── Modifier Groups ────────────────────────────────────
-    Route::post  ('/menu-items/{menuItem}/modifier-groups',         [AdminController::class, 'storeModifierGroup'])->name('modifier-groups.store');
-    Route::put   ('/menu-items/{menuItem}/modifier-groups/{group}', [AdminController::class, 'updateModifierGroup'])->name('modifier-groups.update');
-    Route::delete('/menu-items/{menuItem}/modifier-groups/{group}', [AdminController::class, 'deleteModifierGroup'])->name('modifier-groups.delete');
+        Route::post  ('/menu-items/{menuItem}/modifier-groups',         [AdminController::class, 'storeModifierGroup'])->name('modifier-groups.store');
+        Route::put   ('/menu-items/{menuItem}/modifier-groups/{group}', [AdminController::class, 'updateModifierGroup'])->name('modifier-groups.update');
+        Route::delete('/menu-items/{menuItem}/modifier-groups/{group}', [AdminController::class, 'deleteModifierGroup'])->name('modifier-groups.delete');
 
-    // ── Modifier Options ───────────────────────────────────
-    Route::post  ('/modifier-groups/{group}/options',          [AdminController::class, 'storeModifierOption'])->name('modifier-options.store');
-    Route::put   ('/modifier-groups/{group}/options/{option}', [AdminController::class, 'updateModifierOption'])->name('modifier-options.update');
-    Route::delete('/modifier-groups/{group}/options/{option}', [AdminController::class, 'deleteModifierOption'])->name('modifier-options.delete');
+        Route::post  ('/modifier-groups/{group}/options',          [AdminController::class, 'storeModifierOption'])->name('modifier-options.store');
+        Route::put   ('/modifier-groups/{group}/options/{option}', [AdminController::class, 'updateModifierOption'])->name('modifier-options.update');
+        Route::delete('/modifier-groups/{group}/options/{option}', [AdminController::class, 'deleteModifierOption'])->name('modifier-options.delete');
+    });
 
     // ── Orders ─────────────────────────────────────────────
     Route::get('/orders',                           [AdminController::class, 'orders'])->name('orders');
