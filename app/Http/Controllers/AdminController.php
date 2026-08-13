@@ -342,8 +342,10 @@ class AdminController extends Controller
         \Log::info('storeMenuItem payload', [
             'groups' => $request->input('groups'),
             'addons' => $request->input('addons'),
+            'all'    => $request->except(['_token', 'image_file']),
         ]);
 
+        try {
         $request->validate([
             'name'                                  => 'required|string|max:120',
             'category_id'                           => 'required|exists:categories,id',
@@ -385,6 +387,10 @@ class AdminController extends Controller
         $this->syncAddons($item, $request->input('addons', []));
 
         return back()->with('success', "Menu item \"{$item->name}\" created.");
+        } catch (\Exception $e) {
+            \Log::error('storeMenuItem error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Failed to save: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function updateMenuItem(Request $request, MenuItem $menuItem)
@@ -395,6 +401,7 @@ class AdminController extends Controller
             'addons' => $request->input('addons'),
         ]);
 
+        try {
         $request->validate([
             'name'                                  => 'required|string|max:120',
             'category_id'                           => 'required|exists:categories,id',
@@ -437,6 +444,10 @@ class AdminController extends Controller
         $this->syncAddons($menuItem, $request->input('addons', []));
 
         return back()->with('success', "Menu item \"{$menuItem->name}\" updated.");
+        } catch (\Exception $e) {
+            \Log::error('updateMenuItem error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Failed to save: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
