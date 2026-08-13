@@ -5,10 +5,10 @@
 return [
 
     // ── Poblacion / Town Center ────────────────────────────────
-    'Poblacion I (Barangay I)'          => 30,  // 0.0 km
-    'Poblacion II (Barangay II)'        => 30,  // 0.1 km
-    'Poblacion III (Barangay III)'      => 30,  // 0.1 km
-    'Andres Ylagan (Mag-asawang Tubig)'  => 30,  // 1.1 km
+    'Poblacion I (Barangay I)'          => 20,  // 0.0 km
+    'Poblacion II (Barangay II)'        => 20,  // 0.1 km
+    'Poblacion III (Barangay III)'      => 20,  // 0.1 km
+    'Andres Ylagan (Mag-asawang Tubig)'  => 20,  // 1.1 km
     'San Antonio'                        => 50,  // 4 km
     'Estrella'                           => 50,  // 4 km
     'Kalinisan'                          => 60,  // 5.0 km
