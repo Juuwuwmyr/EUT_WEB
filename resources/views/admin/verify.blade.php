@@ -183,7 +183,7 @@
     </div>
 
     <h1>Confirm Your Identity</h1>
-    <p class="subtitle">Enter your password to access Menu &amp; Categories.<br>Verification lasts 30 minutes.</p>
+    <p class="subtitle">Enter your password to view sensitive admin data.<br>Verification lasts 30 minutes.</p>
 
     {{-- Logged-in user badge --}}
     <div class="user-badge">

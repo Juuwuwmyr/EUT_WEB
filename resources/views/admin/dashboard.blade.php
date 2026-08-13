@@ -7,6 +7,9 @@
     <p>Welcome back, {{ auth()->user()->name }}. Here's what's happening at EUT today.</p>
 </div>
 
+<div class="dashboard-gate {{ $dashboardVerified ? '' : 'dashboard-gate--locked' }}">
+<div class="dashboard-gate__content">
+
 {{-- ── STAT CARDS ── --}}
 <style>
 #statCardsGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:2rem;}
@@ -219,4 +222,132 @@
         @endforeach
     </div>
 </div>
+
+</div>{{-- /.dashboard-gate__content --}}
+
+@if(! $dashboardVerified)
+<div class="dashboard-gate__overlay">
+    <div class="dashboard-verify-card">
+        <div class="dashboard-verify-icon">
+            <svg width="22" height="22" fill="none" stroke="#f59e0b" stroke-width="2.2" viewBox="0 0 24 24">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+        </div>
+        <h2>Verify to View Dashboard</h2>
+        <p>Sales, revenue, and user data are hidden until you confirm your password.</p>
+
+        @if($errors->has('password'))
+        <div class="dashboard-verify-error">{{ $errors->first('password') }}</div>
+        @endif
+
+        <form method="POST" action="{{ route('admin.verify.submit') }}">
+            @csrf
+            <label for="dashboardPassword">Password</label>
+            <input type="password" id="dashboardPassword" name="password" placeholder="Enter your password" required autofocus>
+            <button type="submit">Verify &amp; Unlock</button>
+        </form>
+    </div>
+</div>
+@endif
+
+</div>{{-- /.dashboard-gate --}}
+
+@push('head')
+<style>
+.dashboard-gate { position: relative; min-height: 320px; }
+.dashboard-gate--locked .dashboard-gate__content {
+    filter: blur(10px);
+    opacity: .55;
+    user-select: none;
+    pointer-events: none;
+}
+.dashboard-gate__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem 3rem;
+    z-index: 20;
+    background: linear-gradient(180deg, rgba(13,14,26,.15) 0%, rgba(13,14,26,.45) 100%);
+}
+.dashboard-verify-card {
+    width: 100%;
+    max-width: 380px;
+    background: #13141f;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 1rem;
+    padding: 1.75rem 1.5rem;
+    box-shadow: 0 20px 50px rgba(0,0,0,.45);
+    text-align: center;
+}
+.dashboard-verify-icon {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: rgba(245,158,11,.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.dashboard-verify-card h2 {
+    margin: 0 0 .4rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+}
+.dashboard-verify-card p {
+    margin: 0 0 1.25rem;
+    font-size: .8rem;
+    color: #9ca3af;
+    line-height: 1.5;
+}
+.dashboard-verify-error {
+    background: rgba(239,68,68,.1);
+    border: 1px solid rgba(239,68,68,.25);
+    border-radius: .6rem;
+    padding: .6rem .85rem;
+    font-size: .78rem;
+    color: #f87171;
+    margin-bottom: 1rem;
+    text-align: left;
+}
+.dashboard-verify-card label {
+    display: block;
+    text-align: left;
+    font-size: .72rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: .4rem;
+}
+.dashboard-verify-card input[type="password"] {
+    width: 100%;
+    background: #0d0e1a;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: .65rem;
+    padding: .75rem .9rem;
+    font-size: .9rem;
+    color: #e5e7eb;
+    outline: none;
+    margin-bottom: 1rem;
+}
+.dashboard-verify-card input:focus { border-color: #f59e0b; }
+.dashboard-verify-card button {
+    width: 100%;
+    padding: .8rem;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: none;
+    border-radius: .75rem;
+    color: #000;
+    font-size: .9rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.dashboard-verify-card button:hover { opacity: .92; }
+</style>
+@endpush
 @endsection

@@ -13,7 +13,7 @@ class RequireAdminVerification
 
     public function handle(Request $request, Closure $next): Response
     {
-        if ($this->isVerified()) {
+        if (static::isVerified()) {
             return $next($request);
         }
 
@@ -30,7 +30,7 @@ class RequireAdminVerification
         return redirect()->route('admin.verify');
     }
 
-    private function isVerified(): bool
+    public static function isVerified(): bool
     {
         $verifiedAt = session('admin_verified_at');
 

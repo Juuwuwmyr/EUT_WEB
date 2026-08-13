@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OrderStatusUpdated;
+use App\Http\Middleware\RequireAdminVerification;
 use App\Models\AuditLog;
 use App\Models\Category;
 use App\Models\MenuItem;
@@ -35,7 +36,7 @@ class AdminController extends Controller
 
         session(['admin_verified_at' => time()]);
 
-        $intended = session()->pull('admin_verify_intended', route('admin.categories'));
+        $intended = session()->pull('admin_verify_intended', route('admin.dashboard'));
         return redirect($intended);
     }
 
@@ -92,7 +93,13 @@ class AdminController extends Controller
                 'category_color'=> optional(\App\Models\MenuItem::with('category')->find($i->menu_item_id))->category?->color ?? '#6b7280',
             ])->toArray();
 
-        return view('admin.dashboard', compact('stats', 'recent_users', 'categories', 'topItems'));
+        $dashboardVerified = RequireAdminVerification::isVerified();
+
+        if (! $dashboardVerified) {
+            session(['admin_verify_intended' => route('admin.dashboard')]);
+        }
+
+        return view('admin.dashboard', compact('stats', 'recent_users', 'categories', 'topItems', 'dashboardVerified'));
     }
 
     // ════════════════════════════════════════════════════════

@@ -29,7 +29,7 @@ Route::get('/delivery-fee', [\App\Http\Controllers\OrderController::class, 'calc
 Route::get('/', function () {
     if (auth()->check()) {
         $user = auth()->user();
-        if ($user->isAdmin()) return redirect()->route('admin.verify');
+        if ($user->isAdmin()) return redirect()->route('admin.dashboard');
         if ($user->isRider()) return redirect()->route('rider.dashboard');
         if ($user->isChef())  return redirect()->route('chef.dashboard');
         return redirect()->route('shop.home');
