@@ -147,79 +147,70 @@ Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallbac
 // -------------------------------------------------------
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
 
-    // ── Credential re-verification (exempt — no verify needed here) ────
-    Route::get ('/verify', [AdminController::class, 'showVerify'])->name('verify');
-    Route::post('/verify', [AdminController::class, 'submitVerify'])->name('verify.submit');
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
 
-    // ── ALL other admin routes require password every visit ─────────────
-    Route::middleware('admin.verify')->group(function () {
+    // ── Users ──────────────────────────────────────────────
+    Route::get   ('/users',                  [AdminController::class, 'users'])->name('users');
+    Route::post  ('/users',                  [AdminController::class, 'storeUser'])->name('users.store');
+    Route::put   ('/users/{user}',           [AdminController::class, 'updateUser'])->name('users.update');
+    Route::patch ('/users/{user}/role',      [AdminController::class, 'updateUserRole'])->name('users.role');
+    Route::patch ('/users/{user}/archive',   [AdminController::class, 'archiveUser'])->name('users.archive');
+    Route::delete('/users/{user}',           [AdminController::class, 'deleteUser'])->name('users.delete');
 
-        Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    // ── Categories ─────────────────────────────────────────
+    Route::get   ('/categories',             [AdminController::class, 'categories'])->name('categories');
+    Route::post  ('/categories',             [AdminController::class, 'storeCategory'])->name('categories.store');
+    Route::put   ('/categories/{category}',  [AdminController::class, 'updateCategory'])->name('categories.update');
+    Route::patch ('/categories/{category}/archive', [AdminController::class, 'archiveCategory'])->name('categories.archive');
+    Route::delete('/categories/{category}', [AdminController::class, 'deleteCategory'])->name('categories.delete');
 
-        // ── Users ──────────────────────────────────────────────
-        Route::get   ('/users',                  [AdminController::class, 'users'])->name('users');
-        Route::post  ('/users',                  [AdminController::class, 'storeUser'])->name('users.store');
-        Route::put   ('/users/{user}',           [AdminController::class, 'updateUser'])->name('users.update');
-        Route::patch ('/users/{user}/role',      [AdminController::class, 'updateUserRole'])->name('users.role');
-        Route::patch ('/users/{user}/archive',   [AdminController::class, 'archiveUser'])->name('users.archive');
-        Route::delete('/users/{user}',           [AdminController::class, 'deleteUser'])->name('users.delete');
+    // ── Menu Items ─────────────────────────────────────────
+    Route::get   ('/menu-items',             [AdminController::class, 'menuItems'])->name('menu-items');
+    Route::post  ('/menu-items',             [AdminController::class, 'storeMenuItem'])->name('menu-items.store');
+    Route::put   ('/menu-items/{menuItem}',  [AdminController::class, 'updateMenuItem'])->name('menu-items.update');
+    Route::patch ('/menu-items/{menuItem}/archive', [AdminController::class, 'archiveMenuItem'])->name('menu-items.archive');
+    Route::delete('/menu-items/{menuItem}',  [AdminController::class, 'deleteMenuItem'])->name('menu-items.delete');
 
-        // ── Categories ─────────────────────────────────────────
-        Route::get   ('/categories',             [AdminController::class, 'categories'])->name('categories');
-        Route::post  ('/categories',             [AdminController::class, 'storeCategory'])->name('categories.store');
-        Route::put   ('/categories/{category}',  [AdminController::class, 'updateCategory'])->name('categories.update');
-        Route::patch ('/categories/{category}/archive', [AdminController::class, 'archiveCategory'])->name('categories.archive');
-        Route::delete('/categories/{category}', [AdminController::class, 'deleteCategory'])->name('categories.delete');
+    // ── Modifier Groups ────────────────────────────────────
+    Route::post  ('/menu-items/{menuItem}/modifier-groups',         [AdminController::class, 'storeModifierGroup'])->name('modifier-groups.store');
+    Route::put   ('/menu-items/{menuItem}/modifier-groups/{group}', [AdminController::class, 'updateModifierGroup'])->name('modifier-groups.update');
+    Route::delete('/menu-items/{menuItem}/modifier-groups/{group}', [AdminController::class, 'deleteModifierGroup'])->name('modifier-groups.delete');
 
-        // ── Menu Items ─────────────────────────────────────────
-        Route::get   ('/menu-items',             [AdminController::class, 'menuItems'])->name('menu-items');
-        Route::post  ('/menu-items',             [AdminController::class, 'storeMenuItem'])->name('menu-items.store');
-        Route::put   ('/menu-items/{menuItem}',  [AdminController::class, 'updateMenuItem'])->name('menu-items.update');
-        Route::patch ('/menu-items/{menuItem}/archive', [AdminController::class, 'archiveMenuItem'])->name('menu-items.archive');
-        Route::delete('/menu-items/{menuItem}',  [AdminController::class, 'deleteMenuItem'])->name('menu-items.delete');
+    // ── Modifier Options ───────────────────────────────────
+    Route::post  ('/modifier-groups/{group}/options',          [AdminController::class, 'storeModifierOption'])->name('modifier-options.store');
+    Route::put   ('/modifier-groups/{group}/options/{option}', [AdminController::class, 'updateModifierOption'])->name('modifier-options.update');
+    Route::delete('/modifier-groups/{group}/options/{option}', [AdminController::class, 'deleteModifierOption'])->name('modifier-options.delete');
 
-        // ── Modifier Groups ────────────────────────────────────
-        Route::post  ('/menu-items/{menuItem}/modifier-groups',         [AdminController::class, 'storeModifierGroup'])->name('modifier-groups.store');
-        Route::put   ('/menu-items/{menuItem}/modifier-groups/{group}', [AdminController::class, 'updateModifierGroup'])->name('modifier-groups.update');
-        Route::delete('/menu-items/{menuItem}/modifier-groups/{group}', [AdminController::class, 'deleteModifierGroup'])->name('modifier-groups.delete');
+    // ── Orders ─────────────────────────────────────────────
+    Route::get('/orders',                           [AdminController::class, 'orders'])->name('orders');
+    Route::get('/orders/poll',                      [AdminController::class, 'ordersPoll'])->name('orders.poll');
+    Route::post('/orders/{order}/accept',           [AdminController::class, 'acceptOrder'])->name('orders.accept');
+    Route::post('/orders/{order}/assign-rider',     [AdminController::class, 'assignRider'])->name('orders.assign-rider');
+    Route::patch('/orders/{order}/status',          [AdminController::class, 'updateOrderStatus'])->name('orders.status');
+    Route::post('/orders/{order}/complete-table',   [AdminController::class, 'completeTable'])->name('orders.complete-table');
+    Route::post('/orders/{order}/lock-table',       [AdminController::class, 'lockTable'])->name('orders.lock-table');
+    Route::patch('/orders/{order}/archive',         [AdminController::class, 'archiveOrder'])->name('orders.archive');
+    Route::delete('/orders/{order}',                [AdminController::class, 'deleteOrder'])->name('orders.delete');
+    Route::get('/orders/{order}/takeout-slip',      [\App\Http\Controllers\ChefController::class, 'takeoutSlip'])->name('orders.takeout-slip');
+    Route::get('/riders/locations',                 [AdminController::class, 'riderLocations'])->name('riders.locations');
 
-        // ── Modifier Options ───────────────────────────────────
-        Route::post  ('/modifier-groups/{group}/options',          [AdminController::class, 'storeModifierOption'])->name('modifier-options.store');
-        Route::put   ('/modifier-groups/{group}/options/{option}', [AdminController::class, 'updateModifierOption'])->name('modifier-options.update');
-        Route::delete('/modifier-groups/{group}/options/{option}', [AdminController::class, 'deleteModifierOption'])->name('modifier-options.delete');
+    // ── Riders ─────────────────────────────────────────────
+    Route::get('/riders',                           [AdminController::class, 'riders'])->name('riders');
+    Route::post('/riders',                          [AdminController::class, 'storeRider'])->name('riders.store');
+    Route::patch('/riders/{rider}',                 [AdminController::class, 'updateRider'])->name('riders.update');
+    Route::delete('/riders/{rider}',                [AdminController::class, 'removeRider'])->name('riders.destroy');
 
-        // ── Orders ─────────────────────────────────────────────
-        Route::get('/orders',                           [AdminController::class, 'orders'])->name('orders');
-        Route::get('/orders/poll',                      [AdminController::class, 'ordersPoll'])->name('orders.poll');
-        Route::post('/orders/{order}/accept',           [AdminController::class, 'acceptOrder'])->name('orders.accept');
-        Route::post('/orders/{order}/assign-rider',     [AdminController::class, 'assignRider'])->name('orders.assign-rider');
-        Route::patch('/orders/{order}/status',          [AdminController::class, 'updateOrderStatus'])->name('orders.status');
-        Route::post('/orders/{order}/complete-table',   [AdminController::class, 'completeTable'])->name('orders.complete-table');
-        Route::post('/orders/{order}/lock-table',       [AdminController::class, 'lockTable'])->name('orders.lock-table');
-        Route::patch('/orders/{order}/archive',         [AdminController::class, 'archiveOrder'])->name('orders.archive');
-        Route::delete('/orders/{order}',                [AdminController::class, 'deleteOrder'])->name('orders.delete');
-        Route::get('/orders/{order}/takeout-slip',      [\App\Http\Controllers\ChefController::class, 'takeoutSlip'])->name('orders.takeout-slip');
-        Route::get('/riders/locations',                 [AdminController::class, 'riderLocations'])->name('riders.locations');
+    // ── Settings ───────────────────────────────────────────
+    Route::get ('/settings',              [AdminController::class, 'settings'])->name('settings');
+    Route::post('/settings',              [AdminController::class, 'updateSettings'])->name('settings.update');
+    Route::post('/settings/password',     [AdminController::class, 'updatePassword'])->name('settings.password');
+    Route::patch('/settings/toggle-open', [AdminController::class, 'toggleOpen'])->name('settings.toggle-open');
 
-        // ── Riders ─────────────────────────────────────────────
-        Route::get('/riders',                           [AdminController::class, 'riders'])->name('riders');
-        Route::post('/riders',                          [AdminController::class, 'storeRider'])->name('riders.store');
-        Route::patch('/riders/{rider}',                 [AdminController::class, 'updateRider'])->name('riders.update');
-        Route::delete('/riders/{rider}',                [AdminController::class, 'removeRider'])->name('riders.destroy');
+    // ── Table QR Codes ─────────────────────────────────────
+    Route::get('/table-qrcodes',       [TableQrController::class, 'index'])->name('table-qrcodes');
+    Route::get('/table-qrcodes/print', [TableQrController::class, 'print'])->name('table-qrcodes.print');
+    Route::get('/table-qrcodes/coupon',[TableQrController::class, 'coupon'])->name('table-qrcodes.coupon');
 
-        // ── Settings ───────────────────────────────────────────
-        Route::get ('/settings',              [AdminController::class, 'settings'])->name('settings');
-        Route::post('/settings',              [AdminController::class, 'updateSettings'])->name('settings.update');
-        Route::post('/settings/password',     [AdminController::class, 'updatePassword'])->name('settings.password');
-        Route::patch('/settings/toggle-open', [AdminController::class, 'toggleOpen'])->name('settings.toggle-open');
-
-        // ── Table QR Codes ─────────────────────────────────────
-        Route::get('/table-qrcodes',       [TableQrController::class, 'index'])->name('table-qrcodes');
-        Route::get('/table-qrcodes/print', [TableQrController::class, 'print'])->name('table-qrcodes.print');
-        Route::get('/table-qrcodes/coupon',[TableQrController::class, 'coupon'])->name('table-qrcodes.coupon');
-
-        // ── Audit Logs ─────────────────────────────────────────
-        Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs');
-
-    }); // end admin.verify group
+    // ── Audit Logs ─────────────────────────────────────────
+    Route::get('/audit-logs', [AdminController::class, 'auditLogs'])->name('audit-logs');
 });
