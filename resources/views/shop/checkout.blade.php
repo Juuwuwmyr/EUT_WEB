@@ -1415,8 +1415,15 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
                 window.location.href = '{{ route("shop.tracking") }}';
             }
         } else {
-            alert(d.message || 'Order failed.');
-            btn.disabled = false; btn.textContent = 'Place Order';
+            // If server says cart has stale items, clear them and reload
+            if (d.clear_cart) {
+                localStorage.removeItem('eutCart');
+                alert(d.message || 'Some items are no longer available. Your cart has been cleared. Please add items again.');
+                window.location.href = '{{ route("shop") }}';
+            } else {
+                alert(d.message || 'Order failed. Please try again.');
+                btn.disabled = false; btn.textContent = 'Place Order';
+            }
         }
     } catch (err) {
         console.error(err); alert('Network error.');

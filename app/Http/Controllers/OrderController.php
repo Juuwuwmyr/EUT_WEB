@@ -106,7 +106,19 @@ class OrderController extends Controller
             foreach ($request->items as $line) {
                 // Cart IDs may be composite like "5_12-14" — extract the base menu item ID
                 $menuItemId = (int) explode('_', $line['id'])[0];
-                $menuItem   = MenuItem::findOrFail($menuItemId);
+                $menuItem   = MenuItem::find($menuItemId);
+
+                if (!$menuItem) {
+                    DB::rollBack();
+                    // Clear the stale cart item — item no longer exists on this server
+                    return response()->json([
+                        'success'       => false,
+                        'message'       => 'One or more items in your cart are no longer available. Please refresh the page and try again.',
+                        'stale_item_id' => $menuItemId,
+                        'clear_cart'    => true,
+                    ], 422);
+                }
+
                 $qty        = (int) $line['qty'];
                 $price      = (float) $menuItem->price;
 
