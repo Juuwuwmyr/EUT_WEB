@@ -1419,7 +1419,7 @@ document.getElementById('checkoutForm').addEventListener('submit', async functio
             if (d.clear_cart) {
                 localStorage.removeItem('eutCart');
                 alert(d.message || 'Some items are no longer available. Your cart has been cleared. Please add items again.');
-                window.location.href = '{{ route("shop.index") }}';
+                window.location.href = '{{ route("shop.home") }}';
             } else {
                 alert(d.message || 'Order failed. Please try again.');
                 btn.disabled = false; btn.textContent = 'Place Order';
