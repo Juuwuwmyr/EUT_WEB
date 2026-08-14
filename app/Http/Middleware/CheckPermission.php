@@ -74,6 +74,8 @@ class CheckPermission
 
         // Redirect to the user's own dashboard instead of back(), which can
         // bounce them to whatever page the login form lived on (e.g. /restaurant).
+        // Guard against a redirect loop: if the blocked URL IS the dashboard, fall
+        // through to the home route so we don't ping-pong indefinitely.
         if (auth()->check()) {
             $user = auth()->user();
             $dashboard = match (true) {
@@ -83,7 +85,6 @@ class CheckPermission
                 default          => route('shop.home'),
             };
 
-            // Avoid a redirect loop if the user is already on their dashboard
             if ($request->url() !== $dashboard) {
                 return redirect($dashboard)
                     ->with('error', 'You do not have permission to access this resource.');

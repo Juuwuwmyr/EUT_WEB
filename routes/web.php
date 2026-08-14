@@ -89,8 +89,9 @@ Route::prefix('rider')->name('rider.')->middleware(['auth', 'rider'])->group(fun
 // Chef / Kitchen panel
 // -------------------------------------------------------
 Route::prefix('chef')->name('chef.')->middleware(['auth', 'chef'])->group(function () {
-    Route::get('/dashboard',                            [\App\Http\Controllers\ChefController::class, 'dashboard'])->middleware('permission:view_kitchen_orders')->name('dashboard');
-    Route::get('/orders',                               [\App\Http\Controllers\ChefController::class, 'getOrders'])->middleware('permission:view_kitchen_orders')->name('orders');
+    // ChefMiddleware already guarantees role=chef|admin — no permission gate needed on the entry points
+    Route::get('/dashboard',                            [\App\Http\Controllers\ChefController::class, 'dashboard'])->name('dashboard');
+    Route::get('/orders',                               [\App\Http\Controllers\ChefController::class, 'getOrders'])->name('orders');
     Route::post('/orders/{order}/accept',               [\App\Http\Controllers\ChefController::class, 'acceptOrder'])->middleware('permission:accept_orders')->name('orders.accept');
     Route::post('/orders/{order}/start',                [\App\Http\Controllers\ChefController::class, 'startCooking'])->middleware('permission:start_cooking')->name('orders.start');
     Route::post('/orders/{order}/ready',                [\App\Http\Controllers\ChefController::class, 'markReady'])->middleware('permission:mark_order_ready')->name('orders.ready');
