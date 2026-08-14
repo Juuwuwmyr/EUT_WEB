@@ -42,7 +42,8 @@ class AuthController extends Controller
 
             $loggedIn = Auth::user();
 
-            if ($loggedIn->provider === 'email' && ! $loggedIn->hasVerifiedEmail()) {
+            if ($loggedIn->provider === 'email' && ! $loggedIn->hasVerifiedEmail()
+                && ! $loggedIn->isChef() && ! $loggedIn->isAdmin() && ! $loggedIn->isRider()) {
                 return response()->json([
                     'success'  => true,
                     'message'  => 'Please verify your email address to continue.',
@@ -236,8 +237,14 @@ class AuthController extends Controller
 
         event(new Verified($request->user()));
 
-        return redirect()
-            ->route('shop.home')
+        $verified = $request->user();
+        $redirect = $verified->isAdmin()
+            ? route('admin.dashboard')
+            : ($verified->isRider()
+                ? route('rider.dashboard')
+                : ($verified->isChef() ? route('chef.dashboard') : route('shop.home')));
+
+        return redirect($redirect)
             ->with('success', 'Email verified! Welcome to E.U.T Snack House.');
     }
 
