@@ -1075,7 +1075,13 @@ img { display: block; }
     </ul>
     <div class="nav-actions">
         @auth
-            <a href="{{ route('shop.home') }}" class="btn-primary" style="padding:8px 20px;font-size:13px;">Dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
+            @php
+                $dashUrl = auth()->user()->isAdmin() ? route('admin.dashboard')
+                    : (auth()->user()->isRider() ? route('rider.dashboard')
+                    : (auth()->user()->isChef() ? route('chef.dashboard')
+                    : route('shop.home')));
+            @endphp
+            <a href="{{ $dashUrl }}" class="btn-primary" style="padding:8px 20px;font-size:13px;">Dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
         @else
             <button onclick="openModal('login')" class="btn-outline-white">Login</button>
             <button onclick="openModal('login')" class="btn-primary" style="padding:8px 20px;font-size:13px;">Order Now <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
@@ -1093,7 +1099,7 @@ img { display: block; }
     <a href="#about">About</a>
     <a href="#why">Why EUT</a>
     @auth
-        <a href="{{ route('shop.home') }}">Dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
+        <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : (auth()->user()->isRider() ? route('rider.dashboard') : (auth()->user()->isChef() ? route('chef.dashboard') : route('shop.home'))) }}">Dashboard <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
     @else
         <a href="#" onclick="openModal('login'); closeMobileMenu();">Login</a>
         <a href="#" onclick="openModal('signup'); closeMobileMenu();">Sign Up</a>
@@ -1122,7 +1128,14 @@ img { display: block; }
             </p>
             <div class="hero-btns">
                 @auth
-                    <a href="{{ route('shop.home') }}" class="btn-primary">Order Now <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
+                    @php
+                        $heroUrl = auth()->user()->isAdmin() ? route('admin.dashboard')
+                            : (auth()->user()->isRider() ? route('rider.dashboard')
+                            : (auth()->user()->isChef() ? route('chef.dashboard')
+                            : route('shop.home')));
+                        $heroLabel = (auth()->user()->isAdmin() || auth()->user()->isChef() || auth()->user()->isRider()) ? 'Go to Dashboard' : 'Order Now';
+                    @endphp
+                    <a href="{{ $heroUrl }}" class="btn-primary">{{ $heroLabel }} <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></a>
                 @else
                     <button onclick="openModal('login')" class="btn-primary">Start Ordering <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
                 @endauth
