@@ -440,7 +440,7 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Current password is incorrect.'], 422);
         }
 
-        $user->updateQuietly(['password' => Hash::make($request->password)]);
+        $user->updateQuietly(['password' => $request->password]); // model cast handles hashing
 
         AuditLog::record(
             action:      'password_changed',

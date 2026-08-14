@@ -165,11 +165,12 @@ class AdminController extends Controller
         ]);
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => $request->role,
-            'provider' => 'email',
+            'name'             => $request->name,
+            'email'            => $request->email,
+            'password'         => $request->password, // model cast handles hashing
+            'role'             => $request->role,
+            'provider'         => 'email',
+            'email_verified_at'=> now(),              // staff accounts don't need email verification
         ]);
 
         // If rider, also create the Rider profile record
@@ -200,7 +201,7 @@ class AdminController extends Controller
         $data = ['name' => $request->name, 'email' => $request->email, 'role' => $request->role];
         if ($request->filled('password')) {
             $request->validate(['password' => 'min:6']);
-            $data['password'] = Hash::make($request->password);
+            $data['password'] = $request->password; // model cast handles hashing
         }
 
         $user->update($data);
@@ -1554,7 +1555,7 @@ class AdminController extends Controller
             return back()->with('error', 'Current password is incorrect.');
         }
 
-        $user->update(['password' => Hash::make($request->password)]);
+        $user->update(['password' => $request->password]); // model cast handles hashing
         return back()->with('success', 'Password updated successfully.');
     }
 
