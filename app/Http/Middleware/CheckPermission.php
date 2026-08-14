@@ -72,8 +72,26 @@ class CheckPermission
             ], 403);
         }
 
+        // Redirect to the user's own dashboard instead of back(), which can
+        // bounce them to whatever page the login form lived on (e.g. /restaurant).
+        if (auth()->check()) {
+            $user = auth()->user();
+            $dashboard = match (true) {
+                $user->isAdmin() => route('admin.dashboard'),
+                $user->isRider() => route('rider.dashboard'),
+                $user->isChef()  => route('chef.dashboard'),
+                default          => route('shop.home'),
+            };
+
+            // Avoid a redirect loop if the user is already on their dashboard
+            if ($request->url() !== $dashboard) {
+                return redirect($dashboard)
+                    ->with('error', 'You do not have permission to access this resource.');
+            }
+        }
+
         return redirect()
-            ->back()
+            ->route('home')
             ->with('error', 'You do not have permission to access this resource.');
     }
 }

@@ -404,6 +404,7 @@ class PermissionsSeeder extends Seeder
             ],
             'chef' => [
                 'view_kitchen_orders',
+                'accept_orders',
                 'start_cooking',
                 'mark_order_ready',
                 'cancel_order_items',
