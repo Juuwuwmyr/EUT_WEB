@@ -14,8 +14,6 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
-    protected $redirectTo = '/shop';
-
     // -------------------------------------------------------
     // EMAIL LOGIN
     // -------------------------------------------------------
@@ -40,7 +38,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            $loggedIn = Auth::user();
+            $loggedIn = User::find(Auth::id()); // fresh DB load to avoid stale cached instance
 
             if ($loggedIn->provider === 'email' && ! $loggedIn->hasVerifiedEmail()
                 && ! $loggedIn->isChef() && ! $loggedIn->isAdmin() && ! $loggedIn->isRider()) {
@@ -62,6 +60,8 @@ class AuthController extends Controller
                 : ($loggedIn->isRider()
                     ? route('rider.dashboard')
                     : ($loggedIn->isChef() ? route('chef.dashboard') : route('shop.home')));
+
+            \Log::info('LOGIN REDIRECT', ['email' => $loggedIn->email, 'role' => $loggedIn->role, 'redirect' => $redirect]);
 
             return response()->json([
                 'success'  => true,
