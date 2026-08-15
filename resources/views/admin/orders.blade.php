@@ -1047,30 +1047,22 @@ function buildSoloOrderCard(o) {
             '</button>';
     }
 
-    var actionsHtml = '<div class="order-card-actions">' + actionBtns + '</div>';
-
-    // Archive + Delete buttons — rendered as a full-width row below the main actions
-    var archiveDeleteHtml = '';
+    // Archive / Restore button
     if (['delivered','cancelled'].indexOf(o.status) !== -1) {
-        archiveDeleteHtml +=
-            '<button onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '" ' +
-            'style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.5rem .75rem;border-radius:.5rem;font-size:.78rem;font-weight:600;cursor:pointer;border:1.5px solid ' + (o.is_archived ? 'rgba(245,158,11,.4)' : 'rgba(148,163,184,.3)') + ';background:' + (o.is_archived ? 'rgba(245,158,11,.1)' : 'transparent') + ';color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';transition:filter .15s;" ' +
-            'onmouseover="this.style.filter=\'brightness(1.15)\'" onmouseout="this.style.filter=\'none\'">' +
+        actionBtns += '<button class="btn-ghost" style="font-size:.74rem;display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .7rem;color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';" onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '">' +
             '<i data-lucide="' + (o.is_archived ? 'archive-restore' : 'archive') + '" style="width:.8rem;height:.8rem;stroke-width:2;"></i>' +
             (o.is_archived ? ' Restore' : ' Archive') +
             '</button>';
     }
+
+    // Delete button (only when archived)
     if (o.is_archived) {
-        archiveDeleteHtml +=
-            '<button onclick="deleteOrder(' + o.id + ',\'' + escHtml(o.order_number) + '\',this)" title="Delete permanently" ' +
-            'style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.5rem .75rem;border-radius:.5rem;font-size:.78rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(220,38,38,.35);background:rgba(220,38,38,.08);color:#ef4444;transition:filter .15s;" ' +
-            'onmouseover="this.style.filter=\'brightness(1.15)\'" onmouseout="this.style.filter=\'none\'">' +
+        actionBtns += '<button class="btn-icon-delete" style="font-size:.74rem;display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .7rem;" onclick="deleteOrder(' + o.id + ',\'' + escHtml(o.order_number) + '\',this)" title="Delete permanently">' +
             '<i data-lucide="trash-2" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Delete' +
             '</button>';
     }
-    if (archiveDeleteHtml) {
-        actionsHtml += '<div style="display:flex;gap:.4rem;margin-top:.15rem;">' + archiveDeleteHtml + '</div>';
-    }
+
+    var actionsHtml = '<div class="order-card-actions">' + actionBtns + '</div>';
 
     return buildOrderCard({
         cardId:    'solo-' + o.id,
