@@ -1039,6 +1039,28 @@ function buildSoloOrderCard(o) {
 
     // All action buttons come from the original buildActionBtns() — untouched
     var actionBtns = buildActionBtns(o);
+
+    // Print button for delivery orders
+    if (o.order_type === 'delivery') {
+        actionBtns += '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#60a5fa;" onclick="adminPrintTakeoutSlip(' + o.id + ')" title="Print Takeout Slip">' +
+            '<i data-lucide="printer" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+            '</button>';
+    }
+
+    // Archive button (delivered or cancelled orders)
+    if (['delivered','cancelled'].indexOf(o.status) !== -1) {
+        actionBtns += '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';" onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '">' +
+            '<i data-lucide="' + (o.is_archived ? 'archive-restore' : 'archive') + '" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+            '</button>';
+    }
+
+    // Delete button (only when already archived)
+    if (o.is_archived) {
+        actionBtns += '<button class="btn-icon-delete" style="font-size:.72rem;padding:.35rem .55rem;" onclick="deleteOrder(' + o.id + ',\'' + escHtml(o.order_number) + '\',this)" title="Delete permanently">' +
+            '<i data-lucide="trash-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+            '</button>';
+    }
+
     var actionsHtml = '<div class="order-card-actions">' + actionBtns + '</div>';
 
     return buildOrderCard({
