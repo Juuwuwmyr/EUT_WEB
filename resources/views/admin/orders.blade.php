@@ -1077,7 +1077,8 @@ function buildSoloOrderCard(o) {
         metaLine1: metaLine1,
         metaLine2: '\u23F0 ' + escHtml(o.date_short || o.date),
         total:     o.total,
-        body:      itemsHtml + actionsHtml,
+        body:      itemsHtml,
+        actions:   actionsHtml,
     });
 }
 
@@ -1094,6 +1095,7 @@ function buildOrderCard(opts) {
         '</div>' +
         '<div class="order-card-body">' + (opts.body || '') + '</div>' +
         '<div class="order-card-total">\u20B1' + Number(opts.total).toLocaleString() + '</div>' +
+        (opts.actions ? opts.actions : '') +
     '</div>';
 }
 
