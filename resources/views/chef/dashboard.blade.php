@@ -874,7 +874,10 @@ function renderOrderCard(order, column) {
         ? `<div class="k-notes">📝 ${escapeHtml(order.notes)}</div>`
         : '';
     const tableNote = (order.order_type === 'dine_in' && order.table_number)
-        ? `<div class="k-notes" style="background:rgba(250,204,21,.08);border-color:rgba(250,204,21,.25);color:#facc15;">🪑 Table ${escapeHtml(order.table_number)}</div>`
+        ? `<div style="display:flex;align-items:center;gap:.5rem;margin:.4rem 0 .1rem;padding:.45rem .75rem;border-radius:.5rem;background:rgba(250,204,21,.13);border:1px solid rgba(250,204,21,.4);">
+               <span style="font-size:1rem;">🪑</span>
+               <span style="font-size:1rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ${escapeHtml(order.table_number)}</span>
+           </div>`
         : '';
 
     const elapsed = elapsedBadge(order.elapsed_mins);
@@ -1015,7 +1018,7 @@ function openOrderModal(orderId) {
     const tableNoteEl = document.getElementById('modalTableNote');
     if (tableNoteEl) {
         if (order.order_type === 'dine_in' && order.table_number) {
-            tableNoteEl.innerHTML = `<div class="k-modal-notes" style="background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.25);color:#facc15;">🪑 <strong>Table Number:</strong> ${escapeHtml(order.table_number)}</div>`;
+            tableNoteEl.innerHTML = `<div style="display:flex;align-items:center;gap:.5rem;margin:.4rem 0;padding:.5rem .85rem;border-radius:.5rem;background:rgba(250,204,21,.13);border:1px solid rgba(250,204,21,.4);"><span style="font-size:1.1rem;">🪑</span><span style="font-size:1.05rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ${escapeHtml(order.table_number)}</span></div>`;
             tableNoteEl.style.display = 'block';
         } else {
             tableNoteEl.style.display = 'none';
