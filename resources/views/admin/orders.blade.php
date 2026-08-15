@@ -552,7 +552,7 @@ function applyDateFilter(mode) {
 // Flow: Admin ACCEPTS (auto?preparing) ? Chef MARKS READY ? Admin DISPATCHES rider ? Rider PICKS UP ? Rider DELIVERS
 var INLINE_ACTIONS = {
     pending: { label:'Accept', icon:'check', btnClass:'btn-success', type:'accept' },
-    // preparing: handled dynamically � 'Dispatch' only when chef has marked ready (picked_up_at set on order data)
+    // preparing: handled dynamically — 'Dispatch'/'Serve'/'Picked Up' shown only when chef has marked ready (prepared_at set on order data)
 };
 
 function renderTable(orders) {
@@ -797,6 +797,15 @@ function buildActionBtns(o) {
     actionBtn += '<button class="btn-ghost" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem .65rem;" onclick="openManageModal(' + o.id + ')" title="Details">' +
         '<i data-lucide="settings-2" style="width:.85rem;height:.85rem;stroke-width:2;"></i>' +
         '</button>';
+
+    // Cancel button for accepted / preparing-not-yet-ready orders (admin can cancel from the card)
+    if (o.status === 'accepted' || (o.status === 'preparing' && !o.prepared_at)) {
+        actionBtn += '<button class="btn-ghost" style="font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .65rem;color:#f87171;border:1px solid rgba(239,68,68,.25);" ' +
+            'onclick="quickAction(' + o.id + ',\'status\',\'cancelled\',this)" title="Cancel order" ' +
+            'onmouseover="this.style.background=\'rgba(239,68,68,.08)\'" onmouseout="this.style.background=\'transparent\'">' +
+            '<i data-lucide="x-circle" style="width:.82rem;height:.82rem;stroke-width:2;"></i>' +
+            '</button>';
+    }
 
     return actionBtn;
 }
@@ -1052,8 +1061,8 @@ function buildSoloOrderCard(o) {
     // All action buttons come from the original buildActionBtns() — untouched
     var actionBtns = buildActionBtns(o);
 
-    // Print button for delivery orders
-    if (o.order_type === 'delivery') {
+    // Print button for delivery orders (available at preparing and beyond)
+    if (o.order_type === 'delivery' && ['preparing','rider_assigned','out_for_delivery','delivered'].indexOf(o.status) !== -1) {
         actionBtns += '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:#60a5fa;" onclick="adminPrintTakeoutSlip(' + o.id + ')" title="Print Takeout Slip">' +
             '<i data-lucide="printer" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
             '</button>';
@@ -1557,9 +1566,11 @@ function openManageModal(id) {
                     '<svg width="14" height="14" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2z"/></svg>' +
                 '</div>' +
                 '<div>' +
-                    '<p style="font-size:.8rem;font-weight:700;color:#f59e0b;margin:0 0 .2rem;">Chef is Cooking</p>' +
+                    '<p style="font-size:.8rem;font-weight:700;color:#f59e0b;margin:0 0 .2rem;">' + (o.status === 'accepted' ? 'Queued for Kitchen' : 'Chef is Cooking') + '</p>' +
                     '<p style="font-size:.72rem;color:var(--text-muted);margin:0;line-height:1.5;">' +
-                        'Waiting for the chef to <strong style="color:#fcd34d;">mark this order as ready</strong> from the Kitchen Dashboard.' +
+                        (o.status === 'accepted'
+                            ? 'Waiting for the chef to <strong style="color:#fcd34d;">start cooking</strong> from the Kitchen Dashboard.'
+                            : 'Waiting for the chef to <strong style="color:#fcd34d;">mark this order as ready</strong> from the Kitchen Dashboard.') +
                     '</p>' +
                 '</div>' +
             '</div>';
