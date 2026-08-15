@@ -897,6 +897,40 @@ function buildAddons() {
     }
 }
 
+// Multi-select checkbox card toggle — used when addon group renders as a card (one card per group)
+function toggleAddon(groupId, name, priceType, adj) {
+    const card  = document.getElementById('addon_' + groupId);
+    const check = document.getElementById('adcheck_' + groupId);
+
+    if (selectedAddons[groupId]) {
+        // Already selected → deselect
+        delete selectedAddons[groupId];
+        if (card)  { card.classList.remove('selected'); }
+        if (check) { check.style.opacity = '0.4'; }
+    } else {
+        // Check global max limit
+        const globalMax = addonGlobalMax();
+        if (globalMax !== null && Object.keys(selectedAddons).length >= globalMax) {
+            // Flash the limit label
+            const limitLabel = document.getElementById('addonsLimitLabel');
+            if (limitLabel) {
+                limitLabel.style.color = '#ef4444';
+                limitLabel.textContent = `Max ${globalMax} add-on${globalMax > 1 ? 's' : ''}!`;
+                setTimeout(() => {
+                    limitLabel.style.color = '';
+                    limitLabel.textContent = `Optional · Choose up to ${globalMax}`;
+                }, 1200);
+            }
+            return;
+        }
+        // Select it
+        selectedAddons[groupId] = { name, priceType, adj };
+        if (card)  { card.classList.add('selected'); }
+        if (check) { check.style.opacity = ''; }  // let CSS .addon-card.selected .addon-check take over
+    }
+    updateTotal();
+}
+
 // Radio option toggle — used when addon group has multiple options rendered as pills
 function toggleAddonOpt(groupId, optId, name, priceType, adj) {
     const limitLabel = document.getElementById('addonsLimitLabel');
