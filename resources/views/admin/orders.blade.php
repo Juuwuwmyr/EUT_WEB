@@ -174,6 +174,10 @@
     flex: 1;
     min-width: 0;
     justify-content: center;
+    white-space: normal;
+    word-break: break-word;
+    text-align: center;
+    line-height: 1.3;
 }
 
 /* Card-level buttons (Complete Table, Done Ordering) */
@@ -754,7 +758,7 @@ function buildActionBtns(o) {
     if (o.status === 'preparing') {
         if (!o.prepared_at) {
             act = null;
-            actionBtn = '<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:99px;font-size:.78rem;font-weight:700;background:rgba(220,38,38,.1);color:#f87171;border:1px solid rgba(220,38,38,.25);white-space:nowrap;">' +
+            actionBtn = '<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:99px;font-size:.78rem;font-weight:700;background:rgba(220,38,38,.1);color:#f87171;border:1px solid rgba(220,38,38,.25);">' +
                 '<span style="width:7px;height:7px;border-radius:50%;background:#f87171;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
                 'Chef Cooking' +
                 '</span>';
@@ -767,14 +771,14 @@ function buildActionBtns(o) {
 
     if (o.status === 'rider_assigned') {
         var riderName = o.rider ? escHtml(o.rider) : 'Rider';
-        actionBtn = '<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:99px;font-size:.78rem;font-weight:700;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.25);white-space:nowrap;">' +
+        actionBtn = '<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:99px;font-size:.78rem;font-weight:700;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.25);">' +
             '<span style="width:7px;height:7px;border-radius:50%;background:#a78bfa;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
             'Awaiting Rider Pickup' +
             '</span>';
     }
 
     if (act) {
-        actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;white-space:nowrap;flex:1;justify-content:center;" ' +
+        actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;flex:1;justify-content:center;" ' +
             'onclick="quickAction(' + o.id + ',\'' + act.type + '\',\'' + (act.next || '') + '\',this)">' +
             '<i data-lucide="' + act.icon + '" style="width:.85rem;height:.85rem;stroke-width:2.5;flex-shrink:0;"></i>' +
             act.label +
@@ -782,7 +786,7 @@ function buildActionBtns(o) {
 
         // For pending orders: prepend a "View" button
         if (o.status === 'pending') {
-            actionBtn = '<button type="button" class="btn-ghost" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem .9rem;white-space:nowrap;border:1px solid rgba(245,158,11,.35);color:#f59e0b;" ' +
+            actionBtn = '<button type="button" class="btn-ghost" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem .9rem;border:1px solid rgba(245,158,11,.35);color:#f59e0b;" ' +
                 'onclick="openPreviewModal(' + o.id + ')" title="View order items before accepting">' +
                 '<i data-lucide="eye" style="width:.85rem;height:.85rem;stroke-width:2;flex-shrink:0;"></i> View' +
                 '</button>' + actionBtn;
