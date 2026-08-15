@@ -265,6 +265,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             var active = document.querySelector('.nav-link.active');
             if (active) active.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'instant' });
+
+            // Remember last visited admin page so the Kitchen "← Admin" button can return here
+            localStorage.setItem('lastAdminPage', window.location.href);
         });
         /* Modal helpers — defined early so views can call them */
         function openModal(id){ var el=document.getElementById(id); if(el){el.classList.add('open');document.body.style.overflow='hidden';} }
