@@ -164,10 +164,16 @@
 /* Action buttons row */
 .order-card-actions {
     display: flex;
-    gap: .35rem;
+    gap: .4rem;
     flex-wrap: wrap;
     align-items: center;
-    margin-top: .25rem;
+    margin-top: .35rem;
+}
+.order-card-actions > button,
+.order-card-actions > span {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
 }
 
 /* Card-level buttons (Complete Table, Done Ordering) */
@@ -748,8 +754,8 @@ function buildActionBtns(o) {
     if (o.status === 'preparing') {
         if (!o.prepared_at) {
             act = null;
-            actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(220,38,38,.1);color:#f87171;border:1px solid rgba(220,38,38,.25);white-space:nowrap;">' +
-                '<span style="width:6px;height:6px;border-radius:50%;background:#f87171;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
+            actionBtn = '<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:99px;font-size:.78rem;font-weight:700;background:rgba(220,38,38,.1);color:#f87171;border:1px solid rgba(220,38,38,.25);white-space:nowrap;">' +
+                '<span style="width:7px;height:7px;border-radius:50%;background:#f87171;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
                 'Chef Cooking' +
                 '</span>';
         } else if (o.order_type === 'delivery') {
@@ -761,31 +767,31 @@ function buildActionBtns(o) {
 
     if (o.status === 'rider_assigned') {
         var riderName = o.rider ? escHtml(o.rider) : 'Rider';
-        actionBtn = '<span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:99px;font-size:.68rem;font-weight:700;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.25);white-space:nowrap;">' +
-            '<span style="width:6px;height:6px;border-radius:50%;background:#a78bfa;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
+        actionBtn = '<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:99px;font-size:.78rem;font-weight:700;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.25);white-space:nowrap;">' +
+            '<span style="width:7px;height:7px;border-radius:50%;background:#a78bfa;flex-shrink:0;animation:blink 1.2s infinite;display:inline-block;"></span>' +
             'Awaiting Rider Pickup' +
             '</span>';
     }
 
     if (act) {
-        actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .75rem;white-space:nowrap;" ' +
+        actionBtn = '<button type="button" class="' + act.btnClass + '" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;white-space:nowrap;flex:1;justify-content:center;" ' +
             'onclick="quickAction(' + o.id + ',\'' + act.type + '\',\'' + (act.next || '') + '\',this)">' +
-            '<i data-lucide="' + act.icon + '" style="width:.75rem;height:.75rem;stroke-width:2.5;flex-shrink:0;"></i>' +
+            '<i data-lucide="' + act.icon + '" style="width:.85rem;height:.85rem;stroke-width:2.5;flex-shrink:0;"></i>' +
             act.label +
             '</button>';
 
-        // For pending orders: prepend a "View" button so admin can inspect items before accepting
+        // For pending orders: prepend a "View" button
         if (o.status === 'pending') {
-            actionBtn = '<button type="button" class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .65rem;white-space:nowrap;border:1px solid rgba(245,158,11,.35);color:#f59e0b;" ' +
+            actionBtn = '<button type="button" class="btn-ghost" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem .9rem;white-space:nowrap;border:1px solid rgba(245,158,11,.35);color:#f59e0b;" ' +
                 'onclick="openPreviewModal(' + o.id + ')" title="View order items before accepting">' +
-                '<i data-lucide="eye" style="width:.75rem;height:.75rem;stroke-width:2;flex-shrink:0;"></i> View' +
+                '<i data-lucide="eye" style="width:.85rem;height:.85rem;stroke-width:2;flex-shrink:0;"></i> View' +
                 '</button>' + actionBtn;
         }
     }
 
     // Settings/detail button always
-    actionBtn += '<button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;" onclick="openManageModal(' + o.id + ')" title="Details">' +
-        '<i data-lucide="settings-2" style="width:.75rem;height:.75rem;stroke-width:2;"></i>' +
+    actionBtn += '<button class="btn-ghost" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem .65rem;" onclick="openManageModal(' + o.id + ')" title="Details">' +
+        '<i data-lucide="settings-2" style="width:.85rem;height:.85rem;stroke-width:2;"></i>' +
         '</button>';
 
     return actionBtn;
@@ -1049,16 +1055,16 @@ function buildSoloOrderCard(o) {
 
     // Archive / Restore button
     if (['delivered','cancelled'].indexOf(o.status) !== -1) {
-        actionBtns += '<button class="btn-ghost" style="font-size:.74rem;display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .7rem;color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';" onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '">' +
-            '<i data-lucide="' + (o.is_archived ? 'archive-restore' : 'archive') + '" style="width:.8rem;height:.8rem;stroke-width:2;"></i>' +
+        actionBtns += '<button class="btn-ghost" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem .8rem;color:' + (o.is_archived ? '#f59e0b' : 'var(--text-muted)') + ';" onclick="archiveOrder(' + o.id + ',this)" title="' + (o.is_archived ? 'Restore' : 'Archive') + '">' +
+            '<i data-lucide="' + (o.is_archived ? 'archive-restore' : 'archive') + '" style="width:.85rem;height:.85rem;stroke-width:2;"></i>' +
             (o.is_archived ? ' Restore' : ' Archive') +
             '</button>';
     }
 
     // Delete button (only when archived)
     if (o.is_archived) {
-        actionBtns += '<button class="btn-icon-delete" style="font-size:.74rem;display:inline-flex;align-items:center;gap:.35rem;padding:.4rem .7rem;" onclick="deleteOrder(' + o.id + ',\'' + escHtml(o.order_number) + '\',this)" title="Delete permanently">' +
-            '<i data-lucide="trash-2" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Delete' +
+        actionBtns += '<button class="btn-icon-delete" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem .8rem;" onclick="deleteOrder(' + o.id + ',\'' + escHtml(o.order_number) + '\',this)" title="Delete permanently">' +
+            '<i data-lucide="trash-2" style="width:.85rem;height:.85rem;stroke-width:2;"></i> Delete' +
             '</button>';
     }
 
