@@ -874,8 +874,10 @@ function renderOrderCard(order, column) {
         ? `<div class="k-notes">📝 ${escapeHtml(order.notes)}</div>`
         : '';
     const tableNote = (order.order_type === 'dine_in' && order.table_number)
-        ? `<div style="margin:.35rem 0 .1rem;">
-               <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .55rem;border-radius:.375rem;background:rgba(250,204,21,.13);border:1px solid rgba(250,204,21,.35);font-size:.82rem;font-weight:800;color:#facc15;letter-spacing:.01em;">🪑 Table ${escapeHtml(order.table_number)}</span>
+        ? `<div style="margin:0 1rem .55rem;">
+               <span style="display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:.5rem;background:rgba(250,204,21,.18);border:1.5px solid rgba(250,204,21,.5);font-size:.85rem;font-weight:800;color:#fde68a;letter-spacing:.02em;">
+                   🪑 Table ${escapeHtml(order.table_number)}
+               </span>
            </div>`
         : '';
 
