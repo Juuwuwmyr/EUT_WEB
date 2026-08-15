@@ -1026,7 +1026,9 @@ function buildSoloOrderCard(o) {
     var sc = statusChip(o.status, o.order_type);
 
     var metaLine1 = o.order_type === 'dine_in' && o.table_number
-        ? '\uD83E\uDE91 Table ' + escHtml(o.table_number)
+        ? '<span style="display:inline-flex;align-items:center;gap:.35rem;font-size:.88rem;font-weight:800;color:#facc15;">' +
+          '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.1rem .5rem;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>' +
+          '</span>'
         : (o.order_type_icon ? o.order_type_icon + ' ' : '') + escHtml(o.order_type_label || o.order_type);
 
     // Items preview (up to 3)
