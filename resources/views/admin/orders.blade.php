@@ -1,9 +1,256 @@
-@extends('admin.layout')
+﻿@extends('admin.layout')
 @section('title', 'Orders')
 
 {{-- Leaflet for rider live map in modal --}}
 @push('head')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+/* ── Orders Card Grid ─────────────────────────────────────────────────────── */
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    padding: 1.1rem 1.25rem 1.5rem;
+}
+.orders-grid-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 3rem 1rem;
+    font-size: .85rem;
+}
+
+/* Card shell */
+.order-card {
+    background: var(--bg-card, #1a1a2e);
+    border: 1px solid var(--border-card, rgba(255,255,255,.08));
+    border-radius: 1rem;
+    padding: 1rem 1.1rem .9rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    transition: box-shadow .15s, transform .15s;
+}
+.order-card:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,.18);
+    transform: translateY(-1px);
+}
+
+/* Header: order number + status badge */
+.order-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .5rem;
+}
+.order-card-num {
+    font-family: monospace;
+    font-size: .82rem;
+    font-weight: 800;
+    color: #60a5fa;
+    line-height: 1.3;
+    word-break: break-all;
+}
+.order-card-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: .18rem .55rem;
+    border-radius: 9999px;
+    font-size: .62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Meta: table/type + time */
+.order-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: .1rem;
+    font-size: .72rem;
+    color: var(--text-muted, #9ca3af);
+}
+
+/* Body */
+.order-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    flex: 1;
+}
+
+/* Items (solo cards) */
+.order-card-items {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    margin-bottom: .15rem;
+}
+.order-card-item {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .74rem;
+}
+.order-card-item-qty {
+    font-size: .68rem;
+    font-weight: 700;
+    color: #d97706;
+    background: rgba(245,158,11,.1);
+    border-radius: 4px;
+    padding: 1px 5px;
+    flex-shrink: 0;
+}
+.order-card-item-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    color: var(--text-body, #e2e8f0);
+}
+.order-card-item-more {
+    font-size: .66rem;
+    color: var(--text-muted, #9ca3af);
+}
+
+/* Sub-rows (grouped table cards) */
+.order-card-subitems {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+.order-card-subrow {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    flex-wrap: wrap;
+    padding: .25rem .4rem;
+    border-radius: .4rem;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.06);
+}
+.order-card-subrow-num {
+    font-family: monospace;
+    font-size: .67rem;
+    font-weight: 700;
+    color: #60a5fa;
+    flex-shrink: 0;
+}
+.order-card-subrow-total {
+    font-size: .67rem;
+    color: var(--text-muted, #9ca3af);
+    flex-shrink: 0;
+}
+.order-card-subrow-btns {
+    display: flex;
+    gap: .25rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+    align-items: center;
+}
+
+/* Total */
+.order-card-total {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--text-strong, #f1f5f9);
+    letter-spacing: -.01em;
+    margin-top: .1rem;
+}
+
+/* Action buttons row */
+.order-card-actions {
+    display: flex;
+    gap: .35rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: .25rem;
+}
+
+/* Card-level buttons (Complete Table, Done Ordering) */
+.oc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .3rem;
+    padding: .45rem .7rem;
+    border-radius: .5rem;
+    font-size: .74rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: opacity .15s, filter .15s;
+    white-space: nowrap;
+}
+.oc-btn:disabled { opacity: .5; cursor: default; }
+.oc-btn:not(:disabled):hover { filter: brightness(1.1); }
+
+.oc-btn-complete {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: #fff;
+    flex: 1;
+}
+.oc-btn-lock {
+    background: transparent;
+    border-color: rgba(251,146,60,.4);
+    color: #fb923c;
+    flex-shrink: 0;
+}
+.oc-btn-locked {
+    background: rgba(251,146,60,.1);
+    border-color: rgba(251,146,60,.25);
+    color: #fb923c;
+    font-size: .7rem;
+    font-weight: 700;
+    cursor: default;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: .35rem .6rem;
+    border-radius: .45rem;
+    border: 1px solid rgba(251,146,60,.25);
+}
+.oc-locked-sm { font-size: .75rem; }
+.oc-locked-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .3rem .6rem;
+    border-radius: .4rem;
+    background: rgba(251,146,60,.08);
+    color: #fb923c;
+    font-size: .7rem;
+    font-weight: 700;
+    margin-top: .35rem;
+}
+
+/* Light mode */
+html.light .order-card {
+    background: #fff;
+    border-color: rgba(0,0,0,.09);
+}
+html.light .order-card:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,.08);
+}
+html.light .order-card-num { color: #2563eb; }
+html.light .order-card-total { color: #111827; }
+html.light .order-card-subrow {
+    background: rgba(0,0,0,.025);
+    border-color: rgba(0,0,0,.07);
+}
+
+@media (max-width: 600px) {
+    .orders-grid {
+        grid-template-columns: 1fr;
+        padding: .75rem;
+    }
+}
+</style>
+
 @endpush
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -85,17 +332,7 @@
         </span>
     </div>
 
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Order #</th><th>Customer</th><th>Items</th>
-                <th>Total</th><th>Status</th><th>Placed</th><th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="ordersTableBody">
-            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:3rem;">Loading�</td></tr>
-        </tbody>
-    </table>
+    <div id="ordersGrid" class="orders-grid"><div class="orders-grid-empty">Loading&#8230;</div></div>
 </div>
 
 {{-- ══════════ MANAGE ORDER MODAL ══════════ --}}
@@ -270,7 +507,7 @@ async function fetchOrders() {
         data.orders.forEach(function(o) { ORDERS_MAP[o.id] = o; });
         RIDERS = data.riders || [];
 
-        renderTable(data.orders);
+        renderGrid(data.orders);
 
         if (dot)   dot.style.background   = '#10b981'; // green = ok
         if (label) label.textContent = 'Live';
@@ -624,6 +861,213 @@ function escHtml(str) {
     if (!str) return '';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+
+// ── Card Grid Renderer ────────────────────────────────────────────────────────
+// Replaces renderTable() as the display layer ONLY.
+// ALL logic (quickAction, buildActionBtns, modals, payment, auto-print, Echo,
+// grouping algorithm) is 100% untouched — this just wraps output in card shells.
+function renderGrid(orders) {
+    var grid    = document.getElementById('ordersGrid');
+    var countEl = document.getElementById('orderCount');
+    if (!grid) return;
+
+    if (!orders || !orders.length) {
+        if (countEl) countEl.textContent = '0 order(s)';
+        grid.innerHTML = '<div class="orders-grid-empty">No orders found.</div>';
+        return;
+    }
+
+    // ── Exact same grouping logic as original renderTable() ──────────────────
+    var GROUPABLE_STATUSES = ['pending','accepted','preparing','rider_assigned','out_for_delivery','delivered'];
+    var tableGroups = {};
+    var soloOrders  = [];
+
+    orders.forEach(function(o) {
+        var canGroup = o.order_type === 'dine_in'
+            && o.table_number
+            && GROUPABLE_STATUSES.indexOf(o.status) !== -1
+            && !o.is_archived
+            && !activeFilter;
+        if (canGroup) {
+            var gk = o.table_session_id ? ('session_' + o.table_session_id) : ('table_' + o.table_number);
+            if (!tableGroups[gk]) tableGroups[gk] = [];
+            tableGroups[gk].push(o);
+        } else {
+            soloOrders.push(o);
+        }
+    });
+
+    Object.keys(tableGroups).forEach(function(k) {
+        if (tableGroups[k].length === 1) {
+            soloOrders.push(tableGroups[k][0]);
+            delete tableGroups[k];
+        }
+    });
+
+    var rowCount = soloOrders.length + Object.keys(tableGroups).length;
+    if (countEl) countEl.textContent = rowCount + ' card(s) \u00B7 ' + orders.length + ' order(s)';
+
+    var html = '';
+
+    // ── Grouped dine-in table cards ───────────────────────────────────────────
+    Object.keys(tableGroups).forEach(function(sessionKey) {
+        var group    = tableGroups[sessionKey].sort(function(a,b){ return a.id - b.id; });
+        var rep      = group[0];
+        var tableNum = rep.table_number || sessionKey;
+        var grandTotal = group.reduce(function(s,o){ return s + parseFloat(o.total||0); }, 0);
+
+        var statusPriority = ['pending','accepted','preparing','rider_assigned','out_for_delivery','delivered','cancelled'];
+        var topStatus = group.reduce(function(best,o) {
+            return statusPriority.indexOf(o.status) < statusPriority.indexOf(best) ? o.status : best;
+        }, group[0].status);
+
+        var allReady = group.every(function(o) {
+            return o.status === 'preparing' && o.prepared_at && o.order_type !== 'delivery';
+        });
+        var sc = allReady
+            ? { bg:'rgba(16,185,129,.15)', color:'#10b981', label:'Ready to Serve' }
+            : statusChip(topStatus, 'dine_in');
+
+        var isSessionLocked = group.some(function(o){ return o.ordering_locked; });
+
+        var subHtml = '<div class="order-card-subitems">';
+
+        if (allReady && group.length > 1) {
+            // All ready: show each order as ready + single Complete Table button
+            group.forEach(function(o) {
+                subHtml +=
+                    '<div class="order-card-subrow">' +
+                    '<span class="order-card-subrow-num">' + escHtml(o.order_number) + '</span>' +
+                    '<span class="order-card-badge" style="background:rgba(16,185,129,.12);color:#10b981;">\u2713 Ready</span>' +
+                    '<span class="order-card-subrow-total">\u20B1' + Number(o.total).toLocaleString() + '</span>' +
+                    '<button class="btn-ghost" style="font-size:.63rem;padding:.15rem .35rem;margin-left:auto;" onclick="openManageModal(' + o.id + ')" title="Details">' +
+                    '<i data-lucide="settings-2" style="width:.65rem;height:.65rem;stroke-width:2;"></i></button>' +
+                    '</div>';
+            });
+            subHtml += '</div>';
+            // Complete Table + Done Ordering buttons
+            subHtml +=
+                '<div class="order-card-actions">' +
+                '<button type="button" class="oc-btn oc-btn-complete" data-grand-total="' + grandTotal + '" ' +
+                'onclick="quickAction(' + rep.id + ',\'complete-table\',\'\',this)">' +
+                '<i data-lucide="circle-check" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i>' +
+                ' Complete \u00B7 \u20B1' + Number(grandTotal).toLocaleString() + '</button>' +
+                (isSessionLocked
+                    ? '<span class="oc-btn oc-btn-locked">\uD83D\uDD12 Locked</span>'
+                    : '<button type="button" class="oc-btn oc-btn-lock" onclick="quickAction(' + rep.id + ',\'lock-table\',\'\',this)" title="Done Ordering">' +
+                      '<i data-lucide="lock" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Done</button>') +
+                '</div>';
+        } else {
+            // Normal group: per-order buttons via existing buildActionBtns()
+            group.forEach(function(o) {
+                var oSc   = statusChip(o.status, o.order_type);
+                var oBtns = buildActionBtns(o);
+                subHtml +=
+                    '<div class="order-card-subrow">' +
+                    '<span class="order-card-subrow-num">' + escHtml(o.order_number) + '</span>' +
+                    '<span class="order-card-badge" style="background:' + oSc.bg + ';color:' + oSc.color + ';">' + oSc.label + '</span>' +
+                    '<span class="order-card-subrow-total">\u20B1' + Number(o.total).toLocaleString() + '</span>' +
+                    '<div class="order-card-subrow-btns">' + oBtns + '</div>' +
+                    '</div>';
+            });
+            subHtml += '</div>';
+
+            // Lock button (same condition as original)
+            var hasActive = group.some(function(o){ return ['pending','accepted','preparing'].indexOf(o.status) !== -1; });
+            if (hasActive) {
+                subHtml += isSessionLocked
+                    ? '<div class="oc-locked-badge">\uD83D\uDD12 Done Ordering \u2014 Locked</div>'
+                    : '<div style="margin-top:.4rem;"><button type="button" class="oc-btn oc-btn-lock" ' +
+                      'onclick="quickAction(' + rep.id + ',\'lock-table\',\'\',this)" title="Done Ordering">' +
+                      '<i data-lucide="lock" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Done Ordering</button></div>';
+            }
+
+            // Archive when all delivered
+            if (group.every(function(o){ return o.status === 'delivered'; })) {
+                subHtml +=
+                    '<div style="margin-top:.4rem;"><button class="btn-ghost" ' +
+                    'style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:var(--text-muted);" ' +
+                    'onclick="archiveOrder(' + rep.id + ',this)" title="Archive Table Session">' +
+                    '<i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button></div>';
+            }
+        }
+
+        html += buildOrderCard({
+            cardId:    'group-' + sessionKey.replace(/[^a-z0-9]/gi,'_'),
+            headerLeft: '\uD83E\uDE91 Table ' + escHtml(tableNum) +
+                (isSessionLocked ? ' <span class="oc-locked-sm">\uD83D\uDD12</span>' : ''),
+            sc:        sc,
+            metaLine1: group.length + ' order(s) \u00B7 ' + escHtml(rep.date_short || rep.date),
+            metaLine2: '',
+            total:     grandTotal,
+            body:      subHtml,
+        });
+    });
+
+    // ── Solo order cards ──────────────────────────────────────────────────────
+    soloOrders.forEach(function(o) {
+        html += buildSoloOrderCard(o);
+    });
+
+    grid.innerHTML = html;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+// Build a card for a single (non-grouped) order.
+// Uses buildActionBtns(o) directly — zero reimplementation of any logic.
+function buildSoloOrderCard(o) {
+    var sc = statusChip(o.status, o.order_type);
+
+    var metaLine1 = o.order_type === 'dine_in' && o.table_number
+        ? '\uD83E\uDE91 Table ' + escHtml(o.table_number)
+        : (o.order_type_icon ? o.order_type_icon + ' ' : '') + escHtml(o.order_type_label || o.order_type);
+
+    // Items preview (up to 3)
+    var itemsHtml = '<div class="order-card-items">';
+    o.items.slice(0, 3).forEach(function(item) {
+        itemsHtml +=
+            '<div class="order-card-item">' +
+            '<span class="order-card-item-qty">x' + item.qty + '</span>' +
+            '<span class="order-card-item-name" title="' + escHtml(item.name) + '">' + escHtml(item.name) + '</span>' +
+            '</div>';
+    });
+    if (o.items.length > 3) {
+        itemsHtml += '<span class="order-card-item-more">+' + (o.items.length - 3) + ' more</span>';
+    }
+    itemsHtml += '</div>';
+
+    // All action buttons come from the original buildActionBtns() — untouched
+    var actionBtns = buildActionBtns(o);
+    var actionsHtml = '<div class="order-card-actions">' + actionBtns + '</div>';
+
+    return buildOrderCard({
+        cardId:    'solo-' + o.id,
+        headerLeft: escHtml(o.order_number),
+        sc:        sc,
+        metaLine1: metaLine1,
+        metaLine2: '\u23F0 ' + escHtml(o.date_short || o.date),
+        total:     o.total,
+        body:      itemsHtml + actionsHtml,
+    });
+}
+
+// Shared card HTML shell — pure layout, zero logic.
+function buildOrderCard(opts) {
+    return '<div class="order-card" id="order-card-' + opts.cardId + '">' +
+        '<div class="order-card-header">' +
+            '<span class="order-card-num">' + opts.headerLeft + '</span>' +
+            '<span class="order-card-badge" style="background:' + opts.sc.bg + ';color:' + opts.sc.color + ';">' + opts.sc.label + '</span>' +
+        '</div>' +
+        '<div class="order-card-meta">' +
+            (opts.metaLine1 ? '<span>' + opts.metaLine1 + '</span>' : '') +
+            (opts.metaLine2 ? '<span>' + opts.metaLine2 + '</span>' : '') +
+        '</div>' +
+        '<div class="order-card-body">' + (opts.body || '') + '</div>' +
+        '<div class="order-card-total">\u20B1' + Number(opts.total).toLocaleString() + '</div>' +
+    '</div>';
+}
+
 
 // -- Print takeout slip (delivery orders only) --------------
 function adminPrintTakeoutSlip(orderId) {
