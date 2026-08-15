@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:32px 16px;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.08);">
+
+                {{-- Header --}}
+                <tr>
+                    <td style="background:#0a0a0a;padding:28px 32px;text-align:center;">
+                        <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:.5px;">E.U.T Snack House</div>
+                        <div style="font-size:12px;color:#9ca3af;margin-top:6px;letter-spacing:1px;text-transform:uppercase;">Password Reset</div>
+                    </td>
+                </tr>
+
+                {{-- Body --}}
+                <tr>
+                    <td style="padding:32px;">
+                        <p style="margin:0 0 12px;font-size:16px;color:#111827;">Hi {{ $name }},</p>
+                        <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4b5563;">
+                            We received a request to reset your password. Use the code below to continue.
+                            If you didn't request this, you can safely ignore this email.
+                        </p>
+
+                        {{-- OTP Box --}}
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td align="center" style="background:#fef3c7;border:1px solid #fde68a;border-radius:12px;padding:24px 16px;">
+                                    <div style="font-size:12px;color:#92400e;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:10px;">Your reset code</div>
+                                    <div style="font-size:36px;font-weight:700;letter-spacing:10px;color:#111827;">{{ $code }}</div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin:24px 0 0;font-size:13px;line-height:1.6;color:#6b7280;">
+                            This code expires in <strong style="color:#374151;">15 minutes</strong>.
+                            Enter it on the reset page to set your new password.
+                        </p>
+
+                        {{-- Warning --}}
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:20px;">
+                            <tr>
+                                <td style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 16px;">
+                                    <p style="margin:0;font-size:12px;color:#b91c1c;line-height:1.6;">
+                                        🔒 <strong>Security tip:</strong> Never share this code with anyone.
+                                        E.U.T staff will never ask for your reset code.
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin:20px 0 0;font-size:12px;line-height:1.6;color:#9ca3af;">
+                            If you did not request a password reset, no action is needed.
+                            Your password will remain unchanged.
+                        </p>
+                    </td>
+                </tr>
+
+                {{-- Footer --}}
+                <tr>
+                    <td style="padding:20px 32px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
+                        <p style="margin:0;font-size:11px;color:#9ca3af;">&copy; {{ date('Y') }} E.U.T Snack House. All rights reserved.</p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -146,6 +146,14 @@ Route::post('/auth/login',  [AuthController::class, 'login'])->name('auth.login'
 Route::post('/auth/signup', [AuthController::class, 'signup'])->middleware('throttle:5,1')->name('auth.signup');
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout')->middleware('auth');
 
+// ── Forgot Password (OTP flow) ──────────────────────────────
+Route::prefix('auth/forgot-password')->name('password.')->middleware('throttle:10,1')->group(function () {
+    Route::post('/send-code',   [\App\Http\Controllers\ForgotPasswordController::class, 'sendCode'])->name('send-code');
+    Route::post('/verify-code', [\App\Http\Controllers\ForgotPasswordController::class, 'verifyCode'])->name('verify-code');
+    Route::post('/reset',       [\App\Http\Controllers\ForgotPasswordController::class, 'resetPassword'])->name('reset');
+    Route::post('/cooldown',    [\App\Http\Controllers\ForgotPasswordController::class, 'cooldown'])->name('cooldown');
+});
+
 Route::get('/auth/google',          [AuthController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
