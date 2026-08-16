@@ -553,7 +553,7 @@ function renderGroupCard(group) {
 
     const tableReceiptUrl = `/chef/orders/${rep.id}/session-ticket`;
     const printBtn  = `<button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printReceipt('${tableReceiptUrl}')" title="Print kitchen ticket (all orders)"><i data-lucide="printer" style="width:13px;height:13px;stroke-width:2;"></i></button>`;
-    const removeBtn = `<button class="oc-btn oc-btn-remove" onclick="event.stopPropagation();openRemoveItemModal(${rep.id},this)" title="Remove item">✕</button>`;
+    const removeBtn = `<button class="oc-btn oc-btn-remove" onclick="event.stopPropagation();openRemoveItemModal([${orderIds.join(',')}])" title="Remove item">✕</button>`;
 
     // Bulk button: "Mark All Ready" — only shown if any order isn't ready yet
     const anyNotReady = orders.some(o => o.status !== 'preparing' || !o.prepared_at);
@@ -707,19 +707,35 @@ function enableAutoPrint() {
 // ── Remove Item Modal ──────────────────────────────────────────────────────
 let _rmOrderId = null, _rmItemId = null, _rmQty = 1, _rmMax = 1;
 
-function openRemoveItemModal(orderId) {
-    const order = orderDataMap[orderId];
-    if (!order) return;
-    _rmOrderId = orderId; _rmItemId = null; _rmQty = 1; _rmMax = 1;
-    document.getElementById('removeModalOrderLabel').textContent =
-        (order.order_number || '') + (order.table_number ? ' · Table ' + order.table_number : '');
-    document.getElementById('removeItemList').innerHTML = (order.items || []).map(item => `
-        <div class="k-remove-item-row" onclick="selectRemoveItem(this,${item.id},${item.qty})">
-            <img class="k-remove-item-img" src="${escH(item.image || '')}" alt="" onerror="this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
-            <span class="k-remove-item-name">${escH(item.name)}</span>
-            <span class="k-remove-item-qty">${item.qty}×</span>
-            <span class="k-remove-check">✓</span>
-        </div>`).join('');
+// openRemoveItemModal accepts either a single orderId or an array of orderIds (for grouped table cards)
+function openRemoveItemModal(orderIdOrIds) {
+    const orderIds = Array.isArray(orderIdOrIds) ? orderIdOrIds : [orderIdOrIds];
+    const orders   = orderIds.map(id => orderDataMap[id]).filter(Boolean);
+    if (!orders.length) return;
+
+    _rmOrderId = orders[0].id; // default; overridden per item selection
+    _rmItemId  = null; _rmQty = 1; _rmMax = 1;
+
+    const first = orders[0];
+    const label = orders.length > 1
+        ? `Table ${first.table_number} · ${orders.length} orders`
+        : (first.order_number || '') + (first.table_number ? ' · Table ' + first.table_number : '');
+    document.getElementById('removeModalOrderLabel').textContent = label;
+
+    // Build item rows across ALL orders in the group, tagging each with its orderId
+    document.getElementById('removeItemList').innerHTML = orders.flatMap(order =>
+        (order.items || []).map(item => `
+            <div class="k-remove-item-row" data-order-id="${order.id}" onclick="selectRemoveItem(this,${order.id},${item.id},${item.qty})">
+                <img class="k-remove-item-img" src="${escH(item.image || '')}" alt="" onerror="this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
+                <div style="flex:1;min-width:0;">
+                    <span class="k-remove-item-name">${escH(item.name)}</span>
+                    ${orders.length > 1 ? `<div style="font-size:.62rem;color:var(--text-muted);margin-top:.1rem;">${escH(order.order_number)}</div>` : ''}
+                </div>
+                <span class="k-remove-item-qty">${item.qty}×</span>
+                <span class="k-remove-check">✓</span>
+            </div>`)
+    ).join('');
+
     document.getElementById('removeQtyRow').style.display = 'none';
     const cb = document.getElementById('removeItemConfirmBtn');
     cb.disabled = true; cb.textContent = 'Remove Selected Item';
@@ -727,10 +743,10 @@ function openRemoveItemModal(orderId) {
     document.body.style.overflow = 'hidden';
 }
 
-function selectRemoveItem(el, itemId, qty) {
+function selectRemoveItem(el, orderId, itemId, qty) {
     document.querySelectorAll('#removeItemList .k-remove-item-row').forEach(r => r.classList.remove('selected'));
     el.classList.add('selected');
-    _rmItemId = itemId; _rmMax = qty; _rmQty = qty;
+    _rmOrderId = orderId; _rmItemId = itemId; _rmMax = qty; _rmQty = qty;
     document.getElementById('removeQtyRow').style.display = 'block';
     document.getElementById('removeQtyDisplay').textContent = _rmQty;
     document.getElementById('removeQtyMax').textContent = _rmMax;
