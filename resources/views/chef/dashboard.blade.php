@@ -626,17 +626,30 @@ async function markReady(orderId, btn) {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
         });
+
+        // Handle non-JSON responses (e.g. 302 redirect, 403 HTML page)
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            showToast('Session expired or permission denied. Refreshing…', 'error');
+            btn.disabled = false; btn.textContent = orig;
+            setTimeout(() => location.reload(), 1500);
+            return;
+        }
+
         const data = await res.json();
-        if (!data.success) { alert(data.message || 'Action failed.'); btn.disabled = false; btn.textContent = orig; return; }
+        if (!data.success) {
+            showToast(data.message || 'Action failed.', 'error');
+            btn.disabled = false; btn.textContent = orig;
+            return;
+        }
         showToast('✅ Order marked ready', 'success');
-        gridSignature = ''; // force re-render
+        gridSignature = '';
         await refreshKitchen(false);
     } catch (e) {
-        alert('Network error. Please try again.');
+        showToast('Network error: ' + e.message, 'error');
         btn.disabled = false; btn.textContent = orig;
     }
 }
-
 async function markTableReady(sessionKey, btn) {
     btn.disabled = true;
     const orig = btn.textContent;
@@ -646,13 +659,20 @@ async function markTableReady(sessionKey, btn) {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
         });
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            showToast('Session expired or permission denied. Refreshing…', 'error');
+            btn.disabled = false; btn.textContent = orig;
+            setTimeout(() => location.reload(), 1500);
+            return;
+        }
         const data = await res.json();
-        if (!data.success) { alert(data.message || 'Action failed.'); btn.disabled = false; btn.textContent = orig; return; }
+        if (!data.success) { showToast(data.message || 'Action failed.', 'error'); btn.disabled = false; btn.textContent = orig; return; }
         showToast(data.message || '✅ Table marked ready', 'success');
         gridSignature = '';
         await refreshKitchen(false);
     } catch (e) {
-        alert('Network error. Please try again.');
+        showToast('Network error: ' + e.message, 'error');
         btn.disabled = false; btn.textContent = orig;
     }
 }
