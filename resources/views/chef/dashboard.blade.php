@@ -375,7 +375,7 @@ const REMOVE_URL      = (oid, iid) => `/chef/orders/${oid}/items/${iid}`;
 // ── State ──────────────────────────────────────────────────────────────────
 let orderDataMap     = {};   // id → order object
 let pollTimer        = null;
-let gridSignature    = '';   // smart-diff: skip re-render when nothing changed
+let gridSignature    = null; // smart-diff: skip re-render when nothing changed (null = never skip)
 let printedOrderIds  = new Set();
 let printedItemIds   = {};   // orderId → Set<itemId>
 let autoPrintEnabled = false;
@@ -587,14 +587,14 @@ function renderGroupCard(group) {
 @push('scripts')
 <script>
 // ── Grid renderer ──────────────────────────────────────────────────────────
-function renderGrid(orders) {
+function renderGrid(orders, force = false) {
     const grid    = document.getElementById('kitchenGrid');
     const countEl = document.getElementById('kitchenOrderCount');
     if (!grid) return;
 
-    // Smart diff: skip re-render if nothing changed
+    // Smart diff: skip re-render if nothing changed (never skip when force=true or signature unset)
     const sig = orders.map(o => o.id + ':' + (o.updated_at || o.status)).join('|');
-    if (sig === gridSignature) return;
+    if (!force && gridSignature !== null && sig === gridSignature) return;
     gridSignature = sig;
 
     // Update order data map
@@ -617,6 +617,40 @@ function renderGrid(orders) {
 }
 
 // ── Kitchen actions ────────────────────────────────────────────────────────
+function removeOrderFromGrid(orderId) {
+    const soloCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
+    if (soloCard) {
+        soloCard.remove();
+        return;
+    }
+    // Grouped dine-in card: remove the sub-wave block for this order if present
+    document.querySelectorAll('.order-card[data-group-key]').forEach(card => {
+        const subNums = card.querySelectorAll('.order-card-subrow-num');
+        const order = orderDataMap[orderId];
+        if (!order) return;
+        subNums.forEach(el => {
+            if (el.textContent.trim() === order.order_number) {
+                const wave = el.closest('[style*="border-radius"]');
+                if (wave) wave.remove();
+            }
+        });
+        if (!card.querySelector('.order-card-subitems')?.children.length) card.remove();
+    });
+    delete orderDataMap[orderId];
+    const grid = document.getElementById('kitchenGrid');
+    if (grid && !grid.querySelector('.order-card')) {
+        grid.innerHTML = `<div class="kitchen-grid-empty">
+            <svg width="32" height="32" fill="none" stroke="#6b7280" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z"/></svg>
+            No active orders right now
+        </div>`;
+    }
+    const countEl = document.getElementById('kitchenOrderCount');
+    if (countEl) {
+        const remaining = Object.values(orderDataMap).filter(o => !o.prepared_at && ['accepted','preparing'].includes(o.status)).length;
+        countEl.textContent = remaining ? remaining + ' order(s)' : '';
+    }
+}
+
 async function markReady(orderId, btn) {
     btn.disabled = true;
     const orig = btn.textContent;
@@ -643,8 +677,9 @@ async function markReady(orderId, btn) {
             return;
         }
         showToast('✅ Order marked ready', 'success');
-        gridSignature = '';
-        await refreshKitchen(false);
+        removeOrderFromGrid(orderId);
+        gridSignature = null;
+        await refreshKitchen(false, true);
     } catch (e) {
         showToast('Network error: ' + e.message, 'error');
         btn.disabled = false; btn.textContent = orig;
@@ -669,8 +704,8 @@ async function markTableReady(sessionKey, btn) {
         const data = await res.json();
         if (!data.success) { showToast(data.message || 'Action failed.', 'error'); btn.disabled = false; btn.textContent = orig; return; }
         showToast(data.message || '✅ Table marked ready', 'success');
-        gridSignature = '';
-        await refreshKitchen(false);
+        gridSignature = null;
+        await refreshKitchen(false, true);
     } catch (e) {
         showToast('Network error: ' + e.message, 'error');
         btn.disabled = false; btn.textContent = orig;
@@ -820,8 +855,8 @@ async function confirmRemoveItem() {
         document.getElementById('removeQtyRow').style.display = 'none';
         document.body.style.overflow = '';
         _rmOrderId = _rmItemId = null; _rmQty = _rmMax = 1;
-        gridSignature = '';
-        await refreshKitchen(false);
+        gridSignature = null;
+        await refreshKitchen(false, true);
     } catch (err) {
         showToast('Network error. Please try again.', 'error');
         cb.disabled = false; cb.textContent = 'Remove Selected Item';
@@ -856,7 +891,8 @@ function setPollStatus(ok) {
 function toggleKitchenFullscreen() { document.body.classList.toggle('kitchen-fullscreen'); }
 
 // ── Main refresh ───────────────────────────────────────────────────────────
-async function refreshKitchen(manual) {
+async function refreshKitchen(manual, forceRender = false) {
+    if (manual) forceRender = true;
     try {
         const ctrl = new AbortController();
         const t = setTimeout(() => ctrl.abort(), 8000);
@@ -906,7 +942,7 @@ async function refreshKitchen(manual) {
         });
 
         // Render the single cooking board (accepted + preparing merged)
-        renderGrid(data.cooking || []);
+        renderGrid(data.cooking || [], forceRender);
 
     } catch (e) {
         setPollStatus(false);
@@ -1014,8 +1050,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     printedOrderIds.add('ready_' + order.id);
                     if (alreadyKnown) autoPrintKitchenTicket(order.id, null);
                 }
-                gridSignature = ''; // force re-render on next poll
-                refreshKitchen(false);
+                gridSignature = null; // force re-render on next poll
+                refreshKitchen(false, true);
             });
             if (window.Echo.connector?.pusher) {
                 window.Echo.connector.pusher.connection.bind('connected', () => {
