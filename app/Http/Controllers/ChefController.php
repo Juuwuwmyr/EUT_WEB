@@ -451,7 +451,7 @@ class ChefController extends Controller
     {
         // Try by table_session_id first, then by table_number (today's dine-in)
         $orders = Order::where('table_session_id', $key)
-            ->where('status', 'preparing')
+            ->whereIn('status', ['accepted', 'preparing'])
             ->whereNull('prepared_at')
             ->get();
 
