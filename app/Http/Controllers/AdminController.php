@@ -832,7 +832,7 @@ class AdminController extends Controller
 
         // Default: today's non-archived orders. Toggle with ?all=1 or ?archived=1
         if ($request->boolean('archived')) {
-            $query->where('is_archived', true);
+            $query->where('is_archived', true)->orderByDesc('created_at');
         } else if ($request->boolean('all')) {
             $query->where('is_archived', false);
         } else {
@@ -872,7 +872,7 @@ class AdminController extends Controller
 
         // Default: today's non-archived orders. Toggle with ?all=1 or ?archived=1
         if ($request->boolean('archived')) {
-            $query->where('is_archived', true);
+            $query->where('is_archived', true)->orderByDesc('created_at');
         } else if ($request->boolean('all')) {
             $query->where('is_archived', false);
         } else {

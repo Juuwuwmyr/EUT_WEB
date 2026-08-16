@@ -958,9 +958,17 @@ function renderGrid(orders) {
     });
 
     // Sort: active (priority 0) before done (priority 1).
-    // Within the same priority tier: newest (highest id) first.
+    // Within the same priority tier:
+    //   - For archived view: sort by created_at descending (newest date first)
+    //   - For normal view: newest ID first
     allCards.sort(function(a, b) {
         if (a.priority !== b.priority) return a.priority - b.priority;
+        if (dateFilter === 'archived') {
+            // Sort by created_at descending for archived view
+            var tA = a.order ? new Date(a.order.created_at || 0).getTime() : 0;
+            var tB = b.order ? new Date(b.order.created_at || 0).getTime() : 0;
+            if (tA !== tB) return tB - tA;
+        }
         return b.newestId - a.newestId; // newest first within same tier
     });
 
