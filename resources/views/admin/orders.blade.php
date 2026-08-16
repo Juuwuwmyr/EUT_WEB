@@ -859,7 +859,7 @@ function renderSingleOrderRow(o) {
                     '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;">' + (o.order_type_icon || '') + ' ' + escHtml(o.order_type_label) + '</span>' +
                     '</div>' +
                     (o.order_type === 'dine_in' && o.table_number
-                        ? '<p style="font-size:.7rem;color:#facc15;font-weight:700;margin:0 0 1px;">🪑 Table ' + escHtml(o.table_number) + '</p>'
+                        ? '<p style="font-size:.7rem;color:#4ade80;font-weight:700;margin:0 0 1px;">🪑 Table ' + escHtml(o.table_number) + '</p>'
                         : '<p style="font-size:.68rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">' + escHtml(o.address || '') + '</p>') +
                 '</div>' +
                 '</div>' +
@@ -1039,8 +1039,8 @@ function buildSoloOrderCard(o) {
     var sc = statusChip(o.status, o.order_type);
 
     var metaLine1 = o.order_type === 'dine_in' && o.table_number
-        ? '<span style="display:inline-flex;align-items:center;gap:.35rem;font-size:.88rem;font-weight:800;color:#facc15;">' +
-          '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.1rem .5rem;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>' +
+        ? '<span style="display:inline-flex;align-items:center;gap:.35rem;font-size:.88rem;font-weight:800;color:#4ade80;">' +
+          '\uD83E\uDE91 <span style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.35);border-radius:.4rem;padding:.1rem .5rem;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>' +
           '</span>'
         : (o.order_type_icon ? o.order_type_icon + ' ' : '') + escHtml(o.order_type_label || o.order_type);
 
