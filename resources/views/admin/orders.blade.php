@@ -1526,8 +1526,7 @@ function openManageModal(id) {
                 '<div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0;margin-left:.5rem;">' +
                     '<span style="font-size:.8rem;color:var(--text-body);font-weight:600;">&#x20B1;' + Number(item.subtotal).toLocaleString() + '</span>' +
                     ((['accepted','preparing'].indexOf(o.status) !== -1 && !o.prepared_at && item.id)
-                        ? '<button onclick="openAdminRemoveItemModal(' + o.id + ',' + item.id + ',' + item.qty + ')" title="Remove this item" style="display:inline-flex;align-items:center;justify-content:center;width:1.6rem;height:1.6rem;border-radius:.375rem;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#ef4444;cursor:pointer;flex-shrink:0;transition:background .15s;" onmouseover="this.style.background=\'rgba(239,68,68,.18)\'" onmouseout="this.style.background=\'rgba(239,68,68,.08)\'">' +
-                          '<i data-lucide="minus" style="width:.7rem;height:.7rem;stroke-width:3;pointer-events:none;"></i></button>'
+                        ? '<button onclick="openAdminRemoveItemModal(' + o.id + ',' + item.id + ',' + item.qty + ')" title="Remove this item" style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;border-radius:.4rem;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.1);color:#ef4444;cursor:pointer;flex-shrink:0;font-size:1rem;font-weight:700;line-height:1;transition:background .15s;" onmouseover="this.style.background=\'rgba(239,68,68,.22)\'" onmouseout="this.style.background=\'rgba(239,68,68,.1)\'">&minus;</button>'
                         : '') +
                 '</div>' +
             '</div>';
