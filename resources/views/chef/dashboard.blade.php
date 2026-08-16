@@ -702,6 +702,28 @@
         <div class="k-remove-body" id="removeItemList">
             {{-- populated by JS --}}
         </div>
+
+        {{-- Qty stepper — hidden until an item is selected --}}
+        <div id="removeQtyRow" style="display:none;padding:.6rem 1.2rem .4rem;border-top:1px solid var(--border-divider);">
+            <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.45rem;">How many to cancel?</div>
+            <div style="display:flex;align-items:center;gap:.75rem;">
+                <button type="button" id="removeQtyDec"
+                    onclick="adjustRemoveQty(-1)"
+                    style="width:2.1rem;height:2.1rem;border-radius:.5rem;border:1px solid var(--border-divider);
+                           background:rgba(255,255,255,.06);color:var(--text-strong);font-size:1.1rem;
+                           display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">−</button>
+                <span id="removeQtyDisplay"
+                    style="font-size:1.3rem;font-weight:800;color:#facc15;min-width:2rem;text-align:center;">1</span>
+                <button type="button" id="removeQtyInc"
+                    onclick="adjustRemoveQty(1)"
+                    style="width:2.1rem;height:2.1rem;border-radius:.5rem;border:1px solid var(--border-divider);
+                           background:rgba(255,255,255,.06);color:var(--text-strong);font-size:1.1rem;
+                           display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">+</button>
+                <span id="removeQtyLabel"
+                    style="font-size:.78rem;color:var(--text-muted);flex:1;">of <strong id="removeQtyMax" style="color:var(--text-strong);">1</strong> total</span>
+            </div>
+        </div>
+
         <div class="k-remove-footer">
             <button id="removeItemConfirmBtn"
                 class="k-btn"
@@ -1093,6 +1115,8 @@ async function modalAction(action, orderId) {
 // ── REMOVE ITEM MODAL ───────────────────────────────────────────────────────
 let _removeOrderId  = null;
 let _removeItemId   = null;
+let _removeItemQty  = 1;   // how many of the selected item to cancel
+let _removeItemMax  = 1;   // total qty on the order for that item
 
 function openRemoveItemModal(orderId) {
     const order = orderDataMap[orderId];
@@ -1100,6 +1124,8 @@ function openRemoveItemModal(orderId) {
 
     _removeOrderId = orderId;
     _removeItemId  = null;
+    _removeItemQty = 1;
+    _removeItemMax = 1;
 
     // Populate header label
     document.getElementById('removeModalOrderLabel').textContent =
@@ -1108,7 +1134,7 @@ function openRemoveItemModal(orderId) {
     // Build item list
     const list = document.getElementById('removeItemList');
     list.innerHTML = (order.items || []).map(item => `
-        <div class="k-remove-item-row" data-item-id="${item.id}" onclick="selectRemoveItem(this, ${item.id})">
+        <div class="k-remove-item-row" data-item-id="${item.id}" data-item-qty="${item.qty}" onclick="selectRemoveItem(this, ${item.id}, ${item.qty})">
             <img class="k-remove-item-img"
                  src="${escapeHtml(item.image || '')}"
                  alt=""
@@ -1118,7 +1144,8 @@ function openRemoveItemModal(orderId) {
             <span class="k-remove-check">✓</span>
         </div>`).join('');
 
-    // Reset confirm button
+    // Hide stepper and reset confirm button
+    document.getElementById('removeQtyRow').style.display = 'none';
     const confirmBtn = document.getElementById('removeItemConfirmBtn');
     confirmBtn.disabled = true;
     confirmBtn.textContent = 'Remove Selected Item';
@@ -1127,16 +1154,49 @@ function openRemoveItemModal(orderId) {
     document.body.style.overflow = 'hidden';
 }
 
-function selectRemoveItem(el, itemId) {
+function selectRemoveItem(el, itemId, itemQty) {
     // Deselect all, then select clicked row
     document.querySelectorAll('#removeItemList .k-remove-item-row').forEach(r => r.classList.remove('selected'));
     el.classList.add('selected');
-    _removeItemId = itemId;
 
+    _removeItemId  = itemId;
+    _removeItemMax = itemQty;
+    _removeItemQty = itemQty; // default to cancelling all
+
+    // Show / update the qty stepper
+    const qtyRow = document.getElementById('removeQtyRow');
+    qtyRow.style.display = 'block';
+    document.getElementById('removeQtyDisplay').textContent = _removeItemQty;
+    document.getElementById('removeQtyMax').textContent     = _removeItemMax;
+    _syncQtyButtons();
+
+    _updateConfirmBtn(el.querySelector('.k-remove-item-name')?.textContent || 'item');
+}
+
+function adjustRemoveQty(delta) {
+    _removeItemQty = Math.max(1, Math.min(_removeItemMax, _removeItemQty + delta));
+    document.getElementById('removeQtyDisplay').textContent = _removeItemQty;
+    _syncQtyButtons();
+
+    // Refresh confirm button label
+    const selectedRow = document.querySelector('#removeItemList .k-remove-item-row.selected');
+    const name = selectedRow?.querySelector('.k-remove-item-name')?.textContent || 'item';
+    _updateConfirmBtn(name);
+}
+
+function _syncQtyButtons() {
+    document.getElementById('removeQtyDec').disabled = _removeItemQty <= 1;
+    document.getElementById('removeQtyInc').disabled = _removeItemQty >= _removeItemMax;
+}
+
+function _updateConfirmBtn(name) {
     const confirmBtn = document.getElementById('removeItemConfirmBtn');
     confirmBtn.disabled = false;
-    const name = el.querySelector('.k-remove-item-name')?.textContent || 'item';
-    confirmBtn.textContent = 'Remove "' + name + '"';
+    if (_removeItemQty >= _removeItemMax) {
+        confirmBtn.textContent = `Remove all "${name}"`;
+    } else {
+        confirmBtn.textContent = `Remove ${_removeItemQty}× of ${_removeItemMax}× "${name}"`;
+    }
 }
 
 function closeRemoveItemModal(e) {
@@ -1145,6 +1205,8 @@ function closeRemoveItemModal(e) {
     document.body.style.overflow = '';
     _removeOrderId = null;
     _removeItemId  = null;
+    _removeItemQty = 1;
+    _removeItemMax = 1;
 }
 
 async function confirmRemoveItem() {
@@ -1162,6 +1224,7 @@ async function confirmRemoveItem() {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({ qty: _removeItemQty }),
         });
         const data = await res.json();
 
@@ -1174,16 +1237,18 @@ async function confirmRemoveItem() {
 
         const msg = data.items_left === 0
             ? 'All items removed — order cancelled.'
-            : 'Item removed. ' + data.items_left + ' item(s) remaining.';
+            : data.message || ('Item updated. ' + data.items_left + ' item(s) remaining.');
         showToast(msg, 'success');
 
         document.getElementById('removeItemModal').classList.remove('open');
+        document.getElementById('removeQtyRow').style.display = 'none';
         document.body.style.overflow = '';
         _removeOrderId = null;
         _removeItemId  = null;
+        _removeItemQty = 1;
+        _removeItemMax = 1;
 
         // Force-refresh so the board reflects the change immediately
-        // Also bust the signature cache so the updated item list re-renders
         columnSignatures = {};
         await refreshKitchen(true);
 

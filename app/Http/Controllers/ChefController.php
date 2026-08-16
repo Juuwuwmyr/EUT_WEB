@@ -101,7 +101,47 @@ class ChefController extends Controller
             return $this->kitchenActionResponse(false, 'Item does not belong to this order.');
         }
 
-        // Delete the item
+        // How many to cancel — defaults to the full quantity (original behaviour)
+        $cancelQty = (int) $request->input('qty', $item->quantity);
+        $cancelQty = max(1, min($cancelQty, $item->quantity)); // clamp to [1, item qty]
+
+        if ($cancelQty < $item->quantity) {
+            // ── Partial removal: reduce quantity and recalculate item subtotal ──
+            $newQty      = $item->quantity - $cancelQty;
+            $newSubtotal = round($item->unit_price * $newQty, 2);
+
+            $item->updateQuietly([
+                'quantity' => $newQty,
+                'subtotal' => $newSubtotal,
+            ]);
+
+            $order->load('items');
+            $orderSubtotal = round($order->items->sum('subtotal'), 2);
+
+            $order->updateQuietly([
+                'subtotal' => $orderSubtotal,
+                'total'    => $orderSubtotal,
+            ]);
+            $order->refresh();
+
+            broadcast(new OrderStatusUpdated($order));
+
+            AuditLog::record(
+                action:      'order_item_qty_reduced',
+                description: "Kitchen reduced {$item->item_name} qty by {$cancelQty} on {$order->order_number} (now {$newQty}×).",
+                model:       $order,
+                newValues:   ['item_id' => $item->id, 'cancelled_qty' => $cancelQty, 'remaining_qty' => $newQty, 'new_subtotal' => $orderSubtotal],
+            );
+
+            return response()->json([
+                'success'      => true,
+                'message'      => "{$cancelQty}× {$item->item_name} removed. {$newQty}× still on the order.",
+                'new_subtotal' => $orderSubtotal,
+                'items_left'   => $order->items->count(),
+            ]);
+        }
+
+        // ── Full removal: delete the item row ──
         $item->delete();
 
         // Reload remaining items
@@ -149,10 +189,10 @@ class ChefController extends Controller
         );
 
         return response()->json([
-            'success'       => true,
-            'message'       => "Item removed from order #{$order->order_number}.",
-            'new_subtotal'  => $newSubtotal,
-            'items_left'    => $remaining->count(),
+            'success'      => true,
+            'message'      => "Item removed from order #{$order->order_number}.",
+            'new_subtotal' => $newSubtotal,
+            'items_left'   => $remaining->count(),
         ]);
     }
 
