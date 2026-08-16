@@ -499,19 +499,44 @@ function renderGroupCard(group) {
     const urgent     = maxElapsed >= 20 ? ' is-urgent' : '';
     const elapsed    = elapsedBadge(maxElapsed);
 
-    // All items across every sub-order for the preview
-    const allItems = orders.flatMap(o => o.items);
-
-    // Sub-order rows (one pill per order)
+    // ── Per-order sections: header badge + items ────────────────────────────
+    // Each pahabol wave gets its own labeled block so the kitchen can see
+    // exactly what belongs to which order.
     let subRows = '<div class="order-card-subitems">';
-    orders.forEach(o => {
+    orders.forEach((o, idx) => {
         const sc = o.status === 'accepted'
             ? { bg:'rgba(59,130,246,.12)', color:'#3b82f6', label:'In Queue' }
             : { bg:'rgba(220,38,38,.12)',  color:'#f87171', label:'Cooking'  };
-        subRows += `<div class="order-card-subrow">
-            <span class="order-card-subrow-num">${escH(o.order_number)}</span>
-            <span class="order-card-badge" style="background:${sc.bg};color:${sc.color};font-size:.58rem;">${sc.label}</span>
-            <span class="order-card-subrow-total">₱${Number(o.total||o.subtotal||0).toLocaleString()}</span>
+
+        // Label first order as "Original", subsequent ones as "Pahabol #N"
+        const waveLabel = idx === 0 ? 'Original' : `Pahabol #${idx}`;
+        const waveColor = idx === 0 ? '#9ca3af' : '#facc15';
+        const waveBg    = idx === 0 ? 'rgba(255,255,255,.04)' : 'rgba(250,204,21,.07)';
+        const waveBorder= idx === 0 ? 'rgba(255,255,255,.08)' : 'rgba(250,204,21,.25)';
+
+        // Items for this sub-order
+        const itemsHtml = (o.items || []).map(item => `
+            <div class="order-card-item">
+                <span class="order-card-item-qty">x${item.qty}</span>
+                <span class="order-card-item-name" title="${escH(item.name)}">${escH(item.name)}</span>
+            </div>`).join('');
+
+        const notesHtml = o.notes
+            ? `<div style="font-size:.68rem;color:#fbbf24;margin-top:.3rem;padding:.3rem .45rem;border-radius:.35rem;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.15);">📝 ${escH(o.notes)}</div>`
+            : '';
+
+        subRows += `
+        <div style="border:1px solid ${waveBorder};border-radius:.55rem;overflow:hidden;background:${waveBg};">
+            <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.35rem .55rem;border-bottom:1px solid ${waveBorder};background:${waveBg};">
+                <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:${waveColor};flex-shrink:0;">${waveLabel}</span>
+                <span class="order-card-subrow-num">${escH(o.order_number)}</span>
+                <span class="order-card-badge" style="background:${sc.bg};color:${sc.color};font-size:.56rem;padding:.1rem .4rem;">${sc.label}</span>
+                <span style="margin-left:auto;font-size:.67rem;font-weight:700;color:var(--text-muted);">₱${Number(o.total||o.subtotal||0).toLocaleString()}</span>
+            </div>
+            <div class="order-card-items" style="padding:.35rem .55rem .4rem;">
+                ${itemsHtml}
+                ${notesHtml}
+            </div>
         </div>`;
     });
     subRows += '</div>';
@@ -533,8 +558,7 @@ function renderGroupCard(group) {
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;">${elapsed}</div>
         </div>
         <div class="order-card-body">
-            ${renderItemsPreview(allItems, 4)}
-            <div style="margin-top:.15rem;">${subRows}</div>
+            <div style="margin-top:.1rem;">${subRows}</div>
             <div class="order-card-total">₱${grandTotal.toLocaleString()}</div>
         </div>
         <div class="order-card-actions">${printBtn}${removeBtn}${readyBtn}</div>
