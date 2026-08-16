@@ -1331,6 +1331,52 @@ class AdminController extends Controller
             : back()->with('success', "Order #{$order->order_number} {$label}.");
     }
 
+    /**
+     * Bulk archive/restore a set of orders (e.g. all orders in a dine-in table session).
+     *
+     * Route: PATCH /admin/orders/bulk-archive
+     * Body:  { "ids": [1, 2, 3], "archive": true }
+     */
+    public function bulkArchiveOrders(Request $request)
+    {
+        $request->validate([
+            'ids'     => 'required|array|min:1',
+            'ids.*'   => 'integer|exists:orders,id',
+            'archive' => 'boolean',
+        ]);
+
+        $archiving = $request->boolean('archive', true);
+
+        $orders = \App\Models\Order::whereIn('id', $request->ids)
+            ->whereIn('status', ['delivered', 'cancelled'])
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'No eligible orders found to archive.'], 422);
+        }
+
+        foreach ($orders as $order) {
+            $order->updateQuietly([
+                'is_archived' => $archiving,
+                'archived_at' => $archiving ? now() : null,
+            ]);
+        }
+
+        $label = $archiving ? 'archived' : 'restored';
+        $count = $orders->count();
+
+        AuditLog::record(
+            action:      $label,
+            description: "Admin bulk {$label} {$count} order(s): " . $orders->pluck('order_number')->join(', ') . '.',
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$count} order(s) {$label} successfully.",
+            'count'   => $count,
+        ]);
+    }
+
     public function deleteOrder(\App\Models\Order $order)
     {
         // Only allow deleting archived orders (safety check)

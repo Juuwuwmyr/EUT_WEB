@@ -221,8 +221,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'admin.sync
     Route::patch('/orders/{order}/status',          [AdminController::class, 'updateOrderStatus'])->middleware('permission:update_order_status')->name('orders.status');
     Route::post('/orders/{order}/complete-table',   [AdminController::class, 'completeTable'])->middleware('permission:complete_table_orders')->name('orders.complete-table');
     Route::post('/orders/{order}/lock-table',       [AdminController::class, 'lockTable'])->middleware('permission:complete_table_orders')->name('orders.lock-table');
-    Route::patch('/orders/{order}/archive',         [AdminController::class, 'archiveOrder'])->middleware('permission:cancel_orders')->name('orders.archive');
-    Route::delete('/orders/{order}',                [AdminController::class, 'deleteOrder'])->middleware('permission:delete_orders')->name('orders.delete');
+    Route::patch('/orders/bulk-archive',            [AdminController::class, 'bulkArchiveOrders'])->middleware('permission:cancel_orders')->name('orders.bulk-archive');
+    Route::patch('/orders/{order}/archive',         [AdminController::class, 'archiveOrder'])->middleware('permission:cancel_orders')->name('orders.archive');    Route::delete('/orders/{order}',                [AdminController::class, 'deleteOrder'])->middleware('permission:delete_orders')->name('orders.delete');
     Route::get('/orders/{order}/takeout-slip',      [\App\Http\Controllers\ChefController::class, 'takeoutSlip'])->middleware('permission:print_receipts')->name('orders.takeout-slip');
     Route::get('/riders/locations',                 [AdminController::class, 'riderLocations'])->middleware('permission:view_rider_locations')->name('riders.locations');
 

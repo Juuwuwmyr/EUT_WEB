@@ -733,7 +733,7 @@ function renderTable(orders) {
             '<td style="color:var(--text-muted);font-size:.72rem;white-space:nowrap;">' + escHtml(rep.date_short || rep.date) + '</td>' +
             '<td>' + subHtml +
                 (group.every(function(o){ return o.status === 'delivered'; })
-                    ? '<div style="margin-top:.4rem;"><button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:var(--text-muted);" onclick="archiveOrder(' + rep.id + ',this)" title="Archive Table Session"><i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button></div>'
+                    ? '<div style="margin-top:.4rem;"><button class="btn-ghost" style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:var(--text-muted);" onclick="archiveOrder(' + JSON.stringify(group.map(function(o){ return o.id; })) + ',this)" title="Archive Table Session"><i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button></div>'
                     : '') +
             '</td>' +
             '</tr>';
@@ -1045,10 +1045,11 @@ function renderGrid(orders) {
 
             // Archive when all delivered
             if (group.every(function(o){ return o.status === 'delivered'; })) {
+                var groupIds = group.map(function(o){ return o.id; });
                 subHtml +=
                     '<div style="margin-top:.4rem;"><button class="btn-ghost" ' +
                     'style="font-size:.72rem;display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .55rem;color:var(--text-muted);" ' +
-                    'onclick="archiveOrder(' + rep.id + ',this)" title="Archive Table Session">' +
+                    'onclick="archiveOrder(' + JSON.stringify(groupIds) + ',this)" title="Archive Table Session">' +
                     '<i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button></div>';
             }
         }
@@ -1418,12 +1419,26 @@ function openPreviewModal(id) {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-async function archiveOrder(orderId, btn) {
+async function archiveOrder(orderIds, btn) {
+    // orderIds can be a single integer or an array of integers
+    var ids = Array.isArray(orderIds) ? orderIds : [orderIds];
+    var isBulk = ids.length > 1;
     var orig = btn.innerHTML;
     btn.disabled = true;
     try {
-        var url = '/admin/orders/' + orderId + '/archive';
-        var res = await fetch(url, { method:'PATCH', headers:{'X-CSRF-TOKEN':CSRF_TOKEN,'Accept':'application/json','Content-Type':'application/json'} });
+        var url, body;
+        if (isBulk) {
+            url  = '/admin/orders/bulk-archive';
+            body = JSON.stringify({ ids: ids, archive: true });
+        } else {
+            url  = '/admin/orders/' + ids[0] + '/archive';
+            body = null;
+        }
+        var res = await fetch(url, {
+            method: 'PATCH',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: body,
+        });
         var data = await res.json();
         if (data.success) { await fetchOrders(); }
         else { alert(data.message || 'Failed.'); btn.disabled = false; btn.innerHTML = orig; }
