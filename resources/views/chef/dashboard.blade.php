@@ -524,12 +524,18 @@ function renderGroupCard(group) {
             ? `<div style="font-size:.68rem;color:#fbbf24;margin-top:.3rem;padding:.3rem .45rem;border-radius:.35rem;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.15);">📝 ${escH(o.notes)}</div>`
             : '';
 
+        // Individual Mark Ready button — only shown if this order isn't already ready
+        const indivReadyBtn = (o.status !== 'preparing' || !o.prepared_at)
+            ? `<button class="oc-btn oc-btn-ready" style="font-size:.68rem;padding:.28rem .6rem;flex-shrink:0;" onclick="event.stopPropagation();markReady(${o.id},this)">✅ Ready</button>`
+            : `<span style="font-size:.65rem;font-weight:700;color:#10b981;padding:.28rem .5rem;flex-shrink:0;">✓ Ready</span>`;
+
         subRows += `
         <div style="border:1px solid ${waveBorder};border-radius:.55rem;overflow:hidden;background:${waveBg};">
             <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;padding:.35rem .55rem;border-bottom:1px solid ${waveBorder};background:${waveBg};">
                 <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:${waveColor};flex-shrink:0;">${waveLabel}</span>
                 <span class="order-card-subrow-num">${escH(o.order_number)}</span>
                 <span class="order-card-badge" style="background:${sc.bg};color:${sc.color};font-size:.56rem;padding:.1rem .4rem;">${sc.label}</span>
+                <span style="margin-left:auto;">${indivReadyBtn}</span>
             </div>
             <div class="order-card-items" style="padding:.35rem .55rem .4rem;">
                 ${itemsHtml}
@@ -542,7 +548,12 @@ function renderGroupCard(group) {
     const tableReceiptUrl = `/chef/orders/${rep.id}/table-receipt`;
     const printBtn  = `<button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printReceipt('${tableReceiptUrl}')" title="Print table receipt"><i data-lucide="printer" style="width:13px;height:13px;stroke-width:2;"></i></button>`;
     const removeBtn = `<button class="oc-btn oc-btn-remove" onclick="event.stopPropagation();openRemoveItemModal(${rep.id},this)" title="Remove item">✕</button>`;
-    const readyBtn  = `<button class="oc-btn oc-btn-ready" onclick="event.stopPropagation();markTableReady('${escH(sessionKey)}',this)">✅ Mark Ready</button>`;
+
+    // Bulk button: "Mark All Ready" — only shown if any order isn't ready yet
+    const anyNotReady = orders.some(o => o.status !== 'preparing' || !o.prepared_at);
+    const readyBtn  = anyNotReady
+        ? `<button class="oc-btn oc-btn-ready" onclick="event.stopPropagation();markTableReady('${escH(sessionKey)}',this)">✅ Mark All Ready</button>`
+        : `<span class="oc-btn" style="background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.25);flex:1;pointer-events:none;">✓ All Ready</span>`;
 
     return `<div class="order-card${urgent}" data-group-key="${escH(group.key)}" onclick="void(0)">
         <div class="order-card-header">
