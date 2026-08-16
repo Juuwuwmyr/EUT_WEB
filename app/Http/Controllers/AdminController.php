@@ -110,7 +110,6 @@ class AdminController extends Controller
             ->whereHas('order', fn($q) => $q
                 ->whereDate('created_at', today())
                 ->whereNotIn('status', ['cancelled'])
-                ->where('is_archived', false)
             )
             ->whereNotNull('menu_item_id')
             ->groupBy('menu_item_id')
