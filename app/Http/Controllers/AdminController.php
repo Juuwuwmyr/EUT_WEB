@@ -1127,7 +1127,10 @@ class AdminController extends Controller
                 }
                 // Generate receipt
                 if ($order->order_type === 'dine_in' && $order->table_number) {
-                    $response['receipt_url'] = route('chef.orders.table-receipt', $order->id);
+                    $response['receipt_url'] = route('chef.orders.table-receipt', [
+                        'order' => $order->id,
+                        'ids'   => (string) $order->id,
+                    ]);
                 } else {
                     $response['receipt_url'] = route('chef.orders.receipt', $order->id);
                 }
@@ -1160,6 +1163,8 @@ class AdminController extends Controller
         if ($tableOrders->isEmpty()) {
             return response()->json(['success' => false, 'message' => 'No active orders found for this table.'], 422);
         }
+
+        $receiptOrderIds = $tableOrders->pluck('id')->implode(',');
 
         $cashReceived = (float) request()->input('cash_received', 0);
         $grandTotal   = $tableOrders->sum('total');
@@ -1205,7 +1210,10 @@ class AdminController extends Controller
         return response()->json([
             'success'     => true,
             'message'     => 'Table ' . $order->table_number . ' — all orders completed.',
-            'receipt_url' => route('chef.orders.table-receipt', $order->id),
+            'receipt_url' => route('chef.orders.table-receipt', [
+                'order' => $order->id,
+                'ids'   => $receiptOrderIds,
+            ]),
         ]);
     }
 

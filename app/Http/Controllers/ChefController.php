@@ -7,7 +7,9 @@ use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Rider;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class ChefController extends Controller
 {
@@ -305,43 +307,39 @@ class ChefController extends Controller
 
     /**
      * Kitchen receipt for a grouped dine-in table card.
-     * Only shows ACTIVE orders (accepted/preparing) for the current session —
-     * never pulls delivered orders from earlier sessions at the same table.
+     * Only shows the current unpaid sitting — never pulls settled orders
+     * from earlier customers who already paid at the same table.
      *
      * Route: GET /chef/orders/{order}/table-receipt
      */
-    public function tableReceipt(Order $order)
+    public function tableReceipt(Order $order, Request $request)
     {
         $order->load(['items', 'user']);
         $tableNumber = $order->table_number;
 
-        if ($tableNumber) {
-            $query = Order::with('items')
-                ->where('table_number', $tableNumber)
-                ->where('order_type', 'dine_in')
-                ->whereNotIn('status', ['cancelled'])
-                ->whereDate('created_at', $order->created_at->toDateString());
-
-            // Scope to this session when available
-            if ($order->table_session_id) {
-                $query->where('table_session_id', $order->table_session_id);
-            } else {
-                // No session ID — limit to only active (not yet delivered) orders
-                // so we don't pull in completed orders from earlier sittings
-                $query->whereIn('status', ['pending', 'accepted', 'preparing', 'rider_assigned', 'out_for_delivery']);
-            }
-
-            $orders = $query->oldest()->get();
-
-            // Always include the triggered order
-            if ($orders->where('id', $order->id)->isEmpty()) {
-                $orders = $orders->push($order)->sortBy('id')->values();
-            }
-
-            return view('admin.partials.table-receipt', compact('orders', 'tableNumber'));
+        if (!$tableNumber) {
+            return view('admin.partials.kitchen-receipt', compact('order'));
         }
 
-        return view('admin.partials.kitchen-receipt', compact('order'));
+        // Explicit list from payment completion — includes orders just marked paid.
+        if ($request->filled('ids')) {
+            $ids = array_values(array_filter(array_map('intval', explode(',', $request->query('ids')))));
+            $orders = Order::with('items')->whereIn('id', $ids)->oldest()->get();
+            if ($orders->isNotEmpty()) {
+                return view('admin.partials.table-receipt', compact('orders', 'tableNumber'));
+            }
+        }
+
+        $orders = $this->currentSittingQuery($order)
+            ->with('items')
+            ->oldest()
+            ->get();
+
+        if ($orders->where('id', $order->id)->isEmpty()) {
+            $orders = $orders->push($order)->sortBy('id')->values();
+        }
+
+        return view('admin.partials.table-receipt', compact('orders', 'tableNumber'));
     }
 
     /**
@@ -394,7 +392,7 @@ class ChefController extends Controller
 
     /**
      * Bulk kitchen ticket (NO prices) for all active orders in a table session.
-     * Same structure as the admin "Complete Table" bill but kitchen copy only.
+     * Kitchen copy only — pending/accepted/preparing, never old delivered items.
      *
      * Route: GET /chef/orders/{order}/session-ticket
      */
@@ -408,20 +406,10 @@ class ChefController extends Controller
             return view('admin.partials.kitchen-ticket', compact('order', 'addonIds'));
         }
 
-        $query = Order::with(['items', 'user'])
-            ->where('table_number', $tableNumber)
-            ->where('order_type', 'dine_in')
-            ->whereNotIn('status', ['cancelled'])
-            ->whereDate('created_at', $order->created_at->toDateString());
-
-        if ($order->table_session_id) {
-            $query->where('table_session_id', $order->table_session_id);
-        } else {
-            // No session ID — only active (not yet delivered) orders
-            $query->whereIn('status', ['pending', 'accepted', 'preparing', 'rider_assigned', 'out_for_delivery']);
-        }
-
-        $orders = $query->oldest()->get();
+        $orders = $this->activeKitchenQuery($order)
+            ->with(['items', 'user'])
+            ->oldest()
+            ->get();
 
         if ($orders->where('id', $order->id)->isEmpty()) {
             $orders = $orders->push($order)->sortBy('id')->values();
@@ -491,6 +479,52 @@ class ChefController extends Controller
         );
 
         return $this->kitchenActionResponse(true, "{$tableLabel} — all orders marked ready.");
+    }
+
+    /**
+     * Orders still in the kitchen queue for this table session.
+     */
+    private function activeKitchenQuery(Order $order): Builder
+    {
+        $query = Order::query()
+            ->where('table_number', $order->table_number)
+            ->where('order_type', 'dine_in')
+            ->whereIn('status', ['pending', 'accepted', 'preparing'])
+            ->whereDate('created_at', $order->created_at->toDateString());
+
+        if ($order->table_session_id) {
+            $query->where('table_session_id', $order->table_session_id);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Orders belonging to the current unpaid sitting at a table.
+     * Excludes settled (paid + locked) orders from earlier customers.
+     */
+    private function currentSittingQuery(Order $order): Builder
+    {
+        $query = Order::query()
+            ->where('table_number', $order->table_number)
+            ->where('order_type', 'dine_in')
+            ->whereNotIn('status', ['cancelled'])
+            ->whereDate('created_at', $order->created_at->toDateString());
+
+        if ($order->table_session_id) {
+            $query->where('table_session_id', $order->table_session_id);
+        }
+
+        if (Schema::hasColumn('orders', 'payment_status') && Schema::hasColumn('orders', 'ordering_locked')) {
+            $query->where(function ($q) {
+                $q->where('payment_status', '!=', 'paid')
+                    ->orWhere('ordering_locked', false);
+            });
+        } else {
+            $query->whereIn('status', ['pending', 'accepted', 'preparing']);
+        }
+
+        return $query;
     }
 
     /**
