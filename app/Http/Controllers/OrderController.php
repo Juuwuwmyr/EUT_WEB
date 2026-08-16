@@ -276,9 +276,15 @@ class OrderController extends Controller
             // against a new customer accidentally joining a previous customer's bill.
             $tableSessionId = null;
             if ($request->order_type === 'dine_in' && $request->table_number) {
+                // Inherit the session ID from ANY order at this table today (regardless
+                // of status) as long as the session hasn't been explicitly locked by
+                // admin (Done Ordering). This ensures that when a customer re-orders
+                // after all prior orders are marked ready/delivered, the new order
+                // still groups with the same session on the kitchen and receipt.
+                // A new UUID is only generated when the session is locked OR it's a
+                // brand-new table sitting (no orders at this table today at all).
                 $activeSession = Order::where('order_type', 'dine_in')
                     ->where('table_number', $request->table_number)
-                    ->whereIn('status', ['pending', 'accepted', 'preparing'])
                     ->when(\Illuminate\Support\Facades\Schema::hasColumn('orders', 'ordering_locked'),
                         fn($q) => $q->where('ordering_locked', false)
                     )
