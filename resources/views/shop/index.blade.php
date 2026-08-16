@@ -752,8 +752,14 @@
 
 <div class="products-grid" id="productsGrid">
     @foreach($menuItems as $index => $item)
-    <div class="p-card" data-category="{{ $item->category->slug ?? '' }}" data-name="{{ strtolower($item->name) }}" data-price="{{ $item->price }}">
-        <a href="{{ route('shop.product', $item->id) }}" style="text-decoration:none; display:block;">
+    <div class="p-card"
+         data-category="{{ $item->category->slug ?? '' }}"
+         data-name="{{ strtolower($item->name) }}"
+         data-price="{{ $item->price }}"
+         data-item-id="{{ $item->id }}"
+         onclick="openItemSheet({{ $item->id }})"
+         style="cursor:pointer;">
+        <div style="text-decoration:none; display:block;">
             <div class="p-card-img-wrap">
                 <img src="{{ $item->image ? asset($item->image) : asset('images/menu/default-menu-item.webp') }}" alt="{{ $item->name }}" class="p-card-img" loading="lazy" decoding="async" fetchpriority="low" onerror="this.onerror=null;this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
                 <div class="p-card-img-overlay"></div>
@@ -773,7 +779,7 @@
                     <span class="p-card-sold">{{ rand(200,4800) }}+ sold</span>
                 </div>
             </div>
-        </a>
+        </div>
     </div>
     @endforeach
 </div>
@@ -1260,6 +1266,483 @@ if (window.Echo) {
     <button onclick="installPWA()" style="background:#facc15;color:#000;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">Install</button>
     <button onclick="dismissPWABanner()" style="background:none;border:none;color:#6b7280;cursor:pointer;font-size:18px;padding:4px;flex-shrink:0;">×</button>
 </div>
+
+{{-- ══════════ ITEM QUICK-ADD BOTTOM SHEET ══════════ --}}
+<div id="iqBackdrop" onclick="closeItemSheet()"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:800;"></div>
+
+<div id="iqSheet"
+     style="display:none;position:fixed;bottom:0;left:0;right:0;transform:translateY(100%);
+            width:100%;max-width:560px;margin:0 auto;z-index:900;background:#0e0f1a;
+            border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;
+            max-height:92vh;overflow-y:auto;transition:transform .4s cubic-bezier(.32,.72,0,1);">
+
+    {{-- Handle --}}
+    <div style="width:40px;height:4px;border-radius:99px;background:rgba(255,255,255,.15);margin:12px auto 0;"></div>
+
+    {{-- Header --}}
+    <div style="display:flex;align-items:center;gap:14px;padding:14px 18px 12px;">
+        <img id="iqThumb" src="" alt=""
+             style="width:68px;height:68px;border-radius:14px;object-fit:cover;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.5);">
+        <div style="flex:1;min-width:0;">
+            <p id="iqName"  style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#fff;margin:0 0 3px;"></p>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span id="iqPrice" style="font-size:20px;font-weight:800;color:#facc15;"></span>
+            </div>
+        </div>
+        <button onclick="closeItemSheet()"
+                style="margin-left:auto;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.06);
+                       border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;
+                       cursor:pointer;color:#6b7280;flex-shrink:0;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <div style="height:1px;background:rgba(255,255,255,.06);margin:0 18px;"></div>
+
+    {{-- Modifier groups (flavors / sizes) --}}
+    <div id="iqModifierGroups"></div>
+
+    {{-- Add-ons --}}
+    <div id="iqAddonsWrap" style="display:none;">
+        <div style="height:1px;background:rgba(255,255,255,.06);margin:0 18px;"></div>
+        <div style="padding:16px 18px 8px;">
+            <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;">
+                <span style="display:flex;align-items:center;gap:6px;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:#f59e0b;flex-shrink:0;stroke-width:2.5;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    Add-ons
+                </span>
+                <span id="iqAddonsLabel" style="font-size:11px;color:#4b5563;font-weight:400;">Optional</span>
+            </p>
+            <div id="iqAddonsList"></div>
+        </div>
+    </div>
+
+    <div style="height:1px;background:rgba(255,255,255,.06);margin:0 18px;"></div>
+
+    {{-- Quantity --}}
+    <div style="padding:8px 18px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:13px;font-weight:700;color:#fff;">Quantity</span>
+        <div style="display:flex;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:99px;">
+            <button id="iqQtyDec" onclick="iqChangeQty(-1)"
+                    style="width:38px;height:38px;border-radius:99px;background:none;border:none;cursor:pointer;font-size:18px;font-weight:700;color:#9ca3af;display:flex;align-items:center;justify-content:center;">−</button>
+            <span id="iqQtyVal" style="width:36px;text-align:center;font-size:15px;font-weight:700;color:#fff;">1</span>
+            <button id="iqQtyInc" onclick="iqChangeQty(1)"
+                    style="width:38px;height:38px;border-radius:99px;background:none;border:none;cursor:pointer;font-size:18px;font-weight:700;color:#9ca3af;display:flex;align-items:center;justify-content:center;">+</button>
+        </div>
+    </div>
+
+    {{-- Total + Add to Cart --}}
+    <div style="height:1px;background:rgba(255,255,255,.06);margin:0 18px;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px 14px;">
+        <span style="font-size:12px;color:#4b5563;">Total</span>
+        <span id="iqTotal" style="font-size:20px;font-weight:800;color:#facc15;"></span>
+    </div>
+    <div style="padding:0 18px 32px;">
+        <button id="iqAddBtn" onclick="iqDoAdd()"
+                style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);
+                       border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;
+                       box-shadow:0 4px 18px rgba(250,204,21,.3);transition:all .2s;">
+            + Add to Cart
+        </button>
+    </div>
+</div>
+
+{{-- Light mode overrides for the sheet --}}
+<style>
+.light-mode #iqSheet            { background:#fff !important; border-color:rgba(0,0,0,.07) !important; }
+.light-mode #iqName             { color:#111 !important; }
+@media(max-width:560px){ #iqSheet { left:0; transform:translateY(100%); } }
+#iqSheet.open                   { transform:translateY(0) !important; }
+@media(max-width:560px){ #iqSheet.open { transform:translateY(0) !important; } }
+
+/* Flavor swatches */
+.iq-flavor-grid  { display:flex;flex-wrap:wrap;gap:10px; }
+.iq-swatch       { position:relative;cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid transparent;transition:all .2s;flex-shrink:0; }
+.iq-swatch.sel   { border-color:#facc15;box-shadow:0 0 0 1px #facc15,0 4px 14px rgba(250,204,21,.3); }
+.iq-swatch-inner { width:72px;height:72px;border-radius:10px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;position:relative;overflow:hidden; }
+.iq-swatch-name  { position:relative;z-index:1;font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);text-align:center;line-height:1.2; }
+.iq-swatch-check { position:absolute;bottom:4px;right:4px;z-index:2;width:16px;height:16px;border-radius:50%;background:#facc15;display:none;align-items:center;justify-content:center; }
+.iq-swatch.sel .iq-swatch-check { display:flex; }
+
+/* Size pills */
+.iq-pill-grid { display:flex;gap:10px;flex-wrap:wrap; }
+.iq-pill      { padding:10px 20px;border-radius:12px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;text-align:center;min-width:64px; }
+.iq-pill.sel  { background:rgba(250,204,21,.1);border-color:#facc15;box-shadow:0 2px 12px rgba(250,204,21,.2); }
+.iq-pill-label{ font-size:14px;font-weight:700;color:#e5e7eb;display:block; }
+.iq-pill.sel .iq-pill-label { color:#facc15; }
+.iq-pill-desc { font-size:10px;color:#4b5563;display:block;margin-top:1px; }
+
+/* Addon cards */
+.iq-addon-card     { display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.07);cursor:pointer;transition:all .2s;margin-bottom:8px; }
+.iq-addon-card.sel { background:rgba(245,158,11,.1);border-color:#f59e0b;box-shadow:0 2px 12px rgba(245,158,11,.2); }
+.iq-addon-check    { width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;margin-right:10px; }
+.iq-addon-card.sel .iq-addon-check { background:#f59e0b;border-color:#f59e0b; }
+.iq-addon-name     { font-size:13px;font-weight:600;color:#e5e7eb; }
+.iq-addon-card.sel .iq-addon-name { color:#fbbf24; }
+.iq-addon-price    { font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);flex-shrink:0; }
+</style>
+
+<script>
+// ── All items data (modifier groups + addons) ──────────────────────────────
+const IQ_ITEMS = @json($menuItemsData->keyBy('id'));
+
+const IQ_SWATCH_COLORS = [
+    'linear-gradient(135deg,#b45309,#92400e)',
+    'linear-gradient(135deg,#dc2626,#b91c1c)',
+    'linear-gradient(135deg,#292524,#57534e)',
+    'linear-gradient(135deg,#854d0e,#ca8a04)',
+    'linear-gradient(135deg,#f59e0b,#ef4444)',
+    'linear-gradient(135deg,#3f3f46,#1c1917)',
+    'linear-gradient(135deg,#1d4ed8,#1e3a8a)',
+    'linear-gradient(135deg,#15803d,#14532d)',
+];
+
+let iqItem         = null;  // current item data
+let iqQty          = 1;
+let iqSelOptions   = {};    // group_id → option obj or array
+let iqSelAddons    = {};    // group_id → {optId, name, priceType, adj}
+
+function openItemSheet(itemId) {
+    iqItem = IQ_ITEMS[itemId];
+    if (!iqItem) return;
+
+    iqQty          = 1;
+    iqSelOptions   = {};
+    iqSelAddons    = {};
+
+    // Header
+    const img = iqItem.image ? '/{{ ltrim(asset(""), "/") }}' : '{{ asset("images/menu/default-menu-item.webp") }}';
+    document.getElementById('iqThumb').src        = iqItem.image ? '/' + iqItem.image.replace(/^\//, '') : '{{ asset("images/menu/default-menu-item.webp") }}';
+    document.getElementById('iqThumb').onerror    = function(){ this.src='{{ asset("images/menu/default-menu-item.webp") }}'; };
+    document.getElementById('iqName').textContent = iqItem.name;
+    document.getElementById('iqQtyVal').textContent = '1';
+
+    // Build modifier groups
+    iqBuildModifiers();
+    iqBuildAddons();
+    iqUpdateTotal();
+
+    // Show sheet
+    const backdrop = document.getElementById('iqBackdrop');
+    const sheet    = document.getElementById('iqSheet');
+    backdrop.style.display = 'block';
+    sheet.style.display    = 'block';
+    requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('open')));
+    document.body.style.overflow = 'hidden';
+}
+
+function closeItemSheet() {
+    const sheet    = document.getElementById('iqSheet');
+    const backdrop = document.getElementById('iqBackdrop');
+    sheet.classList.remove('open');
+    setTimeout(() => {
+        sheet.style.display    = 'none';
+        backdrop.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 400);
+}
+
+function iqBuildModifiers() {
+    const container  = document.getElementById('iqModifierGroups');
+    const groups     = iqItem.modifier_groups || [];
+    if (!groups.length) { container.innerHTML = ''; return; }
+
+    container.innerHTML = groups.map((group, gi) => {
+        const isFlavor = group.type === 'flavor';
+        const maxSel   = group.max_selections || null;
+        const isMulti  = maxSel && maxSel > 1;
+        const label    = group.required ? 'Required' : (isMulti ? `Choose up to ${maxSel}` : 'Select one');
+        const divider  = gi < groups.length - 1 ? '<div style="height:1px;background:rgba(255,255,255,.06);margin:0 18px;"></div>' : '';
+
+        const optsHtml = isFlavor ? iqFlavorHtml(group) : iqPillHtml(group);
+
+        return `<div style="padding:16px 18px 8px;" id="iqG_${group.id}">
+            <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;">
+                ${iqEsc(group.name)}
+                <span id="iqGL_${group.id}" style="font-size:11px;color:#4b5563;font-weight:400;">${label}</span>
+            </p>
+            ${optsHtml}
+        </div>${divider}`;
+    }).join('');
+
+    // Pre-select defaults
+    groups.forEach(group => {
+        const def = (group.active_options || []).find(o => o.is_default);
+        if (def && !group.max_selections || group.max_selections === 1) {
+            iqSelOptions[group.id] = def;
+            const el = document.getElementById(`iqO_${group.id}_${def.id}`);
+            if (el) el.classList.add('sel');
+            const lbl = document.getElementById(`iqGL_${group.id}`);
+            if (lbl) lbl.textContent = def.name;
+        }
+    });
+}
+
+function iqFlavorHtml(group) {
+    return `<div class="iq-flavor-grid">` +
+        (group.active_options || []).map((opt, i) => {
+            const color = IQ_SWATCH_COLORS[i % IQ_SWATCH_COLORS.length];
+            return `<div class="iq-swatch" id="iqO_${group.id}_${opt.id}" onclick="iqSelectOpt(${group.id},${opt.id})">
+                <div class="iq-swatch-inner" style="background:${color};">
+                    <span class="iq-swatch-name">${iqEsc(opt.name)}</span>
+                    <span class="iq-swatch-check"><svg width="9" height="9" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></span>
+                </div>
+            </div>`;
+        }).join('') + `</div>`;
+}
+
+function iqPillHtml(group) {
+    return `<div class="iq-pill-grid">` +
+        (group.active_options || []).map(opt => {
+            const adj   = parseFloat(opt.price_adjustment || 0);
+            const pLabel = opt.price_type === 'add' && adj > 0 ? `+₱${adj.toLocaleString()}`
+                         : opt.price_type === 'replace' ? `₱${adj.toLocaleString()}` : 'Free';
+            return `<div class="iq-pill" id="iqO_${group.id}_${opt.id}" onclick="iqSelectOpt(${group.id},${opt.id})">
+                <span class="iq-pill-label">${iqEsc(opt.name)}</span>
+                <span class="iq-pill-desc">${pLabel}</span>
+            </div>`;
+        }).join('') + `</div>`;
+}
+
+function iqSelectOpt(groupId, optId) {
+    const group  = (iqItem.modifier_groups || []).find(g => g.id == groupId);
+    if (!group) return;
+    const opt    = (group.active_options || []).find(o => o.id == optId);
+    if (!opt) return;
+
+    const maxSel  = group.max_selections || null;
+    const isMulti = maxSel && maxSel > 1;
+
+    if (isMulti) {
+        let arr = iqSelOptions[groupId] || [];
+        const idx = arr.findIndex(o => o.id == optId);
+        if (idx >= 0) {
+            arr.splice(idx, 1);
+            document.getElementById(`iqO_${groupId}_${optId}`)?.classList.remove('sel');
+        } else {
+            if (arr.length >= maxSel) return;
+            arr.push(opt);
+            document.getElementById(`iqO_${groupId}_${optId}`)?.classList.add('sel');
+        }
+        iqSelOptions[groupId] = arr;
+        const lbl = document.getElementById(`iqGL_${groupId}`);
+        if (lbl) lbl.textContent = arr.length === 0 ? `Choose up to ${maxSel}` : `${arr.length} / ${maxSel} chosen`;
+    } else {
+        (group.active_options || []).forEach(o => document.getElementById(`iqO_${groupId}_${o.id}`)?.classList.remove('sel'));
+        const same = iqSelOptions[groupId]?.id == optId;
+        if (same) {
+            iqSelOptions[groupId] = null;
+            const lbl = document.getElementById(`iqGL_${groupId}`);
+            if (lbl) lbl.textContent = group.required ? 'Required' : 'Select one';
+        } else {
+            document.getElementById(`iqO_${groupId}_${optId}`)?.classList.add('sel');
+            iqSelOptions[groupId] = opt;
+            const lbl = document.getElementById(`iqGL_${groupId}`);
+            if (lbl) lbl.textContent = opt.name;
+        }
+    }
+    iqUpdateTotal();
+}
+
+function iqBuildAddons() {
+    const wrap   = document.getElementById('iqAddonsWrap');
+    const list   = document.getElementById('iqAddonsList');
+    const label  = document.getElementById('iqAddonsLabel');
+    const groups = iqItem.addon_groups || [];
+    iqSelAddons  = {};
+
+    if (!groups.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+
+    // Determine if radio (max_selections === 1 on any group) or multi
+    const isRadio = groups.some(g => g.max_selections === 1);
+
+    if (isRadio) {
+        label.textContent = 'Optional · Choose one';
+        list.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;';
+        list.innerHTML = groups.map(g =>
+            (g.active_options || []).map(opt => {
+                const adj = parseFloat(opt.price_adjustment || 0);
+                const paid = opt.price_type === 'add' && adj > 0;
+                return `<div class="iq-pill" id="iqAO_${g.id}_${opt.id}" data-gid="${g.id}" onclick="iqToggleAddonOpt(${g.id},${opt.id},'${iqEsc(opt.name)}','${opt.price_type}',${adj})">
+                    <span class="iq-pill-label">${iqEsc(opt.name)}</span>
+                    ${paid ? `<span class="iq-pill-desc">+₱${adj.toLocaleString()}</span>` : ''}
+                </div>`;
+            }).join('')
+        ).join('');
+    } else {
+        label.textContent = 'Optional · Select multiple';
+        list.style.cssText = 'display:flex;flex-direction:column;gap:0;';
+        list.innerHTML = groups.map(g => {
+            const opt   = g.active_options?.[0];
+            const adj   = parseFloat(opt?.price_adjustment || 0);
+            const paid  = opt?.price_type === 'add' && adj > 0;
+            return `<div class="iq-addon-card" id="iqAG_${g.id}" onclick="iqToggleAddon(${g.id},'${iqEsc(g.name)}','${opt?.price_type||'none'}',${adj})">
+                <div style="display:flex;align-items:center;flex:1;min-width:0;">
+                    <div class="iq-addon-check" id="iqAC_${g.id}">
+                        <svg width="12" height="12" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <div><p class="iq-addon-name">${iqEsc(g.name)}</p>${g.description ? `<p style="font-size:11px;color:#4b5563;margin:2px 0 0;">${iqEsc(g.description)}</p>` : ''}</div>
+                </div>
+                <span class="iq-addon-price">${paid ? '+₱'+adj.toLocaleString() : 'Free'}</span>
+            </div>`;
+        }).join('');
+    }
+}
+
+function iqToggleAddonOpt(gid, optId, name, priceType, adj) {
+    document.querySelectorAll(`[data-gid="${gid}"]`).forEach(p => p.classList.remove('sel'));
+    if (iqSelAddons[gid]?.optId === optId) { delete iqSelAddons[gid]; iqUpdateTotal(); return; }
+    iqSelAddons[gid] = { optId, name, priceType, adj };
+    document.getElementById(`iqAO_${gid}_${optId}`)?.classList.add('sel');
+    iqUpdateTotal();
+}
+
+function iqToggleAddon(gid, name, priceType, adj) {
+    const card  = document.getElementById(`iqAG_${gid}`);
+    const check = document.getElementById(`iqAC_${gid}`);
+    if (iqSelAddons[gid]) {
+        delete iqSelAddons[gid];
+        card?.classList.remove('sel');
+    } else {
+        iqSelAddons[gid] = { optId: gid, name, priceType, adj };
+        card?.classList.add('sel');
+    }
+    iqUpdateTotal();
+}
+
+function iqChangeQty(delta) {
+    iqQty = Math.max(1, iqQty + delta);
+    document.getElementById('iqQtyVal').textContent = iqQty;
+    iqUpdateTotal();
+}
+
+function iqUpdateTotal() {
+    if (!iqItem) return;
+    let price = parseFloat(iqItem.price);
+
+    Object.values(iqSelOptions).forEach(opt => {
+        if (!opt) return;
+        if (Array.isArray(opt)) {
+            opt.forEach(o => { if (o.price_type === 'add') price += parseFloat(o.price_adjustment || 0); });
+        } else {
+            if (opt.price_type === 'add')          price += parseFloat(opt.price_adjustment || 0);
+            else if (opt.price_type === 'replace') price  = parseFloat(opt.price_adjustment || 0);
+        }
+    });
+    Object.values(iqSelAddons).forEach(a => { if (a.priceType === 'add') price += parseFloat(a.adj || 0); });
+
+    const unit = Math.round(price);
+    document.getElementById('iqPrice').textContent = '₱' + unit.toLocaleString();
+    document.getElementById('iqTotal').textContent = '₱' + (unit * iqQty).toLocaleString();
+}
+
+function iqDoAdd() {
+    if (!iqItem) return;
+
+    // Validate required groups
+    const groups = iqItem.modifier_groups || [];
+    for (const group of groups) {
+        if (!group.required) continue;
+        const sel     = iqSelOptions[group.id];
+        const isEmpty = Array.isArray(sel) ? sel.length === 0 : !sel;
+        if (isEmpty) {
+            const groupEl = document.getElementById(`iqG_${group.id}`);
+            const labelEl = document.getElementById(`iqGL_${group.id}`);
+            groupEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (groupEl) { groupEl.style.outline = '2px solid #ef4444'; groupEl.style.borderRadius = '12px'; setTimeout(() => groupEl.style.outline = '', 2000); }
+            if (labelEl) { const prev = labelEl.textContent; labelEl.style.color = '#ef4444'; labelEl.textContent = '⚠ Required!'; setTimeout(() => { labelEl.style.color = ''; labelEl.textContent = prev; }, 2000); }
+            return;
+        }
+    }
+
+    // Build price
+    let price = parseFloat(iqItem.price);
+    Object.values(iqSelOptions).forEach(opt => {
+        if (!opt) return;
+        if (Array.isArray(opt)) { opt.forEach(o => { if (o.price_type === 'add') price += parseFloat(o.price_adjustment || 0); }); }
+        else { if (opt.price_type === 'add') price += parseFloat(opt.price_adjustment || 0); else if (opt.price_type === 'replace') price = parseFloat(opt.price_adjustment || 0); }
+    });
+    Object.values(iqSelAddons).forEach(a => { if (a.priceType === 'add') price += parseFloat(a.adj || 0); });
+    const unit = Math.round(price);
+
+    // Build modifiers array
+    const modifiers = [];
+    Object.values(iqSelOptions).filter(Boolean).forEach(opt => {
+        if (Array.isArray(opt)) {
+            opt.forEach(o => {
+                if (/^no\s/i.test(o.name)) return;
+                const group = groups.find(g => (g.active_options || []).find(x => x.id == o.id));
+                if (group) modifiers.push({ type: group.type, name: o.name, price_type: o.price_type, price_adjustment: parseFloat(o.price_adjustment || 0) });
+            });
+        } else {
+            if (/^no\s/i.test(opt.name)) return;
+            const group = groups.find(g => (g.active_options || []).find(x => x.id == opt.id));
+            if (group) modifiers.push({ type: group.type, name: opt.name, price_type: opt.price_type, price_adjustment: parseFloat(opt.price_adjustment || 0) });
+        }
+    });
+    Object.entries(iqSelAddons).forEach(([gid, addon]) => {
+        const addonGroup = (iqItem.addon_groups || []).find(g => g.id == gid);
+        const displayName = addonGroup && addonGroup.name !== addon.name ? addonGroup.name + ': ' + addon.name : addon.name;
+        modifiers.push({ type: 'addon', name: displayName, price_type: addon.priceType, price_adjustment: parseFloat(addon.adj || 0) });
+    });
+
+    // Build cart key
+    const optIds  = [];
+    Object.values(iqSelOptions).filter(Boolean).forEach(o => { if (Array.isArray(o)) o.forEach(x => x.id && optIds.push(x.id)); else o.id && optIds.push(o.id); });
+    const optKey   = optIds.sort().join('-');
+    const addonKey = Object.values(iqSelAddons).map(a => a.optId || a.name).sort().join('a');
+    const key      = iqItem.id + (optKey ? '_' + optKey : '') + (addonKey ? '_ad' + addonKey : '');
+
+    const optLabels   = [];
+    Object.values(iqSelOptions).filter(Boolean).forEach(o => { if (Array.isArray(o)) o.forEach(x => x.name && optLabels.push(x.name)); else o.name && optLabels.push(o.name); });
+    const addonLabels = Object.values(iqSelAddons).map(a => a.name);
+    const suffix      = [...optLabels, ...addonLabels].length ? ' (' + [...optLabels, ...addonLabels].join(', ') + ')' : '';
+    const name        = iqItem.name + suffix;
+    const image       = iqItem.image ? '/' + iqItem.image.replace(/^\//, '') : '{{ asset("images/menu/default-menu-item.webp") }}';
+    const catSlug     = iqItem.category?.slug ?? 'food';
+    const requiresFlavor = groups.some(g => g.required);
+
+    const existing = cart.find(i => i.id === key);
+    if (existing) existing.quantity += iqQty;
+    else cart.push({ id: key, item_id: iqItem.id, name, price: unit, image, category: catSlug, quantity: iqQty, requires_flavor: requiresFlavor, flavor_ok: true, modifiers });
+
+    localStorage.setItem('eutCart', JSON.stringify(cart));
+    updateCartBadge();
+
+    @auth
+    (async () => {
+        try {
+            await fetch('/cart/item', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify({ cart_key: key, menu_item_id: iqItem.id, name, image, price: unit, quantity: existing ? existing.quantity : iqQty, category: catSlug, modifiers }),
+            });
+        } catch(e) {}
+    })();
+    @endauth
+
+    closeItemSheet();
+
+    // Toast
+    const t = document.createElement('div');
+    t.textContent = '🛒 Added to cart!';
+    Object.assign(t.style, { position:'fixed', bottom:'90px', left:'50%', transform:'translateX(-50%)', background:'#1a1b2e', border:'1px solid rgba(250,204,21,.3)', color:'#facc15', padding:'10px 20px', borderRadius:'99px', fontSize:'13px', fontWeight:'600', zIndex:'9999', boxShadow:'0 4px 20px rgba(0,0,0,.5)' });
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
+}
+
+function iqEsc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Close on ESC
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeItemSheet(); });
+</script>
 
 @include('partials.pwa-register')
 </body>
