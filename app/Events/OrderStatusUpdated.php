@@ -39,6 +39,7 @@ class OrderStatusUpdated implements ShouldBroadcast
             'cancel_reason'    => $order->cancel_reason,
             'placed_at'        => $order->created_at->format('M d, Y g:i A'),
             'accepted_at'      => $order->accepted_at?->format('g:i A'),
+            'prepared_at'      => $order->prepared_at?->toISOString(),
             'assigned_at'      => $order->assigned_at?->format('g:i A'),
             'picked_up_at'     => $order->picked_up_at?->format('g:i A'),
             'delivered_at'     => $order->delivered_at?->format('g:i A'),
@@ -51,6 +52,7 @@ class OrderStatusUpdated implements ShouldBroadcast
                 'lng'    => $order->rider->current_lng,
             ] : null,
             'items' => $order->items->map(fn($i) => [
+                'id'        => $i->id,
                 'name'      => $i->item_name,
                 'qty'       => $i->quantity,
                 'price'     => $i->unit_price,
