@@ -304,9 +304,11 @@ class ChefController extends Controller
     }
 
     /**
-     * Receipt for a completed dine-in order.
-     * Loads ALL orders from the same table session (same table_session_id or
-     * same table + same day) so the receipt shows the full combined bill.
+     * Kitchen receipt for a grouped dine-in table card.
+     * Only shows ACTIVE orders (accepted/preparing) for the current session —
+     * never pulls delivered orders from earlier sessions at the same table.
+     *
+     * Route: GET /chef/orders/{order}/table-receipt
      */
     public function tableReceipt(Order $order)
     {
@@ -314,22 +316,24 @@ class ChefController extends Controller
         $tableNumber = $order->table_number;
 
         if ($tableNumber) {
-            // Fetch all orders for the same table today (excluding cancelled)
-            // Group by table_session_id if available, otherwise same table + same day
             $query = Order::with('items')
                 ->where('table_number', $tableNumber)
                 ->where('order_type', 'dine_in')
                 ->whereNotIn('status', ['cancelled'])
                 ->whereDate('created_at', $order->created_at->toDateString());
 
-            // Prefer grouping by session ID so multi-session days work correctly
+            // Scope to this session when available
             if ($order->table_session_id) {
                 $query->where('table_session_id', $order->table_session_id);
+            } else {
+                // No session ID — limit to only active (not yet delivered) orders
+                // so we don't pull in completed orders from earlier sittings
+                $query->whereIn('status', ['pending', 'accepted', 'preparing', 'rider_assigned', 'out_for_delivery']);
             }
 
             $orders = $query->oldest()->get();
 
-            // Ensure the triggered order is always included even if query missed it
+            // Always include the triggered order
             if ($orders->where('id', $order->id)->isEmpty()) {
                 $orders = $orders->push($order)->sortBy('id')->values();
             }

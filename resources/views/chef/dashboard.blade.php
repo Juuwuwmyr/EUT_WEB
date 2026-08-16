@@ -539,7 +539,7 @@ function renderGroupCard(group) {
     });
     subRows += '</div>';
 
-    const tableReceiptUrl = `/chef/orders/table-bill/${encodeURIComponent(tableNum)}`;
+    const tableReceiptUrl = `/chef/orders/${rep.id}/table-receipt`;
     const printBtn  = `<button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printReceipt('${tableReceiptUrl}')" title="Print table receipt"><i data-lucide="printer" style="width:13px;height:13px;stroke-width:2;"></i></button>`;
     const removeBtn = `<button class="oc-btn oc-btn-remove" onclick="event.stopPropagation();openRemoveItemModal(${rep.id},this)" title="Remove item">✕</button>`;
     const readyBtn  = `<button class="oc-btn oc-btn-ready" onclick="event.stopPropagation();markTableReady('${escH(sessionKey)}',this)">✅ Mark Ready</button>`;
