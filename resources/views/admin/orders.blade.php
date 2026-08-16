@@ -814,15 +814,6 @@ function buildActionBtns(o) {
             '</button>';
     }
 
-    // Cancel button — icon only, flex-shrink:0 so it never wraps
-    if (o.status === 'accepted' || (o.status === 'preparing' && !o.prepared_at)) {
-        actionBtn += '<button class="btn-ghost" style="font-size:.78rem;display:inline-flex;align-items:center;justify-content:center;padding:.45rem .55rem;color:#f87171;border:1px solid rgba(239,68,68,.25);flex-shrink:0;" ' +
-            'onclick="quickAction(' + o.id + ',\'status\',\'cancelled\',this)" title="Cancel order" ' +
-            'onmouseover="this.style.background=\'rgba(239,68,68,.08)\'" onmouseout="this.style.background=\'transparent\'">' +
-            '<i data-lucide="x-circle" style="width:.82rem;height:.82rem;stroke-width:2;"></i>' +
-            '</button>';
-    }
-
     return actionBtn;
 }
 
