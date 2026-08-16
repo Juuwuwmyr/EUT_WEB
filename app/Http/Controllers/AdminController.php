@@ -958,6 +958,7 @@ class AdminController extends Controller
                 'rider_lat'        => $o->rider?->current_lat,
                 'rider_lng'        => $o->rider?->current_lng,
                 'items'            => $o->items->map(fn($i) => [
+                    'id'        => $i->id,
                     'name'      => $i->item_name,
                     'qty'       => $i->quantity,
                     'price'     => $i->unit_price,
@@ -1654,5 +1655,62 @@ class AdminController extends Controller
             'entries'    => $entries,
             'latest_id'  => $entries->max('id') ?? $afterId,
         ]);
+    }
+
+    /**
+     * Remove (or reduce qty of) a single item from an active order.
+     * Works for all order types (dine-in, pickup, delivery).
+     * Mirrors ChefController@cancelItem but without the dine-in-only restriction.
+     *
+     * Route: DELETE /admin/orders/{order}/items/{item}
+     */
+    public function cancelItem(Request $request, \App\Models\Order $order, \App\Models\OrderItem $item)
+    {
+        if (!$order->isCancellable()) {
+            return response()->json(['success' => false, 'message' => 'This order can no longer be modified.'], 422);
+        }
+
+        if ($item->order_id !== $order->id) {
+            return response()->json(['success' => false, 'message' => 'Item does not belong to this order.'], 422);
+        }
+
+        $cancelQty = (int) $request->input('qty', $item->quantity);
+        $cancelQty = max(1, min($cancelQty, $item->quantity));
+
+        if ($cancelQty < $item->quantity) {
+            $newQty      = $item->quantity - $cancelQty;
+            $newSubtotal = round($item->unit_price * $newQty, 2);
+            $item->updateQuietly(['quantity' => $newQty, 'subtotal' => $newSubtotal]);
+
+            $order->load('items');
+            $orderSubtotal = round($order->items->sum('subtotal'), 2);
+            $order->updateQuietly(['subtotal' => $orderSubtotal, 'total' => $order->delivery_fee > 0 ? $orderSubtotal + $order->delivery_fee : $orderSubtotal]);
+            $order->refresh();
+
+            broadcast(new \App\Events\OrderStatusUpdated($order));
+            AuditLog::record(action: 'order_item_qty_reduced', description: "Admin reduced {$item->item_name} qty by {$cancelQty} on {$order->order_number}.", model: $order);
+
+            return response()->json(['success' => true, 'message' => "{$cancelQty}× {$item->item_name} removed.", 'items_left' => $order->items->count()]);
+        }
+
+        $item->delete();
+        $order->load('items');
+        $remaining = $order->items;
+
+        if ($remaining->isEmpty()) {
+            $order->updateQuietly(['status' => 'cancelled', 'cancel_reason' => 'All items removed by admin', 'cancelled_at' => now(), 'subtotal' => 0, 'total' => 0]);
+            $order->refresh();
+            broadcast(new \App\Events\OrderStatusUpdated($order));
+            AuditLog::record(action: 'order_cancelled', description: "Admin removed last item — {$order->order_number} cancelled.", model: $order);
+            return response()->json(['success' => true, 'message' => "All items removed — order #{$order->order_number} cancelled.", 'items_left' => 0]);
+        }
+
+        $newSubtotal = round($remaining->sum('subtotal'), 2);
+        $order->updateQuietly(['subtotal' => $newSubtotal, 'total' => $order->delivery_fee > 0 ? $newSubtotal + $order->delivery_fee : $newSubtotal]);
+        $order->refresh();
+        broadcast(new \App\Events\OrderStatusUpdated($order));
+        AuditLog::record(action: 'order_item_removed', description: "Admin removed item from {$order->order_number}.", model: $order);
+
+        return response()->json(['success' => true, 'message' => "Item removed from order #{$order->order_number}.", 'items_left' => $remaining->count()]);
     }
 }

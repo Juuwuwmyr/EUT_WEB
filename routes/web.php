@@ -214,6 +214,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'admin.sync
     Route::get('/orders/poll',                      [AdminController::class, 'ordersPoll'])->middleware('permission:view_orders')->name('orders.poll');
     Route::post('/orders/{order}/accept',           [AdminController::class, 'acceptOrder'])->middleware('permission:accept_orders')->name('orders.accept');
     Route::post('/orders/{order}/assign-rider',     [AdminController::class, 'assignRider'])->middleware('permission:assign_riders')->name('orders.assign-rider');
+    Route::post('/orders/{order}/ready',            [\App\Http\Controllers\ChefController::class, 'markReady'])->middleware('permission:mark_order_ready')->name('orders.ready');
+    Route::delete('/orders/{order}/items/{item}',   [AdminController::class, 'cancelItem'])->middleware('permission:cancel_order_items')->name('orders.cancel-item');
     Route::patch('/orders/{order}/status',          [AdminController::class, 'updateOrderStatus'])->middleware('permission:update_order_status')->name('orders.status');
     Route::post('/orders/{order}/complete-table',   [AdminController::class, 'completeTable'])->middleware('permission:complete_table_orders')->name('orders.complete-table');
     Route::post('/orders/{order}/lock-table',       [AdminController::class, 'lockTable'])->middleware('permission:complete_table_orders')->name('orders.lock-table');

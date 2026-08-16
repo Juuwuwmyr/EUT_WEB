@@ -807,6 +807,24 @@ function buildActionBtns(o) {
             '</button>';
     }
 
+    // Mark Ready button — shown for accepted or preparing-not-yet-ready
+    if (o.status === 'accepted' || (o.status === 'preparing' && !o.prepared_at)) {
+        actionBtn += '<button class="btn-ghost" style="font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .65rem;color:#d97706;border:1px solid rgba(217,119,6,.3);font-weight:700;" ' +
+            'onclick="adminMarkReady(' + o.id + ',this)" title="Mark as Ready"' +
+            ' onmouseover="this.style.background=\'rgba(217,119,6,.1)\'" onmouseout="this.style.background=\'transparent\'">' +
+            '<i data-lucide="check-circle-2" style="width:.82rem;height:.82rem;stroke-width:2;"></i> Ready' +
+            '</button>';
+    }
+
+    // Remove Item button — shown for accepted or preparing-not-yet-ready
+    if (o.status === 'accepted' || (o.status === 'preparing' && !o.prepared_at)) {
+        actionBtn += '<button class="btn-ghost" style="font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .65rem;color:#ef4444;border:1px solid rgba(239,68,68,.25);" ' +
+            'onclick="openAdminRemoveItemModal(' + o.id + ')" title="Remove an item" ' +
+            'onmouseover="this.style.background=\'rgba(239,68,68,.08)\'" onmouseout="this.style.background=\'transparent\'">' +
+            '<i data-lucide="minus-circle" style="width:.82rem;height:.82rem;stroke-width:2;"></i>' +
+            '</button>';
+    }
+
     return actionBtn;
 }
 
@@ -859,7 +877,7 @@ function renderSingleOrderRow(o) {
                     '<span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid rgba(255,255,255,.1);display:inline-flex;align-items:center;gap:3px;">' + (o.order_type_icon || '') + ' ' + escHtml(o.order_type_label) + '</span>' +
                     '</div>' +
                     (o.order_type === 'dine_in' && o.table_number
-                        ? '<p style="font-size:.7rem;color:#4ade80;font-weight:700;margin:0 0 1px;">🪑 Table ' + escHtml(o.table_number) + '</p>'
+                        ? '<p style="font-size:.7rem;color:#facc15;font-weight:700;margin:0 0 1px;">🪑 Table ' + escHtml(o.table_number) + '</p>'
                         : '<p style="font-size:.68rem;color:var(--text-muted);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">' + escHtml(o.address || '') + '</p>') +
                 '</div>' +
                 '</div>' +
@@ -1039,8 +1057,8 @@ function buildSoloOrderCard(o) {
     var sc = statusChip(o.status, o.order_type);
 
     var metaLine1 = o.order_type === 'dine_in' && o.table_number
-        ? '<span style="display:inline-flex;align-items:center;gap:.35rem;font-size:.88rem;font-weight:800;color:#4ade80;">' +
-          '\uD83E\uDE91 <span style="background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.35);border-radius:.4rem;padding:.1rem .5rem;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>' +
+        ? '<span style="display:inline-flex;align-items:center;gap:.35rem;font-size:.88rem;font-weight:800;color:#facc15;">' +
+          '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.1rem .5rem;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>' +
           '</span>'
         : (o.order_type_icon ? o.order_type_icon + ' ' : '') + escHtml(o.order_type_label || o.order_type);
 
@@ -1834,7 +1852,179 @@ function computeStatusCounts(orders) {
     return counts;
 }
 
+// ── Mark Ready (admin card button) ────────────────────────────────────────
+async function adminMarkReady(orderId, btn) {
+    var orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '…';
+    try {
+        var res  = await fetch('/admin/orders/' + orderId + '/ready', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        });
+        var data = await res.json();
+        if (data.success) {
+            await fetchOrders();
+        } else {
+            alert(data.message || 'Could not mark ready.');
+            btn.disabled = false; btn.innerHTML = orig;
+        }
+    } catch(e) {
+        alert('Network error. Please try again.');
+        btn.disabled = false; btn.innerHTML = orig;
+    }
+}
+
+// ── Remove Item modal (admin) ─────────────────────────────────────────────
+var _adm_orderId = null, _adm_itemId = null, _adm_qty = 1, _adm_max = 1;
+
+function openAdminRemoveItemModal(orderId) {
+    var o = ORDERS_MAP[orderId];
+    if (!o) return;
+    _adm_orderId = orderId; _adm_itemId = null; _adm_qty = 1; _adm_max = 1;
+
+    document.getElementById('admRmOrderLabel').textContent =
+        (o.order_number || '') + (o.table_number ? ' · Table ' + o.table_number : '');
+
+    var listHtml = '';
+    (o.items || []).forEach(function(item) {
+        if (!item.id) return; // skip if no id (shouldn't happen after the poll fix)
+        listHtml +=
+            '<div class="adm-rm-row" onclick="admSelectItem(this,' + item.id + ',' + item.qty + ')" style="display:flex;align-items:center;gap:.7rem;padding:.55rem .7rem;border-radius:.65rem;border:1px solid var(--border-divider);background:rgba(255,255,255,.03);cursor:pointer;margin-bottom:.35rem;transition:border-color .15s,background .15s;">' +
+            '<span style="flex:1;font-size:.85rem;font-weight:700;color:var(--text-strong);">' + escHtml(item.name) + '</span>' +
+            '<span style="font-size:.75rem;font-weight:800;color:#facc15;">' + item.qty + '×</span>' +
+            '<span class="adm-rm-check" style="width:1.25rem;height:1.25rem;border-radius:50%;border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:transparent;transition:all .15s;flex-shrink:0;">✓</span>' +
+            '</div>';
+    });
+    document.getElementById('admRmItemList').innerHTML = listHtml || '<p style="color:var(--text-muted);font-size:.8rem;">No items found.</p>';
+
+    document.getElementById('admRmQtyRow').style.display = 'none';
+    var cb = document.getElementById('admRmConfirmBtn');
+    cb.disabled = true; cb.textContent = 'Remove Selected Item';
+
+    document.getElementById('adminRemoveModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function admSelectItem(el, itemId, qty) {
+    document.querySelectorAll('#admRmItemList .adm-rm-row').forEach(function(r) {
+        r.style.borderColor = 'var(--border-divider)';
+        r.style.background  = 'rgba(255,255,255,.03)';
+        r.querySelector('.adm-rm-check').style.background  = 'transparent';
+        r.querySelector('.adm-rm-check').style.borderColor = 'rgba(255,255,255,.2)';
+        r.querySelector('.adm-rm-check').style.color       = 'transparent';
+    });
+    el.style.borderColor = 'rgba(239,68,68,.6)';
+    el.style.background  = 'rgba(239,68,68,.1)';
+    el.querySelector('.adm-rm-check').style.background  = '#ef4444';
+    el.querySelector('.adm-rm-check').style.borderColor = '#ef4444';
+    el.querySelector('.adm-rm-check').style.color       = '#fff';
+
+    _adm_itemId = itemId; _adm_max = qty; _adm_qty = qty;
+    document.getElementById('admRmQtyRow').style.display = 'block';
+    document.getElementById('admRmQtyDisplay').textContent = _adm_qty;
+    document.getElementById('admRmQtyMax').textContent = _adm_max;
+    document.getElementById('admRmQtyDec').disabled = _adm_qty <= 1;
+    document.getElementById('admRmQtyInc').disabled = _adm_qty >= _adm_max;
+
+    var name = el.querySelector('span:first-child').textContent || 'item';
+    _admUpdateConfirm(name);
+}
+
+function admAdjustQty(d) {
+    _adm_qty = Math.max(1, Math.min(_adm_max, _adm_qty + d));
+    document.getElementById('admRmQtyDisplay').textContent = _adm_qty;
+    document.getElementById('admRmQtyDec').disabled = _adm_qty <= 1;
+    document.getElementById('admRmQtyInc').disabled = _adm_qty >= _adm_max;
+    var sel = document.querySelector('#admRmItemList .adm-rm-row[style*="rgba(239"]');
+    var name = sel ? sel.querySelector('span:first-child').textContent : 'item';
+    _admUpdateConfirm(name);
+}
+
+function _admUpdateConfirm(name) {
+    var cb = document.getElementById('admRmConfirmBtn');
+    cb.disabled = false;
+    cb.textContent = _adm_qty >= _adm_max
+        ? 'Remove all "' + name + '"'
+        : 'Remove ' + _adm_qty + '× of ' + _adm_max + '× "' + name + '"';
+}
+
+function closeAdminRemoveModal(e) {
+    if (e && e.target !== document.getElementById('adminRemoveModal')) return;
+    document.getElementById('adminRemoveModal').style.display = 'none';
+    document.body.style.overflow = '';
+    _adm_orderId = _adm_itemId = null; _adm_qty = _adm_max = 1;
+}
+
+async function admConfirmRemove() {
+    if (!_adm_orderId || !_adm_itemId) return;
+    var cb = document.getElementById('admRmConfirmBtn');
+    cb.disabled = true; cb.textContent = 'Removing…';
+    try {
+        var res = await fetch('/admin/orders/' + _adm_orderId + '/items/' + _adm_itemId, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ qty: _adm_qty }),
+        });
+        var data = await res.json();
+        if (!data.success) {
+            alert(data.message || 'Could not remove item.');
+            cb.disabled = false; cb.textContent = 'Remove Selected Item';
+            return;
+        }
+        document.getElementById('adminRemoveModal').style.display = 'none';
+        document.body.style.overflow = '';
+        _adm_orderId = _adm_itemId = null; _adm_qty = _adm_max = 1;
+        await fetchOrders();
+    } catch(err) {
+        alert('Network error. Please try again.');
+        cb.disabled = false; cb.textContent = 'Remove Selected Item';
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && document.getElementById('adminRemoveModal').style.display !== 'none') {
+        closeAdminRemoveModal();
+    }
+});
+
 </script>
+
+{{-- ── Admin Remove Item Modal ───────────────────────────────────────── --}}
+<div id="adminRemoveModal" onclick="closeAdminRemoveModal(event)"
+    style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.78);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:var(--bg-card);border:1px solid var(--border-card);border-radius:1.1rem;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.7);overflow:hidden;">
+        <div style="padding:1rem 1.2rem .8rem;border-bottom:1px solid var(--border-divider);display:flex;align-items:center;justify-content:space-between;">
+            <div>
+                <div style="font-size:.95rem;font-weight:800;color:var(--text-strong);">Remove Item from Order</div>
+                <div id="admRmOrderLabel" style="font-size:.72rem;color:var(--text-muted);margin-top:.1rem;">—</div>
+            </div>
+            <button onclick="closeAdminRemoveModal()" class="modal-close">✕</button>
+        </div>
+        <div id="admRmItemList" style="padding:.75rem 1.2rem;max-height:50vh;overflow-y:auto;"></div>
+        <div id="admRmQtyRow" style="display:none;padding:.6rem 1.2rem .4rem;border-top:1px solid var(--border-divider);">
+            <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:.45rem;">How many to cancel?</div>
+            <div style="display:flex;align-items:center;gap:.75rem;">
+                <button type="button" id="admRmQtyDec" onclick="admAdjustQty(-1)"
+                    style="width:2.1rem;height:2.1rem;border-radius:.5rem;border:1px solid var(--border-divider);background:rgba(255,255,255,.06);color:var(--text-strong);font-size:1.1rem;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">−</button>
+                <span id="admRmQtyDisplay" style="font-size:1.3rem;font-weight:800;color:#facc15;min-width:2rem;text-align:center;">1</span>
+                <button type="button" id="admRmQtyInc" onclick="admAdjustQty(1)"
+                    style="width:2.1rem;height:2.1rem;border-radius:.5rem;border:1px solid var(--border-divider);background:rgba(255,255,255,.06);color:var(--text-strong);font-size:1.1rem;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">+</button>
+                <span style="font-size:.78rem;color:var(--text-muted);flex:1;">of <strong id="admRmQtyMax" style="color:var(--text-strong);">1</strong> total</span>
+            </div>
+        </div>
+        <div style="padding:.75rem 1.2rem 1rem;border-top:1px solid var(--border-divider);display:flex;gap:.5rem;">
+            <button id="admRmConfirmBtn" onclick="admConfirmRemove()" disabled
+                style="flex:1;padding:.55rem .75rem;border-radius:.5rem;background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);font-size:.8rem;font-weight:700;cursor:pointer;">
+                Remove Selected Item
+            </button>
+            <button onclick="closeAdminRemoveModal()"
+                style="flex:0 0 auto;padding:.55rem 1rem;border-radius:.5rem;background:rgba(255,255,255,.06);color:var(--text-muted);border:1px solid var(--border-divider);font-size:.8rem;cursor:pointer;">
+                Keep All
+            </button>
+        </div>
+    </div>
+</div>
 
 {{-- ── Payment Collection Modal (Dine-in Complete Table) ── --}}
 <div id="paymentModal" class="modal-backdrop" style="display:none;z-index:9999;">
@@ -2017,3 +2207,4 @@ document.getElementById('paymentModal').addEventListener('click', function(e) {
 </script>
 
 @endsection
+                                                                                                                                                            111111

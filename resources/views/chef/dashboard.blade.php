@@ -309,7 +309,7 @@ html.light .order-card-subrow { background:rgba(0,0,0,.025); border-color:rgba(0
                     @if($order->notes)
                         <div style="font-size:.72rem;color:#fbbf24;padding:.4rem .5rem;border-radius:.4rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15);">📝 {{ $order->notes }}</div>
                     @endif
-                    <div class="order-card-total">₱{{ number_format($order->total, 0) }}</div>
+                    {{-- no price on kitchen display --}}
                 </div>
                 <div class="order-card-actions">
                     <button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printKitchenTicket({{ $order->id }})" title="Print ticket">
@@ -482,7 +482,6 @@ function renderSoloCard(o) {
         <div class="order-card-body">
             ${renderItemsPreview(o.items)}
             ${notesRow}
-            <div class="order-card-total">₱${Number(o.total||o.subtotal||0).toLocaleString()}</div>
         </div>
         <div class="order-card-actions">${printBtn}${removeBtn}${readyBtn}</div>
     </div>`;
@@ -531,7 +530,6 @@ function renderGroupCard(group) {
                 <span style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:${waveColor};flex-shrink:0;">${waveLabel}</span>
                 <span class="order-card-subrow-num">${escH(o.order_number)}</span>
                 <span class="order-card-badge" style="background:${sc.bg};color:${sc.color};font-size:.56rem;padding:.1rem .4rem;">${sc.label}</span>
-                <span style="margin-left:auto;font-size:.67rem;font-weight:700;color:var(--text-muted);">₱${Number(o.total||o.subtotal||0).toLocaleString()}</span>
             </div>
             <div class="order-card-items" style="padding:.35rem .55rem .4rem;">
                 ${itemsHtml}
@@ -559,7 +557,6 @@ function renderGroupCard(group) {
         </div>
         <div class="order-card-body">
             <div style="margin-top:.1rem;">${subRows}</div>
-            <div class="order-card-total">₱${grandTotal.toLocaleString()}</div>
         </div>
         <div class="order-card-actions">${printBtn}${removeBtn}${readyBtn}</div>
     </div>`;
