@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('kitchen_print_jobs')) {
+            return; // already created by a later migration — skip
+        }
+
         Schema::create('kitchen_print_jobs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('order_id');
