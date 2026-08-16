@@ -115,7 +115,6 @@ class AdminController extends Controller
             ->whereNotNull('menu_item_id')
             ->groupBy('menu_item_id')
             ->orderByDesc('total_sold')
-            ->take(10)
             ->get()
             ->map(function($i) {
                 $menuItem = \App\Models\MenuItem::with('category')->find($i->menu_item_id);
