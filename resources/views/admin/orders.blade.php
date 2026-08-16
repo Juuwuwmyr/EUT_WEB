@@ -171,11 +171,9 @@
 }
 .order-card-actions > button,
 .order-card-actions > span {
-    flex: 1;
-    min-width: 0;
+    flex-shrink: 0;
     justify-content: center;
-    white-space: normal;
-    word-break: break-word;
+    white-space: nowrap;
     text-align: center;
     line-height: 1.3;
 }
@@ -809,19 +807,19 @@ function buildActionBtns(o) {
 
     // Mark Ready button — shown for accepted or preparing-not-yet-ready
     if (o.status === 'accepted' || (o.status === 'preparing' && !o.prepared_at)) {
-        actionBtn += '<button class="btn-ghost" style="font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .65rem;color:#d97706;border:1px solid rgba(217,119,6,.3);font-weight:700;" ' +
+        actionBtn += '<button class="btn-ghost" style="font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .75rem;color:#d97706;border:1px solid rgba(217,119,6,.3);font-weight:700;white-space:nowrap;flex-shrink:0;" ' +
             'onclick="adminMarkReady(' + o.id + ',this)" title="Mark as Ready"' +
             ' onmouseover="this.style.background=\'rgba(217,119,6,.1)\'" onmouseout="this.style.background=\'transparent\'">' +
-            '<i data-lucide="check-circle-2" style="width:.82rem;height:.82rem;stroke-width:2;"></i> Ready' +
+            '<i data-lucide="check-circle-2" style="width:.82rem;height:.82rem;stroke-width:2;flex-shrink:0;"></i> Ready' +
             '</button>';
     }
 
-    // Remove Item button — shown for accepted or preparing-not-yet-ready
+    // Cancel button — icon only, flex-shrink:0 so it never wraps
     if (o.status === 'accepted' || (o.status === 'preparing' && !o.prepared_at)) {
-        actionBtn += '<button class="btn-ghost" style="font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .65rem;color:#ef4444;border:1px solid rgba(239,68,68,.25);" ' +
-            'onclick="openAdminRemoveItemModal(' + o.id + ')" title="Remove an item" ' +
+        actionBtn += '<button class="btn-ghost" style="font-size:.78rem;display:inline-flex;align-items:center;justify-content:center;padding:.45rem .55rem;color:#f87171;border:1px solid rgba(239,68,68,.25);flex-shrink:0;" ' +
+            'onclick="quickAction(' + o.id + ',\'status\',\'cancelled\',this)" title="Cancel order" ' +
             'onmouseover="this.style.background=\'rgba(239,68,68,.08)\'" onmouseout="this.style.background=\'transparent\'">' +
-            '<i data-lucide="minus-circle" style="width:.82rem;height:.82rem;stroke-width:2;"></i>' +
+            '<i data-lucide="x-circle" style="width:.82rem;height:.82rem;stroke-width:2;"></i>' +
             '</button>';
     }
 
@@ -1525,7 +1523,13 @@ function openManageModal(id) {
                     '<span style="font-weight:600;color:var(--text-strong);font-size:.8rem;">x' + item.qty + ' ' + escHtml(item.name) + '</span>' +
                     (modTags ? '<div style="display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.25rem;">' + modTags + '</div>' : '') +
                 '</div>' +
-                '<span style="font-size:.8rem;color:var(--text-body);font-weight:600;flex-shrink:0;margin-left:.5rem;">&#x20B1;' + Number(item.subtotal).toLocaleString() + '</span>' +
+                '<div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0;margin-left:.5rem;">' +
+                    '<span style="font-size:.8rem;color:var(--text-body);font-weight:600;">&#x20B1;' + Number(item.subtotal).toLocaleString() + '</span>' +
+                    ((['accepted','preparing'].indexOf(o.status) !== -1 && !o.prepared_at && item.id)
+                        ? '<button onclick="openAdminRemoveItemModal(' + o.id + ',' + item.id + ',' + item.qty + ')" title="Remove this item" style="display:inline-flex;align-items:center;justify-content:center;width:1.6rem;height:1.6rem;border-radius:.375rem;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#ef4444;cursor:pointer;flex-shrink:0;transition:background .15s;" onmouseover="this.style.background=\'rgba(239,68,68,.18)\'" onmouseout="this.style.background=\'rgba(239,68,68,.08)\'">' +
+                          '<i data-lucide="minus" style="width:.7rem;height:.7rem;stroke-width:3;pointer-events:none;"></i></button>'
+                        : '') +
+                '</div>' +
             '</div>';
     });
 
@@ -1878,7 +1882,7 @@ async function adminMarkReady(orderId, btn) {
 // ── Remove Item modal (admin) ─────────────────────────────────────────────
 var _adm_orderId = null, _adm_itemId = null, _adm_qty = 1, _adm_max = 1;
 
-function openAdminRemoveItemModal(orderId) {
+function openAdminRemoveItemModal(orderId, preItemId, preItemQty) {
     var o = ORDERS_MAP[orderId];
     if (!o) return;
     _adm_orderId = orderId; _adm_itemId = null; _adm_qty = 1; _adm_max = 1;
@@ -1888,20 +1892,44 @@ function openAdminRemoveItemModal(orderId) {
 
     var listHtml = '';
     (o.items || []).forEach(function(item) {
-        if (!item.id) return; // skip if no id (shouldn't happen after the poll fix)
+        if (!item.id) return;
+        var isPreSelected = preItemId && item.id === preItemId;
+        var selStyle = isPreSelected
+            ? 'border-color:rgba(239,68,68,.6);background:rgba(239,68,68,.1);'
+            : '';
+        var checkStyle = isPreSelected
+            ? 'background:#ef4444;border-color:#ef4444;color:#fff;'
+            : '';
         listHtml +=
-            '<div class="adm-rm-row" onclick="admSelectItem(this,' + item.id + ',' + item.qty + ')" style="display:flex;align-items:center;gap:.7rem;padding:.55rem .7rem;border-radius:.65rem;border:1px solid var(--border-divider);background:rgba(255,255,255,.03);cursor:pointer;margin-bottom:.35rem;transition:border-color .15s,background .15s;">' +
+            '<div class="adm-rm-row" onclick="admSelectItem(this,' + item.id + ',' + item.qty + ')" style="display:flex;align-items:center;gap:.7rem;padding:.55rem .7rem;border-radius:.65rem;border:1px solid var(--border-divider);background:rgba(255,255,255,.03);cursor:pointer;margin-bottom:.35rem;transition:border-color .15s,background .15s;' + selStyle + '">' +
             '<span style="flex:1;font-size:.85rem;font-weight:700;color:var(--text-strong);">' + escHtml(item.name) + '</span>' +
             '<span style="font-size:.75rem;font-weight:800;color:#facc15;">' + item.qty + '×</span>' +
-            '<span class="adm-rm-check" style="width:1.25rem;height:1.25rem;border-radius:50%;border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:transparent;transition:all .15s;flex-shrink:0;">✓</span>' +
+            '<span class="adm-rm-check" style="width:1.25rem;height:1.25rem;border-radius:50%;border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:.65rem;transition:all .15s;flex-shrink:0;' + checkStyle + '">✓</span>' +
             '</div>';
+        if (isPreSelected) {
+            _adm_itemId = item.id;
+            _adm_max    = item.qty;
+            _adm_qty    = preItemQty !== undefined ? preItemQty : item.qty;
+        }
     });
     document.getElementById('admRmItemList').innerHTML = listHtml || '<p style="color:var(--text-muted);font-size:.8rem;">No items found.</p>';
 
-    document.getElementById('admRmQtyRow').style.display = 'none';
     var cb = document.getElementById('admRmConfirmBtn');
-    cb.disabled = true; cb.textContent = 'Remove Selected Item';
+    if (_adm_itemId) {
+        document.getElementById('admRmQtyRow').style.display = 'block';
+        document.getElementById('admRmQtyDisplay').textContent = _adm_qty;
+        document.getElementById('admRmQtyMax').textContent = _adm_max;
+        document.getElementById('admRmQtyDec').disabled = _adm_qty <= 1;
+        document.getElementById('admRmQtyInc').disabled = _adm_qty >= _adm_max;
+        var selName = (o.items.find(function(i){ return i.id === _adm_itemId; }) || {}).name || 'item';
+        _admUpdateConfirm(selName);
+    } else {
+        document.getElementById('admRmQtyRow').style.display = 'none';
+        cb.disabled = true; cb.textContent = 'Remove Selected Item';
+    }
 
+    // Close manage modal if open, then show remove modal
+    document.getElementById('manageModal').style.display = 'none';
     document.getElementById('adminRemoveModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
@@ -1972,10 +2000,15 @@ async function admConfirmRemove() {
             cb.disabled = false; cb.textContent = 'Remove Selected Item';
             return;
         }
+        var savedOrderId = _adm_orderId;
         document.getElementById('adminRemoveModal').style.display = 'none';
         document.body.style.overflow = '';
         _adm_orderId = _adm_itemId = null; _adm_qty = _adm_max = 1;
         await fetchOrders();
+        // Re-open the manage modal so admin can see the updated order
+        if (data.items_left > 0 && savedOrderId) {
+            openManageModal(savedOrderId);
+        }
     } catch(err) {
         alert('Network error. Please try again.');
         cb.disabled = false; cb.textContent = 'Remove Selected Item';
