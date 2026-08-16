@@ -125,6 +125,7 @@
             <div style="display:flex;align-items:center;gap:.5rem;">
                 <i data-lucide="trending-up" style="width:1rem;height:1rem;color:var(--accent);stroke-width:2;"></i>
                 <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Top Selling Items Today</h2>
+                <span style="font-size:.7rem;color:var(--text-muted);font-weight:400;">{{ now()->format('M d, Y') }}</span>
             </div>
             <a href="{{ route('admin.orders') }}" style="font-size:.7rem;color:var(--accent);text-decoration:none;font-weight:500;">View orders →</a>
         </div>
@@ -147,7 +148,7 @@
                 </div>
             </div>
             @empty
-            <div style="text-align:center;color:var(--text-muted);padding:1.5rem;font-size:.8rem;">No sales data yet.</div>
+            <div style="text-align:center;color:var(--text-muted);padding:1.5rem;font-size:.8rem;">No sales yet today.</div>
             @endforelse
         </div>
     </div>

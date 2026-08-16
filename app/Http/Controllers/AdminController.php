@@ -100,12 +100,16 @@ class AdminController extends Controller
             'slug'  => $c->slug,
         ])->toArray();
 
-        // Top-selling menu items today (by quantity sold from today's orders)
+        // Top-selling menu items today (by quantity sold from today's orders, excluding cancelled/archived)
         $topItems = \App\Models\OrderItem::select('menu_item_id', 'item_name',
                 \Illuminate\Support\Facades\DB::raw('SUM(quantity) as total_sold'),
                 \Illuminate\Support\Facades\DB::raw('SUM(subtotal) as total_revenue')
             )
-            ->whereHas('order', fn($q) => $q->whereDate('created_at', today()))
+            ->whereHas('order', fn($q) => $q
+                ->whereDate('created_at', today())
+                ->whereNotIn('status', ['cancelled'])
+                ->where('is_archived', false)
+            )
             ->groupBy('menu_item_id', 'item_name')
             ->orderByDesc('total_sold')
             ->take(10)
