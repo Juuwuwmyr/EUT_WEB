@@ -998,14 +998,13 @@ class AdminController extends Controller
         ]);
         $order->refresh();
 
-        // Queue kitchen ticket for auto-print agent
-        \Illuminate\Support\Facades\DB::table('kitchen_print_jobs')->insert([
-            'order_id'   => $order->id,
-            'type'       => 'ticket',
-            'printed'    => false,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // Queue kitchen ticket for auto-print agent.
+        // updateOrInsert prevents duplicate rows if the admin somehow
+        // accepts the same order twice (double-click / network retry).
+        \Illuminate\Support\Facades\DB::table('kitchen_print_jobs')->updateOrInsert(
+            ['order_id' => $order->id, 'type' => 'ticket'],
+            ['printed' => false, 'printed_at' => null, 'created_at' => now(), 'updated_at' => now()]
+        );
 
         broadcast(new OrderStatusUpdated($order));
 
