@@ -1113,12 +1113,17 @@ class AdminController extends Controller
                 if ($order->order_type === 'dine_in') {
                     $cashReceived = (float) $request->input('cash_received', 0);
                     $changeDue    = $cashReceived > 0 ? round($cashReceived - $order->total, 2) : null;
+                    $paymentUpdate = [
+                        'payment_status' => 'paid',
+                        'payment_method' => 'cash',
+                    ];
                     if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'cash_received')) {
-                        $order->updateQuietly([
-                            'cash_received' => $cashReceived > 0 ? $cashReceived : null,
-                            'change_due'    => $changeDue,
-                        ]);
+                        $paymentUpdate['cash_received'] = $cashReceived > 0 ? $cashReceived : null;
+                        $paymentUpdate['change_due']    = $changeDue;
                     }
+                    $order->updateQuietly($paymentUpdate);
+                    $order->refresh();
+                    $this->lockTableSessionIfClosed($order);
                 }
                 // Generate receipt
                 if ($order->order_type === 'dine_in' && $order->table_number) {
@@ -1161,6 +1166,8 @@ class AdminController extends Controller
         $changeDue    = $cashReceived > 0 ? round($cashReceived - $grandTotal, 2) : null;
 
         $now = now();
+        $hasOrderingLocked = \Illuminate\Support\Facades\Schema::hasColumn('orders', 'ordering_locked');
+
         foreach ($tableOrders as $o) {
             $updateData = [
                 'status'         => 'delivered',
@@ -1169,6 +1176,11 @@ class AdminController extends Controller
                 'payment_status' => 'paid',
                 'payment_method' => 'cash',
             ];
+
+            // Lock session so the next customer at this table gets a fresh group.
+            if ($hasOrderingLocked) {
+                $updateData['ordering_locked'] = true;
+            }
 
             // Only save payment fields if the columns exist
             if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'cash_received')) {
@@ -1180,6 +1192,16 @@ class AdminController extends Controller
             broadcast(new \App\Events\OrderStatusUpdated($o))->toOthers();
         }
 
+        // Also lock any already-delivered orders in the same session (e.g. prior pahabol).
+        if ($hasOrderingLocked && $order->table_session_id) {
+            \App\Models\Order::where('order_type', 'dine_in')
+                ->where('table_number', $order->table_number)
+                ->where('table_session_id', $order->table_session_id)
+                ->whereDate('created_at', today())
+                ->where('ordering_locked', false)
+                ->update(['ordering_locked' => true]);
+        }
+
         return response()->json([
             'success'     => true,
             'message'     => 'Table ' . $order->table_number . ' — all orders completed.',
@@ -1189,6 +1211,46 @@ class AdminController extends Controller
 
     // completeTable audit
     // (recorded inline above via the Order model's Auditable trait per-row)
+
+    /**
+     * Lock a dine-in table session once every order in it is delivered or cancelled.
+     * Ensures the next customer at the same physical table gets a fresh session.
+     */
+    private function lockTableSessionIfClosed(\App\Models\Order $order): void
+    {
+        if ($order->order_type !== 'dine_in' || ! $order->table_number || ! $order->table_session_id) {
+            return;
+        }
+
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('orders', 'ordering_locked')) {
+            return;
+        }
+
+        $sessionOrders = \App\Models\Order::where('order_type', 'dine_in')
+            ->where('table_number', $order->table_number)
+            ->where('table_session_id', $order->table_session_id)
+            ->whereDate('created_at', today())
+            ->get();
+
+        if ($sessionOrders->isEmpty()) {
+            return;
+        }
+
+        $allClosed = $sessionOrders->every(
+            fn (\App\Models\Order $o) => in_array($o->status, ['delivered', 'cancelled'], true)
+        );
+
+        if (! $allClosed) {
+            return;
+        }
+
+        foreach ($sessionOrders as $o) {
+            if (! $o->ordering_locked) {
+                $o->updateQuietly(['ordering_locked' => true]);
+                broadcast(new OrderStatusUpdated($o))->toOthers();
+            }
+        }
+    }
 
     /**
      * Lock ordering for a dine-in table session.
