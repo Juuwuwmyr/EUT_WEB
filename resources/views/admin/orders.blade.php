@@ -1556,7 +1556,7 @@ function openManageModal(id) {
                 '</div>' +
                 '<div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0;margin-left:.5rem;">' +
                     '<span style="font-size:.8rem;color:var(--text-body);font-weight:600;">&#x20B1;' + Number(item.subtotal).toLocaleString() + '</span>' +
-                    ((['accepted','preparing'].indexOf(o.status) !== -1 && !o.prepared_at && item.id)
+                    ((['pending','accepted','preparing'].indexOf(o.status) !== -1 && !o.prepared_at && item.id)
                         ? '<div style="display:inline-flex;align-items:center;gap:.25rem;flex-shrink:0;">' +
                               '<button type="button" ' +
                                 'data-order="' + o.id + '" data-item="' + item.id + '" data-dir="-1" ' +
