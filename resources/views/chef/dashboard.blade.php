@@ -378,6 +378,7 @@ let pollTimer        = null;
 let gridSignature    = null; // smart-diff: skip re-render when nothing changed (null = never skip)
 let printedOrderIds  = new Set();
 let printedItemIds   = {};   // orderId → Set<itemId>
+let seenCookingWithoutReady = new Set(); // order ids seen actively cooking (no prepared_at yet)
 let autoPrintEnabled = false;
 
 // ── Utilities ──────────────────────────────────────────────────────────────
@@ -677,6 +678,8 @@ async function markReady(orderId, btn) {
             return;
         }
         showToast('✅ Order marked ready', 'success');
+        printedOrderIds.add('ready_' + orderId);
+        seenCookingWithoutReady.delete(orderId);
         removeOrderFromGrid(orderId);
         gridSignature = null;
         await refreshKitchen(false, true);
@@ -704,6 +707,12 @@ async function markTableReady(sessionKey, btn) {
         const data = await res.json();
         if (!data.success) { showToast(data.message || 'Action failed.', 'error'); btn.disabled = false; btn.textContent = orig; return; }
         showToast(data.message || '✅ Table marked ready', 'success');
+        Object.values(orderDataMap).forEach(o => {
+            if (String(o.table_session_id) === String(sessionKey) || String(o.table_number) === String(sessionKey)) {
+                printedOrderIds.add('ready_' + o.id);
+                seenCookingWithoutReady.delete(o.id);
+            }
+        });
         gridSignature = null;
         await refreshKitchen(false, true);
     } catch (e) {
@@ -754,6 +763,8 @@ function enableAutoPrint() {
         printedOrderIds.add('accept_' + id + '_' + (orderDataMap[id]?.updated_at || ''));
         if (!printedItemIds[id]) printedItemIds[id] = new Set();
         (orderDataMap[id]?.items || []).forEach(i => printedItemIds[id].add(i.id));
+        if (!orderDataMap[id]?.prepared_at) seenCookingWithoutReady.add(Number(id));
+        if (orderDataMap[id]?.prepared_at) printedOrderIds.add('ready_' + id);
     });
     localStorage.setItem('autoPrintEnabled', 'true');
 }
@@ -921,22 +932,26 @@ async function refreshKitchen(manual, forceRender = false) {
             } else if (newItemIds.length > 0) {
                 newItemIds.forEach(id => printedItemIds[order.id].add(id));
                 setTimeout(() => autoPrintKitchenTicket(order.id, newItemIds), 500);
+            } else {
+                // Echo may have marked accept_ before item ids were seeded — sync now
+                currentItemIds.forEach(id => printedItemIds[order.id].add(id));
             }
         });
 
-        // Auto-print ready orders (cooking col, prepared_at set)
-        // Skip orders that are backfilled siblings (prepared_at already set when
-        // they first appeared in data.cooking) — those are old ready orders pulled
-        // in so the grouped card renders correctly; they must NOT trigger a reprint.
+        // Auto-print ready orders — only on live transition to ready, never for
+        // backfilled siblings (original already-ready orders pulled in when a
+        // new pahabol arrives for the same table session).
         (data.cooking || []).forEach(order => {
-            const alreadyKnown = !!orderDataMap[order.id]; // was it seen in a prior poll?
-            if (order.prepared_at && autoPrintEnabled && !printedOrderIds.has('ready_' + order.id)) {
-                // Always seed the guard so it never fires again
-                printedOrderIds.add('ready_' + order.id);
-                // Only actually print if this order was already tracked (not a
-                // freshly-backfilled sibling arriving with prepared_at already set)
-                if (alreadyKnown) {
-                    setTimeout(() => autoPrintKitchenTicket(order.id, null), 500);
+            const wasActiveCooking = seenCookingWithoutReady.has(order.id);
+            if (!order.prepared_at) {
+                seenCookingWithoutReady.add(order.id);
+            }
+            if (order.prepared_at) {
+                if (!printedOrderIds.has('ready_' + order.id)) {
+                    printedOrderIds.add('ready_' + order.id);
+                    if (autoPrintEnabled && wasActiveCooking) {
+                        setTimeout(() => autoPrintKitchenTicket(order.id, null), 500);
+                    }
                 }
             }
         });
@@ -1021,6 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
             printedOrderIds.add('accept_' + o.id + '_' + (o.updated_at || ''));
             if (!printedItemIds[o.id]) printedItemIds[o.id] = new Set();
             o.items.forEach(i => printedItemIds[o.id].add(i.id));
+            if (!o.prepared_at) seenCookingWithoutReady.add(o.id);
         }
         if (o.status === 'preparing' && o.prepared_at) printedOrderIds.add('ready_' + o.id);
     });
@@ -1029,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Echo) {
         try {
             window.Echo.private('kitchen').listen('.order.updated', (order) => {
-                // Auto-print on accept (unchanged)
+                // Auto-print on accept
                 if (autoPrintEnabled && order.status === 'accepted') {
                     const pk  = 'accept_' + order.id;
                     const ids = (order.items || []).map(i => i.id).filter(Boolean);
@@ -1039,16 +1055,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         printedOrderIds.add(pk);
                         ids.forEach(id => printedItemIds[order.id].add(id));
                         setTimeout(() => autoPrintKitchenTicket(order.id, null), 400);
-                    } else if (newIds.length) {
+                    } else if (newIds.length > 0) {
                         newIds.forEach(id => printedItemIds[order.id].add(id));
                         setTimeout(() => autoPrintKitchenTicket(order.id, newIds), 400);
+                    } else if (ids.length) {
+                        ids.forEach(id => printedItemIds[order.id].add(id));
                     }
                 }
-                if (autoPrintEnabled && order.status === 'preparing' && order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
-                    // Only print if we already knew this order (not a backfilled sibling)
-                    const alreadyKnown = !!orderDataMap[order.id];
-                    printedOrderIds.add('ready_' + order.id);
-                    if (alreadyKnown) autoPrintKitchenTicket(order.id, null);
+                if (autoPrintEnabled && order.status === 'preparing' && order.prepared_at) {
+                    const wasCooking = seenCookingWithoutReady.has(order.id);
+                    if (!printedOrderIds.has('ready_' + order.id)) {
+                        printedOrderIds.add('ready_' + order.id);
+                        if (wasCooking) autoPrintKitchenTicket(order.id, null);
+                    }
+                    seenCookingWithoutReady.delete(order.id);
+                }
+                if (!order.prepared_at && ['accepted', 'preparing'].includes(order.status)) {
+                    seenCookingWithoutReady.add(order.id);
                 }
                 gridSignature = null; // force re-render on next poll
                 refreshKitchen(false, true);
