@@ -124,7 +124,7 @@
         <div class="px-5 py-4 card-header-border" style="display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
                 <i data-lucide="trending-up" style="width:1rem;height:1rem;color:var(--accent);stroke-width:2;"></i>
-                <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Top Selling Items</h2>
+                <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Today's Sold Items</h2>
                 <span style="font-size:.7rem;color:#4ade80;font-weight:700;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);border-radius:99px;padding:.1rem .5rem;">Today · {{ now()->format('M d, Y') }}</span>
             </div>
             <a href="{{ route('admin.orders') }}" style="font-size:.7rem;color:var(--accent);text-decoration:none;font-weight:500;flex-shrink:0;">View orders →</a>
