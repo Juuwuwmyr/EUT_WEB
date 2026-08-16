@@ -224,18 +224,27 @@ class ChefController extends Controller
 
     /**
      * Mark an order as ready for pickup.
+     * Accepts both 'accepted' and 'preparing' statuses — if the order is still
+     * 'accepted' (i.e. chef never pressed Start Cooking, which is now removed
+     * from the UI), we auto-transition it to 'preparing' and mark ready in
+     * one step.
      */
     public function markReady(Order $order)
     {
-        if ($order->status !== 'preparing') {
-            return $this->kitchenActionResponse(false, 'Only orders being cooked can be marked ready.');
+        if (!in_array($order->status, ['accepted', 'preparing'])) {
+            return $this->kitchenActionResponse(false, 'Order cannot be marked ready at this stage.');
         }
 
         if ($order->prepared_at) {
             return $this->kitchenActionResponse(false, 'Order is already marked ready.');
         }
 
-        $order->updateQuietly(['prepared_at' => now()]);
+        $update = ['prepared_at' => now()];
+        if ($order->status === 'accepted') {
+            $update['status'] = 'preparing';
+        }
+
+        $order->updateQuietly($update);
         $order->refresh();
 
         broadcast(new OrderStatusUpdated($order));
@@ -386,6 +395,58 @@ class ChefController extends Controller
 
 
     /**
+     * Mark all active kitchen orders for a table session as ready in one shot.
+     * Accepts either a table_session_id (UUID) or a table_number (dine-in fallback).
+     *
+     * Route: POST /chef/orders/table-session/{key}/ready
+     */
+    public function markTableReady(string $key)
+    {
+        // Try by table_session_id first, then by table_number (today's dine-in)
+        $orders = Order::where('table_session_id', $key)
+            ->where('status', 'preparing')
+            ->whereNull('prepared_at')
+            ->get();
+
+        if ($orders->isEmpty()) {
+            // Fallback: treat key as table number
+            $orders = Order::where('table_number', $key)
+                ->where('order_type', 'dine_in')
+                ->whereIn('status', ['accepted', 'preparing'])
+                ->whereNull('prepared_at')
+                ->whereDate('created_at', today())
+                ->get();
+        }
+
+        if ($orders->isEmpty()) {
+            return $this->kitchenActionResponse(false, 'No active cooking orders found for this table.');
+        }
+
+        $now = now();
+        foreach ($orders as $order) {
+            // Accepted orders: transition to preparing + mark ready in one step
+            if ($order->status === 'accepted') {
+                $order->updateQuietly(['status' => 'preparing', 'prepared_at' => $now]);
+            } else {
+                $order->updateQuietly(['prepared_at' => $now]);
+            }
+            $order->refresh();
+            broadcast(new OrderStatusUpdated($order));
+        }
+
+        $tableLabel = $orders->first()->table_number
+            ? 'Table ' . $orders->first()->table_number
+            : 'this table';
+
+        AuditLog::record(
+            action:      'table_marked_ready',
+            description: "Kitchen marked {$tableLabel} as ready ({$orders->count()} order(s)).",
+        );
+
+        return $this->kitchenActionResponse(true, "{$tableLabel} — all orders marked ready.");
+    }
+
+    /**
      * Internal helper to fetch categorized kitchen orders.
      */
     private function getKitchenOrders(): array
@@ -396,7 +457,8 @@ class ChefController extends Controller
             ->oldest()
             ->get();
 
-        // Queue = accepted by admin, waiting for chef to start cooking
+        // Queue = accepted by admin — these go straight into "cooking" on the kitchen display
+        // (no "Start Cooking" step needed; acceptance = start of cooking)
         $queuedOrders = Order::with(['user', 'items'])
             ->where('status', 'accepted')
             ->oldest()
@@ -465,6 +527,7 @@ class ChefController extends Controller
             'picked_up_at'    => $order->picked_up_at?->format('g:i A'),
             'rider_name'      => $order->rider?->user?->name,
             'rider_id'        => $order->rider_id,
+            'table_session_id'=> $order->table_session_id,
             'subtotal'        => (float) $order->subtotal,
             'delivery_fee'    => (float) $order->delivery_fee,
             'total'           => (float) $order->total,

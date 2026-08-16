@@ -42,7 +42,12 @@
 
     <div class="k-card-top">
         <div>
-            <div class="k-order-num">{{ $order->order_number }}</div>
+            <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.15rem;">
+                <div class="k-order-num">{{ $order->order_number }}</div>
+                @if($order->order_type === 'dine_in' && $order->table_number)
+                    <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .55rem;border-radius:.45rem;background:rgba(74,222,128,.18);border:1.5px solid rgba(74,222,128,.5);font-size:.78rem;font-weight:800;color:#86efac;">🪑 T{{ $order->table_number }}</span>
+                @endif
+            </div>
             <div class="k-customer">{{ $order->user?->name ?? 'Guest' }} · {{ $order->created_at->format('g:i A') }}</div>
         </div>
         @if($column !== 'ready')
@@ -85,7 +90,8 @@
                 <div style="text-align:center;width:100%;font-size:.72rem;color:var(--text-muted);padding:.4rem;">Waiting for Admin to accept...</div>
             @endif
         @elseif($column === 'queued')
-            <button type="button" class="k-btn k-btn-cook" onclick="event.stopPropagation();kitchenAction('start', {{ $order->id }}, this)">🍳 Start Cooking</button>
+            {{-- Queue = admin-accepted → kitchen cooks immediately, no "Start Cooking" step --}}
+            <button type="button" class="k-btn k-btn-ready" onclick="event.stopPropagation();kitchenAction('ready', {{ $order->id }}, this)">✅ Mark Ready</button>
         @elseif($column === 'cooking')
             <button type="button" class="k-btn k-btn-ready" onclick="event.stopPropagation();kitchenAction('ready', {{ $order->id }}, this)">✅ Mark Ready</button>
         @else
