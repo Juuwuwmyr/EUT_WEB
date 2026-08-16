@@ -562,6 +562,8 @@ document.addEventListener('DOMContentLoaded',()=>{
         // Persist in both storages so it survives refreshes and post-order clears
         sessionStorage.setItem('eutTableNumber', tableNum);
         localStorage.setItem('eutTableNumber', tableNum);
+        sessionStorage.setItem('eutTableFromQr', '1');
+        localStorage.setItem('eutTableFromQr', '1');
 
         // Auto-select Dine-in order type
         const dineInLabel = document.querySelector('.pay-option input[value="dine_in"]');
@@ -1446,6 +1448,8 @@ if (window.Echo) {
             if (!shopServiceStatus.is_open_dine_in || !shopServiceStatus.is_open) {
                 sessionStorage.removeItem('eutTableNumber');
                 localStorage.removeItem('eutTableNumber');
+                sessionStorage.removeItem('eutTableFromQr');
+                localStorage.removeItem('eutTableFromQr');
                 localStorage.setItem('eutOrderType', 'delivery');
             }
 

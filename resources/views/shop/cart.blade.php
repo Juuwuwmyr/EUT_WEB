@@ -834,6 +834,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             // All good � let the link navigate to checkout normally
+            if (typeof isQrScannedDineIn === 'function' && isQrScannedDineIn()) {
+                e.preventDefault();
+                handleQrDineInCheckout(e, buyNowBar);
+            }
         });
     }
 
@@ -1133,6 +1137,8 @@ if (window.Echo) {
             if (!data.is_open_dine_in || !data.is_open) {
                 sessionStorage.removeItem('eutTableNumber');
                 localStorage.removeItem('eutTableNumber');
+                sessionStorage.removeItem('eutTableFromQr');
+                localStorage.removeItem('eutTableFromQr');
                 localStorage.setItem('eutOrderType', 'delivery');
             }
 
@@ -1217,24 +1223,137 @@ if (window.Echo) {
 </script>
 @include('partials.pwa-register')
 <script>
-// ── Patch checkout links with table number from QR scan ─────────────────────
-(function() {
-    const tableNum = sessionStorage.getItem('eutTableNumber')
-                  || localStorage.getItem('eutTableNumber'); // fallback: survives post-order sessionStorage clear
+// ── QR-scanned dine-in: place order directly from cart (skip checkout page) ──
+const SHOP_IS_OPEN_DINE_IN = @json($isOpenDineIn) && @json($isOpen);
+const ORDERS_STORE_URL = '{{ route("orders.store") }}';
+const TRACKING_URL = '{{ route("shop.tracking") }}';
+
+function isQrScannedDineIn() {
+    const fromQr = sessionStorage.getItem('eutTableFromQr') === '1'
+                || localStorage.getItem('eutTableFromQr') === '1';
+    if (!fromQr) return null;
+    const tableNum = (sessionStorage.getItem('eutTableNumber') || localStorage.getItem('eutTableNumber') || '').trim();
+    if (!tableNum || !/^\d{1,2}$/.test(tableNum)) return null;
+    return tableNum;
+}
+
+function buildOrderItems(cartItems) {
+    return cartItems.map(i => ({
+        id: i.id,
+        qty: i.quantity,
+        modifiers: (i.modifiers || [])
+            .filter(m => m && typeof m === 'object' && m.name)
+            .map(m => ({
+                type: m.type || 'modifier',
+                name: m.name || '',
+                price_type: m.price_type || 'none',
+                price_adjustment: parseFloat(m.price_adjustment || 0),
+            })),
+    }));
+}
+
+async function placeQrDineInOrder(tableNumber, btnEl) {
+    const cartItems = JSON.parse(localStorage.getItem('eutCart') || '[]');
+    if (!cartItems.length) {
+        alert('Your cart is empty.');
+        return;
+    }
+
+    if (!SHOP_IS_OPEN_DINE_IN) {
+        alert('Dine-in service is currently closed. Orders cannot be placed right now.');
+        return;
+    }
+
+    const badItem = cartItems.find(item => item.requires_flavor && !item.flavor_ok);
+    if (badItem) {
+        alert(`"${(badItem.name || '').split('(')[0].trim()}" needs a flavor selected! Tap the item to fix it.`);
+        return;
+    }
+
+    const origHtml = btnEl ? (btnEl.dataset.origHtml || btnEl.innerHTML) : null;
+    if (btnEl) {
+        btnEl.dataset.origHtml = origHtml;
+        btnEl.style.pointerEvents = 'none';
+        if (btnEl.tagName === 'BUTTON') btnEl.disabled = true;
+        btnEl.innerHTML = 'Placing order…';
+    }
+
+    const payload = {
+        items: buildOrderItems(cartItems),
+        order_type: 'dine_in',
+        delivery_address: 'Dine-in · ' + tableNumber,
+        delivery_barangay: '',
+        payment_method: 'cash',
+        notes: '',
+        delivery_lat: null,
+        delivery_lng: null,
+        table_number: tableNumber,
+        customer_lat: window.__customerLat || (function() {
+            try { const c = JSON.parse(sessionStorage.getItem('eut_geo_ok') || 'null'); return c?.lat || null; } catch(e) { return null; }
+        })(),
+        customer_lng: window.__customerLng || (function() {
+            try { const c = JSON.parse(sessionStorage.getItem('eut_geo_ok') || 'null'); return c?.lng || null; } catch(e) { return null; }
+        })(),
+    };
+
+    try {
+        const r = await fetch(ORDERS_STORE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        const d = await r.json();
+        if (d.success) {
+            localStorage.setItem('eutCart', JSON.stringify([]));
+            sessionStorage.removeItem('eutTableNumber');
+            @auth
+            fetch('/cart', { method:'DELETE', headers:{'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept':'application/json'} }).catch(()=>{});
+            @endauth
+            window.location.href = TRACKING_URL;
+            return;
+        }
+        if (d.clear_cart) {
+            localStorage.removeItem('eutCart');
+            alert(d.message || 'Some items are no longer available. Your cart has been cleared.');
+            window.location.href = '{{ route("shop.home") }}';
+            return;
+        }
+        alert(d.message || 'Order failed. Please try again.');
+    } catch (err) {
+        alert('Network error. Please try again.');
+    }
+
+    if (btnEl) {
+        btnEl.style.pointerEvents = '';
+        if (btnEl.tagName === 'BUTTON') btnEl.disabled = false;
+        btnEl.innerHTML = origHtml;
+    }
+}
+
+function handleQrDineInCheckout(e, btnEl) {
+    const tableNum = isQrScannedDineIn();
     if (!tableNum) return;
-    // Re-sync sessionStorage from localStorage in case it was cleared after a previous order
-    sessionStorage.setItem('eutTableNumber', tableNum);
-    const base = '{{ route("shop.checkout") }}';
-    const url  = base + '?table=' + encodeURIComponent(tableNum);
+    e.preventDefault();
+    placeQrDineInOrder(tableNum, btnEl);
+}
 
-    // Guest checkout button (top of page, for non-auth users)
+function updateQrCheckoutLabels() {
+    if (!isQrScannedDineIn()) return;
     const guestBtn = document.getElementById('guestCheckoutBtn');
-    if (guestBtn) guestBtn.href = url;
+    if (guestBtn) guestBtn.textContent = 'Place Order →';
+    const buyCta = document.querySelector('#buyNowBar .buy-now-cta');
+    if (buyCta) buyCta.textContent = 'Place Order';
+}
 
-    // Buy-now bar (bottom sticky bar)
-    const buyBar = document.getElementById('buyNowBar');
-    if (buyBar && buyBar.tagName === 'A') buyBar.href = url;
-})();
+document.addEventListener('DOMContentLoaded', () => {
+    updateQrCheckoutLabels();
+    const guestBtn = document.getElementById('guestCheckoutBtn');
+    if (guestBtn) guestBtn.addEventListener('click', e => handleQrDineInCheckout(e, guestBtn));
+});
 </script>
 </body>
 </html>

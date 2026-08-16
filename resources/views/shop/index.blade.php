@@ -858,9 +858,15 @@ document.addEventListener('DOMContentLoaded', () => {
     @endauth
 
     if (_urlTable && /^\d{1,2}$/.test(_urlTable.trim())) {
-        sessionStorage.setItem('eutTableNumber', _urlTable.trim());
-        localStorage.setItem('eutTableNumber', _urlTable.trim());
+        const tableNum = _urlTable.trim();
+        sessionStorage.setItem('eutTableNumber', tableNum);
+        localStorage.setItem('eutTableNumber', tableNum);
         localStorage.setItem('eutOrderType', 'dine_in');
+        // Mark as QR-scanned session (persists in localStorage for pahabol orders at same table)
+        if (_urlTableParam || _sessionTable) {
+            sessionStorage.setItem('eutTableFromQr', '1');
+            localStorage.setItem('eutTableFromQr', '1');
+        }
         // Only lock the UI if table came from URL or active session — not stale localStorage
         window._tableQrLocked = !!(_urlTableParam || _sessionTable);
     }
@@ -871,6 +877,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Clear the QR table session so customers aren't stuck in dine-in mode
         sessionStorage.removeItem('eutTableNumber');
         localStorage.removeItem('eutTableNumber');
+        sessionStorage.removeItem('eutTableFromQr');
+        localStorage.removeItem('eutTableFromQr');
         localStorage.setItem('eutOrderType', 'delivery');
         window._tableQrLocked = false;
 
@@ -925,6 +933,8 @@ function setOrderType(type, save = true) {
     if (save && type !== 'dine_in') {
         sessionStorage.removeItem('eutTableNumber');
         localStorage.removeItem('eutTableNumber');
+        sessionStorage.removeItem('eutTableFromQr');
+        localStorage.removeItem('eutTableFromQr');
         window._tableQrLocked = false;
     }
     
@@ -1159,6 +1169,8 @@ if (window.Echo) {
             if (!data.is_open_dine_in || !data.is_open) {
                 sessionStorage.removeItem('eutTableNumber');
                 localStorage.removeItem('eutTableNumber');
+                sessionStorage.removeItem('eutTableFromQr');
+                localStorage.removeItem('eutTableFromQr');
                 localStorage.setItem('eutOrderType', 'delivery');
                 window._tableQrLocked = false;
             }
