@@ -253,7 +253,7 @@ class OrderController extends Controller
                     $existingOrder->refresh(); // reload so broadcast carries updated status
 
                     DB::commit();
-                    broadcast(new OrderStatusUpdated($existingOrder))->toOthers();
+                    try { broadcast(new OrderStatusUpdated($existingOrder))->toOthers(); } catch (\Throwable $be) { \Log::warning('Broadcast failed (merge): ' . $be->getMessage()); }
 
                     return response()->json([
                         'success'      => true,
@@ -316,7 +316,7 @@ class OrderController extends Controller
 
             DB::commit();
 
-            broadcast(new OrderStatusUpdated($order))->toOthers();
+            try { broadcast(new OrderStatusUpdated($order))->toOthers(); } catch (\Throwable $be) { \Log::warning('Broadcast failed (new order): ' . $be->getMessage()); }
 
             return response()->json([
                 'success'      => true,
@@ -397,7 +397,7 @@ class OrderController extends Controller
             'cancelled_at' => now(),
         ]);
 
-        broadcast(new OrderStatusUpdated($order));
+        try { broadcast(new OrderStatusUpdated($order)); } catch (\Throwable $be) { \Log::warning('Broadcast failed (cancel): ' . $be->getMessage()); }
 
         return response()->json(['success' => true]);
     }

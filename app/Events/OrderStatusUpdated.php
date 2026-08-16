@@ -63,17 +63,24 @@ class OrderStatusUpdated implements ShouldBroadcast
 
     /**
      * Channels this event broadcasts on:
-     *  - private customer channel (shop tracking page)
+     *  - private customer channel (shop tracking page) — only when there is an authenticated user
      *  - private kitchen channel (chef dashboard)
      *  - private admin orders channel (admin panel)
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('orders.' . $this->order->user_id),
+        $channels = [
             new PrivateChannel('kitchen'),
             new PrivateChannel('admin.orders'),
         ];
+
+        // Guest dine-in orders have no user_id — skip the customer channel
+        // to avoid broadcasting to an invalid 'orders.' channel name
+        if ($this->order->user_id) {
+            $channels[] = new PrivateChannel('orders.' . $this->order->user_id);
+        }
+
+        return $channels;
     }
 
     public function broadcastAs(): string
