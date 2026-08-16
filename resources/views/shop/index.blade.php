@@ -1272,8 +1272,8 @@ if (window.Echo) {
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:800;"></div>
 
 <div id="iqSheet"
-     style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);
-            width:100%;max-width:560px;z-index:900;background:#0e0f1a;
+     style="display:none;position:fixed;bottom:0;left:0;right:0;transform:translateY(100%);
+            width:100%;max-width:560px;margin:0 auto;z-index:900;background:#0e0f1a;
             border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;
             max-height:92vh;overflow-y:auto;transition:transform .4s cubic-bezier(.32,.72,0,1);">
 
@@ -1355,7 +1355,7 @@ if (window.Echo) {
 .light-mode #iqSheet            { background:#fff !important; border-color:rgba(0,0,0,.07) !important; }
 .light-mode #iqName             { color:#111 !important; }
 @media(max-width:560px){ #iqSheet { left:0; transform:translateY(100%); } }
-#iqSheet.open                   { transform:translateX(-50%) translateY(0) !important; }
+#iqSheet.open                   { transform:translateY(0) !important; }
 @media(max-width:560px){ #iqSheet.open { transform:translateY(0) !important; } }
 
 /* Flavor swatches */
