@@ -925,10 +925,51 @@ function renderGrid(orders) {
     var rowCount = soloOrders.length + Object.keys(tableGroups).length;
     if (countEl) countEl.textContent = rowCount + ' card(s) \u00B7 ' + orders.length + ' order(s)';
 
+    // ── Sort: active cards first (newest active at top), served/done at bottom ──
+    var ACTIVE_STATUSES = ['pending','accepted','preparing','rider_assigned','out_for_delivery'];
+
+    // Priority score: lower = shown first
+    function cardPriority(statusStr) {
+        if (ACTIVE_STATUSES.indexOf(statusStr) !== -1) return 0; // active
+        return 1; // delivered / cancelled
+    }
+
+    // For grouped cards: use the most urgent (highest priority) status in the group
+    function groupTopStatus(group) {
+        var STATUS_RANK = ['pending','accepted','preparing','rider_assigned','out_for_delivery','delivered','cancelled'];
+        return group.reduce(function(best, o) {
+            return STATUS_RANK.indexOf(o.status) < STATUS_RANK.indexOf(best) ? o.status : best;
+        }, group[0].status);
+    }
+
+    // Build a unified list of cards to render, each with a sort key
+    var allCards = [];
+
+    Object.keys(tableGroups).forEach(function(sessionKey) {
+        var group = tableGroups[sessionKey];
+        var top   = groupTopStatus(group);
+        // Use the newest order's id as the tie-breaker (most recent active = smallest id desc)
+        var newestId = Math.max.apply(null, group.map(function(o){ return o.id; }));
+        allCards.push({ type: 'group', sessionKey: sessionKey, priority: cardPriority(top), newestId: newestId });
+    });
+
+    soloOrders.forEach(function(o) {
+        allCards.push({ type: 'solo', order: o, priority: cardPriority(o.status), newestId: o.id });
+    });
+
+    // Sort: active (priority 0) before done (priority 1).
+    // Within the same priority tier: newest (highest id) first.
+    allCards.sort(function(a, b) {
+        if (a.priority !== b.priority) return a.priority - b.priority;
+        return b.newestId - a.newestId; // newest first within same tier
+    });
+
     var html = '';
 
-    // ── Grouped dine-in table cards ───────────────────────────────────────────
-    Object.keys(tableGroups).forEach(function(sessionKey) {
+    // ── Render cards in sorted order ─────────────────────────────────────────
+    allCards.forEach(function(card) {
+      if (card.type === 'group') {
+        var sessionKey = card.sessionKey;
         var group    = tableGroups[sessionKey].sort(function(a,b){ return a.id - b.id; });
         var rep      = group[0];
         var tableNum = rep.table_number || sessionKey;
@@ -1020,11 +1061,10 @@ function renderGrid(orders) {
             total:     grandTotal,
             body:      subHtml,
         });
-    });
-
-    // ── Solo order cards ──────────────────────────────────────────────────────
-    soloOrders.forEach(function(o) {
-        html += buildSoloOrderCard(o);
+      } else {
+        // Solo card
+        html += buildSoloOrderCard(card.order);
+      }
     });
 
     grid.innerHTML = html;
