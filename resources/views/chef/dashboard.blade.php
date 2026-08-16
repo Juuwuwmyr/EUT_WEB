@@ -376,7 +376,34 @@ const REMOVE_URL      = (oid, iid) => `/chef/orders/${oid}/items/${iid}`;
 let orderDataMap     = {};   // id → order object
 let pollTimer        = null;
 let gridSignature    = null; // smart-diff: skip re-render when nothing changed (null = never skip)
-let printedOrderIds  = new Set();
+
+// ── Persistent print registry ──────────────────────────────────────────────
+// Survives page reloads. Keyed by 'accept_<id>' and 'ready_<id>'.
+// Auto-clears entries older than today so it doesn't grow forever.
+const _PRINT_STORE_KEY = 'kds_printed_' + new Date().toISOString().slice(0, 10); // e.g. kds_printed_2026-08-17
+// Clean up yesterday's keys
+Object.keys(localStorage).forEach(k => {
+    if (k.startsWith('kds_printed_') && k !== _PRINT_STORE_KEY) localStorage.removeItem(k);
+});
+let _persistedPrinted;
+try { _persistedPrinted = new Set(JSON.parse(localStorage.getItem(_PRINT_STORE_KEY) || '[]')); }
+catch(e) { _persistedPrinted = new Set(); }
+
+function _savePrintedId(key) {
+    _persistedPrinted.add(key);
+    try { localStorage.setItem(_PRINT_STORE_KEY, JSON.stringify([..._persistedPrinted])); } catch(e) {}
+}
+
+// printedOrderIds wraps the persisted set — any add() also persists to localStorage
+const printedOrderIds = new Proxy(new Set(_persistedPrinted), {
+    get(target, prop) {
+        if (prop === 'add') return (key) => { target.add(key); _savePrintedId(key); return target; };
+        if (prop === 'has') return (key) => target.has(key);
+        if (prop === 'delete') return (key) => { target.delete(key); _persistedPrinted.delete(key); try { localStorage.setItem(_PRINT_STORE_KEY, JSON.stringify([..._persistedPrinted])); } catch(e) {} return true; };
+        return typeof target[prop] === 'function' ? target[prop].bind(target) : target[prop];
+    }
+});
+
 // Per-order print lock: prevents Echo + poll from both scheduling a print
 // for the same order when they race within the same ~500ms window.
 let _printScheduled  = {};   // orderId_key → setTimeout handle (or true if already fired)
@@ -659,6 +686,9 @@ async function markReady(orderId, btn) {
     btn.disabled = true;
     const orig = btn.textContent;
     btn.textContent = '…';
+    // Set the guard BEFORE the fetch so Echo can't race and print during the round-trip
+    printedOrderIds.add('ready_' + orderId);
+    seenCookingWithoutReady.delete(orderId);
     try {
         const res = await fetch(READY_URL(orderId), {
             method: 'POST',
@@ -678,11 +708,11 @@ async function markReady(orderId, btn) {
         if (!data.success) {
             showToast(data.message || 'Action failed.', 'error');
             btn.disabled = false; btn.textContent = orig;
+            // Remove the optimistic guard if the server rejected it
+            printedOrderIds.delete('ready_' + orderId);
             return;
         }
         showToast('✅ Order marked ready', 'success');
-        printedOrderIds.add('ready_' + orderId);
-        seenCookingWithoutReady.delete(orderId);
         removeOrderFromGrid(orderId);
         gridSignature = null;
         await refreshKitchen(false, true);
@@ -695,6 +725,14 @@ async function markTableReady(sessionKey, btn) {
     btn.disabled = true;
     const orig = btn.textContent;
     btn.textContent = '…';
+    // Set guards BEFORE the fetch — Echo fires during the round-trip and must
+    // not be able to trigger a print for orders we're about to mark ready.
+    Object.values(orderDataMap).forEach(o => {
+        if (String(o.table_session_id) === String(sessionKey) || String(o.table_number) === String(sessionKey)) {
+            printedOrderIds.add('ready_' + o.id);
+            seenCookingWithoutReady.delete(o.id);
+        }
+    });
     try {
         const res = await fetch(TABLE_READY_URL(sessionKey), {
             method: 'POST',
@@ -710,12 +748,6 @@ async function markTableReady(sessionKey, btn) {
         const data = await res.json();
         if (!data.success) { showToast(data.message || 'Action failed.', 'error'); btn.disabled = false; btn.textContent = orig; return; }
         showToast(data.message || '✅ Table marked ready', 'success');
-        Object.values(orderDataMap).forEach(o => {
-            if (String(o.table_session_id) === String(sessionKey) || String(o.table_number) === String(sessionKey)) {
-                printedOrderIds.add('ready_' + o.id);
-                seenCookingWithoutReady.delete(o.id);
-            }
-        });
         gridSignature = null;
         await refreshKitchen(false, true);
     } catch (e) {
