@@ -934,7 +934,19 @@ async function refreshKitchen(manual, forceRender = false) {
         (data.queued || []).forEach(order => {
             const printKey       = 'accept_' + order.id;
             const currentItemIds = (order.items || []).map(i => i.id).filter(Boolean);
+
+            // Always keep printedItemIds current regardless of autoPrint state
             if (!printedItemIds[order.id]) printedItemIds[order.id] = new Set();
+
+            // Seed printedOrderIds from any order already in orderDataMap —
+            // this covers the case where enableAutoPrint() fired before the
+            // first poll returned and orderDataMap was still empty.
+            if (orderDataMap[order.id] && !printedOrderIds.has(printKey)) {
+                printedOrderIds.add(printKey);
+                currentItemIds.forEach(id => printedItemIds[order.id].add(id));
+                return; // seeded as "already printed" — don't print again
+            }
+
             const newItemIds = currentItemIds.filter(id => !printedItemIds[order.id].has(id));
             if (!autoPrintEnabled) return;
             if (!printedOrderIds.has(printKey)) {
@@ -960,8 +972,11 @@ async function refreshKitchen(manual, forceRender = false) {
             if (order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
                 printedOrderIds.add('ready_' + order.id);
                 // Only print if we already tracked this order cooking without ready
-                // — prevents backfilled siblings from triggering a reprint
-                if (autoPrintEnabled && (seenCookingWithoutReady.has(order.id) || alreadyKnown)) {
+                // AND it wasn't already in orderDataMap with prepared_at set
+                // (which would mean it was a backfilled sibling, not a live transition)
+                const liveTransition = seenCookingWithoutReady.has(order.id) ||
+                    (alreadyKnown && !orderDataMap[order.id]?.prepared_at);
+                if (autoPrintEnabled && liveTransition) {
                     schedulePrint('ready_' + order.id, order.id, null, 500);
                 }
                 seenCookingWithoutReady.delete(order.id);

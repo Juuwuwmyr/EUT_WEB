@@ -79,16 +79,9 @@ class ChefController extends Controller
 
         return response()->json([
             'cooking' => $cookingList,
-            // 'queued' alias: only RECENTLY accepted orders (within the last 30s).
-            // This prevents already-printed pahabol orders from re-appearing in
-            // data.queued when a new sibling pahabol is accepted and triggers a
-            // fresh poll. A 30s window is safe because the poll runs every 3s —
-            // any order accepted longer than 30s ago was already handled.
-            'queued'  => array_values(array_filter($cookingList, fn($o) =>
-                $o['status'] === 'accepted' &&
-                !empty($o['accepted_at_raw']) &&
-                \Carbon\Carbon::parse($o['accepted_at_raw'])->gt(now()->subSeconds(30))
-            )),
+            // 'queued' alias: only accepted orders (status=accepted) — used by
+            // the auto-print block to detect newly-accepted orders for printing.
+            'queued'  => array_values(array_filter($cookingList, fn($o) => $o['status'] === 'accepted')),
             'new'     => [],   // not shown on kitchen anymore
             'ready'   => $this->formatKitchenOrders($orders['ready']),
         ]);
