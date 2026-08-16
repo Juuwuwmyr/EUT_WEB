@@ -122,12 +122,12 @@
     {{-- Top Selling Items --}}
     <div class="section-card">
         <div class="px-5 py-4 card-header-border" style="display:flex;align-items:center;justify-content:space-between;">
-            <div style="display:flex;align-items:center;gap:.5rem;">
+            <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
                 <i data-lucide="trending-up" style="width:1rem;height:1rem;color:var(--accent);stroke-width:2;"></i>
-                <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Top Selling Items Today</h2>
-                <span style="font-size:.7rem;color:var(--text-muted);font-weight:400;">{{ now()->format('M d, Y') }}</span>
+                <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Top Selling Items</h2>
+                <span style="font-size:.7rem;color:#4ade80;font-weight:700;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);border-radius:99px;padding:.1rem .5rem;">Today · {{ now()->format('M d, Y') }}</span>
             </div>
-            <a href="{{ route('admin.orders') }}" style="font-size:.7rem;color:var(--accent);text-decoration:none;font-weight:500;">View orders →</a>
+            <a href="{{ route('admin.orders') }}" style="font-size:.7rem;color:var(--accent);text-decoration:none;font-weight:500;flex-shrink:0;">View orders →</a>
         </div>
         <div class="p-5" style="display:flex;flex-direction:column;gap:.75rem;">
             @php $maxSold = collect($topItems)->max('total_sold') ?: 1; @endphp
@@ -139,16 +139,24 @@
                      onerror="this.src='/images/hero-burger.webp'">
                 <div style="flex:1;min-width:0;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;">
-                        <span style="font-size:.8rem;font-weight:600;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;">{{ $item['name'] }}</span>
-                        <span style="font-size:.78rem;font-weight:800;color:#facc15;flex-shrink:0;">{{ number_format($item['total_sold']) }} sold</span>
+                        <span style="font-size:.8rem;font-weight:600;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%;">{{ $item['name'] }}</span>
+                        <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0;">
+                            <span style="font-size:.72rem;color:var(--text-muted);">₱{{ number_format($item['total_revenue']) }}</span>
+                            <span style="font-size:.78rem;font-weight:800;color:#facc15;">{{ number_format($item['total_sold']) }}×</span>
+                        </div>
                     </div>
                     <div style="height:4px;background:var(--border-card);border-radius:9999px;overflow:hidden;">
                         <div style="height:100%;border-radius:9999px;background:{{ $item['category_color'] }};width:{{ min(100, ($item['total_sold']/$maxSold)*100) }}%;transition:width .6s ease;"></div>
                     </div>
+                    <span style="font-size:.65rem;color:var(--text-muted);margin-top:.2rem;display:block;">{{ $item['category'] }}</span>
                 </div>
             </div>
             @empty
-            <div style="text-align:center;color:var(--text-muted);padding:1.5rem;font-size:.8rem;">No sales yet today.</div>
+            <div style="text-align:center;padding:2rem 1rem;">
+                <div style="font-size:2rem;margin-bottom:.5rem;">📊</div>
+                <p style="color:var(--text-muted);font-size:.85rem;margin:0;font-weight:600;">No sales yet today</p>
+                <p style="color:var(--text-muted);font-size:.75rem;margin:.25rem 0 0;opacity:.7;">Sold items will appear here as orders come in</p>
+            </div>
             @endforelse
         </div>
     </div>
