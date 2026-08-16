@@ -796,15 +796,6 @@ function buildActionBtns(o) {
         '<i data-lucide="settings-2" style="width:.85rem;height:.85rem;stroke-width:2;"></i>' +
         '</button>';
 
-    // Cancel button for accepted / preparing-not-yet-ready orders (admin can cancel from the card)
-    if (o.status === 'accepted' || (o.status === 'preparing' && !o.prepared_at)) {
-        actionBtn += '<button class="btn-ghost" style="font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .65rem;color:#f87171;border:1px solid rgba(239,68,68,.25);" ' +
-            'onclick="quickAction(' + o.id + ',\'status\',\'cancelled\',this)" title="Cancel order" ' +
-            'onmouseover="this.style.background=\'rgba(239,68,68,.08)\'" onmouseout="this.style.background=\'transparent\'">' +
-            '<i data-lucide="x-circle" style="width:.82rem;height:.82rem;stroke-width:2;"></i>' +
-            '</button>';
-    }
-
     // Mark Ready button — shown for accepted or preparing-not-yet-ready
     if (o.status === 'accepted' || (o.status === 'preparing' && !o.prepared_at)) {
         actionBtn += '<button class="btn-ghost" style="font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .75rem;color:#d97706;border:1px solid rgba(217,119,6,.3);font-weight:700;white-space:nowrap;flex-shrink:0;" ' +
