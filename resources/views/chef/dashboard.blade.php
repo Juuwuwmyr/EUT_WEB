@@ -552,6 +552,7 @@ function renderGroupCard(group) {
     subRows += '</div>';
 
     const tableReceiptUrl = `/chef/orders/${rep.id}/session-ticket`;
+    const orderIds  = orders.map(o => o.id);
     const printBtn  = `<button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printReceipt('${tableReceiptUrl}')" title="Print kitchen ticket (all orders)"><i data-lucide="printer" style="width:13px;height:13px;stroke-width:2;"></i></button>`;
     const removeBtn = `<button class="oc-btn oc-btn-remove" onclick="event.stopPropagation();openRemoveItemModal([${orderIds.join(',')}])" title="Remove item">✕</button>`;
 

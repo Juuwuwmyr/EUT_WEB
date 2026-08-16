@@ -510,6 +510,34 @@ class ChefController extends Controller
             ->oldest()
             ->get();
 
+        // ── Dine-in session backfill ───────────────────────────────────────────
+        // If a table session has at least one active order above, pull in ALL
+        // other orders from the same session (including already-ready ones) so
+        // the kitchen card shows the complete group instead of a solo card.
+        // This handles the "pahabol after mark-all-ready" scenario where prior
+        // orders are preparing+prepared_at set (hidden by the query above) but
+        // the new order is accepted — without the sibling orders the group
+        // collapses to a solo card on the kitchen display.
+        $activeSessionIds = $cookingOrders
+            ->where('order_type', 'dine_in')
+            ->whereNotNull('table_session_id')
+            ->pluck('table_session_id')
+            ->unique()
+            ->values();
+
+        if ($activeSessionIds->isNotEmpty()) {
+            $siblings = Order::with(['user', 'items'])
+                ->whereIn('table_session_id', $activeSessionIds)
+                // Only include orders that are still in a kitchen-visible state
+                // (not delivered/cancelled — those belong to the receipt, not board)
+                ->whereIn('status', ['accepted', 'preparing'])
+                ->whereNotIn('id', $cookingOrders->pluck('id'))
+                ->oldest()
+                ->get();
+
+            $cookingOrders = $cookingOrders->concat($siblings)->sortBy('id')->values();
+        }
+
         $readyForDelivery = Order::with(['user', 'items', 'rider.user'])
             ->where(function ($q) {
                 $q->where(function ($q2) {
