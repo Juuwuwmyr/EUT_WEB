@@ -782,13 +782,6 @@ function buildActionBtns(o) {
             act.label +
             '</button>';
 
-        // For pending orders: prepend a "View" button
-        if (o.status === 'pending') {
-            actionBtn = '<button type="button" class="btn-ghost" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.4rem;padding:.5rem .9rem;border:1px solid rgba(245,158,11,.35);color:#f59e0b;" ' +
-                'onclick="openPreviewModal(' + o.id + ')" title="View order items before accepting">' +
-                '<i data-lucide="eye" style="width:.85rem;height:.85rem;stroke-width:2;flex-shrink:0;"></i> View' +
-                '</button>' + actionBtn;
-        }
     }
 
     // Settings/detail button always
