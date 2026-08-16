@@ -1657,6 +1657,68 @@ class AdminController extends Controller
     }
 
     /**
+     * Update the quantity of a single item on an active order (increase or decrease).
+     * A qty of 0 cancels the item entirely (delegates to cancelItem logic).
+     *
+     * Route: PATCH /admin/orders/{order}/items/{item}
+     * Body:  { "qty": <new_absolute_quantity> }
+     */
+    public function updateItemQty(Request $request, \App\Models\Order $order, \App\Models\OrderItem $item)
+    {
+        if (!$order->isCancellable()) {
+            return response()->json(['success' => false, 'message' => 'This order can no longer be modified.'], 422);
+        }
+
+        if ($item->order_id !== $order->id) {
+            return response()->json(['success' => false, 'message' => 'Item does not belong to this order.'], 422);
+        }
+
+        $newQty = (int) $request->input('qty');
+        if ($newQty < 0) {
+            return response()->json(['success' => false, 'message' => 'Quantity cannot be negative.'], 422);
+        }
+
+        // qty = 0 → full removal
+        if ($newQty === 0) {
+            return $this->cancelItem(new \Illuminate\Http\Request(), $order, $item);
+        }
+
+        $newSubtotal = round($item->unit_price * $newQty, 2);
+        $item->updateQuietly(['quantity' => $newQty, 'subtotal' => $newSubtotal]);
+
+        $order->load('items');
+        $orderSubtotal = round($order->items->sum('subtotal'), 2);
+        $order->updateQuietly([
+            'subtotal' => $orderSubtotal,
+            'total'    => $order->delivery_fee > 0 ? $orderSubtotal + $order->delivery_fee : $orderSubtotal,
+        ]);
+        $order->refresh();
+
+        broadcast(new \App\Events\OrderStatusUpdated($order));
+
+        AuditLog::record(
+            action: 'order_item_qty_updated',
+            description: "Admin set {$item->item_name} qty to {$newQty} on {$order->order_number}.",
+            model: $order,
+        );
+
+        return response()->json([
+            'success'   => true,
+            'message'   => "{$item->item_name} updated to {$newQty}×.",
+            'new_qty'   => $newQty,
+            'items'     => $order->items->map(fn($i) => [
+                'id'       => $i->id,
+                'name'     => $i->item_name,
+                'qty'      => $i->quantity,
+                'price'    => (float) $i->unit_price,
+                'subtotal' => (float) $i->subtotal,
+                'modifiers'=> $i->modifiers ?? [],
+            ])->values()->all(),
+            'new_total' => (float) $order->total,
+        ]);
+    }
+
+    /**
      * Remove (or reduce qty of) a single item from an active order.
      * Works for all order types (dine-in, pickup, delivery).
      * Mirrors ChefController@cancelItem but without the dine-in-only restriction.

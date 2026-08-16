@@ -1526,7 +1526,19 @@ function openManageModal(id) {
                 '<div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0;margin-left:.5rem;">' +
                     '<span style="font-size:.8rem;color:var(--text-body);font-weight:600;">&#x20B1;' + Number(item.subtotal).toLocaleString() + '</span>' +
                     ((['accepted','preparing'].indexOf(o.status) !== -1 && !o.prepared_at && item.id)
-                        ? '<button onclick="openAdminRemoveItemModal(' + o.id + ',' + item.id + ',' + item.qty + ')" title="Remove this item" style="display:inline-flex;align-items:center;justify-content:center;width:1.75rem;height:1.75rem;border-radius:.4rem;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.1);color:#ef4444;cursor:pointer;flex-shrink:0;font-size:1rem;font-weight:700;line-height:1;transition:background .15s;" onmouseover="this.style.background=\'rgba(239,68,68,.22)\'" onmouseout="this.style.background=\'rgba(239,68,68,.1)\'">&minus;</button>'
+                        ? '<div style="display:inline-flex;align-items:center;gap:.25rem;flex-shrink:0;">' +
+                              '<button type="button" ' +
+                                'data-order="' + o.id + '" data-item="' + item.id + '" data-dir="-1" ' +
+                                'onclick="admInlineQty(this)" ' +
+                                'style="width:1.6rem;height:1.6rem;border-radius:.35rem;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.1);color:#ef4444;cursor:pointer;font-size:.95rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;" ' +
+                                'onmouseover="this.style.background=\'rgba(239,68,68,.22)\'" onmouseout="this.style.background=\'rgba(239,68,68,.1)\'">&minus;</button>' +
+                              '<span class="adm-item-qty-display" data-item="' + item.id + '" style="min-width:1.4rem;text-align:center;font-size:.85rem;font-weight:800;color:#facc15;">' + item.qty + '</span>' +
+                              '<button type="button" ' +
+                                'data-order="' + o.id + '" data-item="' + item.id + '" data-dir="1" ' +
+                                'onclick="admInlineQty(this)" ' +
+                                'style="width:1.6rem;height:1.6rem;border-radius:.35rem;border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.1);color:#4ade80;cursor:pointer;font-size:.95rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0;" ' +
+                                'onmouseover="this.style.background=\'rgba(74,222,128,.22)\'" onmouseout="this.style.background=\'rgba(74,222,128,.1)\'">+</button>' +
+                          '</div>'
                         : '') +
                 '</div>' +
             '</div>';
@@ -1853,6 +1865,99 @@ function computeStatusCounts(orders) {
         if (o.date && new Date(o.date).toDateString() === todayStr) counts.today++;
     });
     return counts;
+}
+
+// ── Inline qty stepper in Manage modal ───────────────────────────────────
+// Called by the − / + buttons next to each item in openManageModal.
+// Patches quantity instantly; updates modal display without closing it.
+var _admQtyInFlight = {}; // orderId_itemId → true while request pending
+
+async function admInlineQty(btn) {
+    var orderId = parseInt(btn.dataset.order);
+    var itemId  = parseInt(btn.dataset.item);
+    var dir     = parseInt(btn.dataset.dir); // -1 or +1
+    var key     = orderId + '_' + itemId;
+
+    if (_admQtyInFlight[key]) return; // debounce
+
+    // Read current displayed qty
+    var display = document.querySelector('.adm-item-qty-display[data-item="' + itemId + '"]');
+    if (!display) return;
+    var currentQty = parseInt(display.textContent) || 1;
+    var newQty     = currentQty + dir;
+    if (newQty < 0) return;
+
+    // Optimistic UI update
+    display.textContent = newQty === 0 ? '0' : newQty;
+    btn.disabled = true;
+
+    _admQtyInFlight[key] = true;
+    try {
+        var res  = await fetch('/admin/orders/' + orderId + '/items/' + itemId, {
+            method: 'PATCH',
+            headers: { 'X-CSRF-TOKEN': CSRF_TOKEN, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ qty: newQty }),
+        });
+        var data = await res.json();
+
+        if (!data.success) {
+            // Roll back optimistic update
+            display.textContent = currentQty;
+            alert(data.message || 'Could not update quantity.');
+        } else {
+            // Update ORDERS_MAP with fresh items + total from response
+            if (ORDERS_MAP[orderId]) {
+                if (data.items)     ORDERS_MAP[orderId].items = data.items;
+                if (data.new_total) ORDERS_MAP[orderId].total = data.new_total;
+            }
+
+            if (newQty === 0) {
+                // Item removed — re-render the whole modal
+                await fetchOrders();
+                var o = ORDERS_MAP[orderId];
+                if (o && o.items && o.items.length > 0) {
+                    openManageModal(orderId);
+                } else {
+                    closeModal('manageModal');
+                }
+                return;
+            }
+
+            // Update the subtotal displayed next to the item
+            var itemData = (data.items || []).find(function(i){ return i.id === itemId; });
+            if (itemData) {
+                var subtotalEl = display.closest('div[style*="flex-shrink:0"]')
+                    ?.previousElementSibling;
+                if (subtotalEl && subtotalEl.tagName === 'SPAN') {
+                    subtotalEl.textContent = '₱' + Number(itemData.subtotal).toLocaleString();
+                }
+            }
+
+            // Update the grand total in the modal footer
+            if (data.new_total) {
+                var totalEl = document.querySelector('#mmBody .modal-total-value');
+                if (totalEl) totalEl.textContent = '₱' + Number(data.new_total).toLocaleString();
+                // Also patch the bold Total row (it's the last bold flex row in the items section)
+                var totalRows = document.querySelectorAll('#mmBody div[style*="justify-content:space-between"]');
+                totalRows.forEach(function(row) {
+                    var label = row.querySelector('span:first-child');
+                    if (label && label.textContent.trim() === 'Total') {
+                        var valEl = row.querySelector('span:last-child');
+                        if (valEl) valEl.textContent = '₱' + Number(data.new_total).toLocaleString();
+                    }
+                });
+            }
+
+            // Refresh the grid card in background without closing the modal
+            fetchOrders();
+        }
+    } catch(e) {
+        display.textContent = currentQty;
+        alert('Network error. Please try again.');
+    } finally {
+        btn.disabled = false;
+        delete _admQtyInFlight[key];
+    }
 }
 
 // ── Mark Ready (admin card button) ────────────────────────────────────────
