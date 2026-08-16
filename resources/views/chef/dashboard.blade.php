@@ -819,6 +819,9 @@ function enableAutoPrint() {
         printedOrderIds.add('accept_' + id);
         printedOrderIds.add('ready_' + id);
         printedOrderIds.add('pickup_' + id);
+        // Also add versioned keys for any existing orders
+        const o = orderDataMap[id];
+        if (o) printedOrderIds.add('accept_' + id + '_' + (o.updated_at || ''));
     });
     
     localStorage.setItem('autoPrintEnabled', 'true');
@@ -1488,9 +1491,11 @@ async function refreshKitchen(manual) {
 
         // Auto-print newly accepted orders (queued column)
         (data.queued || []).forEach(order => {
-            const printKey = 'accept_' + order.id + '_' + (order.updated_at || '');
+            const printKey = 'accept_' + order.id;
             if (autoPrintEnabled && !printedOrderIds.has(printKey)) {
                 printedOrderIds.add(printKey);
+                // Also add the versioned key so Echo doesn't double-print
+                printedOrderIds.add('accept_' + order.id + '_' + (order.updated_at || ''));
 
                 const currentItemIds = (order.items || []).map(i => i.id).filter(Boolean);
                 const alreadyPrinted = printedItemIds[order.id] || new Set();
@@ -1500,7 +1505,7 @@ async function refreshKitchen(manual) {
                 if (!printedItemIds[order.id]) printedItemIds[order.id] = new Set();
                 currentItemIds.forEach(id => printedItemIds[order.id].add(id));
 
-                console.log('\ud83d\udda8\ufe0f Auto-printing kitchen ticket for order', order.order_number,
+                console.log('\uD83D\uDDA8\uFE0F Auto-printing kitchen ticket for order', order.order_number,
                     newItemIds.length < currentItemIds.length ? '(pahabol: ' + newItemIds.length + ' new items)' : '(full)');
 
                 const isAddon = newItemIds.length > 0 && newItemIds.length < currentItemIds.length;
@@ -1711,8 +1716,9 @@ document.addEventListener('DOMContentLoaded', () => {
     _kitchenSeed.forEach(o => {
         orderDataMap[o.id] = o;
         // Seed all namespaced keys so page reload never re-prints existing orders
-        // Use versioned key (id + updated_at) to detect pahabol (add-on) orders
         if (['accepted','preparing','rider_assigned','out_for_delivery','delivered'].includes(o.status)) {
+            // Use simple key (no updated_at) so it always matches the new dedup logic
+            printedOrderIds.add('accept_' + o.id);
             printedOrderIds.add('accept_' + o.id + '_' + (o.updated_at || ''));
             if (!printedItemIds[o.id]) printedItemIds[o.id] = new Set();
             o.items.forEach(i => printedItemIds[o.id].add(i.id));
@@ -1742,9 +1748,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 .listen('.order.updated', (order) => {
                     console.log('[ECHO] Order updated:', order.id, order.status);
                     // ── AUTO-PRINT RULES ──────────────────────────────────────
-                    if (autoPrintEnabled && order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id + '_' + (order.updated_at || ''))) {
-                        const printKey = 'accept_' + order.id + '_' + (order.updated_at || '');
+                    if (autoPrintEnabled && order.status === 'accepted' && !printedOrderIds.has('accept_' + order.id)) {
+                        const printKey = 'accept_' + order.id;
                         printedOrderIds.add(printKey);
+                        // Also add versioned key so polling loop doesn't double-print
+                        printedOrderIds.add('accept_' + order.id + '_' + (order.updated_at || ''));
 
                         const currentItemIds = (order.items || []).map(i => i.id).filter(Boolean);
                         const alreadyPrinted = printedItemIds[order.id] || new Set();
@@ -1753,7 +1761,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!printedItemIds[order.id]) printedItemIds[order.id] = new Set();
                         currentItemIds.forEach(id => printedItemIds[order.id].add(id));
 
-                        console.log('\ud83d\udda8\ufe0f Echo: Auto-printing kitchen ticket for order', order.order_number,
+                        console.log('\uD83D\uDDA8\uFE0F Echo: Auto-printing kitchen ticket for order', order.order_number,
                             newItemIds.length < currentItemIds.length ? '(pahabol: ' + newItemIds.length + ' new items)' : '(full)');
 
                         const isAddon = newItemIds.length > 0 && newItemIds.length < currentItemIds.length;
