@@ -1086,10 +1086,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     seenCookingWithoutReady.add(order.id);
                 }
                 gridSignature = null; // force re-render on next poll
-                // Use a small delay so the print lock is set before the poll
-                // runs its own auto-print block — prevents the poll from
-                // scheduling a second print for the same order.
-                setTimeout(() => refreshKitchen(false, true), 150);
+                // Cancel the current poll cycle and restart it after the refresh
+                // completes — prevents the 3s timer from firing a redundant
+                // re-render 150ms after Echo already triggered one.
+                if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+                setTimeout(() => {
+                    refreshKitchen(false, true);
+                    if (!pollTimer) pollTimer = setInterval(() => refreshKitchen(false), 3000);
+                }, 150);
             });
             if (window.Echo.connector?.pusher) {
                 window.Echo.connector.pusher.connection.bind('connected', () => {
