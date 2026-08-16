@@ -847,10 +847,7 @@ async function refreshKitchen(manual) {
         const data = await res.json();
         setPollStatus(true);
 
-        // Render the single cooking board (accepted + preparing merged)
-        renderGrid(data.cooking || []);
-
-        // ── AUTO-PRINT (unchanged — watches data.queued for newly-accepted) ──
+        // ── AUTO-PRINT guards — must run BEFORE renderGrid updates orderDataMap ──
         // data.queued = only accepted-status orders (alias from ChefController)
         (data.queued || []).forEach(order => {
             const printKey       = 'accept_' + order.id;
@@ -870,12 +867,24 @@ async function refreshKitchen(manual) {
         });
 
         // Auto-print ready orders (cooking col, prepared_at set)
+        // Skip orders that are backfilled siblings (prepared_at already set when
+        // they first appeared in data.cooking) — those are old ready orders pulled
+        // in so the grouped card renders correctly; they must NOT trigger a reprint.
         (data.cooking || []).forEach(order => {
+            const alreadyKnown = !!orderDataMap[order.id]; // was it seen in a prior poll?
             if (order.prepared_at && autoPrintEnabled && !printedOrderIds.has('ready_' + order.id)) {
+                // Always seed the guard so it never fires again
                 printedOrderIds.add('ready_' + order.id);
-                setTimeout(() => autoPrintKitchenTicket(order.id, null), 500);
+                // Only actually print if this order was already tracked (not a
+                // freshly-backfilled sibling arriving with prepared_at already set)
+                if (alreadyKnown) {
+                    setTimeout(() => autoPrintKitchenTicket(order.id, null), 500);
+                }
             }
         });
+
+        // Render the single cooking board (accepted + preparing merged)
+        renderGrid(data.cooking || []);
 
     } catch (e) {
         setPollStatus(false);
@@ -978,8 +987,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 if (autoPrintEnabled && order.status === 'preparing' && order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
+                    // Only print if we already knew this order (not a backfilled sibling)
+                    const alreadyKnown = !!orderDataMap[order.id];
                     printedOrderIds.add('ready_' + order.id);
-                    autoPrintKitchenTicket(order.id, null);
+                    if (alreadyKnown) autoPrintKitchenTicket(order.id, null);
                 }
                 gridSignature = ''; // force re-render on next poll
                 refreshKitchen(false);
