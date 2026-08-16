@@ -421,11 +421,13 @@ function groupOrders(orders) {
     const buckets = {}; // sessionKey → group
 
     for (const o of orders) {
-        const isDineIn = o.order_type === 'dine_in' && o.table_number;
+        // Only group dine-in orders that have a session ID — never fall back to
+        // table_number alone, which would merge different customers' orders
+        const isDineIn = o.order_type === 'dine_in' && o.table_number && o.table_session_id;
         if (isDineIn) {
-            const key = o.table_session_id ? ('s_' + o.table_session_id) : ('t_' + o.table_number);
+            const key = 's_' + o.table_session_id;
             if (!buckets[key]) {
-                buckets[key] = { key, grouped: true, tableNumber: o.table_number, sessionId: o.table_session_id || o.table_number, orders: [] };
+                buckets[key] = { key, grouped: true, tableNumber: o.table_number, sessionId: o.table_session_id, orders: [] };
                 groups.push(buckets[key]);
             }
             buckets[key].orders.push(o);

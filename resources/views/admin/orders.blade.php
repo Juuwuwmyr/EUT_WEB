@@ -903,11 +903,12 @@ function renderGrid(orders) {
     orders.forEach(function(o) {
         var canGroup = o.order_type === 'dine_in'
             && o.table_number
+            && o.table_session_id           // only group when session ID is known
             && GROUPABLE_STATUSES.indexOf(o.status) !== -1
             && !o.is_archived
             && !activeFilter;
         if (canGroup) {
-            var gk = o.table_session_id ? ('session_' + o.table_session_id) : ('table_' + o.table_number);
+            var gk = 'session_' + o.table_session_id;
             if (!tableGroups[gk]) tableGroups[gk] = [];
             tableGroups[gk].push(o);
         } else {
