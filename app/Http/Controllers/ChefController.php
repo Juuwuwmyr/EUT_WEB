@@ -393,6 +393,44 @@ class ChefController extends Controller
     }
 
     /**
+     * Bulk kitchen ticket (NO prices) for all active orders in a table session.
+     * Same structure as the admin "Complete Table" bill but kitchen copy only.
+     *
+     * Route: GET /chef/orders/{order}/session-ticket
+     */
+    public function sessionKitchenTicket(Order $order)
+    {
+        $order->load(['items', 'user']);
+        $tableNumber = $order->table_number;
+
+        if (!$tableNumber) {
+            $addonIds = null;
+            return view('admin.partials.kitchen-ticket', compact('order', 'addonIds'));
+        }
+
+        $query = Order::with(['items', 'user'])
+            ->where('table_number', $tableNumber)
+            ->where('order_type', 'dine_in')
+            ->whereNotIn('status', ['cancelled'])
+            ->whereDate('created_at', $order->created_at->toDateString());
+
+        if ($order->table_session_id) {
+            $query->where('table_session_id', $order->table_session_id);
+        } else {
+            // No session ID — only active (not yet delivered) orders
+            $query->whereIn('status', ['pending', 'accepted', 'preparing', 'rider_assigned', 'out_for_delivery']);
+        }
+
+        $orders = $query->oldest()->get();
+
+        if ($orders->where('id', $order->id)->isEmpty()) {
+            $orders = $orders->push($order)->sortBy('id')->values();
+        }
+
+        return view('admin.partials.session-kitchen-ticket', compact('orders', 'tableNumber'));
+    }
+
+    /**
      * Takeout slip — printed when rider confirms pickup (out_for_delivery).
      * Shows full receipt with rider name, items + prices, and total.
      */

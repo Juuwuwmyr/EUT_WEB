@@ -312,7 +312,11 @@ html.light .order-card-subrow { background:rgba(0,0,0,.025); border-color:rgba(0
                     {{-- no price on kitchen display --}}
                 </div>
                 <div class="order-card-actions">
+                    @if($order->order_type === 'dine_in' && $order->table_number)
+                    <button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printReceipt('/chef/orders/{{ $order->id }}/session-ticket')" title="Print kitchen ticket">
+                    @else
                     <button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printKitchenTicket({{ $order->id }})" title="Print ticket">
+                    @endif
                         <i data-lucide="printer" style="width:13px;height:13px;stroke-width:2;"></i>
                     </button>
                     @if($order->order_type === 'dine_in')
@@ -461,7 +465,9 @@ function renderSoloCard(o) {
     const notesRow = o.notes
         ? `<div style="font-size:.72rem;color:#fbbf24;padding:.4rem .5rem;border-radius:.4rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15);">📝 ${escH(o.notes)}</div>` : '';
 
-    const printBtn  = `<button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printKitchenTicket(${o.id})" title="Print ticket"><i data-lucide="printer" style="width:13px;height:13px;stroke-width:2;"></i></button>`;
+    const printBtn  = (o.order_type === 'dine_in' && o.table_number)
+        ? `<button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printReceipt('/chef/orders/${o.id}/session-ticket')" title="Print kitchen ticket"><i data-lucide="printer" style="width:13px;height:13px;stroke-width:2;"></i></button>`
+        : `<button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printKitchenTicket(${o.id})" title="Print ticket"><i data-lucide="printer" style="width:13px;height:13px;stroke-width:2;"></i></button>`;
     const removeBtn = (o.order_type === 'dine_in')
         ? `<button class="oc-btn oc-btn-remove" onclick="event.stopPropagation();openRemoveItemModal(${o.id},this)" title="Remove item">✕</button>` : '';
     const readyBtn  = `<button class="oc-btn oc-btn-ready" onclick="event.stopPropagation();markReady(${o.id},this)">✅ Mark Ready</button>`;
@@ -545,8 +551,8 @@ function renderGroupCard(group) {
     });
     subRows += '</div>';
 
-    const tableReceiptUrl = `/chef/orders/${rep.id}/table-receipt`;
-    const printBtn  = `<button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printReceipt('${tableReceiptUrl}')" title="Print table receipt"><i data-lucide="printer" style="width:13px;height:13px;stroke-width:2;"></i></button>`;
+    const tableReceiptUrl = `/chef/orders/${rep.id}/session-ticket`;
+    const printBtn  = `<button class="oc-btn oc-btn-print" onclick="event.stopPropagation();printReceipt('${tableReceiptUrl}')" title="Print kitchen ticket (all orders)"><i data-lucide="printer" style="width:13px;height:13px;stroke-width:2;"></i></button>`;
     const removeBtn = `<button class="oc-btn oc-btn-remove" onclick="event.stopPropagation();openRemoveItemModal(${rep.id},this)" title="Remove item">✕</button>`;
 
     // Bulk button: "Mark All Ready" — only shown if any order isn't ready yet
