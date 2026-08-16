@@ -961,56 +961,49 @@ async function refreshKitchen(manual, forceRender = false) {
         const data = await res.json();
         setPollStatus(true);
 
-        // ── AUTO-PRINT guards — must run BEFORE renderGrid updates orderDataMap ──
-        // data.queued = only accepted-status orders (alias from ChefController)
+        // ── AUTO-PRINT — runs on every poll, but only prints truly new orders ──
+        // An order is "new" only if it's not yet in orderDataMap AND not in
+        // printedOrderIds. Both checks must pass to avoid duplicate prints.
         (data.queued || []).forEach(order => {
             const printKey       = 'accept_' + order.id;
             const currentItemIds = (order.items || []).map(i => i.id).filter(Boolean);
-
-            // Always keep printedItemIds current regardless of autoPrint state
             if (!printedItemIds[order.id]) printedItemIds[order.id] = new Set();
 
-            // Seed printedOrderIds from any order already in orderDataMap —
-            // this covers the case where enableAutoPrint() fired before the
-            // first poll returned and orderDataMap was still empty.
-            if (orderDataMap[order.id] && !printedOrderIds.has(printKey)) {
-                printedOrderIds.add(printKey);
+            // If already printed (localStorage persists across reloads), just sync items
+            if (printedOrderIds.has(printKey)) {
                 currentItemIds.forEach(id => printedItemIds[order.id].add(id));
-                return; // seeded as "already printed" — don't print again
+                // Pahabol: new item IDs added to an already-printed order
+                const newItemIds = currentItemIds.filter(id => !printedItemIds[order.id].has(id));
+                if (autoPrintEnabled && newItemIds.length > 0) {
+                    newItemIds.forEach(id => printedItemIds[order.id].add(id));
+                    schedulePrint('addon_' + order.id + '_' + newItemIds.join('_'), order.id, newItemIds, 500);
+                }
+                return;
             }
 
-            const newItemIds = currentItemIds.filter(id => !printedItemIds[order.id].has(id));
-            if (!autoPrintEnabled) return;
-            if (!printedOrderIds.has(printKey)) {
+            // Not yet printed — but was it already known before this poll?
+            // Echo updates orderDataMap immediately on receipt, so if it's in the
+            // map it means Echo already handled printing. Seed the guard and skip.
+            if (orderDataMap[order.id]) {
                 printedOrderIds.add(printKey);
-                printedOrderIds.add('accept_' + order.id + '_' + (order.updated_at || ''));
                 currentItemIds.forEach(id => printedItemIds[order.id].add(id));
-                schedulePrint('accept_' + order.id, order.id, null, 500);
-            } else if (newItemIds.length > 0) {
-                newItemIds.forEach(id => printedItemIds[order.id].add(id));
-                schedulePrint('addon_' + order.id + '_' + newItemIds.join('_'), order.id, newItemIds, 500);
-            } else {
-                // Echo may have marked accept_ before item ids were seeded — sync now
-                currentItemIds.forEach(id => printedItemIds[order.id].add(id));
+                return;
             }
+
+            // Genuinely new order — not seen by Echo, not in map, not printed
+            if (!autoPrintEnabled) return;
+            printedOrderIds.add(printKey);
+            printedOrderIds.add('accept_' + order.id + '_' + (order.updated_at || ''));
+            currentItemIds.forEach(id => printedItemIds[order.id].add(id));
+            schedulePrint('accept_' + order.id, order.id, null, 500);
         });
 
-        // Auto-print ready orders — only on live transition to ready, never for
-        // backfilled siblings (original already-ready orders pulled in when a
-        // new pahabol arrives for the same table session).
+        // Seed ready guards — never auto-print on ready, only on accept.
         (data.cooking || []).forEach(order => {
-            const alreadyKnown = !!orderDataMap[order.id];
-            if (!order.prepared_at) seenCookingWithoutReady.add(order.id);
-            if (order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
+            if (!order.prepared_at) {
+                seenCookingWithoutReady.add(order.id);
+            } else {
                 printedOrderIds.add('ready_' + order.id);
-                // Only print if we already tracked this order cooking without ready
-                // AND it wasn't already in orderDataMap with prepared_at set
-                // (which would mean it was a backfilled sibling, not a live transition)
-                const liveTransition = seenCookingWithoutReady.has(order.id) ||
-                    (alreadyKnown && !orderDataMap[order.id]?.prepared_at);
-                if (autoPrintEnabled && liveTransition) {
-                    schedulePrint('ready_' + order.id, order.id, null, 500);
-                }
                 seenCookingWithoutReady.delete(order.id);
             }
         });
@@ -1104,7 +1097,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Echo) {
         try {
             window.Echo.private('kitchen').listen('.order.updated', (order) => {
-                // Auto-print on accept
+                // Update orderDataMap immediately so the next poll's guard sees it
+                if (order.id) {
+                    orderDataMap[order.id] = Object.assign(orderDataMap[order.id] || {}, order);
+                }
+
+                // Auto-print on accept — only fires once per order per day (localStorage-backed)
                 if (autoPrintEnabled && order.status === 'accepted') {
                     const pk  = 'accept_' + order.id;
                     const ids = (order.items || []).map(i => i.id).filter(Boolean);
@@ -1117,30 +1115,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (newIds.length) {
                         newIds.forEach(id => printedItemIds[order.id].add(id));
                         schedulePrint('addon_' + order.id + '_' + newIds.join('_'), order.id, newIds, 400);
-                    } else if (ids.length) {
+                    } else {
                         ids.forEach(id => printedItemIds[order.id].add(id));
                     }
                 }
-                if (autoPrintEnabled && order.status === 'preparing' && order.prepared_at) {
-                    const wasCooking = seenCookingWithoutReady.has(order.id);
-                    if (!printedOrderIds.has('ready_' + order.id)) {
-                        printedOrderIds.add('ready_' + order.id);
-                        if (wasCooking) schedulePrint('ready_' + order.id, order.id, null, 400);
-                    }
+
+                // Seed ready guard — no auto-print on ready, ever
+                if (order.prepared_at) {
+                    printedOrderIds.add('ready_' + order.id);
                     seenCookingWithoutReady.delete(order.id);
-                }
-                if (!order.prepared_at && ['accepted', 'preparing'].includes(order.status)) {
+                } else if (['accepted', 'preparing'].includes(order.status)) {
                     seenCookingWithoutReady.add(order.id);
                 }
-                gridSignature = null; // force re-render on next poll
-                // Cancel the current poll cycle and restart it after the refresh
-                // completes — prevents the 3s timer from firing a redundant
-                // re-render 150ms after Echo already triggered one.
-                if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-                setTimeout(() => {
-                    refreshKitchen(false, true);
-                    if (!pollTimer) pollTimer = setInterval(() => refreshKitchen(false), 3000);
-                }, 150);
+
+                // Force a re-render on next poll without resetting the timer —
+                // just invalidate the signature so renderGrid runs on the next tick.
+                gridSignature = null;
+                refreshKitchen(false, true);
             });
             if (window.Echo.connector?.pusher) {
                 window.Echo.connector.pusher.connection.bind('connected', () => {
