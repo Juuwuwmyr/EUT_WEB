@@ -377,6 +377,9 @@ let orderDataMap     = {};   // id → order object
 let pollTimer        = null;
 let gridSignature    = null; // smart-diff: skip re-render when nothing changed (null = never skip)
 let printedOrderIds  = new Set();
+// Per-order print lock: prevents Echo + poll from both scheduling a print
+// for the same order when they race within the same ~500ms window.
+let _printScheduled  = {};   // orderId_key → setTimeout handle (or true if already fired)
 let printedItemIds   = {};   // orderId → Set<itemId>
 let autoPrintEnabled = false;
 
@@ -730,6 +733,16 @@ function autoPrintKitchenTicket(orderId, addonIds) {
     iframe.src = url;
 }
 
+// Debounced scheduler — prevents Echo + poll racing to print the same ticket twice.
+// If a print for lockKey is already scheduled or fired, this is a no-op.
+function schedulePrint(lockKey, orderId, addonIds, delay) {
+    if (_printScheduled[lockKey]) return; // already scheduled or fired
+    _printScheduled[lockKey] = setTimeout(() => {
+        _printScheduled[lockKey] = true; // mark as fired so future calls are still blocked
+        autoPrintKitchenTicket(orderId, addonIds);
+    }, delay);
+}
+
 function printKitchenTicket(orderId) { autoPrintKitchenTicket(orderId, null); }
 
 function printReceipt(url) {
@@ -917,10 +930,10 @@ async function refreshKitchen(manual, forceRender = false) {
                 printedOrderIds.add(printKey);
                 printedOrderIds.add('accept_' + order.id + '_' + (order.updated_at || ''));
                 currentItemIds.forEach(id => printedItemIds[order.id].add(id));
-                setTimeout(() => autoPrintKitchenTicket(order.id, null), 500);
+                schedulePrint('accept_' + order.id, order.id, null, 500);
             } else if (newItemIds.length > 0) {
                 newItemIds.forEach(id => printedItemIds[order.id].add(id));
-                setTimeout(() => autoPrintKitchenTicket(order.id, newItemIds), 500);
+                schedulePrint('addon_' + order.id + '_' + newItemIds.join('_'), order.id, newItemIds, 500);
             }
         });
 
@@ -936,7 +949,7 @@ async function refreshKitchen(manual, forceRender = false) {
                 // Only actually print if this order was already tracked (not a
                 // freshly-backfilled sibling arriving with prepared_at already set)
                 if (alreadyKnown) {
-                    setTimeout(() => autoPrintKitchenTicket(order.id, null), 500);
+                    schedulePrint('ready_' + order.id, order.id, null, 500);
                 }
             }
         });
@@ -1038,20 +1051,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!printedOrderIds.has(pk)) {
                         printedOrderIds.add(pk);
                         ids.forEach(id => printedItemIds[order.id].add(id));
-                        setTimeout(() => autoPrintKitchenTicket(order.id, null), 400);
+                        schedulePrint('accept_' + order.id, order.id, null, 400);
                     } else if (newIds.length) {
                         newIds.forEach(id => printedItemIds[order.id].add(id));
-                        setTimeout(() => autoPrintKitchenTicket(order.id, newIds), 400);
+                        schedulePrint('addon_' + order.id + '_' + newIds.join('_'), order.id, newIds, 400);
                     }
                 }
                 if (autoPrintEnabled && order.status === 'preparing' && order.prepared_at && !printedOrderIds.has('ready_' + order.id)) {
                     // Only print if we already knew this order (not a backfilled sibling)
                     const alreadyKnown = !!orderDataMap[order.id];
                     printedOrderIds.add('ready_' + order.id);
-                    if (alreadyKnown) autoPrintKitchenTicket(order.id, null);
+                    if (alreadyKnown) schedulePrint('ready_' + order.id, order.id, null, 400);
                 }
                 gridSignature = null; // force re-render on next poll
-                refreshKitchen(false, true);
+                // Use a small delay so the print lock is set before the poll
+                // runs its own auto-print block — prevents the poll from
+                // scheduling a second print for the same order.
+                setTimeout(() => refreshKitchen(false, true), 150);
             });
             if (window.Echo.connector?.pusher) {
                 window.Echo.connector.pusher.connection.bind('connected', () => {
