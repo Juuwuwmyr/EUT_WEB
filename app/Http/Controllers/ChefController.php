@@ -49,8 +49,6 @@ class ChefController extends Controller
         $todayPickup    = \App\Models\Order::whereDate('created_at', today())->where('order_type', 'pickup')->count();
 
         return view('chef.dashboard', [
-            'newOrders'          => $orders['new'],
-            'queuedOrders'       => $orders['queued'],
             'cookingOrders'      => $orders['cooking'],
             'readyOrders'        => $orders['ready'],
             'availableRiders'    => $availableRiders,
@@ -67,15 +65,22 @@ class ChefController extends Controller
 
     /**
      * Get orders for AJAX refresh.
+     * Returns a single 'cooking' list that merges accepted + preparing(not ready).
+     * Also returns 'queued' as an alias of 'cooking' so the auto-print logic
+     * (which watches data.queued for newly-accepted orders) continues to work.
      */
     public function getOrders()
     {
         $orders = $this->getKitchenOrders();
 
+        $cookingList = $this->formatKitchenOrders($orders['cooking']);
+
         return response()->json([
-            'new'     => $this->formatKitchenOrders($orders['new']),
-            'queued'  => $this->formatKitchenOrders($orders['queued']),
-            'cooking' => $this->formatKitchenOrders($orders['cooking']),
+            'cooking' => $cookingList,
+            // 'queued' alias: only accepted orders (status=accepted) — used by
+            // the auto-print block to detect newly-accepted orders for printing.
+            'queued'  => array_values(array_filter($cookingList, fn($o) => $o['status'] === 'accepted')),
+            'new'     => [],   // not shown on kitchen anymore
             'ready'   => $this->formatKitchenOrders($orders['ready']),
         ]);
     }
@@ -451,23 +456,15 @@ class ChefController extends Controller
      */
     private function getKitchenOrders(): array
     {
-        // New = pending, waiting for admin to accept
-        $newOrders = Order::with(['user', 'items'])
-            ->where('status', 'pending')
-            ->oldest()
-            ->get();
-
-        // Queue = accepted by admin — these go straight into "cooking" on the kitchen display
-        // (no "Start Cooking" step needed; acceptance = start of cooking)
-        $queuedOrders = Order::with(['user', 'items'])
-            ->where('status', 'accepted')
-            ->oldest()
-            ->get();
-
-        // Cooking = preparing but not yet marked ready (prepared_at is null)
+        // Single "cooking" list = accepted + preparing-but-not-yet-ready
+        // Both statuses are shown in the same kitchen board grid.
         $cookingOrders = Order::with(['user', 'items'])
-            ->where('status', 'preparing')
-            ->whereNull('prepared_at')
+            ->where(function ($q) {
+                $q->where('status', 'accepted')
+                  ->orWhere(function ($q2) {
+                      $q2->where('status', 'preparing')->whereNull('prepared_at');
+                  });
+            })
             ->oldest()
             ->get();
 
@@ -486,9 +483,9 @@ class ChefController extends Controller
             ->get();
 
         return [
-            'new'     => $newOrders,      // Pending — admin needs to accept
-            'queued'  => $queuedOrders,   // Accepted — chef clicks Start Cooking
-            'cooking' => $cookingOrders,  // Actively being prepared
+            'new'     => collect(),       // not used on kitchen display anymore
+            'queued'  => collect(),       // not used on kitchen display anymore
+            'cooking' => $cookingOrders, // accepted + preparing(not ready) combined
             'ready'   => $readyForDelivery->values(),
         ];
     }
