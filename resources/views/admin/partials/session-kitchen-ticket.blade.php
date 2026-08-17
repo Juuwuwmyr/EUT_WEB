@@ -98,6 +98,32 @@ hr.double { border-top: 3px double #000; }
     word-break: break-word;
     line-height: 1.3;
 }
+.item-price {
+    flex-shrink: 0;
+    margin-left: 4px;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.totals-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    font-weight: bold;
+    border-bottom: 1px solid #000;
+    padding-bottom: 2px;
+    margin-bottom: 2px;
+}
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 3px 0 1px;
+    font-size: 11px;
+    font-weight: bold;
+    width: 100%;
+    padding-top: 3px;
+    border-top: 1px solid #000;
+}
 
 .spec-list { padding-left: 10px; margin-top: 2px; }
 .spec-row  {
@@ -151,7 +177,15 @@ hr.double { border-top: 3px double #000; }
 
 <hr class="double">
 
+<div class="totals-header">
+    <span>QTY &nbsp;ITEM</span>
+    <span>PRICE</span>
+</div>
+
+@php $grandTotal = 0; @endphp
+
 @foreach($orders as $order)
+@php $grandTotal += $order->total; @endphp
 
 {{-- Show sub-order divider only when there are multiple orders --}}
 @if($orders->count() > 1)
@@ -166,6 +200,7 @@ hr.double { border-top: 3px double #000; }
     <div class="item-line">
         <span class="item-qty">{{ $item->quantity }}×</span>
         <span class="item-name">{{ $item->item_name }}</span>
+        <span class="item-price">P{{ number_format($item->subtotal, 2) }}</span>
     </div>
     @php
         $specs = collect($item->modifiers ?? [])
@@ -193,10 +228,17 @@ hr.double { border-top: 3px double #000; }
 
 @endforeach
 
+<hr>
+
+<div class="total-row">
+    <span>TOTAL</span>
+    <span>P{{ number_format($grandTotal, 2) }}</span>
+</div>
+
 <hr class="double">
 
 <div class="footer">
-    <div>*** KITCHEN COPY — NO PRICE ***</div>
+    <div>*** KITCHEN COPY ***</div>
     <div style="margin-top:2px;">{{ now()->format('g:i A') }}</div>
 </div>
 

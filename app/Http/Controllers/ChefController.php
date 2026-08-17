@@ -391,8 +391,8 @@ class ChefController extends Controller
     }
 
     /**
-     * Bulk kitchen ticket (NO prices) for all active orders in a table session.
-     * Kitchen copy only — pending/accepted/preparing, never old delivered items.
+     * Bulk kitchen ticket for all active orders in a table session.
+     * Kitchen copy with item prices and session total billing.
      *
      * Route: GET /chef/orders/{order}/session-ticket
      */
