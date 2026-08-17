@@ -363,12 +363,12 @@
         </div>
 
         <!-- Notes -->
-        <div class="card">
+        <div class="card" id="notesCard">
             <div class="card-header">
                 <div class="card-icon" style="background:rgba(139,92,246,.1);">
                     <svg width="15" height="15" fill="none" stroke="#a78bfa" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </div>
-                <span class="card-title">Order Notes <span style="font-size:11px;font-weight:400;color:#4b5563;">(optional)</span></span>
+                <span class="card-title" id="notesCardTitle">Order Notes <span style="font-size:11px;font-weight:400;color:#4b5563;">(optional)</span></span>
             </div>
             <div class="card-body">
                 <textarea name="notes" id="orderNotes" class="notes-input" rows="2" placeholder="e.g. Leave at gate, no spicy, extra napkins…"></textarea>
@@ -933,6 +933,28 @@ function selectOrderType(el, type){
     if(paymentCard) {
         paymentCard.style.display = type === 'delivery' ? 'block' : 'none';
     }
+
+    // Update notes card placeholder/title based on order type
+    const notesTextarea = document.getElementById('orderNotes');
+    const notesTitle    = document.getElementById('notesCardTitle');
+    if (notesTextarea) {
+        if (type === 'dine_in') {
+            notesTextarea.placeholder = 'e.g. No spicy, extra rice, allergies, seat preference…';
+            notesTextarea.rows = 3;
+        } else if (type === 'pickup') {
+            notesTextarea.placeholder = 'e.g. No spicy, extra napkins, packaging preference…';
+            notesTextarea.rows = 2;
+        } else {
+            notesTextarea.placeholder = 'e.g. Leave at gate, no spicy, extra napkins…';
+            notesTextarea.rows = 2;
+        }
+    }
+    if (notesTitle) {
+        notesTitle.innerHTML = type === 'dine_in'
+            ? 'Special Request <span style="font-size:11px;font-weight:400;color:#4b5563;">(optional)</span>'
+            : 'Order Notes <span style="font-size:11px;font-weight:400;color:#4b5563;">(optional)</span>';
+    }
+
     renderSummary();
 }
 
