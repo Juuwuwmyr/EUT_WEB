@@ -420,6 +420,17 @@
                 <span id="guestItemCount"></span>
                 <button onclick="guestClearCart()" style="background:none;border:none;color:#4b5563;font-size:11px;cursor:pointer;padding:0;text-decoration:underline;">Clear all</button>
             </div>
+            {{-- Notes — only visible when customer arrived via table QR scan --}}
+            <div id="guestDineInNotesWrap" style="display:none;margin-bottom:12px;">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:6px;">
+                    <svg width="13" height="13" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    Order Notes <span style="font-size:11px;font-weight:400;color:#4b5563;">(optional)</span>
+                </label>
+                <textarea id="qrDineInNotes" rows="2"
+                    placeholder="e.g. less ice, no spicy, extra napkins…"
+                    style="width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 13px;color:#fff;font-size:13px;resize:none;outline:none;box-sizing:border-box;font-family:inherit;"
+                    onfocus="this.style.borderColor='rgba(250,204,21,.4)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'"></textarea>
+            </div>
             <a id="guestCheckoutBtn" href="{{ route('shop.checkout') }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;margin-top:8px;">
                 Proceed to Checkout →
             </a>
@@ -1284,7 +1295,7 @@ async function placeQrDineInOrder(tableNumber, btnEl) {
         delivery_address: 'Dine-in · ' + tableNumber,
         delivery_barangay: '',
         payment_method: 'cash',
-        notes: '',
+        notes: (document.getElementById('qrDineInNotes')?.value?.trim() || ''),
         delivery_lat: null,
         delivery_lng: null,
         table_number: tableNumber,
@@ -1347,6 +1358,12 @@ function updateQrCheckoutLabels() {
     if (guestBtn) guestBtn.textContent = 'Place Order →';
     const buyCta = document.querySelector('#buyNowBar .buy-now-cta');
     if (buyCta) buyCta.textContent = 'Place Order';
+    // Show notes field for auth users (qrDineInNotesWrap)
+    const notesWrap = document.getElementById('qrDineInNotesWrap');
+    if (notesWrap) notesWrap.style.display = 'block';
+    // Show notes field for guest dine-in users
+    const guestNotesWrap = document.getElementById('guestDineInNotesWrap');
+    if (guestNotesWrap) guestNotesWrap.style.display = 'block';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
