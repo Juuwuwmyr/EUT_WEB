@@ -1401,6 +1401,17 @@ if (window.Echo) {
 // ── All items data (modifier groups + addons) ──────────────────────────────
 const IQ_ITEMS = @json($menuItemsData->keyBy('id'));
 
+// DEBUG: Check if SEX items are loaded
+console.log('Total items loaded:', Object.keys(IQ_ITEMS).length);
+const sexItems = Object.keys(IQ_ITEMS).filter(id => id >= 173 && id <= 196);
+console.log('SEX items (173-196) found:', sexItems.length, sexItems);
+if (sexItems.length > 0) {
+    const firstSex = IQ_ITEMS[sexItems[0]];
+    console.log('First SEX item sample:', firstSex);
+    console.log('- Has modifier_groups?', firstSex?.modifier_groups?.length || 0);
+    console.log('- Has active_options?', firstSex?.modifier_groups?.[0]?.active_options?.length || 0);
+}
+
 const IQ_SWATCH_COLORS = [
     'linear-gradient(135deg,#b45309,#92400e)',
     'linear-gradient(135deg,#dc2626,#b91c1c)',
@@ -1418,8 +1429,15 @@ let iqSelOptions   = {};    // group_id → option obj or array
 let iqSelAddons    = {};    // group_id → {optId, name, priceType, adj}
 
 function openItemSheet(itemId) {
+    console.log('Attempting to open item:', itemId);
     iqItem = IQ_ITEMS[itemId];
-    if (!iqItem) return;
+    if (!iqItem) {
+        console.error('Item not found in IQ_ITEMS:', itemId);
+        console.log('Available IDs:', Object.keys(IQ_ITEMS).slice(0, 20));
+        alert('Error: This item cannot be opened. Item ID ' + itemId + ' not found.');
+        return;
+    }
+    console.log('Item loaded successfully:', iqItem.name);
 
     iqQty          = 1;
     iqSelOptions   = {};
