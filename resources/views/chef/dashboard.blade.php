@@ -969,14 +969,15 @@ async function refreshKitchen(manual, forceRender = false) {
             const currentItemIds = (order.items || []).map(i => i.id).filter(Boolean);
             if (!printedItemIds[order.id]) printedItemIds[order.id] = new Set();
 
-            // If already printed (localStorage persists across reloads), just sync items
+            // If already printed (localStorage persists across reloads), check for new items only
             if (printedOrderIds.has(printKey)) {
-                currentItemIds.forEach(id => printedItemIds[order.id].add(id));
-                // Pahabol: new item IDs added to an already-printed order
+                // Pahabol: detect item IDs not yet seen on this order
                 const newItemIds = currentItemIds.filter(id => !printedItemIds[order.id].has(id));
                 if (autoPrintEnabled && newItemIds.length > 0) {
                     newItemIds.forEach(id => printedItemIds[order.id].add(id));
                     schedulePrint('addon_' + order.id + '_' + newItemIds.join('_'), order.id, newItemIds, 500);
+                } else {
+                    currentItemIds.forEach(id => printedItemIds[order.id].add(id));
                 }
                 return;
             }
