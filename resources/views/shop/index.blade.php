@@ -1451,24 +1451,8 @@ function openItemSheet(itemId) {
     document.getElementById('iqQtyVal').textContent = '1';
 
     // Build modifier groups
-    try {
-        iqBuildModifiers();
-    } catch(e) {
-        // Show visible error on screen so we can see it without DevTools
-        const errBox = document.createElement('div');
-        errBox.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#ef4444;color:#fff;padding:12px 16px;font-size:12px;font-family:monospace;white-space:pre-wrap;word-break:break-all;';
-        errBox.textContent = '[iqBuildModifiers ERROR]\n' + e.message + '\n\n'
-            + 'Item: ' + JSON.stringify({id: iqItem?.id, name: iqItem?.name}) + '\n\n'
-            + 'modifier_groups: ' + JSON.stringify(iqItem?.modifier_groups, null, 2);
-        document.body.prepend(errBox);
-        setTimeout(() => errBox.remove(), 30000);
-        console.error('[iqBuildModifiers]', e, iqItem?.modifier_groups);
-    }
-    try {
-        iqBuildAddons();
-    } catch(e) {
-        console.error('[iqBuildAddons]', e, iqItem?.addon_groups);
-    }
+    iqBuildModifiers();
+    iqBuildAddons();
     iqUpdateTotal();
 
     // Show sheet
@@ -1516,8 +1500,8 @@ function iqBuildModifiers() {
 
     // Pre-select defaults
     groups.forEach(group => {
-        const def = (group.active_options || []).find(o => o.is_default);
-        if (def && !group.max_selections || group.max_selections === 1) {
+        const def = (group.active_options || []).find(o => o && o.is_default);
+        if (def && (!group.max_selections || group.max_selections === 1)) {
             iqSelOptions[group.id] = def;
             const el = document.getElementById(`iqO_${group.id}_${def.id}`);
             if (el) el.classList.add('sel');
