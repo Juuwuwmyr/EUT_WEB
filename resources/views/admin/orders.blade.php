@@ -378,7 +378,7 @@ html.light .order-card-subrow {
             <button onclick="closeModal('previewModal')" class="btn-ghost" style="flex:1;justify-content:center;font-size:.8rem;">
                 Close
             </button>
-            <button id="pvAcceptBtn" class="btn-success" style="flex:2;justify-content:center;font-size:.875rem;display:inline-flex;align-items:center;gap:.35rem;">
+            <button id="pvAcceptBtn" class="btn-accept" style="flex:2;justify-content:center;font-size:.875rem;display:inline-flex;align-items:center;gap:.35rem;">
                 <i data-lucide="check" style="width:.8rem;height:.8rem;stroke-width:2.5;"></i> Accept Order
             </button>
         </div>
@@ -472,7 +472,7 @@ function statusChip(status, orderType) {
 // Chef: Mark Ready (on Kitchen Dashboard)
 // Rider: Picked Up | Delivered
 var STATUS_PIPELINE = {
-    pending:          { label:'Pending',        color:'#f59e0b', next:'accepted',  nextLabel:'Accept Order',    btnClass:'btn-success' },
+    pending:          { label:'Pending',        color:'#f59e0b', next:'accepted',  nextLabel:'Accept Order',    btnClass:'btn-accept' },
     accepted:         { label:'Accepted',       color:'#3b82f6', next:null,        nextLabel:null,              btnClass:'', chefAction:true },
     preparing:        { label:'Preparing',      color:'#dc2626', next:null,        nextLabel:null,              btnClass:'', chefAction:true },
     rider_assigned:   { label:'Rider Assigned', color:'#8b5cf6', next:null,        nextLabel:null,              btnClass:'', riderAction:true },
@@ -549,7 +549,7 @@ function applyDateFilter(mode) {
 // -- Render table rows ------------------------------------
 // Flow: Admin ACCEPTS (auto?preparing) ? Chef MARKS READY ? Admin DISPATCHES rider ? Rider PICKS UP ? Rider DELIVERS
 var INLINE_ACTIONS = {
-    pending: { label:'Accept', icon:'check', btnClass:'btn-success', type:'accept' },
+    pending: { label:'Accept', icon:'check', btnClass:'btn-accept', type:'accept' },
     // preparing: handled dynamically — 'Dispatch'/'Serve'/'Picked Up' shown only when chef has marked ready (prepared_at set on order data)
 };
 

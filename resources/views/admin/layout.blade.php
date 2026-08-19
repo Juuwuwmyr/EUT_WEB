@@ -128,6 +128,8 @@
         .btn-primary:hover { background:#4338ca; box-shadow:0 4px 12px rgba(79,70,229,.3); }
         .btn-success { background:#16a34a; color:#fff; border:none; padding:.5rem 1.1rem; border-radius:.5rem; font-size:.875rem; font-weight:600; cursor:pointer; transition:background .2s,box-shadow .2s; text-decoration:none; display:inline-flex; align-items:center; gap:.35rem; }
         .btn-success:hover { background:#15803d; box-shadow:0 4px 12px rgba(22,163,74,.3); }
+        .btn-accept  { background:#dc2626; color:#fff; border:none; padding:.5rem 1.1rem; border-radius:.5rem; font-size:.875rem; font-weight:600; cursor:pointer; transition:background .2s,box-shadow .2s; text-decoration:none; display:inline-flex; align-items:center; gap:.35rem; }
+        .btn-accept:hover { background:#b91c1c; box-shadow:0 4px 12px rgba(220,38,38,.35); }
         .btn-warning { background:#d97706; color:#fff; border:none; padding:.5rem 1.1rem; border-radius:.5rem; font-size:.875rem; font-weight:600; cursor:pointer; transition:background .2s,box-shadow .2s; text-decoration:none; display:inline-flex; align-items:center; gap:.35rem; }
         .btn-warning:hover { background:#b45309; box-shadow:0 4px 12px rgba(217,119,6,.3); }
         .btn-ghost   { background:transparent; color:var(--text-subtle); border:1px solid var(--border-ghost); padding:.45rem .9rem; border-radius:.5rem; font-size:.8rem; cursor:pointer; transition:all .2s; text-decoration:none; display:inline-flex; align-items:center; gap:.35rem; }
