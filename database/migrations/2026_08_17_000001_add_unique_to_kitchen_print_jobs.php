@@ -48,10 +48,10 @@ return new class extends Migration
         }
 
         // Add the unique constraint only if it doesn't already exist.
-        $sm      = Schema::getConnection()->getDoctrineSchemaManager();
-        $indexes = $sm->listTableIndexes('kitchen_print_jobs');
+        // Use raw SQL instead of Doctrine (removed in Laravel 11).
+        $indexExists = collect(DB::select("SHOW INDEX FROM kitchen_print_jobs WHERE Key_name = 'kitchen_print_jobs_order_type_unique'"))->isNotEmpty();
 
-        if (!array_key_exists('kitchen_print_jobs_order_type_unique', $indexes)) {
+        if (!$indexExists) {
             Schema::table('kitchen_print_jobs', function (Blueprint $table) {
                 $table->unique(['order_id', 'type'], 'kitchen_print_jobs_order_type_unique');
             });
