@@ -2383,4 +2383,3 @@ document.getElementById('paymentModal').addEventListener('click', function(e) {
 </script>
 
 @endsection
-                                                                                                                                                            111111
