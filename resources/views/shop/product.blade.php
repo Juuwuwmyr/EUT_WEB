@@ -387,8 +387,8 @@
 <div class="page-body">
 
     <!-- Hero image -->
-    <div class="product-hero">
-        <img src="{{ $item['image'] ? asset($item['image']) : asset('images/menu/default-menu-item.webp') }}" alt="{{ $item['name'] }}" class="product-hero-img" decoding="async" onerror="this.onerror=null;this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
+    <div class="product-hero img-skeleton-wrap">
+        <img src="{{ $item['image'] ? asset($item['image']) : asset('images/menu/default-menu-item.webp') }}" alt="{{ $item['name'] }}" class="product-hero-img" loading="eager" decoding="async" onerror="this.onerror=null;this.src='{{ asset('images/menu/default-menu-item.webp') }}'" onload="this.classList.add('loaded');this.closest('.img-skeleton-wrap')?.classList.add('loaded')">
         <div class="product-hero-overlay"></div>
         @if(!empty($item['featured']))
             <span class="hero-badge-hot">🔥 Hot Item</span>

@@ -1158,7 +1158,7 @@ img { display: block; }
         </div>
         <div class="hero-right">
             <div class="hero-panda-wrap">
-                <img src="{{ asset('images/DeliveryPanda1.webp') }}" alt="EUT Delivery Mascot" class="hero-panda">
+                <img src="{{ asset('images/DeliveryPanda1.webp') }}" alt="EUT Delivery Mascot" class="hero-panda" loading="eager" decoding="async">
                 <div class="hero-sales-card">
                     <div class="hero-sales-label">
                         <span class="hero-sales-dot"></span> Orders Today
@@ -1235,7 +1235,7 @@ img { display: block; }
             @endphp
             <div class="menu-card" data-cat="{{ $catSlug }}">
                 <div class="menu-card-img-wrap">
-                    <img src="{{ $imgSrc }}" alt="{{ $item->name }}" class="menu-card-img" onerror="this.src='{{ asset('images/hero-burger.webp') }}'">
+                    <img src="{{ $imgSrc }}" alt="{{ $item->name }}" class="menu-card-img" loading="lazy" decoding="async" onerror="this.src='{{ asset('images/hero-burger.webp') }}'" onload="this.classList.add('loaded');this.closest('.img-skeleton-wrap')?.classList.add('loaded')">
                     <span class="menu-badge {{ $badge['class'] }}">{!! $badge['icon'] !!} {{ $badge['label'] }}</span>
                 </div>
                 <div class="menu-card-body">
@@ -1717,7 +1717,7 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
      CTA BANNER
 -------------------------------------------------- -->
 <section class="cta-section">
-    <img src="{{ asset('images/DeliveryPanda.webp') }}" alt="" class="cta-deco-panda">
+    <img src="{{ asset('images/DeliveryPanda.webp') }}" alt="" class="cta-deco-panda" loading="lazy" decoding="async">
     <div class="cta-inner">
         <div class="cta-left">
             <h2 class="cta-title">Why Choose EUT?</h2>

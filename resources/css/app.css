@@ -242,3 +242,110 @@ footer {
 .bg-gradient-radial {
     background: radial-gradient(circle, var(--tw-gradient-stops));
 }
+
+/* =============================================
+   SKELETON LOADER
+   ============================================= */
+@keyframes skeleton-shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.skeleton {
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0.04) 25%,
+        rgba(255,255,255,0.10) 50%,
+        rgba(255,255,255,0.04) 75%
+    );
+    background-size: 800px 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+    border-radius: 8px;
+}
+
+/* Product card skeleton */
+.p-card-skeleton {
+    background: linear-gradient(145deg, #12131f, #0e0f1a);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.p-card-skeleton .sk-img {
+    width: 100%;
+    aspect-ratio: 1/1;
+}
+.p-card-skeleton .sk-body {
+    padding: 12px 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.p-card-skeleton .sk-title  { height: 14px; width: 80%; }
+.p-card-skeleton .sk-desc   { height: 11px; width: 95%; }
+.p-card-skeleton .sk-desc2  { height: 11px; width: 60%; }
+.p-card-skeleton .sk-price  { height: 18px; width: 40%; margin-top: 4px; }
+
+/* Image skeleton wrapper — shows shimmer while img loads */
+.img-skeleton-wrap {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+}
+.img-skeleton-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0.04) 25%,
+        rgba(255,255,255,0.10) 50%,
+        rgba(255,255,255,0.04) 75%
+    );
+    background-size: 800px 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+    z-index: 1;
+    transition: opacity 0.3s;
+}
+.img-skeleton-wrap.loaded::before {
+    opacity: 0;
+    pointer-events: none;
+}
+.img-skeleton-wrap img {
+    position: relative;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+.img-skeleton-wrap img.loaded {
+    opacity: 1;
+}
+
+/* Light mode skeleton */
+html.light .skeleton,
+html.light .p-card-skeleton .sk-img,
+html.light .p-card-skeleton .sk-title,
+html.light .p-card-skeleton .sk-desc,
+html.light .p-card-skeleton .sk-desc2,
+html.light .p-card-skeleton .sk-price {
+    background: linear-gradient(90deg,
+        rgba(0,0,0,0.06) 25%,
+        rgba(0,0,0,0.12) 50%,
+        rgba(0,0,0,0.06) 75%
+    );
+    background-size: 800px 100%;
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+html.light .p-card-skeleton {
+    background: #fff;
+    border-color: rgba(0,0,0,0.08);
+}
+html.light .img-skeleton-wrap {
+    background: rgba(0,0,0,0.06);
+}
+html.light .img-skeleton-wrap::before {
+    background: linear-gradient(90deg,
+        rgba(0,0,0,0.04) 25%,
+        rgba(0,0,0,0.10) 50%,
+        rgba(0,0,0,0.04) 75%
+    );
+    background-size: 800px 100%;
+}

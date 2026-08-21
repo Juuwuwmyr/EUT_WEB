@@ -25,17 +25,6 @@ class ShopController extends Controller
             $arr = $item->toArray();
             $arr['addon_groups']    = array_values(array_filter($arr['modifier_groups'] ?? [], fn($g) => $g['type'] === 'addon'));
             $arr['modifier_groups'] = array_values(array_filter($arr['modifier_groups'] ?? [], fn($g) => $g['type'] !== 'addon'));
-            
-            // DEBUG: Log items with no modifier groups or empty active_options
-            if (empty($arr['modifier_groups']) && empty($arr['addon_groups'])) {
-                \Log::info("Item has no modifier groups: {$item->id} - {$item->name}");
-            }
-            foreach ($arr['modifier_groups'] ?? [] as $group) {
-                if (empty($group['active_options'])) {
-                    \Log::warning("Item {$item->id} - {$item->name} has modifier group '{$group['name']}' with no active options");
-                }
-            }
-            
             return $arr;
         });
 
