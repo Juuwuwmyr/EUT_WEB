@@ -105,9 +105,9 @@
                     </div>
                 </td>
                 <td>
-                    <span class="badge" style="background:{{ $item->category->color }}18;color:{{ $item->category->color }};display:inline-flex;align-items:center;gap:.3rem;">
-                        <i data-lucide="{{ $item->category->icon }}" style="width:.65rem;height:.65rem;stroke-width:2.5;"></i>
-                        {{ $item->category->name }}
+                    <span class="badge" style="background:{{ ($item->category->color ?? '#6b7280') }}18;color:{{ $item->category->color ?? '#6b7280' }};display:inline-flex;align-items:center;gap:.3rem;">
+                        <i data-lucide="{{ $item->category->icon ?? 'tag' }}" style="width:.65rem;height:.65rem;stroke-width:2.5;"></i>
+                        {{ $item->category->name ?? '(No Category)' }}
                     </span>
                 </td>
                 <td style="font-weight:700;color:{{ $item->category->color }};">₱{{ number_format($item->price,2) }}</td>
