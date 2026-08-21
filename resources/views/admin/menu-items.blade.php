@@ -94,7 +94,7 @@
         </thead>
         <tbody>
             @forelse($items as $item)
-            <tr style="{{ $item->is_archived ? 'opacity:.55;' : '' }}">
+            <tr style="{{ $item->is_archived ? 'opacity:.75;' : '' }}">
                 <td>
                     <div style="display:flex;align-items:center;gap:.75rem;">
                         <img src="{{ $item->image ? asset($item->image) : asset('images/menu/default-menu-item.webp') }}" alt="{{ $item->name }}" style="width:3rem;height:3rem;border-radius:.75rem;object-fit:cover;border:1px solid var(--border-card);flex-shrink:0;" onerror="this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
@@ -892,7 +892,7 @@ async function toggleItemStatus(btn, itemId) {
             btn.style.borderColor  = 'rgba(239,68,68,.3)';
             span.textContent       = 'Archived';
             if (icon) icon.setAttribute('data-lucide', 'archive');
-            btn.closest('tr').style.opacity = '.55';
+            btn.closest('tr').style.opacity = '.75';
         } else {
             btn.style.background   = 'rgba(34,197,94,.1)';
             btn.style.color        = '#22c55e';
@@ -912,6 +912,13 @@ async function toggleItemStatus(btn, itemId) {
             icon.replaceWith(newI);
         }
         if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Show notification to help user find items in their new state
+        if (isArchived) {
+            alert('Item archived. Go to the "Archived" filter to view archived items.');
+        } else {
+            alert('Item restored. Go to the "Active" filter to view active items.');
+        }
 
     } catch (e) {
         alert('Failed to update status: ' + e.message);
