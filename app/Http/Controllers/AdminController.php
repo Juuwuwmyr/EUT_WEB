@@ -412,6 +412,8 @@ class AdminController extends Controller
         }
         if ($request->boolean('archived')) {
             $query->archived();
+        } elseif ($request->boolean('all')) {
+            // Show all items — both active and archived
         } else {
             $query->active();
         }

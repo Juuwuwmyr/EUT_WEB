@@ -10,11 +10,24 @@
         <div><h1 style="margin:0 0 .15rem;">Menu Items</h1><p style="margin:0;">{{ $items->count() }} items shown.</p></div>
     </div>
     <div style="display:flex;gap:.625rem;">
-        <a href="{{ route('admin.menu-items', array_merge(request()->query(), ['archived' => request('archived') ? null : '1'])) }}"
-           class="btn-ghost" style="display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;">
-            <i data-lucide="{{ request('archived') ? 'eye' : 'archive' }}" style="width:.85rem;height:.85rem;stroke-width:2;"></i>
-            {{ request('archived') ? 'View Active' : 'View Archived' }}
-        </a>
+        {{-- 3-state filter: Active / Archived / All --}}
+        <div style="display:inline-flex;border:1px solid var(--border-ghost);border-radius:.5rem;overflow:hidden;">
+            <a href="{{ route('admin.menu-items', array_merge(request()->except(['archived','all'])) ) }}"
+               class="btn-ghost" style="border-radius:0;border:none;font-size:.78rem;padding:.4rem .75rem;
+               {{ !request('archived') && !request('all') ? 'background:rgba(34,197,94,.15);color:#22c55e;' : '' }}">
+                <i data-lucide="check-circle" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Active
+            </a>
+            <a href="{{ route('admin.menu-items', array_merge(request()->except(['archived','all']), ['archived'=>'1'])) }}"
+               class="btn-ghost" style="border-radius:0;border:none;border-left:1px solid var(--border-ghost);font-size:.78rem;padding:.4rem .75rem;
+               {{ request('archived') ? 'background:rgba(239,68,68,.15);color:#ef4444;' : '' }}">
+                <i data-lucide="archive" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Archived
+            </a>
+            <a href="{{ route('admin.menu-items', array_merge(request()->except(['archived','all']), ['all'=>'1'])) }}"
+               class="btn-ghost" style="border-radius:0;border:none;border-left:1px solid var(--border-ghost);font-size:.78rem;padding:.4rem .75rem;
+               {{ request('all') ? 'background:rgba(99,102,241,.15);color:#818cf8;' : '' }}">
+                <i data-lucide="list" style="width:.8rem;height:.8rem;stroke-width:2;"></i> All
+            </a>
+        </div>
         <button onclick="openAddItemModal()" class="btn-primary" style="display:inline-flex;align-items:center;gap:.4rem;">
             <i data-lucide="plus" style="width:.9rem;height:.9rem;stroke-width:2.5;"></i> Add Item
         </button>
