@@ -110,7 +110,7 @@
                         {{ $item->category->name ?? '(No Category)' }}
                     </span>
                 </td>
-                <td style="font-weight:700;color:{{ $item->category->color }};">₱{{ number_format($item->price,2) }}</td>
+                <td style="font-weight:700;color:{{ $item->category->color ?? '#facc15' }};">₱{{ number_format($item->price,2) }}</td>
                 <td>
                     @php $flavors = $item->modifierGroups->where('type','flavor'); @endphp
                     @if($flavors->count())
