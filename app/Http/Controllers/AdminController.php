@@ -885,7 +885,20 @@ class AdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        $orders = $query->latest()->get();
+        // Pagination for archived view only
+        $isArchived = $request->boolean('archived');
+        $perPage    = 20;
+        $page       = max(1, (int) $request->input('page', 1));
+        $totalCount = null;
+        $totalPages = null;
+
+        if ($isArchived) {
+            $totalCount = $query->count();
+            $totalPages = (int) ceil($totalCount / $perPage);
+            $orders = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
+        } else {
+            $orders = $query->latest()->get();
+        }
 
         $statusCounts = [
             'pending'      => \App\Models\Order::where('status', 'pending')->count(),
@@ -975,6 +988,12 @@ class AdminController extends Controller
             'orders'        => $ordersData,
             'statusCounts'  => $statusCounts,
             'riders'        => $availableRiders,
+            'pagination'    => $isArchived ? [
+                'page'       => $page,
+                'perPage'    => $perPage,
+                'total'      => $totalCount,
+                'totalPages' => $totalPages,
+            ] : null,
         ]);
     }
 

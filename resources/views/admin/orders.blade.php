@@ -341,6 +341,11 @@ html.light .order-card-subrow {
     </div>
 
     <div id="ordersGrid" class="orders-grid"><div class="orders-grid-empty">Loading&#8230;</div></div>
+
+    {{-- Archived pagination --}}
+    <div id="archivedPagination"
+         style="display:none;align-items:center;gap:.35rem;flex-wrap:wrap;padding:.875rem 1.25rem;border-top:1px solid var(--border-divider);">
+    </div>
 </div>
 
 {{-- ══════════ MANAGE ORDER MODAL ══════════ --}}
@@ -394,6 +399,11 @@ var dateFilter   = 'today'; // 'today' | 'all' | 'archived'
 var pollTimer    = null;
 var POLL_INTERVAL = 5000; // 5 seconds
 var printedPickupIds = new Set(); // track which orders already auto-printed on pickup
+
+// ── Archived pagination state ─────────────────────────────────────────────
+var archivedPage      = 1;
+var archivedTotalPages = 1;
+var archivedTotal     = 0;
 
 // -- Error Log --------------------------------------------
 var errorLogEntries = [];
@@ -508,7 +518,10 @@ async function fetchOrders() {
         var params = [];
         if (activeFilter) params.push('status=' + activeFilter);
         if (dateFilter === 'all')      params.push('all=1');
-        if (dateFilter === 'archived') params.push('archived=1');
+        if (dateFilter === 'archived') {
+            params.push('archived=1');
+            params.push('page=' + archivedPage);
+        }
         var url = POLL_URL + (params.length ? '?' + params.join('&') : '');
         var res = await fetch(url, {
             signal: controller.signal,
@@ -538,6 +551,17 @@ async function fetchOrders() {
 
         renderGrid(data.orders);
 
+        // Handle archived pagination
+        if (dateFilter === 'archived' && data.pagination) {
+            archivedPage       = data.pagination.page;
+            archivedTotalPages = data.pagination.totalPages;
+            archivedTotal      = data.pagination.total;
+            renderArchivedPagination();
+        } else {
+            var pag = document.getElementById('archivedPagination');
+            if (pag) pag.style.display = 'none';
+        }
+
         if (dot)   dot.style.background   = '#10b981'; // green = ok
         if (label) label.textContent = 'Live';
     } catch (e) {
@@ -563,12 +587,65 @@ function applyStatusFilter(val) {
 
 function applyDateFilter(mode) {
     dateFilter = mode;
+    archivedPage = 1; // reset to page 1 when switching filters
     var btnMap = { today:'btnToday', all:'btnAll', archived:'btnArchived' };
     Object.keys(btnMap).forEach(function(m) {
         var btn = document.getElementById(btnMap[m]);
         if (btn) btn.className = m === mode ? 'btn-primary' : 'btn-ghost';
     });
     fetchOrders();
+}
+
+// ── Archived pagination ───────────────────────────────────────────────────
+function renderArchivedPagination() {
+    var pag = document.getElementById('archivedPagination');
+    if (!pag) return;
+
+    if (archivedTotalPages <= 1) {
+        pag.style.display = 'none';
+        return;
+    }
+
+    pag.style.display = 'flex';
+
+    var html = '';
+    var from = ((archivedPage - 1) * 20) + 1;
+    var to   = Math.min(archivedPage * 20, archivedTotal);
+    html += '<span style="font-size:.75rem;color:var(--text-muted);margin-right:.5rem;">'
+          + from + '–' + to + ' of ' + archivedTotal + '</span>';
+
+    html += '<button onclick="goArchivedPage(' + (archivedPage - 1) + ')" '
+          + (archivedPage <= 1 ? 'disabled' : '') + ' '
+          + 'class="btn-ghost" style="padding:.3rem .6rem;font-size:.75rem;">'
+          + '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>'
+          + '</button>';
+
+    var startP = Math.max(1, archivedPage - 2);
+    var endP   = Math.min(archivedTotalPages, archivedPage + 2);
+    if (startP > 1) html += '<button onclick="goArchivedPage(1)" class="btn-ghost" style="padding:.3rem .55rem;font-size:.75rem;">1</button>';
+    if (startP > 2) html += '<span style="color:var(--text-muted);padding:0 .2rem;">…</span>';
+    for (var p = startP; p <= endP; p++) {
+        html += '<button onclick="goArchivedPage(' + p + ')" class="' + (p === archivedPage ? 'btn-primary' : 'btn-ghost') + '" '
+              + 'style="padding:.3rem .55rem;font-size:.75rem;min-width:2rem;">' + p + '</button>';
+    }
+    if (endP < archivedTotalPages - 1) html += '<span style="color:var(--text-muted);padding:0 .2rem;">…</span>';
+    if (endP < archivedTotalPages)     html += '<button onclick="goArchivedPage(' + archivedTotalPages + ')" class="btn-ghost" style="padding:.3rem .55rem;font-size:.75rem;">' + archivedTotalPages + '</button>';
+
+    html += '<button onclick="goArchivedPage(' + (archivedPage + 1) + ')" '
+          + (archivedPage >= archivedTotalPages ? 'disabled' : '') + ' '
+          + 'class="btn-ghost" style="padding:.3rem .6rem;font-size:.75rem;">'
+          + '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>'
+          + '</button>';
+
+    pag.innerHTML = html;
+}
+
+function goArchivedPage(page) {
+    if (page < 1 || page > archivedTotalPages) return;
+    archivedPage = page;
+    fetchOrders();
+    var tbody = document.getElementById('ordersTableBody');
+    if (tbody) tbody.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // -- Render table rows ------------------------------------
