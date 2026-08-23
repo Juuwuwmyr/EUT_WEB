@@ -1794,7 +1794,7 @@ function openManageModal(id) {
         }
     }
 
-    if (['pending','accepted','preparing'].includes(o.status)) {
+    if (['pending','accepted','preparing','rider_assigned','out_for_delivery'].includes(o.status)) {
         actionsHtml +=
             '<form method="POST" action="' + statusRoute.replace(':id', o.id) + '" style="margin-top:.25rem;" onsubmit="return confirm(\'Cancel this order?\')">' +
                 '<input type="hidden" name="_token" value="' + CSRF_TOKEN + '">' +
