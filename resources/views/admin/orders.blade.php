@@ -501,13 +501,34 @@ async function fetchOrders() {
     var label = document.getElementById('pollLabel');
     if (dot) dot.style.background = '#f59e0b'; // yellow = fetching
 
+    var controller = new AbortController();
+    var timeoutId  = setTimeout(function() { controller.abort(); }, 15000); // 15s timeout
+
     try {
         var params = [];
         if (activeFilter) params.push('status=' + activeFilter);
         if (dateFilter === 'all')      params.push('all=1');
         if (dateFilter === 'archived') params.push('archived=1');
         var url = POLL_URL + (params.length ? '?' + params.join('&') : '');
-        var res = await fetch(url, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN } });
+        var res = await fetch(url, {
+            signal: controller.signal,
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN }
+        });
+        clearTimeout(timeoutId);
+
+        // Session expired or auth redirect — reload to login
+        if (res.status === 419 || res.status === 401) {
+            logError('Poll', 'Session expired', 'Reloading page…');
+            setTimeout(function() { window.location.reload(); }, 1500);
+            return;
+        }
+
+        if (res.redirected && !res.url.includes('/orders/poll')) {
+            logError('Poll', 'Session expired (redirect)', 'Reloading page…');
+            setTimeout(function() { window.location.reload(); }, 1500);
+            return;
+        }
+
         if (!res.ok) throw new Error('HTTP ' + res.status);
         var data = await res.json();
 
@@ -520,8 +541,12 @@ async function fetchOrders() {
         if (dot)   dot.style.background   = '#10b981'; // green = ok
         if (label) label.textContent = 'Live';
     } catch (e) {
+        clearTimeout(timeoutId);
+        var reason = e.name === 'AbortError'
+            ? 'Request timed out (15s)'
+            : (e.message || 'Network error');
         console.warn('Poll error:', e);
-        logError('Poll', 'Failed to fetch orders', e.message);
+        logError('Poll', 'Failed to fetch orders', reason);
         if (dot)   dot.style.background   = '#ef4444'; // red = error
         if (label) label.textContent = 'Offline';
     }
