@@ -1136,6 +1136,9 @@ function renderGrid(orders) {
             });
             subHtml += '</div>';
 
+            // Total shown right after subrows, before any action buttons
+            subHtml += '<div class="order-card-total" style="margin:.5rem 0 .15rem;">\u20B1' + Number(grandTotal).toLocaleString() + '</div>';
+
             // Lock button (same condition as original)
             var hasActive = group.some(function(o){ return ['pending','accepted','preparing'].indexOf(o.status) !== -1; });
             if (hasActive) {
@@ -1155,9 +1158,6 @@ function renderGrid(orders) {
                     'onclick="archiveOrder(' + JSON.stringify(groupIds) + ',this)" title="Archive Table Session">' +
                     '<i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button></div>';
             }
-
-            // Total always shown above action area in the else branch
-            subHtml += '<div class="order-card-total" style="margin:.5rem 0 .15rem;">\u20B1' + Number(grandTotal).toLocaleString() + '</div>';
         }
 
         html += buildOrderCard({
