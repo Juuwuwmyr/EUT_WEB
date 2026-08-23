@@ -154,10 +154,6 @@ Route::get('/push/vapid-key',   [\App\Http\Controllers\PushController::class, 'v
 Route::post('/push/subscribe',  [\App\Http\Controllers\PushController::class, 'subscribe'])->middleware('auth')->name('push.subscribe');
 Route::post('/push/unsubscribe',[\App\Http\Controllers\PushController::class, 'unsubscribe'])->middleware('auth')->name('push.unsubscribe');
 
-// ── PayMongo ────────────────────────────────────────────────────────────────
-Route::post('/payments/create-link', [\App\Http\Controllers\PayMongoController::class, 'createPaymentLink'])->middleware('auth')->name('payments.create-link');
-Route::post('/webhooks/paymongo',    [\App\Http\Controllers\PayMongoController::class, 'webhook'])->name('paymongo.webhook');
-
 // ── Forgot Password (OTP flow) ──────────────────────────────
 Route::prefix('auth/forgot-password')->name('password.')->middleware('throttle:10,1')->group(function () {
     Route::post('/send-code',   [\App\Http\Controllers\ForgotPasswordController::class, 'sendCode'])->name('send-code');
