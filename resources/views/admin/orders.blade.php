@@ -1110,6 +1110,7 @@ function renderGrid(orders) {
             subHtml += '</div>';
             // Complete Table + Done Ordering buttons
             subHtml +=
+                '<div class="order-card-total" style="margin:.4rem 0 .2rem;">\u20B1' + Number(grandTotal).toLocaleString() + '</div>' +
                 '<div class="order-card-actions">' +
                 '<button type="button" class="oc-btn oc-btn-complete" data-grand-total="' + grandTotal + '" ' +
                 'onclick="quickAction(' + rep.id + ',\'complete-table\',\'\',this)">' +
@@ -1154,6 +1155,9 @@ function renderGrid(orders) {
                     'onclick="archiveOrder(' + JSON.stringify(groupIds) + ',this)" title="Archive Table Session">' +
                     '<i data-lucide="archive" style="width:.75rem;height:.75rem;stroke-width:2;"></i> Archive</button></div>';
             }
+
+            // Total always shown above action area in the else branch
+            subHtml += '<div class="order-card-total" style="margin:.5rem 0 .15rem;">\u20B1' + Number(grandTotal).toLocaleString() + '</div>';
         }
 
         html += buildOrderCard({
@@ -1163,7 +1167,7 @@ function renderGrid(orders) {
             sc:        sc,
             metaLine1: group.length + ' order(s) \u00B7 ' + escHtml(rep.date_short || rep.date),
             metaLine2: '',
-            total:     grandTotal,
+            total:     null,
             body:      subHtml,
         });
       } else {
@@ -1252,7 +1256,7 @@ function buildOrderCard(opts) {
             (opts.metaLine2 ? '<span>' + opts.metaLine2 + '</span>' : '') +
         '</div>' +
         '<div class="order-card-body">' + (opts.body || '') + '</div>' +
-        '<div class="order-card-total">\u20B1' + Number(opts.total).toLocaleString() + '</div>' +
+        (opts.total != null ? '<div class="order-card-total">\u20B1' + Number(opts.total).toLocaleString() + '</div>' : '') +
         (opts.actions ? opts.actions : '') +
     '</div>';
 }
