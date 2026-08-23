@@ -14,15 +14,16 @@ class PushController extends Controller
     public function subscribe(Request $request)
     {
         $request->validate([
-            'endpoint'  => 'required|string|max:1000',
+            'endpoint'  => 'required|string',
             'keys.p256dh' => 'required|string',
             'keys.auth'   => 'required|string',
         ]);
 
         PushSubscription::updateOrCreate(
-            ['endpoint' => $request->endpoint],
+            ['endpoint_hash' => hash('sha256', $request->endpoint)],
             [
                 'user_id'    => auth()->id(),
+                'endpoint'   => $request->endpoint,
                 'p256dh_key' => $request->input('keys.p256dh'),
                 'auth_token' => $request->input('keys.auth'),
             ]
@@ -38,7 +39,7 @@ class PushController extends Controller
     {
         $request->validate(['endpoint' => 'required|string']);
 
-        PushSubscription::where('endpoint', $request->endpoint)->delete();
+        PushSubscription::where('endpoint_hash', hash('sha256', $request->endpoint))->delete();
 
         return response()->json(['success' => true]);
     }
