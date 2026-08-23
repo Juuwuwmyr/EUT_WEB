@@ -1191,6 +1191,17 @@ function buildSoloOrderCard(o) {
           '</span>'
         : (o.order_type_icon ? o.order_type_icon + ' ' : '') + escHtml(o.order_type_label || o.order_type);
 
+    // For delivery: show customer name, phone and address below the type label
+    var metaDelivery = '';
+    if (o.order_type === 'delivery') {
+        metaDelivery =
+            '<div style="margin-top:.25rem;display:flex;flex-direction:column;gap:.18rem;">' +
+            '<span style="font-size:.78rem;font-weight:700;color:var(--text-strong);">\uD83D\uDC64 ' + escHtml(o.customer) + '</span>' +
+            (o.phone ? '<span style="font-size:.75rem;color:#60a5fa;font-weight:600;">\uD83D\uDCDE ' + escHtml(o.phone) + '</span>' : '') +
+            (o.address ? '<span style="font-size:.72rem;color:var(--text-muted);line-height:1.4;">\uD83D\uDCCD ' + escHtml(o.address) + '</span>' : '') +
+            '</div>';
+    }
+
     // Items preview (up to 3)
     var itemsHtml = '<div class="order-card-items">';
     o.items.slice(0, 3).forEach(function(item) {
@@ -1239,7 +1250,7 @@ function buildSoloOrderCard(o) {
         metaLine1: metaLine1,
         metaLine2: '\u23F0 ' + escHtml(o.date_short || o.date),
         total:     o.total,
-        body:      itemsHtml,
+        body:      metaDelivery + itemsHtml,
         actions:   actionsHtml,
     });
 }

@@ -953,6 +953,7 @@ class AdminController extends Controller
                 'status_label'     => $o->status_label,
                 'customer'         => $o->user?->name ?? 'Guest',
                 'email'            => $o->user?->email ?? '',
+                'phone'            => $o->user?->phone ?? '',
                 'address'          => $o->delivery_address,
                 'delivery_lat'     => $o->delivery_lat,
                 'delivery_lng'     => $o->delivery_lng,
