@@ -1158,7 +1158,7 @@ function renderGrid(orders) {
 
         html += buildOrderCard({
             cardId:    'group-' + sessionKey.replace(/[^a-z0-9]/gi,'_'),
-            headerLeft: '\uD83E\uDE91 Table ' + escHtml(tableNum) +
+            headerLeft: '\uD83E\uDE91 <span style="background:rgba(250,204,21,.18);border:1px solid rgba(250,204,21,.4);border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(tableNum) + '</span>' +
                 (isSessionLocked ? ' <span class="oc-locked-sm">\uD83D\uDD12</span>' : ''),
             sc:        sc,
             metaLine1: group.length + ' order(s) \u00B7 ' + escHtml(rep.date_short || rep.date),
