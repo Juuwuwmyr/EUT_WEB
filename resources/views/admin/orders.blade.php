@@ -1191,17 +1191,6 @@ function buildSoloOrderCard(o) {
           '</span>'
         : (o.order_type_icon ? o.order_type_icon + ' ' : '') + escHtml(o.order_type_label || o.order_type);
 
-    // For delivery: show customer name, phone and address below the type label
-    var metaDelivery = '';
-    if (o.order_type === 'delivery') {
-        metaDelivery =
-            '<div style="margin-top:.25rem;display:flex;flex-direction:column;gap:.18rem;">' +
-            '<span style="font-size:.78rem;font-weight:700;color:var(--text-strong);">\uD83D\uDC64 ' + escHtml(o.customer) + '</span>' +
-            (o.phone ? '<span style="font-size:.75rem;color:#60a5fa;font-weight:600;">\uD83D\uDCDE ' + escHtml(o.phone) + '</span>' : '') +
-            (o.address ? '<span style="font-size:.72rem;color:var(--text-muted);line-height:1.4;">\uD83D\uDCCD ' + escHtml(o.address) + '</span>' : '') +
-            '</div>';
-    }
-
     // Items preview (up to 3)
     var itemsHtml = '<div class="order-card-items">';
     o.items.slice(0, 3).forEach(function(item) {
@@ -1250,7 +1239,7 @@ function buildSoloOrderCard(o) {
         metaLine1: metaLine1,
         metaLine2: '\u23F0 ' + escHtml(o.date_short || o.date),
         total:     o.total,
-        body:      metaDelivery + itemsHtml,
+        body:      itemsHtml,
         actions:   actionsHtml,
     });
 }
@@ -1828,6 +1817,7 @@ function openManageModal(id) {
                 '<p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .25rem;">Customer</p>' +
                 '<p style="font-weight:600;color:var(--text-strong);font-size:.8rem;margin:0;">' + escHtml(o.customer) + '</p>' +
                 '<p style="color:var(--text-muted);font-size:.7rem;margin:.1rem 0 0;">' + escHtml(o.email) + '</p>' +
+                (o.phone ? '<p style="color:#60a5fa;font-size:.75rem;font-weight:600;margin:.15rem 0 0;display:flex;align-items:center;gap:.3rem;"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>' + escHtml(o.phone) + '</p>' : '') +
             '</div>' +
             '<div style="background:var(--bg-filter);border-radius:.625rem;padding:.75rem;">' +
                 '<p style="font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .25rem;">Payment &middot; Total</p>' +
