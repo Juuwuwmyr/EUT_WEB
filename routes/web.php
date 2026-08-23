@@ -125,6 +125,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/cart',                 [\App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
 
     Route::get('/orders',                   [\App\Http\Controllers\OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders/{order}/cancel',   [\App\Http\Controllers\OrderController::class, 'cancel'])->name('orders.cancel');
 
     Route::post ('/profile',          [AuthController::class, 'updateProfile'])->name('profile.update');
     Route::post ('/profile/password', [AuthController::class, 'updatePassword'])->name('profile.password');
@@ -147,6 +148,15 @@ Route::prefix('api/print-server')->middleware(['auth.printserver'])->group(funct
 Route::post('/auth/login',  [AuthController::class, 'login'])->name('auth.login');
 Route::post('/auth/signup', [AuthController::class, 'signup'])->middleware('throttle:5,1')->name('auth.signup');
 Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout')->middleware('auth');
+
+// ── Push Notifications ──────────────────────────────────────────────────────
+Route::get('/push/vapid-key',   [\App\Http\Controllers\PushController::class, 'vapidKey'])->name('push.vapid-key');
+Route::post('/push/subscribe',  [\App\Http\Controllers\PushController::class, 'subscribe'])->middleware('auth')->name('push.subscribe');
+Route::post('/push/unsubscribe',[\App\Http\Controllers\PushController::class, 'unsubscribe'])->middleware('auth')->name('push.unsubscribe');
+
+// ── PayMongo ────────────────────────────────────────────────────────────────
+Route::post('/payments/create-link', [\App\Http\Controllers\PayMongoController::class, 'createPaymentLink'])->middleware('auth')->name('payments.create-link');
+Route::post('/webhooks/paymongo',    [\App\Http\Controllers\PayMongoController::class, 'webhook'])->name('paymongo.webhook');
 
 // ── Forgot Password (OTP flow) ──────────────────────────────
 Route::prefix('auth/forgot-password')->name('password.')->middleware('throttle:10,1')->group(function () {

@@ -323,6 +323,15 @@ class OrderController extends Controller
 
             try { broadcast(new OrderStatusUpdated($order))->toOthers(); } catch (\Throwable $be) { \Log::warning('Broadcast failed (new order): ' . $be->getMessage()); }
 
+            // Send order confirmation email to logged-in users
+            if (auth()->check() && auth()->user()->email) {
+                try {
+                    auth()->user()->notify(new \App\Notifications\OrderConfirmationNotification($order));
+                } catch (\Throwable $me) {
+                    \Log::warning('Order confirmation email failed: ' . $me->getMessage());
+                }
+            }
+
             return response()->json([
                 'success'      => true,
                 'order_id'     => $order->id,

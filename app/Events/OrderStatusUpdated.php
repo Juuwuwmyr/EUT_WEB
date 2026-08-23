@@ -61,6 +61,32 @@ class OrderStatusUpdated implements ShouldBroadcast
                 'modifiers' => $i->modifiers ?? [],
             ])->all(),
         ];
+
+        // Send push notification to customer on key status changes
+        if ($order->user_id) {
+            $pushMessages = [
+                'pending'          => ['🛒 Order Received!',        "Your order #{$order->order_number} has been received."],
+                'accepted'         => ['✅ Order Accepted!',         "Your order #{$order->order_number} is now being prepared."],
+                'preparing'        => ['👨‍🍳 Cooking Now!',             "Chef is preparing your order #{$order->order_number}."],
+                'out_for_delivery' => ['🏍️ On the Way!',             "Your order #{$order->order_number} is out for delivery!"],
+                'delivered'        => ['🎉 Order Delivered!',        "Enjoy your meal! Order #{$order->order_number} has been delivered."],
+                'cancelled'        => ['❌ Order Cancelled',          "Your order #{$order->order_number} has been cancelled."],
+            ];
+
+            if (isset($pushMessages[$order->status])) {
+                [$title, $body] = $pushMessages[$order->status];
+                try {
+                    \App\Services\WebPushService::sendToUser($order->user_id, $title, $body, [
+                        'url'          => '/shop/tracking',
+                        'order_id'     => $order->id,
+                        'order_number' => $order->order_number,
+                        'status'       => $order->status,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('[WebPush] Failed: ' . $e->getMessage());
+                }
+            }
+        }
     }
 
     /**

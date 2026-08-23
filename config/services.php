@@ -41,4 +41,25 @@ return [
         'redirect'      => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    // ── Web Push VAPID ────────────────────────────────────────────────────────
+    // Generate keys with: php artisan tinker
+    //   $keys = \App\Services\VapidKeyGenerator::generate();
+    //   echo $keys['publicKey'] . "\n" . $keys['privateKey'];
+    // Or use: npx web-push generate-vapid-keys
+    'vapid' => [
+        'public_key'  => env('VAPID_PUBLIC_KEY', ''),
+        'private_key' => env('VAPID_PRIVATE_KEY', ''),
+        'subject'     => env('VAPID_SUBJECT', 'mailto:eut@example.com'),
+    ],
+
+    // ── PayMongo ─────────────────────────────────────────────────────────────
+    // Dashboard: https://dashboard.paymongo.com
+    // Test keys start with sk_test_ / pk_test_
+    // Live keys start with sk_live_ / pk_live_
+    'paymongo' => [
+        'public_key'     => env('PAYMONGO_PUBLIC_KEY', ''),
+        'secret_key'     => env('PAYMONGO_SECRET_KEY', ''),
+        'webhook_secret' => env('PAYMONGO_WEBHOOK_SECRET', ''),
+    ],
+
 ];

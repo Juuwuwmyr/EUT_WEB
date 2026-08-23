@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
 
+        // Exempt PayMongo webhook from CSRF
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/paymongo',
+        ]);
+
         $middleware->alias([
             'admin'            => \App\Http\Middleware\AdminMiddleware::class,
             'rider'            => \App\Http\Middleware\RiderMiddleware::class,
