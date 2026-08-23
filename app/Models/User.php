@@ -57,6 +57,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'chef';
     }
 
+    public function isWaiter(): bool
+    {
+        return $this->role === 'waiter';
+    }
+
     public function isGoogleUser(): bool
     {
         return $this->provider === 'google';

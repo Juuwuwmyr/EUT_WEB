@@ -59,7 +59,11 @@ class AuthController extends Controller
                 ? route('admin.dashboard')
                 : ($loggedIn->isRider()
                     ? route('rider.dashboard')
-                    : ($loggedIn->isChef() ? route('chef.dashboard') : route('shop.home')));
+                    : ($loggedIn->isChef()
+                        ? route('chef.dashboard')
+                        : ($loggedIn->isWaiter()
+                            ? route('waiter.dashboard')
+                            : route('shop.home'))));
 
             \Log::info('LOGIN REDIRECT', ['email' => $loggedIn->email, 'role' => $loggedIn->role, 'redirect' => $redirect]);
 
@@ -528,7 +532,11 @@ class AuthController extends Controller
             ? route('admin.dashboard')
             : ($user->isRider()
                 ? route('rider.dashboard')
-                : ($user->isChef() ? route('chef.dashboard') : route('shop.home')));
+                : ($user->isChef()
+                    ? route('chef.dashboard')
+                    : ($user->isWaiter()
+                        ? route('waiter.dashboard')
+                        : route('shop.home'))));
 
         return redirect($redirect)->with('success', 'Welcome, ' . $user->name . '!');
     }

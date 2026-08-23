@@ -93,8 +93,8 @@
             ],
             [
                 'label' => 'Staff',
-                'value' => $stats['admin_users'] + $stats['chef_users'] + $stats['rider_users'],
-                'sub'   => $stats['chef_users'] . ' chefs · ' . $stats['rider_users'] . ' riders',
+                'value' => $stats['admin_users'] + $stats['chef_users'] + $stats['rider_users'] + ($stats['waiter_users'] ?? 0),
+                'sub'   => $stats['chef_users'] . ' chefs · ' . $stats['rider_users'] . ' riders · ' . ($stats['waiter_users'] ?? 0) . ' waiters',
                 'icon'  => 'shield-check',
                 'color' => '#dc2626',
                 'bg'    => 'rgba(220,38,38,0.10)',

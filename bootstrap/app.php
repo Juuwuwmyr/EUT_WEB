@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin'            => \App\Http\Middleware\AdminMiddleware::class,
             'rider'            => \App\Http\Middleware\RiderMiddleware::class,
             'chef'             => \App\Http\Middleware\ChefMiddleware::class,
+            'waiter'           => \App\Http\Middleware\WaiterMiddleware::class,
             'auth.printserver' => \App\Http\Middleware\PrintServerMiddleware::class,
             'admin.verify'     => \App\Http\Middleware\RequireAdminVerification::class,
             'admin.sync-verify'=> \App\Http\Middleware\SyncAdminVerificationScope::class,

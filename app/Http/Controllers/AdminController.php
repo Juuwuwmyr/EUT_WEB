@@ -78,6 +78,7 @@ class AdminController extends Controller
             'admin_users'      => User::where('role', 'admin')->count(),
             'chef_users'       => User::where('role', 'chef')->count(),
             'rider_users'      => User::where('role', 'rider')->count(),
+            'waiter_users'     => User::where('role', 'waiter')->count(),
             'active_riders'    => \App\Models\Rider::where('is_available', true)->count(),
             'total_items'      => MenuItem::active()->count(),
             'total_categories' => Category::active()->count(),
@@ -218,7 +219,7 @@ class AdminController extends Controller
 
     public function updateUserRole(Request $request, User $user)
     {
-        $request->validate(['role' => ['required', Rule::in(['admin', 'user', 'chef'])]]);
+        $request->validate(['role' => ['required', Rule::in(['admin', 'user', 'chef', 'rider', 'waiter'])]]);
 
         if ($user->id === auth()->id() && $request->role !== 'admin') {
             return back()->with('error', 'You cannot remove your own admin role.');

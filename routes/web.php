@@ -71,6 +71,18 @@ Route::get('/menu-pdf', function () {
 });
 
 // -------------------------------------------------------
+// Waiter panel
+// -------------------------------------------------------
+Route::prefix('waiter')->name('waiter.')->middleware(['auth', 'waiter'])->group(function () {
+    Route::get('/dashboard',                     [\App\Http\Controllers\WaiterController::class, 'dashboard'])->name('dashboard');
+    Route::get('/orders',                        [\App\Http\Controllers\WaiterController::class, 'getOrders'])->name('orders');
+    Route::post('/orders/{order}/serve',         [\App\Http\Controllers\WaiterController::class, 'serveOrder'])->name('orders.serve');
+    Route::post('/orders/{order}/request-bill',  [\App\Http\Controllers\WaiterController::class, 'requestBill'])->name('orders.request-bill');
+    // Waiter ordering page — selects table from dropdown
+    Route::get('/order',                         [\App\Http\Controllers\WaiterController::class, 'orderPage'])->name('order');
+});
+
+// -------------------------------------------------------
 // Rider panel
 // -------------------------------------------------------
 Route::prefix('rider')->name('rider.')->middleware(['auth', 'rider'])->group(function () {
