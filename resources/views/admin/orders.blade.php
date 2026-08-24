@@ -284,8 +284,8 @@ html.light .order-card-subrow {
     </button>
 </div>
 
-{{-- -- ERROR LOG PANEL -- --}}
-<div id="errorLogPanel" style="display:none;margin-bottom:1.25rem;border:1px solid rgba(239,68,68,.35);border-radius:.75rem;background:rgba(239,68,68,.06);overflow:hidden;">
+{{-- -- ERROR LOG PANEL (temporarily hidden) -- --}}
+{{-- <div id="errorLogPanel" style="display:none;margin-bottom:1.25rem;border:1px solid rgba(239,68,68,.35);border-radius:.75rem;background:rgba(239,68,68,.06);overflow:hidden;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;border-bottom:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.08);">
         <div style="display:flex;align-items:center;gap:.5rem;">
             <i data-lucide="alert-triangle" style="width:.9rem;height:.9rem;color:#ef4444;stroke-width:2;"></i>
@@ -302,7 +302,7 @@ html.light .order-card-subrow {
         </div>
     </div>
     <div id="errorLogBody" style="max-height:220px;overflow-y:auto;padding:.5rem .75rem;font-family:monospace;font-size:.72rem;line-height:1.6;"></div>
-</div>
+</div> --}}
 
 {{-- -- TABLE CARD -- --}}
 <div class="section-card">
@@ -441,57 +441,16 @@ var archivedPage      = 1;
 var archivedTotalPages = 1;
 var archivedTotal     = 0;
 
-// -- Error Log --------------------------------------------
+// -- Error Log (UI hidden — logging to console only) ----------------------
 var errorLogEntries = [];
 
 function logError(context, message, detail) {
-    var ts = new Date().toLocaleTimeString();
-    var entry = { ts: ts, context: context, message: message, detail: detail || '' };
-    errorLogEntries.push(entry);
-
-    var panel = document.getElementById('errorLogPanel');
-    var body  = document.getElementById('errorLogBody');
-    var count = document.getElementById('errorCount');
-
-    if (panel) panel.style.display = 'block';
-    if (count) count.textContent = errorLogEntries.length;
-
-    if (body) {
-        var color = '#ef4444';
-        var row = document.createElement('div');
-        row.style.cssText = 'padding:3px 0;border-bottom:1px solid rgba(239,68,68,.1);display:flex;gap:.5rem;align-items:flex-start;';
-        row.innerHTML =
-            '<span style="color:#6b7280;flex-shrink:0;">' + ts + '</span>' +
-            '<span style="color:#f87171;font-weight:700;flex-shrink:0;">[' + escHtml(context) + ']</span>' +
-            '<span style="color:#fca5a5;word-break:break-all;">' + escHtml(message) +
-                (detail ? '<br><span style="color:#9ca3af;font-size:.68rem;">' + escHtml(String(detail)) + '</span>' : '') +
-            '</span>';
-        body.appendChild(row);
-        body.scrollTop = body.scrollHeight;
-        if (window.lucide) lucide.createIcons();
-    }
+    // UI panel temporarily disabled — errors go to console only
+    console.warn('[' + context + '] ' + message + (detail ? ' | ' + detail : ''));
 }
 
-function copyErrorLog() {
-    if (!errorLogEntries.length) return;
-    var text = errorLogEntries.map(function(e) {
-        return '[' + e.ts + '] [' + e.context + '] ' + e.message + (e.detail ? '\n  ' + e.detail : '');
-    }).join('\n');
-    navigator.clipboard.writeText(text).then(function() {
-        var btn = document.querySelector('#errorLogPanel button');
-        if (btn) { var orig = btn.innerHTML; btn.innerHTML = '? Copied!'; setTimeout(function(){ btn.innerHTML = orig; }, 1500); }
-    });
-}
-
-function clearErrorLog() {
-    errorLogEntries = [];
-    var body  = document.getElementById('errorLogBody');
-    var panel = document.getElementById('errorLogPanel');
-    var count = document.getElementById('errorCount');
-    if (body)  body.innerHTML = '';
-    if (panel) panel.style.display = 'none';
-    if (count) count.textContent = '0';
-}
+function copyErrorLog() {}
+function clearErrorLog() {}
 
 // -- Status config (client-side) -------------------------
 var STATUS_COLOR_MAP = {
