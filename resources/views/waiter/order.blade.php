@@ -24,6 +24,15 @@
         .table-select{width:100%;padding:.875rem 1rem;background:rgba(74,222,128,.08);border:1.5px solid rgba(74,222,128,.35);border-radius:14px;color:#4ade80;font-size:1rem;font-weight:700;outline:none;appearance:none;cursor:pointer;}
         .table-select option{background:#111;color:#fff;}
 
+        /* SEARCH BAR */
+        .menu-search-wrap{max-width:560px;margin:0 auto;padding:8px 16px 0;position:relative;}
+        .menu-search-input{width:100%;padding:.6rem 2.5rem .6rem 2.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:99px;color:#fff;font-size:.875rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+        .menu-search-input::placeholder{color:#4b5563;}
+        .menu-search-input:focus{border-color:rgba(74,222,128,.45);box-shadow:0 0 0 3px rgba(74,222,128,.1);background:rgba(255,255,255,.08);}
+        .menu-search-icon{position:absolute;left:1.9rem;top:50%;transform:translateY(-20%);color:#4b5563;pointer-events:none;display:flex;}
+        .menu-search-clear{position:absolute;right:1.75rem;top:50%;transform:translateY(-20%);background:none;border:none;color:#4b5563;cursor:pointer;display:none;align-items:center;justify-content:center;width:1.25rem;height:1.25rem;border-radius:50%;padding:0;line-height:1;}
+        .menu-search-clear:hover{color:#fff;}
+
         /* CATEGORY PILLS */
         .cats-bar{position:sticky;top:56px;z-index:40;background:#080810;border-bottom:1px solid rgba(255,255,255,.06);}
         .cats-inner{max-width:560px;margin:0 auto;padding:10px 16px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;}
@@ -147,8 +156,17 @@
     </p>
 </div>
 
-{{-- CATEGORY PILLS --}}
+{{-- CATEGORY PILLS + SEARCH --}}
 <div class="cats-bar">
+    <div class="menu-search-wrap">
+        <span class="menu-search-icon">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </span>
+        <input type="text" id="menuSearch" class="menu-search-input" placeholder="Search menu…" oninput="onMenuSearch()">
+        <button class="menu-search-clear" id="menuSearchClear" onclick="clearMenuSearch()" title="Clear">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    </div>
     <div class="cats-inner" id="catPills">
         <button class="cat-pill active" onclick="filterCat('all', this)">All</button>
         @foreach($categories as $cat)
@@ -318,12 +336,54 @@ function onTableChange(val) {
 }
 
 // ── Category filter ─────────────────────────────────────────────────────────
+let activeCatSlug = 'all';
+let menuSearchQuery = '';
+let menuSearchDebounce = null;
+
+function applyFilters() {
+    let anyVisible = false;
+    document.querySelectorAll('.p-card').forEach(card => {
+        const catMatch  = activeCatSlug === 'all' || card.dataset.cat === activeCatSlug;
+        const name      = (card.querySelector('.p-card-name')?.textContent || '').toLowerCase();
+        const queryMatch = !menuSearchQuery || name.includes(menuSearchQuery);
+        const show = catMatch && queryMatch;
+        card.style.display = show ? '' : 'none';
+        if (show) anyVisible = true;
+    });
+    // Show/hide empty state
+    let emptyEl = document.getElementById('menuEmpty');
+    if (!emptyEl) {
+        emptyEl = document.createElement('p');
+        emptyEl.id = 'menuEmpty';
+        emptyEl.style.cssText = 'grid-column:1/-1;text-align:center;padding:3rem 1rem;color:#6b7280;font-size:.875rem;';
+        document.getElementById('productsGrid').appendChild(emptyEl);
+    }
+    emptyEl.style.display = anyVisible ? 'none' : '';
+    emptyEl.textContent   = menuSearchQuery ? `No items found for "${menuSearchQuery}".` : 'No items in this category.';
+}
+
 function filterCat(slug, btn) {
+    activeCatSlug = slug;
     document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    document.querySelectorAll('.p-card').forEach(card => {
-        card.style.display = (slug === 'all' || card.dataset.cat === slug) ? '' : 'none';
-    });
+    applyFilters();
+}
+
+function onMenuSearch() {
+    clearTimeout(menuSearchDebounce);
+    menuSearchDebounce = setTimeout(() => {
+        menuSearchQuery = document.getElementById('menuSearch').value.trim().toLowerCase();
+        const clearBtn = document.getElementById('menuSearchClear');
+        clearBtn.style.display = menuSearchQuery ? 'flex' : 'none';
+        applyFilters();
+    }, 200);
+}
+
+function clearMenuSearch() {
+    document.getElementById('menuSearch').value = '';
+    document.getElementById('menuSearchClear').style.display = 'none';
+    menuSearchQuery = '';
+    applyFilters();
 }
 
 // ── Item Sheet ───────────────────────────────────────────────────────────────
