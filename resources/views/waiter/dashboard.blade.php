@@ -144,7 +144,7 @@
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
         Pending
     </button>
-    <a href="{{ route('shop.home') }}" class="w-bnav-item">
+    <a href="{{ route('waiter.order') }}" class="w-bnav-item">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
         Menu
     </a>
