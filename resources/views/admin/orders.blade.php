@@ -1195,7 +1195,7 @@ function buildSoloOrderCard(o) {
         var typeBg    = o.order_type === 'delivery' ? 'rgba(96,165,250,.15)'  : 'rgba(167,139,250,.15)';
         var typeBorder= o.order_type === 'delivery' ? 'rgba(96,165,250,.4)'   : 'rgba(167,139,250,.4)';
         var typeColor = o.order_type === 'delivery' ? '#60a5fa'                : '#a78bfa';
-        headerLeft = typeIcon + ' <span style="background:' + typeBg + ';border:1px solid ' + typeBorder + ';border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:' + typeColor + ';letter-spacing:.01em;">' + typeLabel + '</span>';
+        headerLeft = '<span style="display:inline-flex;align-items:center;gap:.35rem;background:' + typeBg + ';border:1px solid ' + typeBorder + ';border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:' + typeColor + ';letter-spacing:.01em;">' + typeIcon + ' ' + typeLabel + '</span>';
         metaLine1 = '';
     }
 
