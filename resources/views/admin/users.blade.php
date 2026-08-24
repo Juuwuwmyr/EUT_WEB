@@ -1,4 +1,4 @@
-@extends('admin.layout')
+﻿@extends('admin.layout')
 @section('title', 'Users')
 
 @section('content')
@@ -173,6 +173,8 @@
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                             <option value="chef">Chef / Kitchen</option>
+                            <option value="rider">Rider / Delivery</option>
+                            <option value="waiter">Waiter / Service</option>
                         </select>
                     </div>
                 </div>
@@ -221,6 +223,8 @@
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                             <option value="chef">Chef / Kitchen</option>
+                            <option value="rider">Rider / Delivery</option>
+                            <option value="waiter">Waiter / Service</option>
                         </select>
                     </div>
                 </div>
