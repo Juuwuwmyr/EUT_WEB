@@ -367,6 +367,40 @@ html.light .order-card-subrow {
     </div>
 </div>
 
+{{-- ══════════ CANCEL ORDER CONFIRM MODAL ══════════ --}}
+<div id="cancelConfirmModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'cancelConfirmModal')">
+    <div class="modal-box" style="max-width:380px;">
+        <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="alert-triangle" style="width:1.1rem;height:1.1rem;color:#ef4444;stroke-width:2;"></i>
+                <h3 class="modal-title">Cancel Order</h3>
+            </div>
+            <button onclick="closeModal('cancelConfirmModal')" class="modal-close">
+                <i data-lucide="x" style="width:1rem;height:1rem;stroke-width:2.5;"></i>
+            </button>
+        </div>
+        <div class="modal-body" style="gap:.75rem;padding:1.25rem 1.4rem;">
+            <div style="display:flex;align-items:flex-start;gap:.875rem;">
+                <div style="flex-shrink:0;width:2.5rem;height:2.5rem;border-radius:.625rem;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);display:flex;align-items:center;justify-content:center;">
+                    <i data-lucide="x-circle" style="width:1.1rem;height:1.1rem;color:#ef4444;stroke-width:2;"></i>
+                </div>
+                <div>
+                    <p style="margin:0 0 .3rem;font-size:.875rem;font-weight:700;color:var(--text-strong);">Are you sure?</p>
+                    <p style="margin:0;font-size:.8rem;color:var(--text-muted);line-height:1.5;">This will cancel <strong id="cancelOrderLabel" style="color:var(--text-body);">this order</strong>. This action cannot be undone.</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeModal('cancelConfirmModal')" class="btn-ghost" style="font-size:.8rem;">
+                Keep Order
+            </button>
+            <button id="cancelConfirmBtn" class="btn-danger" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.35rem;">
+                <i data-lucide="x-circle" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Yes, Cancel Order
+            </button>
+        </div>
+    </div>
+</div>
+
 {{-- ══════════ ORDER PREVIEW MODAL (View before Accept) ══════════ --}}
 <div id="previewModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'previewModal')">
     <div class="modal-box" style="max-width:420px;">
@@ -1453,6 +1487,25 @@ async function quickAccept(orderId, btn) {
     await quickAction(orderId, 'accept', '', btn);
 }
 
+// -- Cancel order confirmation modal --------------------------------------
+function openCancelConfirm(orderId, orderNumber) {
+    var label = document.getElementById('cancelOrderLabel');
+    if (label) label.textContent = orderNumber || 'this order';
+
+    var btn = document.getElementById('cancelConfirmBtn');
+    // Remove any previous listener by cloning the button
+    var fresh = btn.cloneNode(true);
+    btn.parentNode.replaceChild(fresh, btn);
+    fresh.addEventListener('click', function() {
+        var form = document.getElementById('cancelOrderForm-' + orderId);
+        if (form) form.submit();
+        closeModal('cancelConfirmModal');
+    });
+
+    openModal('cancelConfirmModal');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
 // -- Preview modal: show full order before accepting -----------------------
 function openPreviewModal(id) {
     var o = ORDERS_MAP[id];
@@ -1804,11 +1857,11 @@ function openManageModal(id) {
 
     if (['pending','accepted','preparing','rider_assigned','out_for_delivery'].includes(o.status)) {
         actionsHtml +=
-            '<form method="POST" action="' + statusRoute.replace(':id', o.id) + '" style="margin-top:.25rem;" onsubmit="return confirm(\'Cancel this order?\')">' +
+            '<form id="cancelOrderForm-' + o.id + '" method="POST" action="' + statusRoute.replace(':id', o.id) + '" style="margin-top:.25rem;">' +
                 '<input type="hidden" name="_token" value="' + CSRF_TOKEN + '">' +
                 '<input type="hidden" name="_method" value="PATCH">' +
                 '<input type="hidden" name="status" value="cancelled">' +
-                '<button type="submit" class="btn-danger" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;width:100%;justify-content:center;">' +
+                '<button type="button" class="btn-danger" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;width:100%;justify-content:center;" onclick="openCancelConfirm(' + o.id + ', \'' + escHtml(o.order_number) + '\')">' +
                     '<i data-lucide="x-circle" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Cancel Order' +
                 '</button>' +
             '</form>';
