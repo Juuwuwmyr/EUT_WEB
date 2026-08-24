@@ -476,10 +476,10 @@ class AdminController extends Controller
             'groups.*.options.*.is_active'          => 'nullable|boolean',
         ]);
 
-        // Handle image upload
+        // Handle image upload — always converted to WebP for a lighter, consistent shop
         $imagePath = '/images/hero-burger.webp';
         if ($request->hasFile('image_file')) {
-            $imagePath = '/storage/' . $request->file('image_file')->store('menu-items', 'public');
+            $imagePath = '/storage/' . \App\Services\ImageUploadService::storeAsWebp($request->file('image_file'), 'menu-items');
         }
 
         $item = MenuItem::create([
@@ -533,9 +533,10 @@ class AdminController extends Controller
         ]);
 
         // Handle image upload — use new file if provided, otherwise keep existing
+        // (always converted to WebP for a lighter, consistent shop)
         $imagePath = $menuItem->image;
         if ($request->hasFile('image_file')) {
-            $imagePath = '/storage/' . $request->file('image_file')->store('menu-items', 'public');
+            $imagePath = '/storage/' . \App\Services\ImageUploadService::storeAsWebp($request->file('image_file'), 'menu-items');
         } elseif ($request->input('image_existing') !== null) {
             $imagePath = $request->input('image_existing') ?: $menuItem->image;
         }
