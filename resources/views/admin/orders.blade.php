@@ -1196,7 +1196,7 @@ function renderGrid(orders) {
 
         html += buildOrderCard({
             cardId:    'group-' + sessionKey.replace(/[^a-z0-9]/gi,'_'),
-            headerLeft: '\uD83E\uDE91 <span style="background:rgba(250,204,21,.18);border:1px solid rgba(250,204,21,.4);border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(tableNum) + '</span>' +
+            headerLeft: '\uD83E\uDE91 <span style="background:rgba(250,204,21,.18);border:1px solid rgba(250,204,21,.4);border-radius:.4rem;padding:.15rem .6rem;font-size:1.1rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(tableNum) + '</span>' +
                 (isSessionLocked ? ' <span class="oc-locked-sm">\uD83D\uDD12</span>' : ''),
             sc:        sc,
             metaLine1: group.length + ' order(s) \u00B7 ' + escHtml(rep.date_short || rep.date),
@@ -1222,7 +1222,7 @@ function buildSoloOrderCard(o) {
     var isDineIn = o.order_type === 'dine_in' && o.table_number;
     var headerLeft, metaLine1;
     if (isDineIn) {
-        headerLeft = '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>';
+        headerLeft = '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.15rem .6rem;font-size:1.1rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>';
         metaLine1 = '';
     } else {
         var typeIcon  = o.order_type_icon || '';
@@ -1230,7 +1230,7 @@ function buildSoloOrderCard(o) {
         var typeBg    = o.order_type === 'delivery' ? 'rgba(96,165,250,.15)'  : 'rgba(167,139,250,.15)';
         var typeBorder= o.order_type === 'delivery' ? 'rgba(96,165,250,.4)'   : 'rgba(167,139,250,.4)';
         var typeColor = o.order_type === 'delivery' ? '#60a5fa'                : '#a78bfa';
-        headerLeft = '<span style="display:inline-flex;align-items:center;gap:.35rem;background:' + typeBg + ';border:1px solid ' + typeBorder + ';border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:' + typeColor + ';letter-spacing:.01em;">' + typeIcon + ' ' + typeLabel + '</span>';
+        headerLeft = '<span style="display:inline-flex;align-items:center;gap:.35rem;background:' + typeBg + ';border:1px solid ' + typeBorder + ';border-radius:.4rem;padding:.15rem .6rem;font-size:1.1rem;font-weight:800;color:' + typeColor + ';letter-spacing:.01em;">' + typeIcon + ' ' + typeLabel + '</span>';
         metaLine1 = '';
     }
 
