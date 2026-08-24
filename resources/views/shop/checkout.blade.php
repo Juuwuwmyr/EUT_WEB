@@ -10,7 +10,7 @@
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
         body{background:#080810;color:#fff;min-height:100vh;}
-        .topnav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,16,.98);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.06);will-change:transform;transform:translate3d(0,0,0);}
+        .topnav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(8,8,16,.98);border-bottom:1px solid rgba(255,255,255,.06);will-change:transform;transform:translate3d(0,0,0);}
         .topnav-inner{max-width:760px;margin:0 auto;padding:13px 16px;display:flex;align-items:center;gap:10px;}
         .back-btn{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#9ca3af;text-decoration:none;transition:all .2s;flex-shrink:0;}
         .back-btn:hover{background:rgba(255,255,255,.12);color:#fff;}
@@ -19,10 +19,10 @@
         .page-body{max-width:760px;margin:0 auto;padding:78px 16px 120px;}
         .checkout-grid{display:grid;grid-template-columns:1fr;gap:14px;}
         @media(min-width:660px){.checkout-grid{grid-template-columns:1fr 320px;align-items:start;}}
-        .card{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:20px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 24px rgba(0,0,0,.4);}
+        .card{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.35);}
         .card:last-child{margin-bottom:0;}
         .card-header{padding:15px 18px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:10px;}
-        .card-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .card-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .card-title{font-size:14px;font-weight:700;color:#fff;flex:1;}
         .card-body{padding:16px 18px;}
 
@@ -44,7 +44,7 @@
         .btn-add-addr:hover{background:rgba(250,204,21,.18);}
 
         /* ── PAYMENT ── */
-        .pay-option{display:flex;align-items:center;gap:14px;padding:13px 14px;border:1.5px solid rgba(255,255,255,.07);border-radius:14px;cursor:pointer;transition:all .2s;margin-bottom:8px;}
+        .pay-option{display:flex;align-items:center;gap:14px;padding:13px 14px;border:1.5px solid rgba(255,255,255,.07);border-radius:10px;cursor:pointer;transition:all .2s;margin-bottom:8px;}
         .pay-option:last-child{margin-bottom:0;}
         .pay-option:hover{border-color:rgba(250,204,21,.3);}
         .pay-option.selected{border-color:#facc15;background:rgba(250,204,21,.06);}
@@ -72,8 +72,8 @@
         .free-bar-wrap{margin:0 18px 12px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:10px;}
         .free-bar-track{height:4px;border-radius:99px;background:#1a1b2e;overflow:hidden;flex:1;}
         .free-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#16a34a,#4ade80);transition:width .6s ease;}
-        .place-btn{display:block;margin:4px 18px 18px;padding:15px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(250,204,21,.3);text-align:center;width:calc(100% - 36px);}
-        .place-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(250,204,21,.45);}
+        .place-btn{display:block;margin:4px 18px 18px;padding:15px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#facc15);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(250,204,21,.25);text-align:center;width:calc(100% - 36px);}
+        .place-btn:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(250,204,21,.35);}
         .place-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
         .guest-notice{margin:4px 18px 18px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:12px 14px;font-size:12px;color:#f87171;text-align:center;}
         .guest-notice a{color:#facc15;font-weight:700;}
@@ -83,16 +83,16 @@
         @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
         /* ── BOTTOM NAV ── */
-        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.97);border-top:1px solid rgba(255,255,255,.07);backdrop-filter:blur(20px);padding:10px 0 14px;z-index:100;will-change:transform;transform:translate3d(0,0,0);}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.98);border-top:1px solid rgba(255,255,255,.07);padding:10px 0 14px;z-index:100;will-change:transform;transform:translate3d(0,0,0);}
         @media(min-width:1024px){.bottom-nav{display:none;}}
         .bottom-nav-inner{display:flex;}
         .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#4b5563;text-decoration:none;font-size:10px;font-weight:500;transition:color .15s;}
         .bnav-item.active{color:#facc15;}
 
         /* ── SHEET (address picker / add form) ── */
-        .sheet-backdrop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s;}
+        .sheet-backdrop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.8);opacity:0;pointer-events:none;transition:opacity .3s;}
         .sheet-backdrop.open{opacity:1;pointer-events:all;}
-        .sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(110%);width:100%;max-width:560px;z-index:400;background:#0e0f1a;border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;transition:transform .38s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow-y:auto;}
+        .sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(110%);width:100%;max-width:560px;z-index:400;background:#0e0f1a;border-radius:16px 16px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;transition:transform .38s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow-y:auto;}
         @media(max-width:560px){.sheet{left:0;transform:translateY(110%);}}
         .sheet.open{transform:translateX(-50%) translateY(0);}
         @media(max-width:560px){.sheet.open{transform:translateY(0);}}
@@ -152,23 +152,23 @@
 <body>
 
 {{-- Naujan-Only Geo-Restriction (same logic as shop index) --}}
-<div id="geoOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(4,4,10,0.97);backdrop-filter:blur(20px);align-items:center;justify-content:center;flex-direction:column;font-family:'Inter',sans-serif;">
+<div id="geoOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(4,4,10,0.97);align-items:center;justify-content:center;flex-direction:column;font-family:'Inter',sans-serif;">
     <style>
         @keyframes geoPulse2{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}60%{box-shadow:0 0 0 20px rgba(239,68,68,0)}}
         @keyframes geoFloat2{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
         @keyframes spin2{to{transform:rotate(360deg)}}
-        #geoOverlay .geo-card{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(239,68,68,0.3);border-radius:28px;padding:40px 36px;max-width:420px;width:calc(100% - 32px);text-align:center;box-shadow:0 40px 80px rgba(0,0,0,0.8);}
+        #geoOverlay .geo-card{background:linear-gradient(145deg,#12131f,#0e0f1a);border:1px solid rgba(239,68,68,0.3);border-radius:16px;padding:40px 36px;max-width:420px;width:calc(100% - 32px);text-align:center;box-shadow:0 16px 40px rgba(0,0,0,0.6);}
         #geoOverlay .geo-icon-ring{width:88px;height:88px;border-radius:50%;margin:0 auto 24px;background:rgba(239,68,68,0.1);border:2px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:center;font-size:40px;animation:geoPulse2 2.5s ease-in-out infinite,geoFloat2 4s ease-in-out infinite;}
         #geoOverlay .geo-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:10px;line-height:1.25;}
         #geoOverlay .geo-subtitle{font-size:13px;color:#6b7280;line-height:1.7;margin-bottom:20px;}
         #geoOverlay .geo-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#f87171;font-size:12px;font-weight:700;padding:7px 16px;border-radius:99px;margin-bottom:28px;letter-spacing:0.04em;text-transform:uppercase;}
-        #geoOverlay .geo-dist-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px 20px;margin-bottom:24px;display:none;}
+        #geoOverlay .geo-dist-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:16px 20px;margin-bottom:24px;display:none;}
         #geoOverlay .geo-dist-box.visible{display:block;}
         #geoOverlay .geo-dist-label{font-size:11px;color:#4b5563;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
         #geoOverlay .geo-dist-val{font-size:28px;font-weight:900;color:#ef4444;letter-spacing:-0.02em;}
         #geoOverlay .geo-dist-unit{font-size:13px;color:#6b7280;font-weight:500;}
         #geoOverlay .geo-map-pin{display:flex;align-items:center;gap:8px;font-size:12px;color:#4b5563;justify-content:center;margin-bottom:24px;}
-        #geoOverlay .geo-back-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;border-radius:14px;padding:14px 32px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;width:100%;box-shadow:0 4px 18px rgba(220,38,38,0.4);text-decoration:none;}
+        #geoOverlay .geo-back-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;border-radius:10px;padding:14px 32px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;width:100%;box-shadow:0 4px 14px rgba(220,38,38,0.35);text-decoration:none;}
         #geoOverlay .geo-checking{display:flex;flex-direction:column;align-items:center;gap:12px;color:#9ca3af;font-size:13px;}
         #geoOverlay .geo-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,0.08);border-top-color:#facc15;border-radius:50%;animation:spin2 0.8s linear infinite;}
     </style>
@@ -282,6 +282,7 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-icon" style="background:rgba(250,204,21,.1);">
+
                     <svg width="15" height="15" fill="none" stroke="#facc15" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                 </div>
                 <span class="card-title">Order Type</span>
@@ -315,7 +316,7 @@
             </div>
             <div class="card-body" style="padding-bottom:16px;">
                 <!-- Confirmed table display (shown after scan/QR) -->
-                <div id="tableConfirmedDisplay" style="display:none;align-items:center;gap:14px;padding:12px 14px;background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.22);border-radius:14px;margin-bottom:10px;">
+                <div id="tableConfirmedDisplay" style="display:none;align-items:center;gap:14px;padding:12px 14px;background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.22);border-radius:10px;margin-bottom:10px;">
                     <span style="font-size:28px;">🪑</span>
                     <div style="flex:1;min-width:0;">
                         <p style="font-size:14px;font-weight:800;color:#facc15;margin:0 0 2px;" id="tableConfirmedLabel">Table —</p>
@@ -326,13 +327,13 @@
                     </button>
                 </div>
                 <!-- Prompt to scan (shown when no table is set) -->
-                <div id="tableScanPrompt" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 14px;border:1.5px dashed rgba(250,204,21,.25);border-radius:14px;">
+                <div id="tableScanPrompt" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 14px;border:1.5px dashed rgba(250,204,21,.25);border-radius:10px;">
                     <span style="font-size:32px;">📷</span>
                     <div style="text-align:center;">
                         <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 3px;">Scan Your Table QR Code</p>
                         <p style="font-size:11px;color:#6b7280;margin:0;">Point your camera at the QR code on your table</p>
                     </div>
-                    <button type="button" onclick="openTableScanner()" style="padding:11px 28px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);border:none;color:#000;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 3px 14px rgba(250,204,21,.3);">
+                    <button type="button" onclick="openTableScanner()" style="padding:11px 28px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#facc15);border:none;color:#000;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 3px 10px rgba(250,204,21,.25);">
                         📷 Scan QR Code
                     </button>
                     <p style="font-size:11px;color:#4b5563;margin:0;">Or select your table number manually below</p>
@@ -1490,7 +1491,7 @@ if (window.Echo) {
 @include('partials.pwa-register')
 
 <!-- ── LOCATION PERMISSION GATE ── -->
-<div id="locationGate" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(8,8,16,.97);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px;flex-direction:column;text-align:center;">
+<div id="locationGate" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(8,8,16,.97);align-items:center;justify-content:center;padding:24px;flex-direction:column;text-align:center;">
     <div style="max-width:320px;width:100%;">
         <div style="width:80px;height:80px;border-radius:50%;background:rgba(239,68,68,.12);border:2px solid rgba(239,68,68,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:pulse-ring 2s ease-in-out infinite;">
             <svg width="36" height="36" fill="none" stroke="#ef4444" stroke-width="1.75" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5" stroke-width="1.75"/></svg>
@@ -1503,11 +1504,11 @@ if (window.Echo) {
             <p style="font-size:11px;color:#d97706;margin:0 0 4px;line-height:1.6;">• <strong>Safari:</strong> Settings → Safari → Location → Allow</p>
             <p style="font-size:11px;color:#d97706;margin:0;line-height:1.6;">• <strong>Phone:</strong> Settings → Apps → Browser → Permissions → Location → Allow</p>
         </div>
-        <button onclick="retryCheckoutGps()" style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(220,38,38,.4);display:flex;align-items:center;justify-content:center;gap:8px;">
+        <button onclick="retryCheckoutGps()" style="width:100%;padding:15px;border-radius:10px;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(220,38,38,.35);display:flex;align-items:center;justify-content:center;gap:8px;">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg>
             Try Again
         </button>
-        <button onclick="showLocationGate(false)" style="width:100%;margin-top:10px;padding:13px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#9ca3af;font-size:14px;font-weight:600;cursor:pointer;">
+        <button onclick="showLocationGate(false)" style="width:100%;margin-top:10px;padding:13px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#9ca3af;font-size:14px;font-weight:600;cursor:pointer;">
             Continue Without GPS
         </button>
         <p style="font-size:11px;color:#4b5563;margin:14px 0 0;line-height:1.6;">Location is only used to pin your delivery address.<br>We never track you outside this order.</p>
@@ -1527,9 +1528,9 @@ if (window.Echo) {
      Primary: camera QR scan via BarcodeDetector API
      Fallback: dropdown of tables 1–20
 ══════════════════════════════════════════════════════════════ --}}
-<div id="qrScannerBackdrop" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);align-items:flex-end;justify-content:center;"></div>
+<div id="qrScannerBackdrop" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.9);align-items:flex-end;justify-content:center;"></div>
 
-<div id="qrScannerSheet" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(110%);width:100%;max-width:480px;z-index:9001;background:#0e0f1a;border-radius:28px 28px 0 0;border:1px solid rgba(255,255,255,.1);border-bottom:none;transition:transform .38s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow-y:auto;">
+<div id="qrScannerSheet" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(110%);width:100%;max-width:480px;z-index:9001;background:#0e0f1a;border-radius:16px 16px 0 0;border:1px solid rgba(255,255,255,.1);border-bottom:none;transition:transform .38s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow-y:auto;">
     <style>
         /* ── QR Scanner Sheet ── */
         #qrScannerSheet .qr-handle { width:40px;height:4px;border-radius:99px;background:rgba(255,255,255,.15);margin:14px auto 0; }
@@ -1539,7 +1540,7 @@ if (window.Echo) {
         #qrScannerSheet .qr-close-btn:hover { background:rgba(255,255,255,.12);color:#fff; }
         #qrScannerSheet .qr-body { padding:0 20px 32px; }
         /* Camera viewport */
-        #qrVideoWrap { position:relative;border-radius:20px;overflow:hidden;background:#000;aspect-ratio:1;max-height:280px;margin-bottom:16px; }
+        #qrVideoWrap { position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:1;max-height:280px;margin-bottom:16px; }
         #qrVideo { width:100%;height:100%;object-fit:cover;display:block; }
         #qrScanLine { position:absolute;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,#facc15,transparent);animation:scanMove 2s ease-in-out infinite;top:50%; }
         @keyframes scanMove { 0%,100%{top:20%}50%{top:80%} }
@@ -1557,19 +1558,19 @@ if (window.Echo) {
         #qrStatus.success  { color:#4ade80; }
         #qrStatus.error    { color:#f87171; }
         /* Detected table chip */
-        #qrDetectedChip { display:none;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:16px;padding:14px 18px;margin-bottom:16px;text-align:center; }
+        #qrDetectedChip { display:none;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:14px 18px;margin-bottom:16px;text-align:center; }
         #qrDetectedChip .chip-label { font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px; }
         #qrDetectedChip .chip-val { font-size:32px;font-weight:900;color:#4ade80; }
         /* Fallback dropdown */
         #qrFallbackWrap { display:none; }
         #qrFallbackToggle { display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:none;border:none;color:#6b7280;font-size:13px;font-weight:600;cursor:pointer;padding:8px 0;transition:color .2s;margin-bottom:12px; }
         #qrFallbackToggle:hover { color:#9ca3af; }
-        #qrTableSelect { width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:14px;padding:13px 16px;font-size:15px;font-weight:700;color:#fff;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%236b7280' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;font-family:'Inter',sans-serif; }
+        #qrTableSelect { width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 16px;font-size:15px;font-weight:700;color:#fff;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%236b7280' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;font-family:'Inter',sans-serif; }
         #qrTableSelect:focus { border-color:rgba(250,204,21,.5); }
         #qrTableSelect option { background:#0e0f1a;color:#fff; }
         /* Confirm button */
-        #qrConfirmBtn { width:100%;padding:15px;border-radius:16px;background:linear-gradient(135deg,#f59e0b,#facc15);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(250,204,21,.3);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px; }
-        #qrConfirmBtn:hover { transform:translateY(-1px);box-shadow:0 6px 24px rgba(250,204,21,.45); }
+        #qrConfirmBtn { width:100%;padding:15px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#facc15);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(250,204,21,.25);display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px; }
+        #qrConfirmBtn:hover { transform:translateY(-1px);box-shadow:0 5px 18px rgba(250,204,21,.35); }
         #qrConfirmBtn:disabled { opacity:.5;cursor:not-allowed;transform:none; }
     </style>
 
@@ -1831,7 +1832,7 @@ async function confirmTableAndOrder() {
 // Close sheet on backdrop click
 document.getElementById('qrScannerBackdrop').addEventListener('click', closeTableScanner);
 </script>
-
+@include('partials.ajax-nav')
 </body>
 </html>
 

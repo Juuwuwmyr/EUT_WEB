@@ -629,5 +629,6 @@ if (window.Echo) {
         });
 }
 </script>
+@include('partials.ajax-nav')
 </body>
 </html>

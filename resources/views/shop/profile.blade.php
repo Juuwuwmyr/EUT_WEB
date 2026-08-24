@@ -747,5 +747,6 @@ if (window.Echo) {
 }
 @endauth
 </script>
+@include('partials.ajax-nav')
 </body>
 </html>

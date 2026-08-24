@@ -1289,5 +1289,6 @@ function showToast(msg) {
 .addon-price-tag.free { color:#6b7280; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); }
 .addon-price-tag.paid { color:#4ade80; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); }
 </style>
+@include('partials.ajax-nav')
 </body>
 </html>

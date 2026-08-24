@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>E.U.T Snack House - Menu</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-head')
+    <meta name="theme-color" content="#08080f">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -39,7 +40,7 @@
         }
         .topnav-inner {
             max-width: 1200px; margin: 0 auto;
-            padding: 12px 16px;
+            padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
             display: flex; align-items: center; gap: 12px;
         }
         .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
@@ -51,14 +52,14 @@
             width: 100%; padding: 10px 46px 10px 16px;
             background: rgba(255,255,255,0.92);
             border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px; color: #111; font-size: 13px;
+            border-radius: 10px; color: #111; font-size: 13px;
             outline: none; transition: border-color 0.2s, box-shadow 0.2s;
         }
         .search-input::placeholder { color: #9ca3af; }
         .search-input:focus { border-color: rgba(250,204,21,0.7); background: #fff; box-shadow: 0 0 0 3px rgba(250,204,21,0.15); }
         .search-btn {
             position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-            width: 30px; height: 30px; border-radius: 8px;
+            width: 30px; height: 30px; border-radius: 6px;
             background: linear-gradient(135deg, #f59e0b, #facc15);
             border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: all 0.2s;
@@ -67,7 +68,7 @@
 
         .nav-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
         .nav-icon-btn {
-            width: 38px; height: 38px; border-radius: 10px;
+            width: 38px; height: 38px; border-radius: 8px;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.08);
             display: flex; align-items: center; justify-content: center;
@@ -92,7 +93,7 @@
         .hero-card {
             background: linear-gradient(135deg, #1a0506 0%, #1a0d00 50%, #0e0f1a 100%);
             border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 24px; overflow: hidden;
+            border-radius: 14px; overflow: hidden;
             position: relative; min-height: 220px;
             padding: 28px 28px 28px;
             transform: translate3d(0,0,0);
@@ -136,12 +137,12 @@
             display: flex; gap: 6px; flex-wrap: nowrap;
             background: rgba(0,0,0,0.3);
             border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px; padding: 4px;
+            border-radius: 10px; padding: 4px;
             width: fit-content; max-width: 100%;
         }
         .ot-btn {
             display: flex; align-items: center; gap: 6px;
-            padding: 8px 14px; border-radius: 9px; border: none;
+            padding: 8px 14px; border-radius: 8px; border: none;
             background: transparent; color: #6b7280;
             font-size: 12px; font-weight: 600; cursor: pointer;
             transition: all 0.2s; white-space: nowrap;
@@ -164,7 +165,34 @@
             .hero-img { opacity: 0.25; right: -10px; }
             .order-type-switcher { width: 100%; justify-content: stretch; }
             .ot-btn { flex: 1; justify-content: center; }
+            .hero-card { padding: 22px 20px; min-height: 190px; }
+            .hero-title { font-size: 23px; }
+            .hero-sub { font-size: 12.5px; }
+            .cat-pill { padding: 10px 18px; }
+            /* Prevent iOS Safari from auto-zooming the page when the search input is focused
+               (inputs with font-size < 16px trigger it) */
+            .search-input { font-size: 16px; }
         }
+
+        /* -- TOUCH FEEDBACK --
+           :hover styles never clear reliably on touchscreens ("stuck hover"), so give
+           tappable elements a dedicated, snappy :active state. Real pointer devices
+           keep the existing hover treatment via the (hover:hover) query below. */
+        @media (hover: hover) and (pointer: fine) {
+            .p-card:hover { transform: translateY(-3px); border-color: rgba(250,204,21,0.3); box-shadow: 0 6px 18px rgba(0,0,0,0.4); }
+            .p-card:hover .p-card-img { transform: scale(1.05); }
+        }
+        .p-card, .add-btn, .nav-icon-btn, .ot-btn, .cat-pill, .bnav-item, .search-btn {
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.12s ease, opacity 0.12s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .p-card:active { transform: scale(0.98); border-color: rgba(250,204,21,0.25); }
+        .add-btn:active { transform: scale(0.95); }
+        .nav-icon-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.15); }
+        .ot-btn:active { transform: scale(0.95); }
+        .cat-pill:active { transform: scale(0.94); }
+        .bnav-item:active { opacity: 0.55; }
+        .search-btn:active { transform: translateY(-50%) scale(0.9); }
         .hero-img {
             position: absolute;
             right: -30px; bottom: 0;
@@ -235,42 +263,33 @@
         @media (min-width: 900px) { .products-grid { grid-template-columns: repeat(4, 1fr); } }
         @media (min-width: 1100px) { .products-grid { grid-template-columns: repeat(5, 1fr); } }
 
-        /* -- PRODUCT CARD -- */
+        /* -- PRODUCT CARD --
+           Kept deliberately light: no blanket will-change/perspective (those force a
+           separate GPU compositor layer per card, which adds up fast on a grid of
+           dozens of items and strains low-end phones' GPU memory). content-visibility
+           already does the heavy lifting for offscreen cards. */
         .p-card {
             background: linear-gradient(145deg, #12131f, #0e0f1a);
             border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 18px;
-            transition: transform 0.22s ease, border-color 0.22s, box-shadow 0.22s;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            border-radius: 12px;
+            transition: transform 0.2s ease, border-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.35);
             display: flex; flex-direction: column;
             content-visibility: auto;
             contain-intrinsic-size: 0 340px;
             contain: content;
-            will-change: transform, opacity;
-            transform: translate3d(0,0,0);
-            backface-visibility: hidden;
-            perspective: 1000px;
         }
-        .p-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(250,204,21,0.3);
-            box-shadow: 0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px rgba(250,204,21,0.15);
-        }
+        /* Hover lift/glow is scoped to real pointer devices further down (see
+           "TOUCH FEEDBACK" section) so it never gets "stuck" on after a tap. */
         .p-card-img-wrap { 
             position: relative; overflow: hidden; 
-            border-radius: 18px 18px 0 0;
-            transform: translate3d(0,0,0);
-            backface-visibility: hidden;
+            border-radius: 12px 12px 0 0;
         }
         .p-card-img {
             width: 100%; aspect-ratio: 1 / 1; object-fit: cover;
-            transition: transform 0.4s ease;
+            transition: transform 0.3s ease;
             display: block;
-            transform: translate3d(0,0,0);
-            backface-visibility: hidden;
-            will-change: transform;
         }
-        .p-card:hover .p-card-img { transform: scale(1.06); }
         .p-card-img-overlay {
             position: absolute; inset: 0;
             background: linear-gradient(to top, rgba(8,8,16,0.7) 0%, transparent 50%);
@@ -281,11 +300,11 @@
             color: #fff; font-size: 10px; font-weight: 800;
             padding: 3px 9px; border-radius: 99px;
             letter-spacing: 0.04em;
-            box-shadow: 0 2px 8px rgba(220,38,38,0.5);
+            box-shadow: 0 2px 6px rgba(220,38,38,0.4);
         }
         .badge-rating {
             position: absolute; top: 10px; right: 10px;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.75);
             border: 1px solid rgba(250,204,21,0.25);
             color: #facc15; font-size: 10px; font-weight: 700;
             padding: 3px 8px; border-radius: 99px;
@@ -308,7 +327,7 @@
         .add-btn {
             width: 100%; padding: 9px;
             background: linear-gradient(135deg, #f59e0b, #facc15);
-            border: none; border-radius: 10px;
+            border: none; border-radius: 8px;
             font-size: 12px; font-weight: 700; color: #000;
             cursor: pointer; transition: all 0.2s;
             box-shadow: 0 2px 8px rgba(250,204,21,0.2);
@@ -354,7 +373,9 @@
 
         /* Product cards */
         .light-mode .p-card { background: #fff !important; border-color: rgba(0,0,0,0.08) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important; }
-        .light-mode .p-card:hover { border-color: rgba(220,38,38,0.25) !important; box-shadow: 0 6px 24px rgba(0,0,0,0.1) !important; }
+        @media (hover: hover) and (pointer: fine) {
+            .light-mode .p-card:hover { border-color: rgba(220,38,38,0.25) !important; box-shadow: 0 6px 24px rgba(0,0,0,0.1) !important; }
+        }
         .light-mode .p-card-name { color: #111 !important; }
         .light-mode .p-card-desc { color: #9ca3af !important; }
         .light-mode .p-card-sold { color: #9ca3af !important; }
@@ -376,7 +397,7 @@
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(8,8,16,1);
             border-top: 1px solid rgba(255,255,255,0.07);
-            padding: 10px 0 14px; z-index: 100;
+            padding: 10px 0 calc(14px + env(safe-area-inset-bottom)); z-index: 100;
             will-change: transform;
             transform: translate3d(0,0,0);
         }
@@ -414,7 +435,6 @@
 <div id="geoOverlay" style="
     display:none; position:fixed; inset:0; z-index:99999;
     background:rgba(4,4,10,0.97);
-    backdrop-filter:blur(20px);
     align-items:center; justify-content:center;
     flex-direction:column;
     font-family:'Inter',sans-serif;
@@ -427,11 +447,11 @@
         #geoOverlay .geo-card {
             background: linear-gradient(145deg, #12131f, #0e0f1a);
             border: 1px solid rgba(239,68,68,0.3);
-            border-radius: 28px;
+            border-radius: 16px;
             padding: 40px 36px;
             max-width: 420px; width: calc(100% - 32px);
             text-align: center;
-            box-shadow: 0 40px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(239,68,68,0.1), 0 0 60px rgba(239,68,68,0.06);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
         }
         #geoOverlay .geo-icon-ring {
             width: 88px; height: 88px; border-radius: 50%; margin: 0 auto 24px;
@@ -457,7 +477,7 @@
         }
         #geoOverlay .geo-dist-box {
             background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 14px; padding: 16px 20px; margin-bottom: 24px;
+            border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;
             display: none;
         }
         #geoOverlay .geo-dist-box.visible { display: block; }
@@ -472,10 +492,10 @@
         #geoOverlay .geo-back-btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
             background: linear-gradient(135deg, #dc2626, #ef4444);
-            color: #fff; border: none; border-radius: 14px;
+            color: #fff; border: none; border-radius: 10px;
             padding: 14px 32px; font-size: 14px; font-weight: 700; cursor: pointer;
             transition: all 0.2s; width: 100%;
-            box-shadow: 0 4px 18px rgba(220,38,38,0.4);
+            box-shadow: 0 4px 14px rgba(220,38,38,0.35);
             text-decoration: none;
         }
         #geoOverlay .geo-back-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(220,38,38,0.55); }
@@ -814,7 +834,7 @@
 </style>
 
 <!-- -- BOTTOM NAV -- -->
-<div style="height:80px;" class="lg:hidden"></div>
+<div style="height:calc(80px + env(safe-area-inset-bottom));" class="lg:hidden"></div>
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
         <a href="{{ route('shop.home') }}" class="bnav-item active">
@@ -1310,24 +1330,24 @@ if (window.Echo) {
 </script>
 
 {{-- PWA Install Banner --}}
-<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;width:calc(100% - 32px);max-width:480px;background:linear-gradient(135deg,#12131f,#1a1b2e);border:1px solid rgba(250,204,21,.3);border-radius:16px;padding:14px 16px;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.6);">
-    <img src="/images/icons/icon-72x72.png" style="width:44px;height:44px;border-radius:10px;flex-shrink:0;" alt="EUT">
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;width:calc(100% - 32px);max-width:480px;background:linear-gradient(135deg,#12131f,#1a1b2e);border:1px solid rgba(250,204,21,.3);border-radius:12px;padding:14px 16px;align-items:center;gap:12px;box-shadow:0 6px 20px rgba(0,0,0,.5);">
+    <img src="/images/icons/icon-72x72.png" style="width:44px;height:44px;border-radius:8px;flex-shrink:0;" alt="EUT">
     <div style="flex:1;min-width:0;">
         <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 2px;">Install EUT App</p>
         <p style="font-size:11px;color:#9ca3af;margin:0;">Add to home screen for faster access</p>
     </div>
-    <button onclick="installPWA()" style="background:#facc15;color:#000;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">Install</button>
+    <button onclick="installPWA()" style="background:#facc15;color:#000;border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">Install</button>
     <button onclick="dismissPWABanner()" style="background:none;border:none;color:#6b7280;cursor:pointer;font-size:18px;padding:4px;flex-shrink:0;">×</button>
 </div>
 
 {{-- ══════════ ITEM QUICK-ADD BOTTOM SHEET ══════════ --}}
 <div id="iqBackdrop" onclick="closeItemSheet()"
-     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:800;"></div>
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:800;"></div>
 
 <div id="iqSheet"
      style="display:none;position:fixed;bottom:0;left:0;right:0;transform:translateY(100%);
             width:100%;max-width:560px;margin:0 auto;z-index:900;background:#0e0f1a;
-            border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;
+            border-radius:16px 16px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;
             max-height:92vh;overflow-y:auto;transition:transform .4s cubic-bezier(.32,.72,0,1);">
 
     {{-- Handle --}}
@@ -1336,7 +1356,7 @@ if (window.Echo) {
     {{-- Header --}}
     <div style="display:flex;align-items:center;gap:14px;padding:14px 18px 12px;">
         <img id="iqThumb" src="" alt=""
-             style="width:68px;height:68px;border-radius:14px;object-fit:cover;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.5);">
+             style="width:68px;height:68px;border-radius:10px;object-fit:cover;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.5);">
         <div style="flex:1;min-width:0;">
             <p id="iqName"  style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#fff;margin:0 0 3px;"></p>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -1393,7 +1413,7 @@ if (window.Echo) {
         <span style="font-size:12px;color:#4b5563;">Total</span>
         <span id="iqTotal" style="font-size:20px;font-weight:800;color:#facc15;"></span>
     </div>
-    <div style="padding:0 18px 32px;">
+    <div style="padding:0 18px calc(32px + env(safe-area-inset-bottom));">
         <button id="iqAddBtn" onclick="iqDoAdd()"
                 style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);
                        border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;
@@ -1405,6 +1425,10 @@ if (window.Echo) {
 
 {{-- Light mode overrides for the sheet --}}
 <style>
+#iqAddBtn, #iqQtyDec, #iqQtyInc, .iq-swatch, .iq-pill, .iq-addon-card { -webkit-tap-highlight-color: transparent; }
+#iqAddBtn:active { transform: scale(0.97); }
+#iqQtyDec:active, #iqQtyInc:active { background: rgba(255,255,255,.12) !important; transform: scale(0.9); }
+.iq-pill:active, .iq-addon-card:active, .iq-swatch:active { transform: scale(0.97); }
 .light-mode #iqSheet            { background:#fff !important; border-color:rgba(0,0,0,.07) !important; }
 .light-mode #iqName             { color:#111 !important; }
 @media(max-width:560px){ #iqSheet { left:0; transform:translateY(100%); } }
@@ -1413,24 +1437,24 @@ if (window.Echo) {
 
 /* Flavor swatches */
 .iq-flavor-grid  { display:flex;flex-wrap:wrap;gap:10px; }
-.iq-swatch       { position:relative;cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid transparent;transition:all .2s;flex-shrink:0; }
-.iq-swatch.sel   { border-color:#facc15;box-shadow:0 0 0 1px #facc15,0 4px 14px rgba(250,204,21,.3); }
-.iq-swatch-inner { width:72px;height:72px;border-radius:10px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;position:relative;overflow:hidden; }
+.iq-swatch       { position:relative;cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid transparent;transition:all .2s;flex-shrink:0; }
+.iq-swatch.sel   { border-color:#facc15;box-shadow:0 0 0 1px #facc15,0 3px 10px rgba(250,204,21,.25); }
+.iq-swatch-inner { width:72px;height:72px;border-radius:8px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;position:relative;overflow:hidden; }
 .iq-swatch-name  { position:relative;z-index:1;font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);text-align:center;line-height:1.2; }
 .iq-swatch-check { position:absolute;bottom:4px;right:4px;z-index:2;width:16px;height:16px;border-radius:50%;background:#facc15;display:none;align-items:center;justify-content:center; }
 .iq-swatch.sel .iq-swatch-check { display:flex; }
 
 /* Size pills */
 .iq-pill-grid { display:flex;gap:10px;flex-wrap:wrap; }
-.iq-pill      { padding:10px 20px;border-radius:12px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;text-align:center;min-width:64px; }
-.iq-pill.sel  { background:rgba(250,204,21,.1);border-color:#facc15;box-shadow:0 2px 12px rgba(250,204,21,.2); }
+.iq-pill      { padding:10px 20px;border-radius:10px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;text-align:center;min-width:64px; }
+.iq-pill.sel  { background:rgba(250,204,21,.1);border-color:#facc15;box-shadow:0 2px 8px rgba(250,204,21,.18); }
 .iq-pill-label{ font-size:14px;font-weight:700;color:#e5e7eb;display:block; }
 .iq-pill.sel .iq-pill-label { color:#facc15; }
 .iq-pill-desc { font-size:10px;color:#4b5563;display:block;margin-top:1px; }
 
 /* Addon cards */
-.iq-addon-card     { display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.07);cursor:pointer;transition:all .2s;margin-bottom:8px; }
-.iq-addon-card.sel { background:rgba(245,158,11,.1);border-color:#f59e0b;box-shadow:0 2px 12px rgba(245,158,11,.2); }
+.iq-addon-card     { display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.07);cursor:pointer;transition:all .2s;margin-bottom:8px; }
+.iq-addon-card.sel { background:rgba(245,158,11,.1);border-color:#f59e0b;box-shadow:0 2px 8px rgba(245,158,11,.18); }
 .iq-addon-check    { width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;margin-right:10px; }
 .iq-addon-card.sel .iq-addon-check { background:#f59e0b;border-color:#f59e0b; }
 .iq-addon-name     { font-size:13px;font-weight:600;color:#e5e7eb; }
@@ -1816,5 +1840,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeItemShe
 </script>
 
 @include('partials.pwa-register')
+@include('partials.ajax-nav')
 </body>
-</html>>
+</html>

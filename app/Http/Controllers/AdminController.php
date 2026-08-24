@@ -168,7 +168,7 @@ class AdminController extends Controller
             'name'         => 'required|string|max:100',
             'email'        => 'required|email|unique:users,email',
             'password'     => 'required|string|min:6',
-            'role'         => ['required', Rule::in(['admin', 'user', 'chef', 'rider'])],
+            'role'         => ['required', Rule::in(['admin', 'user', 'chef', 'rider', 'waiter'])],
             'phone'        => 'required_if:role,rider|nullable|string|max:20',
             'plate_number' => 'nullable|string|max:30',
         ]);
@@ -200,7 +200,7 @@ class AdminController extends Controller
         $request->validate([
             'name'  => 'required|string|max:100',
             'email' => ['required','email', Rule::unique('users','email')->ignore($user->id)],
-            'role'  => ['required', Rule::in(['admin', 'user', 'chef', 'rider'])],
+            'role'  => ['required', Rule::in(['admin', 'user', 'chef', 'rider', 'waiter'])],
         ]);
 
         if ($user->id === auth()->id() && $request->role !== 'admin') {
@@ -476,10 +476,10 @@ class AdminController extends Controller
             'groups.*.options.*.is_active'          => 'nullable|boolean',
         ]);
 
-        // Handle image upload
+        // Handle image upload — always converted to WebP for a lighter, consistent shop
         $imagePath = '/images/hero-burger.webp';
         if ($request->hasFile('image_file')) {
-            $imagePath = '/storage/' . $request->file('image_file')->store('menu-items', 'public');
+            $imagePath = '/storage/' . \App\Services\ImageUploadService::storeAsWebp($request->file('image_file'), 'menu-items');
         }
 
         $item = MenuItem::create([
@@ -533,9 +533,10 @@ class AdminController extends Controller
         ]);
 
         // Handle image upload — use new file if provided, otherwise keep existing
+        // (always converted to WebP for a lighter, consistent shop)
         $imagePath = $menuItem->image;
         if ($request->hasFile('image_file')) {
-            $imagePath = '/storage/' . $request->file('image_file')->store('menu-items', 'public');
+            $imagePath = '/storage/' . \App\Services\ImageUploadService::storeAsWebp($request->file('image_file'), 'menu-items');
         } elseif ($request->input('image_existing') !== null) {
             $imagePath = $request->input('image_existing') ?: $menuItem->image;
         }
