@@ -63,6 +63,7 @@
     letter-spacing: .05em;
     white-space: nowrap;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 /* Meta: table/type + time */
@@ -1232,7 +1233,7 @@ function buildSoloOrderCard(o) {
 
     return buildOrderCard({
         cardId:    'solo-' + o.id,
-        headerLeft: escHtml(o.order_number),
+        headerLeft: '',
         sc:        sc,
         metaLine1: metaLine1,
         metaLine2: '\u23F0 ' + escHtml(o.date_short || o.date),
@@ -1246,8 +1247,8 @@ function buildSoloOrderCard(o) {
 function buildOrderCard(opts) {
     return '<div class="order-card" id="order-card-' + opts.cardId + '">' +
         '<div class="order-card-header">' +
-            '<span class="order-card-num">' + opts.headerLeft + '</span>' +
-            '<span class="order-card-badge" style="background:' + opts.sc.bg + ';color:' + opts.sc.color + ';">' + opts.sc.label + '</span>' +
+            (opts.headerLeft ? '<span class="order-card-num">' + opts.headerLeft + '</span>' : '') +
+            '<span class="order-card-badge"' style="background:' + opts.sc.bg + ';color:' + opts.sc.color + ';">' + opts.sc.label + '</span>' +
         '</div>' +
         '<div class="order-card-meta">' +
             (opts.metaLine1 ? '<span>' + opts.metaLine1 + '</span>' : '') +
