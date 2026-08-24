@@ -1100,7 +1100,6 @@ function renderGrid(orders) {
             group.forEach(function(o) {
                 subHtml +=
                     '<div class="order-card-subrow">' +
-                    '<span class="order-card-subrow-num">' + escHtml(o.order_number) + '</span>' +
                     '<span class="order-card-badge" style="background:rgba(16,185,129,.12);color:#10b981;">\u2713 Ready</span>' +
                     '<span class="order-card-subrow-total">\u20B1' + Number(o.total).toLocaleString() + '</span>' +
                     '<button class="btn-ghost" style="font-size:.63rem;padding:.15rem .35rem;margin-left:auto;" onclick="openManageModal(' + o.id + ')" title="Details">' +
@@ -1128,7 +1127,6 @@ function renderGrid(orders) {
                 var oBtns = buildActionBtns(o);
                 subHtml +=
                     '<div class="order-card-subrow">' +
-                    '<span class="order-card-subrow-num">' + escHtml(o.order_number) + '</span>' +
                     '<span class="order-card-badge" style="background:' + oSc.bg + ';color:' + oSc.color + ';">' + oSc.label + '</span>' +
                     '<span class="order-card-subrow-total">\u20B1' + Number(o.total).toLocaleString() + '</span>' +
                     '<div class="order-card-subrow-btns">' + oBtns + '</div>' +
