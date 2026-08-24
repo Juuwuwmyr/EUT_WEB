@@ -256,36 +256,41 @@
 {{-- CART REVIEW SHEET --}}
 <div class="sheet-backdrop" id="cartBackdrop" onclick="closeCartSheet()"></div>
 <div class="sheet" id="cartSheet">
-    <div class="sheet-handle"></div>
-    <div style="padding:14px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
-        <p style="font-size:15px;font-weight:700;color:#fff;">Order Summary</p>
-        <button class="sheet-close" onclick="closeCartSheet()">✕</button>
-    </div>
-    <div class="sheet-divider"></div>
-
-    {{-- Table number display --}}
-    <div style="padding:10px 18px 0;">
-        <div id="cartTableDisplay" style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);border-radius:8px;padding:.3rem .75rem;font-size:.8rem;font-weight:700;color:#4ade80;">
-            🪑 <span id="cartTableNum">No table selected</span>
+    {{-- Scrollable content --}}
+    <div class="sheet-scroll">
+        <div class="sheet-handle"></div>
+        <div style="padding:14px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
+            <p style="font-size:15px;font-weight:700;color:#fff;">Order Summary</p>
+            <button class="sheet-close" onclick="closeCartSheet()">✕</button>
         </div>
+        <div class="sheet-divider"></div>
+
+        {{-- Table number display --}}
+        <div style="padding:10px 18px 0;">
+            <div id="cartTableDisplay" style="display:inline-flex;align-items:center;gap:.4rem;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);border-radius:8px;padding:.3rem .75rem;font-size:.8rem;font-weight:700;color:#4ade80;">
+                🪑 <span id="cartTableNum">No table selected</span>
+            </div>
+        </div>
+
+        <div id="cartItemsList" style="padding:0 18px;"></div>
+        <div class="sheet-divider" style="margin-top:8px;"></div>
+        <div style="padding:10px 18px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:.85rem;color:#9ca3af;">Total</span>
+            <span id="cartSheetTotal" style="font-size:1.2rem;font-weight:800;color:#facc15;"></span>
+        </div>
+
+        {{-- Notes --}}
+        <div style="padding:0 18px 12px;">
+            <p style="font-size:.72rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Special Request <span style="font-weight:400;">(optional)</span></p>
+            <textarea id="orderNotes" rows="2"
+                style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#d4d4d4;font-size:.85rem;padding:.6rem .8rem;outline:none;resize:none;"
+                placeholder="e.g. No spicy, extra rice, allergies…"></textarea>
+        </div>
+        <div style="height:8px;"></div>
     </div>
 
-    <div id="cartItemsList" style="padding:0 18px;"></div>
-    <div class="sheet-divider" style="margin-top:8px;"></div>
-    <div style="padding:10px 18px;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:.85rem;color:#9ca3af;">Total</span>
-        <span id="cartSheetTotal" style="font-size:1.2rem;font-weight:800;color:#facc15;"></span>
-    </div>
-
-    {{-- Notes --}}
-    <div style="padding:0 18px 12px;">
-        <p style="font-size:.72rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Special Request <span style="font-weight:400;">(optional)</span></p>
-        <textarea id="orderNotes" rows="2"
-            style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#d4d4d4;font-size:.85rem;padding:.6rem .8rem;outline:none;resize:none;"
-            placeholder="e.g. No spicy, extra rice, allergies…"></textarea>
-    </div>
-
-    <div style="padding:0 18px 32px;">
+    {{-- Sticky footer: error + place order button --}}
+    <div class="sheet-sticky-footer">
         <div id="cartError" style="display:none;color:#f87171;font-size:.78rem;margin-bottom:.75rem;padding:.5rem .75rem;background:rgba(239,68,68,.08);border-radius:8px;"></div>
         <button id="placeOrderBtn" class="btn-place" onclick="placeOrder()" disabled>
             Place Order
