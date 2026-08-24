@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>E.U.T Snack House - Menu</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @include('partials.pwa-head')
+    <meta name="theme-color" content="#08080f">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -39,7 +40,7 @@
         }
         .topnav-inner {
             max-width: 1200px; margin: 0 auto;
-            padding: 12px 16px;
+            padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
             display: flex; align-items: center; gap: 12px;
         }
         .nav-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; flex-shrink: 0; }
@@ -164,7 +165,34 @@
             .hero-img { opacity: 0.25; right: -10px; }
             .order-type-switcher { width: 100%; justify-content: stretch; }
             .ot-btn { flex: 1; justify-content: center; }
+            .hero-card { padding: 22px 20px; min-height: 190px; }
+            .hero-title { font-size: 23px; }
+            .hero-sub { font-size: 12.5px; }
+            .cat-pill { padding: 10px 18px; }
+            /* Prevent iOS Safari from auto-zooming the page when the search input is focused
+               (inputs with font-size < 16px trigger it) */
+            .search-input { font-size: 16px; }
         }
+
+        /* -- TOUCH FEEDBACK --
+           :hover styles never clear reliably on touchscreens ("stuck hover"), so give
+           tappable elements a dedicated, snappy :active state. Real pointer devices
+           keep the existing hover treatment via the (hover:hover) query below. */
+        @media (hover: hover) and (pointer: fine) {
+            .p-card:hover { transform: translateY(-4px); border-color: rgba(250,204,21,0.3); box-shadow: 0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px rgba(250,204,21,0.15); }
+            .p-card:hover .p-card-img { transform: scale(1.06); }
+        }
+        .p-card, .add-btn, .nav-icon-btn, .ot-btn, .cat-pill, .bnav-item, .search-btn {
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.12s ease, opacity 0.12s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .p-card:active { transform: scale(0.98); border-color: rgba(250,204,21,0.25); }
+        .add-btn:active { transform: scale(0.95); }
+        .nav-icon-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.15); }
+        .ot-btn:active { transform: scale(0.95); }
+        .cat-pill:active { transform: scale(0.94); }
+        .bnav-item:active { opacity: 0.55; }
+        .search-btn:active { transform: translateY(-50%) scale(0.9); }
         .hero-img {
             position: absolute;
             right: -30px; bottom: 0;
@@ -251,11 +279,8 @@
             backface-visibility: hidden;
             perspective: 1000px;
         }
-        .p-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(250,204,21,0.3);
-            box-shadow: 0 8px 28px rgba(0,0,0,0.5), 0 0 0 1px rgba(250,204,21,0.15);
-        }
+        /* Hover lift/glow is scoped to real pointer devices further down (see
+           "TOUCH FEEDBACK" section) so it never gets "stuck" on after a tap. */
         .p-card-img-wrap { 
             position: relative; overflow: hidden; 
             border-radius: 18px 18px 0 0;
@@ -270,7 +295,6 @@
             backface-visibility: hidden;
             will-change: transform;
         }
-        .p-card:hover .p-card-img { transform: scale(1.06); }
         .p-card-img-overlay {
             position: absolute; inset: 0;
             background: linear-gradient(to top, rgba(8,8,16,0.7) 0%, transparent 50%);
@@ -354,7 +378,9 @@
 
         /* Product cards */
         .light-mode .p-card { background: #fff !important; border-color: rgba(0,0,0,0.08) !important; box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important; }
-        .light-mode .p-card:hover { border-color: rgba(220,38,38,0.25) !important; box-shadow: 0 6px 24px rgba(0,0,0,0.1) !important; }
+        @media (hover: hover) and (pointer: fine) {
+            .light-mode .p-card:hover { border-color: rgba(220,38,38,0.25) !important; box-shadow: 0 6px 24px rgba(0,0,0,0.1) !important; }
+        }
         .light-mode .p-card-name { color: #111 !important; }
         .light-mode .p-card-desc { color: #9ca3af !important; }
         .light-mode .p-card-sold { color: #9ca3af !important; }
@@ -376,7 +402,7 @@
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(8,8,16,1);
             border-top: 1px solid rgba(255,255,255,0.07);
-            padding: 10px 0 14px; z-index: 100;
+            padding: 10px 0 calc(14px + env(safe-area-inset-bottom)); z-index: 100;
             will-change: transform;
             transform: translate3d(0,0,0);
         }
@@ -814,7 +840,7 @@
 </style>
 
 <!-- -- BOTTOM NAV -- -->
-<div style="height:80px;" class="lg:hidden"></div>
+<div style="height:calc(80px + env(safe-area-inset-bottom));" class="lg:hidden"></div>
 <nav class="bottom-nav">
     <div class="bottom-nav-inner">
         <a href="{{ route('shop.home') }}" class="bnav-item active">
@@ -1393,7 +1419,7 @@ if (window.Echo) {
         <span style="font-size:12px;color:#4b5563;">Total</span>
         <span id="iqTotal" style="font-size:20px;font-weight:800;color:#facc15;"></span>
     </div>
-    <div style="padding:0 18px 32px;">
+    <div style="padding:0 18px calc(32px + env(safe-area-inset-bottom));">
         <button id="iqAddBtn" onclick="iqDoAdd()"
                 style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);
                        border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;
@@ -1405,6 +1431,10 @@ if (window.Echo) {
 
 {{-- Light mode overrides for the sheet --}}
 <style>
+#iqAddBtn, #iqQtyDec, #iqQtyInc, .iq-swatch, .iq-pill, .iq-addon-card { -webkit-tap-highlight-color: transparent; }
+#iqAddBtn:active { transform: scale(0.97); }
+#iqQtyDec:active, #iqQtyInc:active { background: rgba(255,255,255,.12) !important; transform: scale(0.9); }
+.iq-pill:active, .iq-addon-card:active, .iq-swatch:active { transform: scale(0.97); }
 .light-mode #iqSheet            { background:#fff !important; border-color:rgba(0,0,0,.07) !important; }
 .light-mode #iqName             { color:#111 !important; }
 @media(max-width:560px){ #iqSheet { left:0; transform:translateY(100%); } }

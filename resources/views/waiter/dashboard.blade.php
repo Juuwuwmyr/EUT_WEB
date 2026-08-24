@@ -252,10 +252,29 @@ function renderCard(o) {
 
     const serveDisabled = !['accepted','preparing'].includes(o.status) || isServed ? 'disabled' : '';
     const printUrl  = `/waiter/orders/${o.id}/table-receipt.html`;
+    const isPending = o.status === 'pending';
+
+    const footHtml = isPending
+        ? `<div class="w-card-foot" style="justify-content:center;color:#737373;font-size:.75rem;padding:.7rem 1rem .875rem;">
+            ⏳ Waiting for kitchen to accept order
+        </div>`
+        : `<div class="w-card-foot">
+            <button class="w-btn w-btn-serve" onclick="serveOrder(${o.id}, this)" ${serveDisabled}>
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                ${isServed ? 'Served' : 'Mark Served'}
+            </button>
+            <button class="w-btn w-btn-bill" onclick="requestBill(${o.id}, '${esc(o.table_number)}', this)">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Bill
+            </button>
+            <button class="w-btn w-btn-print" onclick="printReceipt('${printUrl}')" title="Print receipt">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6v-8z"/></svg>
+            </button>
+        </div>`;
 
     return `<div class="w-card ${cardClass}" id="wcard_${o.id}">
         <div class="w-card-head">
-            <span class="w-table-badge">🪑 Table ${esc(o.table_number ?? '—')}</span>
+            <span class="w-table-badge">🪩 Table ${esc(o.table_number ?? '—')}</span>
             <span class="w-status-chip ${chipClass}">${chipLabel}</span>
         </div>
         <div class="w-card-meta">
@@ -268,19 +287,7 @@ function renderCard(o) {
         <div style="padding:0 1rem .5rem;display:flex;justify-content:flex-end;">
             <span style="font-size:.9rem;font-weight:800;color:#facc15;">₱${parseFloat(o.total).toLocaleString()}</span>
         </div>
-        <div class="w-card-foot">
-            <button class="w-btn w-btn-serve" onclick="serveOrder(${o.id}, this)" ${serveDisabled}>
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                ${isServed ? 'Served' : 'Mark Served'}
-            </button>
-            <button class="w-btn w-btn-bill" onclick="requestBill(${o.id}, '${esc(o.table_number)}', this)">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                Bill
-            </button>
-            <button class="w-btn w-btn-print" onclick="printReceipt('${printUrl}')" title="Print receipt">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6v-8z"/></svg>
-            </button>
-        </div>
+        ${footHtml}
     </div>`;
 }
 
