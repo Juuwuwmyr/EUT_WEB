@@ -37,10 +37,10 @@
     transform: translateY(-1px);
 }
 
-/* Header: order number + status badge */
+/* Header: type badge (left) + status badge (right) */
 .order-card-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: .5rem;
 }
@@ -51,6 +51,8 @@
     color: #60a5fa;
     line-height: 1.3;
     word-break: break-all;
+    display: inline-flex;
+    align-items: center;
 }
 .order-card-badge {
     display: inline-flex;
@@ -63,7 +65,6 @@
     letter-spacing: .05em;
     white-space: nowrap;
     flex-shrink: 0;
-    margin-left: auto;
 }
 
 /* Meta: table/type + time */
@@ -363,6 +364,40 @@ html.light .order-card-subrow {
         </div>
         <div id="mmBody" class="modal-body" style="gap:.875rem;">
             <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading…</div>
+        </div>
+    </div>
+</div>
+
+{{-- ══════════ CANCEL ORDER CONFIRM MODAL ══════════ --}}
+<div id="cancelConfirmModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'cancelConfirmModal')">
+    <div class="modal-box" style="max-width:380px;">
+        <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="alert-triangle" style="width:1.1rem;height:1.1rem;color:#ef4444;stroke-width:2;"></i>
+                <h3 class="modal-title">Cancel Order</h3>
+            </div>
+            <button onclick="closeModal('cancelConfirmModal')" class="modal-close">
+                <i data-lucide="x" style="width:1rem;height:1rem;stroke-width:2.5;"></i>
+            </button>
+        </div>
+        <div class="modal-body" style="gap:.75rem;padding:1.25rem 1.4rem;">
+            <div style="display:flex;align-items:flex-start;gap:.875rem;">
+                <div style="flex-shrink:0;width:2.5rem;height:2.5rem;border-radius:.625rem;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);display:flex;align-items:center;justify-content:center;">
+                    <i data-lucide="x-circle" style="width:1.1rem;height:1.1rem;color:#ef4444;stroke-width:2;"></i>
+                </div>
+                <div>
+                    <p style="margin:0 0 .3rem;font-size:.875rem;font-weight:700;color:var(--text-strong);">Are you sure?</p>
+                    <p style="margin:0;font-size:.8rem;color:var(--text-muted);line-height:1.5;">This will cancel <strong id="cancelOrderLabel" style="color:var(--text-body);">this order</strong>. This action cannot be undone.</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeModal('cancelConfirmModal')" class="btn-ghost" style="font-size:.8rem;">
+                Keep Order
+            </button>
+            <button id="cancelConfirmBtn" class="btn-danger" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.35rem;">
+                <i data-lucide="x-circle" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Yes, Cancel Order
+            </button>
         </div>
     </div>
 </div>
@@ -1161,7 +1196,7 @@ function renderGrid(orders) {
 
         html += buildOrderCard({
             cardId:    'group-' + sessionKey.replace(/[^a-z0-9]/gi,'_'),
-            headerLeft: '\uD83E\uDE91 <span style="background:rgba(250,204,21,.18);border:1px solid rgba(250,204,21,.4);border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(tableNum) + '</span>' +
+            headerLeft: '\uD83E\uDE91 <span style="background:rgba(250,204,21,.18);border:1px solid rgba(250,204,21,.4);border-radius:.4rem;padding:.15rem .6rem;font-size:1.1rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(tableNum) + '</span>' +
                 (isSessionLocked ? ' <span class="oc-locked-sm">\uD83D\uDD12</span>' : ''),
             sc:        sc,
             metaLine1: group.length + ' order(s) \u00B7 ' + escHtml(rep.date_short || rep.date),
@@ -1184,11 +1219,20 @@ function renderGrid(orders) {
 function buildSoloOrderCard(o) {
     var sc = statusChip(o.status, o.order_type);
 
-    var metaLine1 = o.order_type === 'dine_in' && o.table_number
-        ? '<span style="display:inline-flex;align-items:center;gap:.35rem;font-size:.88rem;font-weight:800;color:#facc15;">' +
-          '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.1rem .5rem;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>' +
-          '</span>'
-        : (o.order_type_icon ? o.order_type_icon + ' ' : '') + escHtml(o.order_type_label || o.order_type);
+    var isDineIn = o.order_type === 'dine_in' && o.table_number;
+    var headerLeft, metaLine1;
+    if (isDineIn) {
+        headerLeft = '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.15rem .6rem;font-size:1.1rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>';
+        metaLine1 = '';
+    } else {
+        var typeIcon  = o.order_type_icon || '';
+        var typeLabel = escHtml(o.order_type_label || o.order_type);
+        var typeBg    = o.order_type === 'delivery' ? 'rgba(96,165,250,.15)'  : 'rgba(167,139,250,.15)';
+        var typeBorder= o.order_type === 'delivery' ? 'rgba(96,165,250,.4)'   : 'rgba(167,139,250,.4)';
+        var typeColor = o.order_type === 'delivery' ? '#60a5fa'                : '#a78bfa';
+        headerLeft = '<span style="display:inline-flex;align-items:center;gap:.35rem;background:' + typeBg + ';border:1px solid ' + typeBorder + ';border-radius:.4rem;padding:.15rem .6rem;font-size:1.1rem;font-weight:800;color:' + typeColor + ';letter-spacing:.01em;">' + typeIcon + ' ' + typeLabel + '</span>';
+        metaLine1 = '';
+    }
 
     // Items preview (up to 3)
     var itemsHtml = '<div class="order-card-items">';
@@ -1233,7 +1277,7 @@ function buildSoloOrderCard(o) {
 
     return buildOrderCard({
         cardId:    'solo-' + o.id,
-        headerLeft: '',
+        headerLeft: headerLeft,
         sc:        sc,
         metaLine1: metaLine1,
         metaLine2: '\u23F0 ' + escHtml(o.date_short || o.date),
@@ -1442,6 +1486,25 @@ async function quickAction(orderId, type, nextStatus, btn) {
 async function quickAccept(orderId, btn) {
     if (!confirm('Accept this order?')) return;
     await quickAction(orderId, 'accept', '', btn);
+}
+
+// -- Cancel order confirmation modal --------------------------------------
+function openCancelConfirm(orderId, orderNumber) {
+    var label = document.getElementById('cancelOrderLabel');
+    if (label) label.textContent = orderNumber || 'this order';
+
+    var btn = document.getElementById('cancelConfirmBtn');
+    // Remove any previous listener by cloning the button
+    var fresh = btn.cloneNode(true);
+    btn.parentNode.replaceChild(fresh, btn);
+    fresh.addEventListener('click', function() {
+        var form = document.getElementById('cancelOrderForm-' + orderId);
+        if (form) form.submit();
+        closeModal('cancelConfirmModal');
+    });
+
+    openModal('cancelConfirmModal');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 // -- Preview modal: show full order before accepting -----------------------
@@ -1795,11 +1858,11 @@ function openManageModal(id) {
 
     if (['pending','accepted','preparing','rider_assigned','out_for_delivery'].includes(o.status)) {
         actionsHtml +=
-            '<form method="POST" action="' + statusRoute.replace(':id', o.id) + '" style="margin-top:.25rem;" onsubmit="return confirm(\'Cancel this order?\')">' +
+            '<form id="cancelOrderForm-' + o.id + '" method="POST" action="' + statusRoute.replace(':id', o.id) + '" style="margin-top:.25rem;">' +
                 '<input type="hidden" name="_token" value="' + CSRF_TOKEN + '">' +
                 '<input type="hidden" name="_method" value="PATCH">' +
                 '<input type="hidden" name="status" value="cancelled">' +
-                '<button type="submit" class="btn-danger" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;width:100%;justify-content:center;">' +
+                '<button type="button" class="btn-danger" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.3rem;width:100%;justify-content:center;" onclick="openCancelConfirm(' + o.id + ', \'' + escHtml(o.order_number) + '\')">' +
                     '<i data-lucide="x-circle" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Cancel Order' +
                 '</button>' +
             '</form>';
