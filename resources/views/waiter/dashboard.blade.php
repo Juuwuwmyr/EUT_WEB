@@ -70,6 +70,20 @@
         .w-empty { text-align: center; padding: 4rem 1rem; color: #737373; }
         .w-empty-icon { font-size: 3rem; margin-bottom: .75rem; }
 
+        /* SEARCH */
+        .w-search-wrap { position: relative; margin-bottom: 1rem; }
+        .w-search-input {
+            width: 100%; padding: .65rem 2.75rem .65rem 2.75rem;
+            background: #161616; border: 1px solid rgba(255,255,255,.1);
+            border-radius: .75rem; color: #e5e7eb; font-size: .875rem;
+            outline: none; transition: border-color .2s, box-shadow .2s;
+        }
+        .w-search-input::placeholder { color: #525252; }
+        .w-search-input:focus { border-color: rgba(74,222,128,.45); box-shadow: 0 0 0 3px rgba(74,222,128,.1); }
+        .w-search-icon { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: #525252; pointer-events: none; display: flex; }
+        .w-search-clear { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #525252; cursor: pointer; display: none; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; padding: 0; }
+        .w-search-clear:hover { color: #e5e7eb; background: rgba(255,255,255,.08); }
+
         /* TOAST */
         .w-toast { position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%); background: #1a1b2e; border: 1px solid rgba(74,222,128,.3); color: #4ade80; padding: .625rem 1.25rem; border-radius: 99px; font-size: .8rem; font-weight: 600; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity .3s; }
         .w-toast.show { opacity: 1; }
@@ -122,6 +136,17 @@
         </div>
     </div>
 
+    {{-- Search --}}
+    <div class="w-search-wrap">
+        <span class="w-search-icon">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </span>
+        <input type="text" id="waiterSearch" class="w-search-input" placeholder="Search table, customer, item…" oninput="onSearchInput()">
+        <button class="w-search-clear" id="waiterSearchClear" onclick="clearWaiterSearch()" title="Clear">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+    </div>
+
     {{-- Order Cards --}}
     <div id="waiterGrid" class="w-grid">
         <div class="w-empty"><div class="w-empty-icon">🍽️</div><p>Loading tables…</p></div>
@@ -161,6 +186,8 @@ const BILL_URL   = id => `/waiter/orders/${id}/request-bill`;
 
 let allOrders   = [];
 let currentFilter = 'all';
+let searchQuery   = '';
+let searchDebounce = null;
 let pollTimer   = null;
 const POLL_MS   = 6000;
 
@@ -203,12 +230,42 @@ function filterOrders(f, btn) {
     renderGrid();
 }
 
+function onSearchInput() {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+        searchQuery = document.getElementById('waiterSearch').value.trim().toLowerCase();
+        const clearBtn = document.getElementById('waiterSearchClear');
+        clearBtn.style.display = searchQuery ? 'flex' : 'none';
+        renderGrid();
+    }, 200);
+}
+
+function clearWaiterSearch() {
+    document.getElementById('waiterSearch').value = '';
+    document.getElementById('waiterSearchClear').style.display = 'none';
+    searchQuery = '';
+    renderGrid();
+}
+
 function renderGrid() {
     const grid = document.getElementById('waiterGrid');
     let orders = allOrders;
 
     if (currentFilter === 'ready')   orders = orders.filter(o => o.status === 'preparing' && o.prepared_at);
     if (currentFilter === 'pending') orders = orders.filter(o => o.status === 'pending');
+
+    // Search filter
+    if (searchQuery) {
+        orders = orders.filter(o => {
+            const haystack = [
+                o.table_number ?? '',
+                o.customer ?? '',
+                o.order_number ?? '',
+                ...(o.items || []).map(i => i.name ?? ''),
+            ].join(' ').toLowerCase();
+            return haystack.includes(searchQuery);
+        });
+    }
 
     // Sort: ready first, then by table number
     orders = [...orders].sort((a, b) => {
@@ -219,9 +276,14 @@ function renderGrid() {
     });
 
     if (!orders.length) {
+        const emptyMsg = searchQuery
+            ? `No results for "${esc(searchQuery)}".`
+            : currentFilter === 'ready' ? 'No orders ready to serve.'
+            : currentFilter === 'pending' ? 'No pending orders.'
+            : 'No active dine-in tables.';
         grid.innerHTML = `<div class="w-empty" style="grid-column:1/-1;">
-            <div class="w-empty-icon">🍽️</div>
-            <p>${currentFilter === 'ready' ? 'No orders ready to serve.' : currentFilter === 'pending' ? 'No pending orders.' : 'No active dine-in tables.'}</p>
+            <div class="w-empty-icon">${searchQuery ? '🔍' : '🍽️'}</div>
+            <p>${emptyMsg}</p>
         </div>`;
         return;
     }
