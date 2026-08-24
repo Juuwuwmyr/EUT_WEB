@@ -1248,7 +1248,7 @@ function buildOrderCard(opts) {
     return '<div class="order-card" id="order-card-' + opts.cardId + '">' +
         '<div class="order-card-header">' +
             (opts.headerLeft ? '<span class="order-card-num">' + opts.headerLeft + '</span>' : '') +
-            '<span class="order-card-badge"' style="background:' + opts.sc.bg + ';color:' + opts.sc.color + ';">' + opts.sc.label + '</span>' +
+            '<span class="order-card-badge" style="background:' + opts.sc.bg + ';color:' + opts.sc.color + ';">' + opts.sc.label + '</span>' +
         '</div>' +
         '<div class="order-card-meta">' +
             (opts.metaLine1 ? '<span>' + opts.metaLine1 + '</span>' : '') +
