@@ -1157,5 +1157,6 @@ window.addEventListener('popstate', function() {
 </script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 @include('partials.pwa-register')
+@include('partials.ajax-nav')
 </body>
 </html>

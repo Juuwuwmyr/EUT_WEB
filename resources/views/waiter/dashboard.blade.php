@@ -362,5 +362,6 @@ if (window.Echo) {
 </script>
 
 @include('partials.pwa-register')
+@include('partials.ajax-nav')
 </body>
 </html>

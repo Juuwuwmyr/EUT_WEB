@@ -1840,5 +1840,6 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeItemShe
 </script>
 
 @include('partials.pwa-register')
+@include('partials.ajax-nav')
 </body>
-</html>>
+</html>

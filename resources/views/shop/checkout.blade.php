@@ -282,6 +282,7 @@
         <div class="card">
             <div class="card-header">
                 <div class="card-icon" style="background:rgba(250,204,21,.1);">
+
                     <svg width="15" height="15" fill="none" stroke="#facc15" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                 </div>
                 <span class="card-title">Order Type</span>
@@ -1831,7 +1832,7 @@ async function confirmTableAndOrder() {
 // Close sheet on backdrop click
 document.getElementById('qrScannerBackdrop').addEventListener('click', closeTableScanner);
 </script>
-
+@include('partials.ajax-nav')
 </body>
 </html>
 

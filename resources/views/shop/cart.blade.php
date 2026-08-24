@@ -1370,5 +1370,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (guestBtn) guestBtn.addEventListener('click', e => handleQrDineInCheckout(e, guestBtn));
 });
 </script>
+@include('partials.ajax-nav')
 </body>
 </html>
