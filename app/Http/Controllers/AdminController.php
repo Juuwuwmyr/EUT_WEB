@@ -168,7 +168,7 @@ class AdminController extends Controller
             'name'         => 'required|string|max:100',
             'email'        => 'required|email|unique:users,email',
             'password'     => 'required|string|min:6',
-            'role'         => ['required', Rule::in(['admin', 'user', 'chef', 'rider'])],
+            'role'         => ['required', Rule::in(['admin', 'user', 'chef', 'rider', 'waiter'])],
             'phone'        => 'required_if:role,rider|nullable|string|max:20',
             'plate_number' => 'nullable|string|max:30',
         ]);
@@ -200,7 +200,7 @@ class AdminController extends Controller
         $request->validate([
             'name'  => 'required|string|max:100',
             'email' => ['required','email', Rule::unique('users','email')->ignore($user->id)],
-            'role'  => ['required', Rule::in(['admin', 'user', 'chef', 'rider'])],
+            'role'  => ['required', Rule::in(['admin', 'user', 'chef', 'rider', 'waiter'])],
         ]);
 
         if ($user->id === auth()->id() && $request->role !== 'admin') {

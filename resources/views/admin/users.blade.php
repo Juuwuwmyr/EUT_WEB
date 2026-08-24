@@ -30,6 +30,7 @@
             <option value="admin"    {{ request('role')==='admin'    ? 'selected':'' }}>Admin</option>
             <option value="chef"     {{ request('role')==='chef'     ? 'selected':'' }}>Chef</option>
             <option value="rider"    {{ request('role')==='rider'    ? 'selected':'' }}>Rider</option>
+            <option value="waiter"   {{ request('role')==='waiter'   ? 'selected':'' }}>Waiter</option>
             <option value="archived" {{ request('role')==='archived' ? 'selected':'' }}>Archived</option>
         </select>
         <button type="submit" class="btn-primary" style="display:inline-flex;align-items:center;gap:.35rem;">
