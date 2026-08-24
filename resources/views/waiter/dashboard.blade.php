@@ -76,7 +76,7 @@
 
         /* BOTTOM NAV */
         .w-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,10,10,.98); border-top: 1px solid rgba(255,255,255,.07); display: flex; z-index: 40; }
-        .w-bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .625rem 0 .75rem; color: #737373; font-size: .65rem; font-weight: 600; text-decoration: none; cursor: pointer; background: none; border: none; }
+        .w-bnav-item { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: .625rem 0 .75rem; color: #737373; font-size: .65rem; font-weight: 600; text-decoration: none; cursor: pointer; background: none; border: none; }
         .w-bnav-item.active { color: #4ade80; }
         .w-bnav-badge { background: #ef4444; color: #fff; border-radius: 99px; font-size: .6rem; font-weight: 800; padding: 1px 5px; min-width: 16px; text-align: center; position: absolute; top: 6px; right: calc(50% - 18px); }
     </style>
@@ -131,16 +131,16 @@
 
 {{-- Bottom Nav --}}
 <div class="w-bottom-nav">
-    <button class="w-bnav-item active" onclick="filterOrders('all')">
+    <button class="w-bnav-item active" onclick="filterOrders('all', this)">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18M3 12h18M3 18h18"/></svg>
         All Tables
     </button>
-    <button class="w-bnav-item" onclick="filterOrders('ready')">
+    <button class="w-bnav-item" onclick="filterOrders('ready', this)">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         Ready
         <span id="readyBadge" style="display:none;" class="w-bnav-badge">0</span>
     </button>
-    <button class="w-bnav-item" onclick="filterOrders('pending')">
+    <button class="w-bnav-item" onclick="filterOrders('pending', this)">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 6v6l4 2"/></svg>
         Pending
     </button>
@@ -196,10 +196,10 @@ function renderStats() {
     badge.style.display   = ready > 0 ? 'block' : 'none';
 }
 
-function filterOrders(f) {
+function filterOrders(f, btn) {
     currentFilter = f;
     document.querySelectorAll('.w-bnav-item').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    btn?.classList.add('active');
     renderGrid();
 }
 
@@ -251,7 +251,7 @@ function renderCard(o) {
         ? `<div class="w-card-notes">📝 ${esc(o.notes)}</div>` : '';
 
     const serveDisabled = !['accepted','preparing'].includes(o.status) || isServed ? 'disabled' : '';
-    const printUrl  = `/chef/orders/${o.id}/table-receipt.html`;
+    const printUrl  = `/waiter/orders/${o.id}/table-receipt.html`;
 
     return `<div class="w-card ${cardClass}" id="wcard_${o.id}">
         <div class="w-card-head">
@@ -273,7 +273,7 @@ function renderCard(o) {
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                 ${isServed ? 'Served' : 'Mark Served'}
             </button>
-            <button class="w-btn w-btn-bill" onclick="requestBill(${o.id}, ${o.table_number}, this)">
+            <button class="w-btn w-btn-bill" onclick="requestBill(${o.id}, '${esc(o.table_number)}', this)">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 Bill
             </button>

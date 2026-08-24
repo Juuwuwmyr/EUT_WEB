@@ -83,6 +83,13 @@ class OrderController extends Controller
             ], 401);
         }
 
+        // Staff (waiter/chef/admin/rider) taking a dine-in order on a customer's
+        // behalf must NOT be attributed as the order owner — otherwise the staff
+        // member's name replaces "Guest" on kitchen/waiter dashboards, the order
+        // pollutes their own order history, and they receive the customer's
+        // order-confirmation email on every order they place for a table.
+        $isStaffPlacingDineIn = $isDineIn && auth()->check() && in_array(auth()->user()->role, ['admin', 'waiter', 'chef', 'rider'], true);
+
         $request->validate([
             'items'            => 'required|array|min:1',
             'items.*.id'       => 'required',
@@ -296,7 +303,7 @@ class OrderController extends Controller
             }
 
             $order = Order::create([
-                'user_id'          => auth()->id(), // null for dine-in guests
+                'user_id'          => $isStaffPlacingDineIn ? null : auth()->id(), // null for dine-in guests / staff-placed orders
                 'status'           => 'pending',
                 'order_type'       => $request->order_type,
                 'subtotal'         => $subtotal,
@@ -323,8 +330,9 @@ class OrderController extends Controller
 
             try { broadcast(new OrderStatusUpdated($order))->toOthers(); } catch (\Throwable $be) { \Log::warning('Broadcast failed (new order): ' . $be->getMessage()); }
 
-            // Send order confirmation email to logged-in users
-            if (auth()->check() && auth()->user()->email) {
+            // Send order confirmation email to logged-in users (skip for staff
+            // placing an order on a customer's behalf — they shouldn't get it)
+            if (auth()->check() && auth()->user()->email && !$isStaffPlacingDineIn) {
                 try {
                     auth()->user()->notify(new \App\Notifications\OrderConfirmationNotification($order));
                 } catch (\Throwable $me) {

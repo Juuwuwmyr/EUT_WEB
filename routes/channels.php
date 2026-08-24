@@ -12,9 +12,10 @@ Broadcast::channel('orders.{userId}', function ($user, $userId) {
     return (int) $user->id === (int) $userId;
 });
 
-// Kitchen channel — only chefs and admins
+// Kitchen channel — chefs, admins, and waiters (waiter dashboard listens here
+// for real-time "ready to serve" / status updates)
 Broadcast::channel('kitchen', function ($user) {
-    return $user->isChef() || $user->isAdmin();
+    return $user->isChef() || $user->isAdmin() || $user->isWaiter();
 });
 
 // Admin orders channel — admins only
