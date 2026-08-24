@@ -56,9 +56,9 @@
         .card {
             background: linear-gradient(145deg, #12131f, #0e0f1a);
             border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 20px; overflow: hidden;
+            border-radius: 12px; overflow: hidden;
             margin-bottom: 14px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.35);
         }
         .card-header {
             padding: 15px 18px;
@@ -83,9 +83,9 @@
         .item-edit-hint { display: none; }
 
         .item-img {
-            width: 72px; height: 72px; border-radius: 14px;
+            width: 72px; height: 72px; border-radius: 10px;
             object-fit: cover; flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35);
         }
         .item-info { flex: 1; min-width: 0; }
         .item-name {
@@ -201,9 +201,9 @@
             display: flex; align-items: center; justify-content: space-between;
             background: linear-gradient(135deg, #f59e0b, #facc15);
             color: #000; padding: 14px 18px;
-            border-radius: 16px; margin: 0 16px;
+            border-radius: 12px; margin: 0 16px;
             text-decoration: none;
-            box-shadow: 0 4px 20px rgba(250,204,21,0.3);
+            box-shadow: 0 4px 14px rgba(250,204,21,0.25);
             transition: transform 0.2s;
         }
         .buy-now-bar:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(250,204,21,0.5); }
@@ -223,7 +223,7 @@
             background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.08);
             color: #9ca3af; padding: 13px;
-            border-radius: 14px; font-size: 14px; font-weight: 600;
+            border-radius: 10px; font-size: 14px; font-weight: 600;
             text-align: center; text-decoration: none;
             margin-top: 10px; transition: all 0.2s;
         }
@@ -308,8 +308,6 @@
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(8,8,16,0.98);
             border-top: 1px solid rgba(255,255,255,0.07);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
             padding: 10px 0 14px; z-index: 100;
             will-change: transform;
             transform: translate3d(0,0,0);
@@ -371,12 +369,12 @@
             </p>
             <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto 24px;">
                 <a href="{{ route('restaurant') }}#login"
-                   style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 18px rgba(220,38,38,0.38);transition:all 0.2s;">
+                   style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:10px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(220,38,38,0.3);transition:all 0.2s;">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
                     Log In
                 </a>
                 <a href="{{ route('restaurant') }}#register"
-                   style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 16px rgba(245,158,11,0.3);transition:all 0.2s;">
+                   style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 4px 12px rgba(245,158,11,0.25);transition:all 0.2s;">
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                     Create Account
                 </a>
@@ -400,7 +398,7 @@
             </p>
             <p style="font-size:13px;color:#4b5563;margin-bottom:32px;">Browse the menu and add items to get started.</p>
             <a href="{{ route('shop.home') }}"
-               style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:800;text-decoration:none;box-shadow:0 6px 24px rgba(245,158,11,0.35);">
+               style="display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:15px 32px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#facc15);color:#000;font-size:15px;font-weight:800;text-decoration:none;box-shadow:0 4px 16px rgba(245,158,11,0.3);">
                 <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h7"/>
                 </svg>
@@ -428,10 +426,10 @@
                 </label>
                 <textarea id="qrDineInNotes" rows="2"
                     placeholder="e.g. less ice, no spicy, extra napkins…"
-                    style="width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 13px;color:#fff;font-size:13px;resize:none;outline:none;box-sizing:border-box;font-family:inherit;"
+                    style="width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 13px;color:#fff;font-size:13px;resize:none;outline:none;box-sizing:border-box;font-family:inherit;"
                     onfocus="this.style.borderColor='rgba(250,204,21,.4)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'"></textarea>
             </div>
-            <a id="guestCheckoutBtn" href="{{ route('shop.checkout') }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;margin-top:8px;">
+            <a id="guestCheckoutBtn" href="{{ route('shop.checkout') }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border-radius:10px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;font-size:15px;font-weight:700;text-decoration:none;margin-top:8px;">
                 Proceed to Checkout →
             </a>
         </div>
@@ -582,10 +580,10 @@
             <!-- CTA button -->
             <a href="{{ route('shop.home') }}"
                style="display:inline-flex; align-items:center; justify-content:center; gap:9px;
-                      padding:15px 32px; border-radius:14px;
+                      padding:15px 32px; border-radius:10px;
                       background:linear-gradient(135deg,#f59e0b,#facc15);
                       color:#000; font-size:15px; font-weight:800; text-decoration:none;
-                      box-shadow:0 6px 24px rgba(245,158,11,0.35);
+                      box-shadow:0 4px 16px rgba(245,158,11,0.3);
                       transition:all 0.2s; letter-spacing:0.01em; margin-bottom:32px;">
                 <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h7"/>
@@ -617,7 +615,7 @@
         </div>
 
         <!-- Trust strip -->
-        <div style="margin:8px 20px 16px; padding:16px 20px; border-radius:16px; background:linear-gradient(145deg,#12131f,#0e0f1a); border:1px solid rgba(255,255,255,0.06);">
+        <div style="margin:8px 20px 16px; padding:16px 20px; border-radius:12px; background:linear-gradient(145deg,#12131f,#0e0f1a); border:1px solid rgba(255,255,255,0.06);">
             <div style="display:flex; justify-content:space-around; gap:8px;">
                 <div style="text-align:center;">
                     <div style="font-size:20px; margin-bottom:4px;">⚡</div>
@@ -732,7 +730,7 @@
 
         <!-- Sticky Buy Now Bar -->
         @if(!$isOpen)
-        <div style="margin:0 0 10px;padding:12px 16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:14px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <div style="margin:0 0 10px;padding:12px 16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;">
             <svg width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
             <span style="font-size:13px;font-weight:700;color:#f87171;">We're currently <strong>CLOSED</strong> — orders not accepted right now.</span>
         </div>
