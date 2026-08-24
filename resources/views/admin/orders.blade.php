@@ -1185,12 +1185,19 @@ function buildSoloOrderCard(o) {
     var sc = statusChip(o.status, o.order_type);
 
     var isDineIn = o.order_type === 'dine_in' && o.table_number;
-    var headerLeft = isDineIn
-        ? '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>'
-        : '';
-    var metaLine1 = isDineIn
-        ? ''
-        : (o.order_type_icon ? o.order_type_icon + ' ' : '') + escHtml(o.order_type_label || o.order_type);
+    var headerLeft, metaLine1;
+    if (isDineIn) {
+        headerLeft = '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>';
+        metaLine1 = '';
+    } else {
+        var typeIcon  = o.order_type_icon || '';
+        var typeLabel = escHtml(o.order_type_label || o.order_type);
+        var typeBg    = o.order_type === 'delivery' ? 'rgba(96,165,250,.15)'  : 'rgba(167,139,250,.15)';
+        var typeBorder= o.order_type === 'delivery' ? 'rgba(96,165,250,.4)'   : 'rgba(167,139,250,.4)';
+        var typeColor = o.order_type === 'delivery' ? '#60a5fa'                : '#a78bfa';
+        headerLeft = typeIcon + ' <span style="background:' + typeBg + ';border:1px solid ' + typeBorder + ';border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:' + typeColor + ';letter-spacing:.01em;">' + typeLabel + '</span>';
+        metaLine1 = '';
+    }
 
     // Items preview (up to 3)
     var itemsHtml = '<div class="order-card-items">';
