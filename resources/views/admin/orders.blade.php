@@ -37,13 +37,12 @@
     transform: translateY(-1px);
 }
 
-/* Header: type badge (centered) + status badge (right) */
+/* Header: type badge (left) + status badge (right) */
 .order-card-header {
-    position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
-    min-height: 2rem;
+    justify-content: space-between;
+    gap: .5rem;
 }
 .order-card-num {
     font-family: monospace;
@@ -51,14 +50,11 @@
     font-weight: 800;
     color: #60a5fa;
     line-height: 1.3;
-    max-width: calc(100% - 90px);
-    text-align: center;
+    word-break: break-all;
+    display: inline-flex;
+    align-items: center;
 }
 .order-card-badge {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
     display: inline-flex;
     align-items: center;
     padding: .18rem .55rem;
