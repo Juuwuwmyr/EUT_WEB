@@ -92,15 +92,25 @@
         /* CART REVIEW SHEET */
         .cart-item-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
         .cart-item-img{width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0;}
-        .ci-remove{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;font-weight:700;}
+        .ci-unit-price{font-size:.75rem;color:#9ca3af;}
+        .ci-qty-controls{display:flex;align-items:center;gap:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:99px;flex-shrink:0;}
+        .ci-qty-btn{width:26px;height:26px;border-radius:99px;background:none;border:none;cursor:pointer;font-size:15px;font-weight:700;color:#9ca3af;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;}
+        .ci-qty-btn:hover{color:#fff;}
+        .ci-qty-val{width:22px;text-align:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+        .ci-remove{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;font-weight:700;flex-shrink:0;}
         .btn-place{width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 18px rgba(34,197,94,.3);}
         .btn-place:disabled{opacity:.4;cursor:not-allowed;}
 
         /* NO TABLE */
         .no-table{text-align:center;padding:3rem 1rem;color:#6b7280;}
+
+        /* DINE-IN CLOSED BANNER */
+        .dinein-closed-banner{display:none;max-width:560px;margin:66px auto 0;padding:10px 16px;background:rgba(239,68,68,.12);border-bottom:1px solid rgba(239,68,68,.3);color:#fca5a5;font-size:.78rem;font-weight:600;align-items:center;gap:.5rem;}
+        body.dinein-closed .dinein-closed-banner{display:flex;}
+        body.dinein-closed .table-selector{padding-top:12px;}
     </style>
 </head>
-<body>
+<body class="{{ $isOpenDineIn ? '' : 'dinein-closed' }}">
 
 {{-- NAV --}}
 <nav class="topnav">
@@ -115,6 +125,11 @@
         </button>
     </div>
 </nav>
+
+{{-- DINE-IN CLOSED BANNER --}}
+<div id="dineInClosedBanner" class="dinein-closed-banner">
+    🔴 Dine-In service is currently CLOSED — orders cannot be placed right now.
+</div>
 
 {{-- TABLE SELECTOR --}}
 <div class="table-selector">
@@ -273,6 +288,18 @@ let curItem       = null;
 let curQty        = 1;
 let curSelOpts    = {};
 let curSelAddons  = {};
+let DINE_IN_OPEN  = @json($isOpenDineIn);
+
+// ── Dine-in service status ──────────────────────────────────────────────────
+function refreshPlaceOrderBtn() {
+    document.getElementById('placeOrderBtn').disabled = !DINE_IN_OPEN || cart.length === 0 || !selectedTable;
+}
+
+function setDineInOpen(isOpen) {
+    DINE_IN_OPEN = isOpen;
+    document.body.classList.toggle('dinein-closed', !isOpen);
+    refreshPlaceOrderBtn();
+}
 
 // ── Table ───────────────────────────────────────────────────────────────────
 function onTableChange(val) {
@@ -283,12 +310,11 @@ function onTableChange(val) {
         hint.style.display = 'block';
         num.textContent = 'Table ' + val;
         document.getElementById('cartTableNum').textContent = 'Table ' + val;
-        document.getElementById('placeOrderBtn').disabled = cart.length === 0;
     } else {
         hint.style.display = 'none';
         document.getElementById('cartTableNum').textContent = 'No table selected';
-        document.getElementById('placeOrderBtn').disabled = true;
     }
+    refreshPlaceOrderBtn();
 }
 
 // ── Category filter ─────────────────────────────────────────────────────────
@@ -493,7 +519,7 @@ function updateCartBar(){
     bar.style.display=count>0?'block':'none';
     document.getElementById('cartBadge').textContent=count;
     document.getElementById('cartBadge').style.display=count>0?'flex':'none';
-    document.getElementById('placeOrderBtn').disabled=count===0||!selectedTable;
+    refreshPlaceOrderBtn();
 }
 
 // ── Cart sheet ────────────────────────────────────────────────────────────────
@@ -516,7 +542,12 @@ function renderCartItems(){
             <img src="${esc(item.image||'')}" alt="" class="cart-item-img" onerror="this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
             <div style="flex:1;min-width:0;">
                 <p style="font-size:.82rem;font-weight:600;color:#e5e7eb;">${esc(item.name)}</p>
-                <p style="font-size:.75rem;color:#9ca3af;">${item.quantity}× · ₱${item.price.toLocaleString()}</p>
+                <p class="ci-unit-price">₱${item.price.toLocaleString()} each · ₱${(item.price*item.quantity).toLocaleString()}</p>
+            </div>
+            <div class="ci-qty-controls">
+                <button class="ci-qty-btn" onclick="changeCartQty(${idx},-1)" aria-label="Decrease quantity">−</button>
+                <span class="ci-qty-val">${item.quantity}</span>
+                <button class="ci-qty-btn" onclick="changeCartQty(${idx},1)" aria-label="Increase quantity">+</button>
             </div>
             <button class="ci-remove" onclick="removeFromCart(${idx})">✕</button>
         </div>`).join('');
@@ -529,8 +560,21 @@ function removeFromCart(idx){
     if(cart.length===0)closeCartSheet();
 }
 
+function changeCartQty(idx, delta){
+    const item = cart[idx];
+    if(!item) return;
+    item.quantity = Math.min(99, item.quantity + delta);
+    if(item.quantity <= 0){
+        cart.splice(idx, 1);
+    }
+    renderCartItems();
+    updateCartBar();
+    if(cart.length===0)closeCartSheet();
+}
+
 // ── Place order ───────────────────────────────────────────────────────────────
 async function placeOrder(){
+    if(!DINE_IN_OPEN){showError('Dine-In service is currently closed. Orders cannot be placed right now.');return;}
     if(!selectedTable){showError('Please select a table first.');return;}
     if(!cart.length){showError('Cart is empty.');return;}
     const btn=document.getElementById('placeOrderBtn');
@@ -576,6 +620,14 @@ document.addEventListener('DOMContentLoaded',()=>{
     const sel=document.getElementById('tableSelect');
     if(sel.value)onTableChange(sel.value);
 });
+
+// Real-time dine-in open/closed status (public channel, no auth needed)
+if (window.Echo) {
+    window.Echo.channel('shop.status')
+        .listen('.shop.status', (data) => {
+            setDineInOpen(!!data.is_open_dine_in && !!data.is_open);
+        });
+}
 </script>
 </body>
 </html>
