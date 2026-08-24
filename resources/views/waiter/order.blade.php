@@ -64,8 +64,12 @@
         /* BOTTOM SHEET */
         .sheet-backdrop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s;}
         .sheet-backdrop.open{opacity:1;pointer-events:all;}
-        .sheet{position:fixed;bottom:0;left:0;right:0;z-index:400;background:#0e0f1a;border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,.72,0,1);}
+        /* BOTTOM SHEET */
+        .sheet-backdrop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s;}
+        .sheet-backdrop.open{opacity:1;pointer-events:all;}
+        .sheet{position:fixed;bottom:0;left:0;right:0;z-index:400;background:#0e0f1a;border-radius:24px 24px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,.72,0,1);}
         .sheet.open{transform:translateY(0);}
+        .sheet-scroll{overflow-y:auto;flex:1;}
         .sheet-handle{width:40px;height:4px;border-radius:99px;background:rgba(255,255,255,.15);margin:12px auto 0;}
         .sheet-header{display:flex;align-items:center;gap:14px;padding:14px 18px 12px;}
         .sheet-thumb{width:64px;height:64px;border-radius:14px;object-fit:cover;flex-shrink:0;}
@@ -75,28 +79,32 @@
         .sheet-divider{height:1px;background:rgba(255,255,255,.06);margin:0 18px;}
         .sheet-section{padding:14px 18px 8px;}
         .sheet-section-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
-        .flavor-grid{display:flex;flex-wrap:wrap;gap:8px;}
-        .swatch{cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid transparent;transition:all .2s;flex-shrink:0;}
-        .swatch.sel{border-color:#facc15;box-shadow:0 0 0 1px #facc15;}
-        .swatch-inner{width:68px;height:68px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px;}
-        .swatch-name{font-size:9px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8);text-align:center;}
-        .pill-grid{display:flex;gap:8px;flex-wrap:wrap;}
-        .pill{padding:9px 16px;border-radius:10px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;text-align:center;min-width:60px;}
-        .pill.sel{background:rgba(250,204,21,.1);border-color:#facc15;}
-        .pill-label{font-size:13px;font-weight:700;color:#e5e7eb;display:block;}
-        .pill.sel .pill-label{color:#facc15;}
-        .pill-desc{font-size:10px;color:#4b5563;display:block;}
-        .addon-card{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.07);cursor:pointer;transition:all .2s;margin-bottom:8px;}
-        .addon-card.sel{background:rgba(245,158,11,.1);border-color:#f59e0b;}
-        .addon-check{width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:10px;transition:all .2s;}
-        .addon-card.sel .addon-check{background:#f59e0b;border-color:#f59e0b;}
-        .qty-section{padding:8px 18px 14px;display:flex;align-items:center;justify-content:space-between;}
-        .qty-controls{display:flex;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:99px;}
+        /* List-style option rows (same as shop) */
+        .iq-opt-list{display:flex;flex-direction:column;gap:8px;}
+        .iq-opt-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;}
+        .iq-opt-row.sel{background:rgba(250,204,21,.1);border-color:#facc15;box-shadow:0 2px 8px rgba(250,204,21,.18);}
+        .iq-opt-check{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+        .iq-opt-row.sel .iq-opt-check{background:#facc15;border-color:#facc15;}
+        .iq-opt-swatch{width:16px;height:16px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);}
+        .iq-opt-name{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:#e5e7eb;}
+        .iq-opt-row.sel .iq-opt-name{color:#facc15;}
+        .iq-opt-price{font-size:11px;font-weight:700;color:#6b7280;flex-shrink:0;}
+        .iq-opt-row.sel .iq-opt-price{color:#facc15;}
+        /* Addon cards */
+        .iq-addon-card{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.07);cursor:pointer;transition:all .2s;margin-bottom:8px;}
+        .iq-addon-card.sel{background:rgba(245,158,11,.1);border-color:#f59e0b;box-shadow:0 2px 8px rgba(245,158,11,.18);}
+        .iq-addon-check{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;margin-right:10px;}
+        .iq-addon-card.sel .iq-addon-check{background:#f59e0b;border-color:#f59e0b;}
+        .iq-addon-name{font-size:13px;font-weight:600;color:#e5e7eb;}
+        .iq-addon-card.sel .iq-addon-name{color:#fbbf24;}
+        .iq-addon-price{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);flex-shrink:0;}
+        /* Sticky footer */
+        .sheet-sticky-footer{background:linear-gradient(180deg,rgba(14,15,26,0) 0%,rgba(14,15,26,1) 18%);padding:12px 18px calc(16px + env(safe-area-inset-bottom));flex-shrink:0;}
+        .qty-controls{display:flex;align-items:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:99px;flex-shrink:0;}
         .qty-btn{width:38px;height:38px;border-radius:99px;background:none;border:none;cursor:pointer;font-size:18px;font-weight:700;color:#9ca3af;display:flex;align-items:center;justify-content:center;}
         .qty-val{width:36px;text-align:center;font-size:15px;font-weight:700;color:#fff;background:none;border:none;outline:none;}
-        .sheet-total-row{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 12px;}
-        .sheet-actions{display:flex;gap:10px;padding:0 18px 32px;}
-        .btn-add-sheet{flex:1;padding:14px;border-radius:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#000;font-size:14px;font-weight:800;cursor:pointer;}
+        .btn-add-sheet{width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 18px rgba(34,197,94,.3);transition:all .2s;}
+        .btn-add-sheet:active{transform:scale(.97);}
 
         /* CART REVIEW SHEET */
         .cart-item-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
@@ -206,39 +214,41 @@
 {{-- ITEM BOTTOM SHEET --}}
 <div class="sheet-backdrop" id="itemBackdrop" onclick="closeItemSheet()"></div>
 <div class="sheet" id="itemSheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-header">
-        <img id="sThumb" src="" alt="" class="sheet-thumb" onerror="this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
-        <div style="flex:1;min-width:0;">
-            <p id="sName" class="sheet-name"></p>
-            <span id="sPrice" class="sheet-price"></span>
+    {{-- Scrollable content --}}
+    <div class="sheet-scroll">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <img id="sThumb" src="" alt="" class="sheet-thumb" onerror="this.src='{{ asset('images/menu/default-menu-item.webp') }}'">
+            <div style="flex:1;min-width:0;">
+                <p id="sName" class="sheet-name"></p>
+                <span id="sPrice" class="sheet-price"></span>
+            </div>
+            <button class="sheet-close" onclick="closeItemSheet()">✕</button>
         </div>
-        <button class="sheet-close" onclick="closeItemSheet()">✕</button>
-    </div>
-    <div class="sheet-divider"></div>
-    <div id="sModifiers"></div>
-    <div id="sAddons" style="display:none;">
         <div class="sheet-divider"></div>
-        <div class="sheet-section">
-            <p class="sheet-section-title">Add-ons <span style="font-size:11px;color:#4b5563;font-weight:400;">Optional</span></p>
-            <div id="sAddonsList"></div>
+        <div id="sModifiers"></div>
+        <div id="sAddons" style="display:none;">
+            <div class="sheet-divider"></div>
+            <div class="sheet-section">
+                <p class="sheet-section-title">Add-ons <span id="sAddonsLabel" style="font-size:11px;color:#4b5563;font-weight:400;">Optional</span></p>
+                <div id="sAddonsList"></div>
+            </div>
         </div>
+        <div style="height:8px;"></div>
     </div>
-    <div class="sheet-divider"></div>
-    <div class="qty-section">
-        <span style="font-size:13px;font-weight:700;color:#fff;">Quantity</span>
-        <div class="qty-controls">
-            <button class="qty-btn" onclick="changeQty(-1)">−</button>
-            <span id="sQtyVal" class="qty-val">1</span>
-            <button class="qty-btn" onclick="changeQty(1)">+</button>
+    {{-- Sticky footer: qty + total + add button --}}
+    <div class="sheet-sticky-footer">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+            <div class="qty-controls">
+                <button class="qty-btn" onclick="changeQty(-1)">−</button>
+                <span id="sQtyVal" class="qty-val">1</span>
+                <button class="qty-btn" onclick="changeQty(1)">+</button>
+            </div>
+            <div style="flex:1;text-align:right;">
+                <div style="font-size:.65rem;color:#4b5563;margin-bottom:1px;">Total</div>
+                <div id="sTotal" style="font-size:1.25rem;font-weight:800;color:#facc15;line-height:1;"></div>
+            </div>
         </div>
-    </div>
-    <div class="sheet-divider"></div>
-    <div class="sheet-total-row">
-        <span style="font-size:12px;color:#4b5563;">Total</span>
-        <span id="sTotal" style="font-size:20px;font-weight:800;color:#facc15;"></span>
-    </div>
-    <div class="sheet-actions">
         <button class="btn-add-sheet" onclick="addToCart()">+ Add to Order</button>
     </div>
 </div>
@@ -442,21 +452,24 @@ function buildModifiers() {
 }
 
 function flavorHtml(g) {
-    return `<div class="flavor-grid">` + (g.active_options||[]).map((o,i)=>`
-        <div class="swatch" id="so_${g.id}_${o.id}" onclick="selectOpt(${g.id},${o.id})">
-            <div class="swatch-inner" style="background:${SWATCH_COLORS[i%SWATCH_COLORS.length]};">
-                <span class="swatch-name">${esc(o.name)}</span>
-            </div>
-        </div>`).join('') + `</div>`;
+    return `<div class="iq-opt-list">` + (g.active_options||[]).map((o,i)=>{
+        const color = SWATCH_COLORS[i % SWATCH_COLORS.length];
+        return `<div class="iq-opt-row" id="so_${g.id}_${o.id}" onclick="selectOpt(${g.id},${o.id})">
+            <div class="iq-opt-check"><svg width="11" height="11" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+            <span class="iq-opt-swatch" style="background:${color};"></span>
+            <span class="iq-opt-name">${esc(o.name)}</span>
+        </div>`;
+    }).join('') + `</div>`;
 }
 
 function pillHtml(g) {
-    return `<div class="pill-grid">` + (g.active_options||[]).map(o=>{
-        const adj=parseFloat(o.price_adjustment||0);
-        const pl=o.price_type==='add'&&adj>0?`+₱${adj.toLocaleString()}`:o.price_type==='replace'?`₱${adj.toLocaleString()}`:'Free';
-        return `<div class="pill" id="so_${g.id}_${o.id}" onclick="selectOpt(${g.id},${o.id})">
-            <span class="pill-label">${esc(o.name)}</span>
-            <span class="pill-desc">${pl}</span>
+    return `<div class="iq-opt-list">` + (g.active_options||[]).map(o=>{
+        const adj = parseFloat(o.price_adjustment||0);
+        const pl  = o.price_type==='add'&&adj>0 ? `+₱${adj.toLocaleString()}` : o.price_type==='replace' ? `₱${adj.toLocaleString()}` : 'Free';
+        return `<div class="iq-opt-row" id="so_${g.id}_${o.id}" onclick="selectOpt(${g.id},${o.id})">
+            <div class="iq-opt-check"><svg width="11" height="11" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+            <span class="iq-opt-name">${esc(o.name)}</span>
+            <span class="iq-opt-price">${pl}</span>
         </div>`;
     }).join('') + `</div>`;
 }
@@ -477,33 +490,39 @@ function selectOpt(gid, oid) {
 function buildAddons() {
     const wrap   = document.getElementById('sAddons');
     const list   = document.getElementById('sAddonsList');
+    const label  = document.getElementById('sAddonsLabel');
     const groups = curItem.addon_groups || [];
     curSelAddons = {};
     if (!groups.length) { wrap.style.display='none'; return; }
     wrap.style.display = 'block';
     const isRadio = groups.some(g=>g.max_selections===1);
     if (isRadio) {
-        list.style.cssText='display:flex;flex-wrap:wrap;gap:8px;';
+        if (label) label.textContent = 'Optional · Choose one';
+        list.style.cssText='display:flex;flex-direction:column;gap:8px;padding:4px 0;';
         list.innerHTML = groups.map(g=>(g.active_options||[]).map(o=>{
             const adj=parseFloat(o.price_adjustment||0);
             const paid=o.price_type==='add'&&adj>0;
-            return `<div class="pill" id="sao_${g.id}_${o.id}" data-gid="${g.id}" onclick="toggleAddonOpt(${g.id},${o.id},'${esc(o.name)}','${o.price_type}',${adj})">
-                <span class="pill-label">${esc(o.name)}</span>
-                ${paid?`<span class="pill-desc">+₱${adj.toLocaleString()}</span>`:''}
+            return `<div class="iq-addon-card" id="sao_${g.id}_${o.id}" data-gid="${g.id}" onclick="toggleAddonOpt(${g.id},${o.id},'${esc(o.name)}','${o.price_type}',${adj})">
+                <div style="display:flex;align-items:center;flex:1;min-width:0;">
+                    <div class="iq-addon-check"><svg width="12" height="12" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+                    <p class="iq-addon-name">${esc(o.name)}</p>
+                </div>
+                <span class="iq-addon-price">${paid?'+₱'+adj.toLocaleString():'Free'}</span>
             </div>`;
         }).join('')).join('');
     } else {
+        if (label) label.textContent = 'Optional · Select multiple';
         list.style.cssText='display:flex;flex-direction:column;gap:0;';
         list.innerHTML = groups.map(g=>{
             const o=g.active_options?.[0];
             const adj=parseFloat(o?.price_adjustment||0);
             const paid=o?.price_type==='add'&&adj>0;
-            return `<div class="addon-card" id="sag_${g.id}" onclick="toggleAddon(${g.id},'${esc(g.name)}','${o?.price_type||'none'}',${adj})">
-                <div style="display:flex;align-items:center;flex:1;">
-                    <div class="addon-check" id="sac_${g.id}"><svg width="10" height="10" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                    <span style="font-size:13px;font-weight:600;color:#e5e7eb;">${esc(g.name)}</span>
+            return `<div class="iq-addon-card" id="sag_${g.id}" onclick="toggleAddon(${g.id},'${esc(g.name)}','${o?.price_type||'none'}',${adj})">
+                <div style="display:flex;align-items:center;flex:1;min-width:0;">
+                    <div class="iq-addon-check" id="sac_${g.id}"><svg width="12" height="12" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+                    <p class="iq-addon-name">${esc(g.name)}</p>
                 </div>
-                <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;color:${paid?'#4ade80':'#6b7280'};background:${paid?'rgba(74,222,128,.1)':'rgba(255,255,255,.04)'};">${paid?'+₱'+adj.toLocaleString():'Free'}</span>
+                <span class="iq-addon-price">${paid?'+₱'+adj.toLocaleString():'Free'}</span>
             </div>`;
         }).join('');
     }
@@ -518,6 +537,7 @@ function toggleAddonOpt(gid,oid,name,pt,adj){
 }
 function toggleAddon(gid,name,pt,adj){
     const card=document.getElementById(`sag_${gid}`);
+    const check=document.getElementById(`sac_${gid}`);
     if(curSelAddons[gid]){delete curSelAddons[gid];card?.classList.remove('sel');}
     else{curSelAddons[gid]={optId:gid,name,priceType:pt,adj};card?.classList.add('sel');}
     updateTotal();
