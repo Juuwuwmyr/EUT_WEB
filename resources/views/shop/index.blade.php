@@ -1369,8 +1369,11 @@ if (window.Echo) {
      style="display:none;position:fixed;bottom:0;left:0;right:0;transform:translateY(100%);
             width:100%;max-width:560px;margin:0 auto;z-index:900;background:#0e0f1a;
             border-radius:16px 16px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;
-            max-height:92vh;overflow-y:auto;transition:transform .4s cubic-bezier(.32,.72,0,1);">
+            max-height:92vh;overflow:hidden;transition:transform .4s cubic-bezier(.32,.72,0,1);
+            display:none;flex-direction:column;">
 
+{{-- Scrollable body --}}
+<div style="overflow-y:auto;flex:1;min-height:0;">
     {{-- Handle --}}
     <div style="width:40px;height:4px;border-radius:99px;background:rgba(255,255,255,.15);margin:12px auto 0;"></div>
 
@@ -1414,34 +1417,39 @@ if (window.Echo) {
         </div>
     </div>
 
-    <div style="height:1px;background:rgba(255,255,255,.06);margin:0 18px;"></div>
+    {{-- Scrollable content ends here — sticky footer below --}}
+    <div style="height:8px;"></div>
+</div>{{-- closes iqSheet scrollable body --}}
 
-    {{-- Quantity --}}
-    <div style="padding:8px 18px 16px;display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:13px;font-weight:700;color:#fff;">Quantity</span>
-        <div style="display:flex;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:99px;">
+{{-- ── STICKY BOTTOM BAR (qty + total + add to cart) ── --}}
+<div id="iqStickyFooter" style="position:sticky;bottom:0;left:0;right:0;
+     background:linear-gradient(180deg,rgba(14,15,26,0) 0%,rgba(14,15,26,1) 18%);
+     padding:12px 18px calc(20px + env(safe-area-inset-bottom));
+     backdrop-filter:blur(8px);">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        {{-- Qty controls --}}
+        <div style="display:flex;align-items:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:99px;flex-shrink:0;">
             <button id="iqQtyDec" onclick="iqChangeQty(-1)"
                     style="width:38px;height:38px;border-radius:99px;background:none;border:none;cursor:pointer;font-size:18px;font-weight:700;color:#9ca3af;display:flex;align-items:center;justify-content:center;">−</button>
-            <span id="iqQtyVal" style="width:36px;text-align:center;font-size:15px;font-weight:700;color:#fff;">1</span>
+            <span id="iqQtyVal" style="width:32px;text-align:center;font-size:15px;font-weight:700;color:#fff;">1</span>
             <button id="iqQtyInc" onclick="iqChangeQty(1)"
                     style="width:38px;height:38px;border-radius:99px;background:none;border:none;cursor:pointer;font-size:18px;font-weight:700;color:#9ca3af;display:flex;align-items:center;justify-content:center;">+</button>
         </div>
+        {{-- Total --}}
+        <div style="flex:1;text-align:right;">
+            <div style="font-size:.65rem;color:#4b5563;margin-bottom:1px;">Total</div>
+            <div id="iqTotal" style="font-size:1.25rem;font-weight:800;color:#facc15;line-height:1;"></div>
+        </div>
     </div>
-
-    {{-- Total + Add to Cart --}}
-    <div style="height:1px;background:rgba(255,255,255,.06);margin:0 18px;"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px 14px;">
-        <span style="font-size:12px;color:#4b5563;">Total</span>
-        <span id="iqTotal" style="font-size:20px;font-weight:800;color:#facc15;"></span>
-    </div>
-    <div style="padding:0 18px calc(32px + env(safe-area-inset-bottom));">
-        <button id="iqAddBtn" onclick="iqDoAdd()"
-                style="width:100%;padding:15px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#facc15);
-                       border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;
-                       box-shadow:0 4px 18px rgba(250,204,21,.3);transition:all .2s;">
-            + Add to Cart
-        </button>
-    </div>
+    {{-- Add to Cart button --}}
+    <button id="iqAddBtn" onclick="iqDoAdd()"
+            style="width:100%;padding:15px;border-radius:14px;
+                   background:linear-gradient(135deg,#f59e0b,#facc15);
+                   border:none;color:#000;font-size:15px;font-weight:800;cursor:pointer;
+                   box-shadow:0 4px 18px rgba(250,204,21,.3);transition:all .2s;">
+        + Add to Cart
+    </button>
+</div>
 </div>
 
 {{-- Light mode overrides for the sheet --}}
@@ -1451,10 +1459,11 @@ if (window.Echo) {
 #iqQtyDec:active, #iqQtyInc:active { background: rgba(255,255,255,.12) !important; transform: scale(0.9); }
 .iq-pill:active, .iq-addon-card:active, .iq-swatch:active { transform: scale(0.97); }
 .light-mode #iqSheet            { background:#fff !important; border-color:rgba(0,0,0,.07) !important; }
+.light-mode #iqStickyFooter     { background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,1) 18%) !important; }
 .light-mode #iqName             { color:#111 !important; }
 @media(max-width:560px){ #iqSheet { left:0; transform:translateY(100%); } }
-#iqSheet.open                   { transform:translateY(0) !important; }
-@media(max-width:560px){ #iqSheet.open { transform:translateY(0) !important; } }
+#iqSheet.open                   { transform:translateY(0) !important; display:flex !important; flex-direction:column; }
+@media(max-width:560px){ #iqSheet.open { transform:translateY(0) !important; display:flex !important; flex-direction:column; } }
 
 /* Flavor swatches */
 .iq-flavor-grid  { display:flex;flex-wrap:wrap;gap:10px; }
@@ -1559,7 +1568,7 @@ function openItemSheet(itemId) {
     const backdrop = document.getElementById('iqBackdrop');
     const sheet    = document.getElementById('iqSheet');
     backdrop.style.display = 'block';
-    sheet.style.display    = 'block';
+    sheet.style.display    = 'flex';
     requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('open')));
     document.body.style.overflow = 'hidden';
 }
