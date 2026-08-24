@@ -1118,22 +1118,33 @@ function filterProducts() {
         allFilteredCards.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
     }
 
-    // Reorder DOM to match sorted order
+    // Reorder DOM to match sorted order — batched via a DocumentFragment so the
+    // browser performs the move in one shot instead of N separate appends.
     const grid = domCache.grid;
-    allFilteredCards.forEach(card => grid.appendChild(card));
+    const frag = document.createDocumentFragment();
+    allFilteredCards.forEach(card => frag.appendChild(card));
+    grid.appendChild(frag);
 
     // Determine how many to show in this batch
     visibleItemsCount = Math.min(ITEMS_PER_PAGE, allFilteredCards.length);
 
-    // Show first batch with staggered animation
-    allFilteredCards.slice(0, visibleItemsCount).forEach((card, i) => {
+    // Show first batch with staggered animation.
+    // IMPORTANT: all style writes happen first, then a SINGLE forced reflow
+    // flushes them, then the animation is re-applied. Interleaving a reflow
+    // read (offsetWidth) inside the loop like before forces one synchronous
+    // layout recalculation per card — with several cards that's several
+    // dropped frames on slower phones for zero extra visual benefit.
+    const toShow = allFilteredCards.slice(0, visibleItemsCount);
+    toShow.forEach(card => {
         card.classList.remove('p-card-hidden');
-        // Force animation replay
         card.style.animation = 'none';
         card.style.opacity   = '';
         card.style.transform = '';
-        // Trigger reflow so the browser notices the animation reset
-        void card.offsetWidth;
+    });
+
+    void grid.offsetWidth; // one reflow for the whole batch, not one per card
+
+    toShow.forEach((card, i) => {
         card.style.animation = '';
         card.style.animationDelay = (i * 0.04) + 's';
     });
@@ -1178,19 +1189,29 @@ function checkScrollLoader() {
     }
 }
 
-// Simple scroll-based infinite load — no IntersectionObserver race conditions
+// Simple scroll-based infinite load — no IntersectionObserver race conditions.
+// Gated to run at most once per animation frame: mobile browsers can fire
+// "scroll" far more often than the screen actually repaints, so doing the
+// layout-reading work (scrollY/scrollHeight) on every single event is a
+// classic source of scroll jank. rAF-throttling caps it to ~60 times/sec.
+let scrollTicking = false;
 function onScroll() {
-    if (isLoaderVisible) return;
-    if (visibleItemsCount >= allFilteredCards.length) return;
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(() => {
+        scrollTicking = false;
+        if (isLoaderVisible) return;
+        if (visibleItemsCount >= allFilteredCards.length) return;
 
-    const scrolled   = window.scrollY || document.documentElement.scrollTop;
-    const viewHeight = window.innerHeight;
-    const docHeight  = document.documentElement.scrollHeight;
+        const scrolled   = window.scrollY || document.documentElement.scrollTop;
+        const viewHeight = window.innerHeight;
+        const docHeight  = document.documentElement.scrollHeight;
 
-    // Load more when user is within 400px of the bottom
-    if (scrolled + viewHeight >= docHeight - 400) {
-        loadMoreItems();
-    }
+        // Load more when user is within 400px of the bottom
+        if (scrolled + viewHeight >= docHeight - 400) {
+            loadMoreItems();
+        }
+    });
 }
 
 window.addEventListener('scroll', onScroll, { passive: true });
