@@ -1465,13 +1465,27 @@ if (window.Echo) {
 .iq-swatch-check { position:absolute;bottom:4px;right:4px;z-index:2;width:16px;height:16px;border-radius:50%;background:#facc15;display:none;align-items:center;justify-content:center; }
 .iq-swatch.sel .iq-swatch-check { display:flex; }
 
-/* Size pills */
+/* Size pills (legacy — kept in case other code still references it) */
 .iq-pill-grid { display:flex;gap:10px;flex-wrap:wrap; }
 .iq-pill      { padding:10px 20px;border-radius:10px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;text-align:center;min-width:64px; }
 .iq-pill.sel  { background:rgba(250,204,21,.1);border-color:#facc15;box-shadow:0 2px 8px rgba(250,204,21,.18); }
 .iq-pill-label{ font-size:14px;font-weight:700;color:#e5e7eb;display:block; }
 .iq-pill.sel .iq-pill-label { color:#facc15; }
 .iq-pill-desc { font-size:10px;color:#4b5563;display:block;margin-top:1px; }
+
+/* Option list rows — used for flavor & modifier groups: a vertical list with
+   a check icon on the left, instead of a grid of boxes. Same ".sel" toggle
+   mechanism as before, only the layout/markup changed. */
+.iq-opt-list    { display:flex; flex-direction:column; gap:8px; }
+.iq-opt-row     { display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:10px; background:rgba(255,255,255,.05); border:1.5px solid rgba(255,255,255,.08); cursor:pointer; transition:all .2s; }
+.iq-opt-row.sel { background:rgba(250,204,21,.1); border-color:#facc15; box-shadow:0 2px 8px rgba(250,204,21,.18); }
+.iq-opt-check   { width:22px; height:22px; border-radius:6px; background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .2s; }
+.iq-opt-row.sel .iq-opt-check { background:#facc15; border-color:#facc15; }
+.iq-opt-swatch  { width:16px; height:16px; border-radius:50%; flex-shrink:0; box-shadow:inset 0 0 0 1px rgba(255,255,255,.25); }
+.iq-opt-name    { flex:1; min-width:0; font-size:13.5px; font-weight:700; color:#e5e7eb; }
+.iq-opt-row.sel .iq-opt-name { color:#facc15; }
+.iq-opt-price   { font-size:11px; font-weight:700; color:#6b7280; flex-shrink:0; }
+.iq-opt-row.sel .iq-opt-price { color:#facc15; }
 
 /* Addon cards */
 .iq-addon-card     { display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:10px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.07);cursor:pointer;transition:all .2s;margin-bottom:8px; }
@@ -1598,27 +1612,27 @@ function iqBuildModifiers() {
 }
 
 function iqFlavorHtml(group) {
-    return `<div class="iq-flavor-grid">` +
+    return `<div class="iq-opt-list">` +
         (group.active_options || []).map((opt, i) => {
             const color = IQ_SWATCH_COLORS[i % IQ_SWATCH_COLORS.length];
-            return `<div class="iq-swatch" id="iqO_${group.id}_${opt.id}" onclick="iqSelectOpt(${group.id},${opt.id})">
-                <div class="iq-swatch-inner" style="background:${color};">
-                    <span class="iq-swatch-name">${iqEsc(opt.name)}</span>
-                    <span class="iq-swatch-check"><svg width="9" height="9" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></span>
-                </div>
+            return `<div class="iq-opt-row" id="iqO_${group.id}_${opt.id}" onclick="iqSelectOpt(${group.id},${opt.id})">
+                <div class="iq-opt-check"><svg width="11" height="11" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+                <span class="iq-opt-swatch" style="background:${color};"></span>
+                <span class="iq-opt-name">${iqEsc(opt.name)}</span>
             </div>`;
         }).join('') + `</div>`;
 }
 
 function iqPillHtml(group) {
-    return `<div class="iq-pill-grid">` +
+    return `<div class="iq-opt-list">` +
         (group.active_options || []).map(opt => {
             const adj   = parseFloat(opt.price_adjustment || 0);
             const pLabel = opt.price_type === 'add' && adj > 0 ? `+₱${adj.toLocaleString()}`
                          : opt.price_type === 'replace' ? `₱${adj.toLocaleString()}` : 'Free';
-            return `<div class="iq-pill" id="iqO_${group.id}_${opt.id}" onclick="iqSelectOpt(${group.id},${opt.id})">
-                <span class="iq-pill-label">${iqEsc(opt.name)}</span>
-                <span class="iq-pill-desc">${pLabel}</span>
+            return `<div class="iq-opt-row" id="iqO_${group.id}_${opt.id}" onclick="iqSelectOpt(${group.id},${opt.id})">
+                <div class="iq-opt-check"><svg width="11" height="11" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
+                <span class="iq-opt-name">${iqEsc(opt.name)}</span>
+                <span class="iq-opt-price">${pLabel}</span>
             </div>`;
         }).join('') + `</div>`;
 }
@@ -1678,14 +1692,19 @@ function iqBuildAddons() {
 
     if (isRadio) {
         label.textContent = 'Optional · Choose one';
-        list.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;';
+        list.style.cssText = 'display:flex;flex-direction:column;gap:8px;padding:4px 0;';
         list.innerHTML = groups.map(g =>
             (g.active_options || []).map(opt => {
                 const adj = parseFloat(opt.price_adjustment || 0);
                 const paid = opt.price_type === 'add' && adj > 0;
-                return `<div class="iq-pill" id="iqAO_${g.id}_${opt.id}" data-gid="${g.id}" onclick="iqToggleAddonOpt(${g.id},${opt.id},'${iqEsc(opt.name)}','${opt.price_type}',${adj})">
-                    <span class="iq-pill-label">${iqEsc(opt.name)}</span>
-                    ${paid ? `<span class="iq-pill-desc">+₱${adj.toLocaleString()}</span>` : ''}
+                return `<div class="iq-addon-card" id="iqAO_${g.id}_${opt.id}" data-gid="${g.id}" onclick="iqToggleAddonOpt(${g.id},${opt.id},'${iqEsc(opt.name)}','${opt.price_type}',${adj})">
+                    <div style="display:flex;align-items:center;flex:1;min-width:0;">
+                        <div class="iq-addon-check">
+                            <svg width="12" height="12" fill="none" stroke="#000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        </div>
+                        <p class="iq-addon-name">${iqEsc(opt.name)}</p>
+                    </div>
+                    <span class="iq-addon-price">${paid ? '+₱'+adj.toLocaleString() : 'Free'}</span>
                 </div>`;
             }).join('')
         ).join('');
