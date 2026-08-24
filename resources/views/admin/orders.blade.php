@@ -1184,10 +1184,12 @@ function renderGrid(orders) {
 function buildSoloOrderCard(o) {
     var sc = statusChip(o.status, o.order_type);
 
-    var metaLine1 = o.order_type === 'dine_in' && o.table_number
-        ? '<span style="display:inline-flex;align-items:center;gap:.35rem;font-size:.88rem;font-weight:800;color:#facc15;">' +
-          '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.1rem .5rem;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>' +
-          '</span>'
+    var isDineIn = o.order_type === 'dine_in' && o.table_number;
+    var headerLeft = isDineIn
+        ? '\uD83E\uDE91 <span style="background:rgba(250,204,21,.15);border:1px solid rgba(250,204,21,.35);border-radius:.4rem;padding:.15rem .6rem;font-size:.95rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(o.table_number) + '</span>'
+        : '';
+    var metaLine1 = isDineIn
+        ? ''
         : (o.order_type_icon ? o.order_type_icon + ' ' : '') + escHtml(o.order_type_label || o.order_type);
 
     // Items preview (up to 3)
@@ -1233,7 +1235,7 @@ function buildSoloOrderCard(o) {
 
     return buildOrderCard({
         cardId:    'solo-' + o.id,
-        headerLeft: '',
+        headerLeft: headerLeft,
         sc:        sc,
         metaLine1: metaLine1,
         metaLine2: '\u23F0 ' + escHtml(o.date_short || o.date),
