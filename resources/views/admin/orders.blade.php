@@ -402,6 +402,42 @@ html.light .order-card-subrow {
     </div>
 </div>
 
+{{-- ══════════ DONE ORDERING / LOCK TABLE CONFIRM MODAL ══════════ --}}
+<div id="lockTableModal" class="modal-backdrop" onclick="_onLockTableBackdrop(event)">
+    <div class="modal-box" style="max-width:400px;">
+        <div class="modal-header">
+            <div style="display:flex;align-items:center;gap:.5rem;">
+                <i data-lucide="lock" style="width:1.1rem;height:1.1rem;color:#fb923c;stroke-width:2;"></i>
+                <h3 class="modal-title">Done Ordering?</h3>
+            </div>
+            <button onclick="closeLockTableModal()" class="modal-close">
+                <i data-lucide="x" style="width:1rem;height:1rem;stroke-width:2.5;"></i>
+            </button>
+        </div>
+        <div class="modal-body" style="gap:.75rem;padding:1.25rem 1.4rem;">
+            <div style="display:flex;align-items:flex-start;gap:.875rem;">
+                <div style="flex-shrink:0;width:2.5rem;height:2.5rem;border-radius:.625rem;background:rgba(251,146,60,.12);border:1px solid rgba(251,146,60,.25);display:flex;align-items:center;justify-content:center;">
+                    <i data-lucide="lock" style="width:1.1rem;height:1.1rem;color:#fb923c;stroke-width:2;"></i>
+                </div>
+                <div>
+                    <p style="margin:0 0 .35rem;font-size:.875rem;font-weight:700;color:var(--text-strong);">Mark <span id="lockTableLabel" style="color:#fb923c;">this table</span> as Done Ordering?</p>
+                    <p style="margin:0 0 .5rem;font-size:.78rem;color:var(--text-muted);">After locking:</p>
+                    <ul style="margin:0;padding-left:1.1rem;font-size:.78rem;color:var(--text-muted);line-height:1.8;">
+                        <li>No new pahabol orders will be merged into this session.</li>
+                        <li>A new customer on the same table will get a fresh session.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeLockTableModal()" class="btn-ghost" style="font-size:.8rem;">Cancel</button>
+            <button id="lockTableConfirmBtn" class="btn-primary" style="font-size:.8rem;display:inline-flex;align-items:center;gap:.35rem;background:#fb923c;border-color:#fb923c;">
+                <i data-lucide="lock" style="width:.8rem;height:.8rem;stroke-width:2;"></i> Yes, Lock Table
+            </button>
+        </div>
+    </div>
+</div>
+
 {{-- ══════════ ORDER PREVIEW MODAL (View before Accept) ══════════ --}}
 <div id="previewModal" class="modal-backdrop" onclick="closeModalBackdrop(event,'previewModal')">
     <div class="modal-box" style="max-width:420px;">
@@ -1391,7 +1427,8 @@ async function quickAction(orderId, type, nextStatus, btn) {
             // Lock ordering for this table session — no more pahabol merges allowed
             var o = ORDERS_MAP[orderId];
             var tableNum = o ? ('Table ' + (o.table_number || '?')) : 'this table';
-            if (!confirm('Mark ' + tableNum + ' as Done Ordering?\n\nAfter locking:\n\u2022 No new pahabol orders will be merged into this session.\n\u2022 A new customer on the same table will get a fresh session.')) {
+            var confirmed = await openLockTableConfirm(tableNum);
+            if (!confirmed) {
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
                 return;
@@ -1445,6 +1482,37 @@ async function quickAction(orderId, type, nextStatus, btn) {
 async function quickAccept(orderId, btn) {
     if (!confirm('Accept this order?')) return;
     await quickAction(orderId, 'accept', '', btn);
+}
+
+// -- Lock table (Done Ordering) confirmation modal ------------------------
+var _lockTableResolve = null;
+
+function openLockTableConfirm(tableNum) {
+    return new Promise(function(resolve) {
+        _lockTableResolve = resolve;
+        var label = document.getElementById('lockTableLabel');
+        if (label) label.textContent = tableNum;
+
+        var btn = document.getElementById('lockTableConfirmBtn');
+        var fresh = btn.cloneNode(true);
+        btn.parentNode.replaceChild(fresh, btn);
+        fresh.addEventListener('click', function() {
+            closeModal('lockTableModal');
+            if (_lockTableResolve) { _lockTableResolve(true); _lockTableResolve = null; }
+        });
+
+        openModal('lockTableModal');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+}
+
+function closeLockTableModal() {
+    closeModal('lockTableModal');
+    if (_lockTableResolve) { _lockTableResolve(false); _lockTableResolve = null; }
+}
+
+function _onLockTableBackdrop(e) {
+    if (e.target === document.getElementById('lockTableModal')) closeLockTableModal();
 }
 
 // -- Cancel order confirmation modal --------------------------------------
