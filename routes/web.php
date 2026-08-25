@@ -32,6 +32,7 @@ Route::get('/', function () {
         if ($user->isAdmin()) return redirect()->route('admin.dashboard');
         if ($user->isRider()) return redirect()->route('rider.dashboard');
         if ($user->isChef())  return redirect()->route('chef.dashboard');
+        if ($user->isWaiter()) return redirect()->route('waiter.dashboard');
         if ($user->provider === 'email' && ! $user->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
         }
@@ -40,7 +41,7 @@ Route::get('/', function () {
     if (\App\Services\PendingSignup::has()) {
         return redirect()->route('verification.notice');
     }
-    return view('landing');
+    return redirect()->route('shop.home');
 })->name('home');
 
 Route::get('/welcome', function () {
