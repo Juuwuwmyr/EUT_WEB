@@ -148,20 +148,47 @@
     🔴 Dine-In service is currently CLOSED — orders cannot be placed right now.
 </div>
 
-{{-- TABLE SELECTOR --}}
+{{-- ORDER TYPE + TABLE SELECTOR --}}
 <div class="table-selector">
-    <p class="table-label">Select Table</p>
-    <div class="table-select-wrap">
-        <select id="tableSelect" class="table-select" onchange="onTableChange(this.value)">
-            <option value="">— Choose a table —</option>
-            @foreach($tables as $t)
-            <option value="{{ $t }}">Table {{ $t }}</option>
-            @endforeach
-        </select>
+
+    {{-- Order Type Toggle --}}
+    <p class="table-label">Order Type</p>
+    <div style="display:flex;gap:8px;margin-bottom:1rem;">
+        <button id="btnDineIn" onclick="setOrderType('dine_in')"
+                style="flex:1;padding:.75rem;border-radius:12px;font-size:.875rem;font-weight:700;cursor:pointer;transition:all .2s;
+                       background:rgba(74,222,128,.12);border:1.5px solid rgba(74,222,128,.4);color:#4ade80;">
+            🪑 Dine-in
+        </button>
+        <button id="btnTakeout" onclick="setOrderType('pickup')"
+                style="flex:1;padding:.75rem;border-radius:12px;font-size:.875rem;font-weight:700;cursor:pointer;transition:all .2s;
+                       background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);color:#6b7280;">
+            🥡 Take-out
+        </button>
     </div>
-    <p id="tableHint" style="font-size:.72rem;color:#6b7280;margin-top:.5rem;display:none;">
-        Ordering for <strong id="tableHintNum" style="color:#4ade80;"></strong>
-    </p>
+
+    {{-- Table selector (only for dine-in) --}}
+    <div id="tableSelectorWrap">
+        <p class="table-label">Select Table</p>
+        <div class="table-select-wrap">
+            <select id="tableSelect" class="table-select" onchange="onTableChange(this.value)">
+                <option value="">— Choose a table —</option>
+                @foreach($tables as $t)
+                <option value="{{ $t }}">Table {{ $t }}</option>
+                @endforeach
+            </select>
+        </div>
+        <p id="tableHint" style="font-size:.72rem;color:#6b7280;margin-top:.5rem;display:none;">
+            Ordering for <strong id="tableHintNum" style="color:#4ade80;"></strong>
+        </p>
+    </div>
+
+    {{-- Take-out label --}}
+    <div id="takeoutLabel" style="display:none;">
+        <div style="background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.3);border-radius:10px;padding:.625rem .875rem;font-size:.8rem;color:#fb923c;font-weight:600;">
+            🥡 Take-out order — customer will pick up at counter
+        </div>
+    </div>
+
 </div>
 
 {{-- CATEGORY PILLS + SEARCH --}}
@@ -256,12 +283,26 @@
 {{-- CART REVIEW SHEET --}}
 <div class="sheet-backdrop" id="cartBackdrop" onclick="closeCartSheet()"></div>
 <div class="sheet" id="cartSheet">
+<<<<<<< HEAD
     {{-- Scrollable content --}}
     <div class="sheet-scroll">
         <div class="sheet-handle"></div>
         <div style="padding:14px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
             <p style="font-size:15px;font-weight:700;color:#fff;">Order Summary</p>
             <button class="sheet-close" onclick="closeCartSheet()">✕</button>
+=======
+    <div class="sheet-handle"></div>
+    <div style="padding:14px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
+        <p style="font-size:15px;font-weight:700;color:#fff;">Order Summary</p>
+        <button class="sheet-close" onclick="closeCartSheet()">✕</button>
+    </div>
+    <div class="sheet-divider"></div>
+
+    {{-- Table number / order type display --}}
+    <div style="padding:10px 18px 0;">
+        <div id="cartTableDisplay" style="display:inline-flex;align-items:center;gap:.4rem;border-radius:8px;padding:.3rem .75rem;font-size:.8rem;font-weight:700;">
+            <span id="cartTableNum">No table selected</span>
+>>>>>>> 192555f86e5009be9b97bc79771133ef11653a7e
         </div>
         <div class="sheet-divider"></div>
 
@@ -315,17 +356,63 @@ const SWATCH_COLORS = [
     'linear-gradient(135deg,#15803d,#14532d)',
 ];
 
-let selectedTable = '';
-let cart          = [];
-let curItem       = null;
-let curQty        = 1;
-let curSelOpts    = {};
-let curSelAddons  = {};
-let DINE_IN_OPEN  = @json($isOpenDineIn);
+let selectedTable  = '';
+let selectedType   = 'dine_in'; // 'dine_in' | 'pickup'
+let cart           = [];
+let curItem        = null;
+let curQty         = 1;
+let curSelOpts     = {};
+let curSelAddons   = {};
+let DINE_IN_OPEN   = @json($isOpenDineIn);
+
+// ── Order type toggle ────────────────────────────────────────────────────────
+function setOrderType(type) {
+    selectedType = type;
+    const isDine = type === 'dine_in';
+
+    // Buttons
+    document.getElementById('btnDineIn').style.background  = isDine ? 'rgba(74,222,128,.12)'     : 'rgba(255,255,255,.05)';
+    document.getElementById('btnDineIn').style.borderColor = isDine ? 'rgba(74,222,128,.4)'      : 'rgba(255,255,255,.1)';
+    document.getElementById('btnDineIn').style.color       = isDine ? '#4ade80'                  : '#6b7280';
+    document.getElementById('btnTakeout').style.background  = !isDine ? 'rgba(251,146,60,.12)'   : 'rgba(255,255,255,.05)';
+    document.getElementById('btnTakeout').style.borderColor = !isDine ? 'rgba(251,146,60,.4)'    : 'rgba(255,255,255,.1)';
+    document.getElementById('btnTakeout').style.color       = !isDine ? '#fb923c'                : '#6b7280';
+
+    // Show/hide table selector vs take-out label
+    document.getElementById('tableSelectorWrap').style.display = isDine ? 'block' : 'none';
+    document.getElementById('takeoutLabel').style.display       = isDine ? 'none'  : 'block';
+
+    // Reset table when switching to take-out
+    if (!isDine) {
+        selectedTable = '';
+        document.getElementById('tableHint').style.display = 'none';
+    }
+
+    // Update cart sheet display
+    updateCartTypeDisplay();
+    refreshPlaceOrderBtn();
+}
+
+function updateCartTypeDisplay() {
+    const el   = document.getElementById('cartTableDisplay');
+    const span = document.getElementById('cartTableNum');
+    if (selectedType === 'pickup') {
+        el.style.background   = 'rgba(251,146,60,.1)';
+        el.style.border       = '1px solid rgba(251,146,60,.3)';
+        el.style.color        = '#fb923c';
+        span.textContent      = '🥡 Take-out';
+    } else {
+        el.style.background   = 'rgba(74,222,128,.1)';
+        el.style.border       = '1px solid rgba(74,222,128,.3)';
+        el.style.color        = '#4ade80';
+        span.textContent      = selectedTable ? '🪑 Table ' + selectedTable : 'No table selected';
+    }
+}
 
 // ── Dine-in service status ──────────────────────────────────────────────────
 function refreshPlaceOrderBtn() {
-    document.getElementById('placeOrderBtn').disabled = !DINE_IN_OPEN || cart.length === 0 || !selectedTable;
+    const needsTable = selectedType === 'dine_in' && !selectedTable;
+    document.getElementById('placeOrderBtn').disabled = cart.length === 0 || needsTable;
 }
 
 function setDineInOpen(isOpen) {
@@ -342,11 +429,10 @@ function onTableChange(val) {
     if (val) {
         hint.style.display = 'block';
         num.textContent = 'Table ' + val;
-        document.getElementById('cartTableNum').textContent = 'Table ' + val;
     } else {
         hint.style.display = 'none';
-        document.getElementById('cartTableNum').textContent = 'No table selected';
     }
+    updateCartTypeDisplay();
     refreshPlaceOrderBtn();
 }
 
@@ -659,9 +745,10 @@ function changeCartQty(idx, delta){
 
 // ── Place order ───────────────────────────────────────────────────────────────
 async function placeOrder(){
-    if(!DINE_IN_OPEN){showError('Dine-In service is currently closed. Orders cannot be placed right now.');return;}
-    if(!selectedTable){showError('Please select a table first.');return;}
+    if(selectedType === 'dine_in' && !selectedTable){showError('Please select a table first.');return;}
     if(!cart.length){showError('Cart is empty.');return;}
+
+    const isDine = selectedType === 'dine_in';
     const btn=document.getElementById('placeOrderBtn');
     btn.disabled=true;btn.textContent='Placing order…';
     const errEl=document.getElementById('cartError');errEl.style.display='none';
@@ -670,11 +757,11 @@ async function placeOrder(){
             method:'POST',
             headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
             body:JSON.stringify({
-                order_type:'dine_in',
-                table_number:selectedTable,
-                items:cart.map(i=>({id:i.item_id,qty:i.quantity,modifiers:i.modifiers})),
-                notes:document.getElementById('orderNotes').value.trim()||null,
-                payment_method:'cash',
+                order_type:       selectedType,
+                table_number:     isDine ? selectedTable : null,
+                items:            cart.map(i=>({id:i.item_id,qty:i.quantity,modifiers:i.modifiers})),
+                notes:            document.getElementById('orderNotes').value.trim()||null,
+                payment_method:   'cash',
             }),
         });
         const data=await res.json();
@@ -682,7 +769,10 @@ async function placeOrder(){
             cart=[];
             updateCartBar();
             closeCartSheet();
-            showToast('🎉 Order placed for Table '+selectedTable+'!');
+            const msg = isDine
+                ? '🎉 Dine-in order placed for Table '+selectedTable+'!'
+                : '🥡 Take-out order placed!';
+            showToast(msg);
             document.getElementById('orderNotes').value='';
             btn.textContent='Place Order';
         } else {
