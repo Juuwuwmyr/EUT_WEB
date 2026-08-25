@@ -18,7 +18,7 @@
         .nav-title{font-size:15px;font-weight:600;color:#fff;flex:1;}
 
         /* TABLE SELECTOR */
-        .table-selector{max-width:560px;margin:0 auto;padding:76px 16px 12px;}
+        .table-selector{max-width:560px;margin:0 auto;padding:12px 16px 10px;}
         .table-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:.5rem;}
         .table-select-wrap{position:relative;}
         .table-select{width:100%;padding:.875rem 1rem;background:rgba(74,222,128,.08);border:1.5px solid rgba(74,222,128,.35);border-radius:14px;color:#4ade80;font-size:1rem;font-weight:700;outline:none;appearance:none;cursor:pointer;}
@@ -33,8 +33,11 @@
         .menu-search-clear{position:absolute;right:1.75rem;top:50%;transform:translateY(-20%);background:none;border:none;color:#4b5563;cursor:pointer;display:none;align-items:center;justify-content:center;width:1.25rem;height:1.25rem;border-radius:50%;padding:0;line-height:1;}
         .menu-search-clear:hover{color:#fff;}
 
+        /* STICKY TOP WRAPPER */
+        .sticky-top{position:sticky;top:56px;z-index:40;background:#080810;border-bottom:1px solid rgba(255,255,255,.06);}
+
         /* CATEGORY PILLS */
-        .cats-bar{position:sticky;top:56px;z-index:40;background:#080810;border-bottom:1px solid rgba(255,255,255,.06);}
+        .cats-bar{border-top:1px solid rgba(255,255,255,.06);}
         .cats-inner{max-width:560px;margin:0 auto;padding:10px 16px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;}
         .cats-inner::-webkit-scrollbar{display:none;}
         .cat-pill{flex-shrink:0;padding:7px 16px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.05);color:#6b7280;transition:all .2s;white-space:nowrap;}
@@ -122,9 +125,8 @@
         .no-table{text-align:center;padding:3rem 1rem;color:#6b7280;}
 
         /* DINE-IN CLOSED BANNER */
-        .dinein-closed-banner{display:none;max-width:560px;margin:66px auto 0;padding:10px 16px;background:rgba(239,68,68,.12);border-bottom:1px solid rgba(239,68,68,.3);color:#fca5a5;font-size:.78rem;font-weight:600;align-items:center;gap:.5rem;}
+        .dinein-closed-banner{display:none;padding:8px 16px;background:rgba(239,68,68,.12);border-bottom:1px solid rgba(239,68,68,.3);color:#fca5a5;font-size:.78rem;font-weight:600;align-items:center;gap:.5rem;}
         body.dinein-closed .dinein-closed-banner{display:flex;}
-        body.dinein-closed .table-selector{padding-top:12px;}
     </style>
 </head>
 <body class="{{ $isOpenDineIn ? '' : 'dinein-closed' }}">
@@ -143,71 +145,76 @@
     </div>
 </nav>
 
-{{-- DINE-IN CLOSED BANNER --}}
-<div id="dineInClosedBanner" class="dinein-closed-banner">
-    🔴 Dine-In service is currently CLOSED — orders cannot be placed right now.
-</div>
+{{-- Spacer so content starts below the fixed nav --}}
+<div style="height:56px;"></div>
 
-{{-- ORDER TYPE + TABLE SELECTOR --}}
-<div class="table-selector">
+{{-- STICKY TOP: order type + table selector + search + pills --}}
+<div class="sticky-top">
 
-    {{-- Order Type Toggle --}}
-    <p class="table-label">Order Type</p>
-    <div style="display:flex;gap:8px;margin-bottom:1rem;">
-        <button id="btnDineIn" onclick="setOrderType('dine_in')"
-                style="flex:1;padding:.75rem;border-radius:12px;font-size:.875rem;font-weight:700;cursor:pointer;transition:all .2s;
-                       background:rgba(74,222,128,.12);border:1.5px solid rgba(74,222,128,.4);color:#4ade80;">
-            🪑 Dine-in
-        </button>
-        <button id="btnTakeout" onclick="setOrderType('pickup')"
-                style="flex:1;padding:.75rem;border-radius:12px;font-size:.875rem;font-weight:700;cursor:pointer;transition:all .2s;
-                       background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);color:#6b7280;">
-            🥡 Take-out
-        </button>
+    {{-- Dine-In Closed Banner --}}
+    <div id="dineInClosedBanner" class="dinein-closed-banner" style="margin:0;border-radius:0;">
+        🔴 Dine-In service is currently CLOSED — orders cannot be placed right now.
     </div>
 
-    {{-- Table selector (only for dine-in) --}}
-    <div id="tableSelectorWrap">
-        <p class="table-label">Select Table</p>
-        <div class="table-select-wrap">
-            <select id="tableSelect" class="table-select" onchange="onTableChange(this.value)">
-                <option value="">— Choose a table —</option>
-                @foreach($tables as $t)
-                <option value="{{ $t }}">Table {{ $t }}</option>
-                @endforeach
-            </select>
+    {{-- ORDER TYPE + TABLE SELECTOR --}}
+    <div class="table-selector">
+        <p class="table-label">Order Type</p>
+        <div style="display:flex;gap:8px;margin-bottom:.75rem;">
+            <button id="btnDineIn" onclick="setOrderType('dine_in')"
+                    style="flex:1;padding:.75rem;border-radius:12px;font-size:.875rem;font-weight:700;cursor:pointer;transition:all .2s;
+                           background:rgba(74,222,128,.12);border:1.5px solid rgba(74,222,128,.4);color:#4ade80;">
+                🪑 Dine-in
+            </button>
+            <button id="btnTakeout" onclick="setOrderType('pickup')"
+                    style="flex:1;padding:.75rem;border-radius:12px;font-size:.875rem;font-weight:700;cursor:pointer;transition:all .2s;
+                           background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);color:#6b7280;">
+                🥡 Take-out
+            </button>
         </div>
-        <p id="tableHint" style="font-size:.72rem;color:#6b7280;margin-top:.5rem;display:none;">
-            Ordering for <strong id="tableHintNum" style="color:#4ade80;"></strong>
-        </p>
-    </div>
 
-    {{-- Take-out label --}}
-    <div id="takeoutLabel" style="display:none;">
-        <div style="background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.3);border-radius:10px;padding:.625rem .875rem;font-size:.8rem;color:#fb923c;font-weight:600;">
-            🥡 Take-out order — customer will pick up at counter
+        {{-- Table selector (dine-in only) --}}
+        <div id="tableSelectorWrap">
+            <p class="table-label">Select Table</p>
+            <div class="table-select-wrap">
+                <select id="tableSelect" class="table-select" onchange="onTableChange(this.value)">
+                    <option value="">— Choose a table —</option>
+                    @foreach($tables as $t)
+                    <option value="{{ $t }}">Table {{ $t }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <p id="tableHint" style="font-size:.72rem;color:#6b7280;margin-top:.5rem;display:none;">
+                Ordering for <strong id="tableHintNum" style="color:#4ade80;"></strong>
+            </p>
+        </div>
+
+        {{-- Take-out label --}}
+        <div id="takeoutLabel" style="display:none;">
+            <div style="background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.3);border-radius:10px;padding:.625rem .875rem;font-size:.8rem;color:#fb923c;font-weight:600;">
+                🥡 Take-out — customer picks up at counter
+            </div>
         </div>
     </div>
 
-</div>
+    {{-- SEARCH + CATEGORY PILLS --}}
+    <div class="cats-bar">
+        <div class="menu-search-wrap">
+            <span class="menu-search-icon">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </span>
+            <input type="text" id="menuSearch" class="menu-search-input" placeholder="Search menu…" oninput="onMenuSearch()">
+            <button class="menu-search-clear" id="menuSearchClear" onclick="clearMenuSearch()" title="Clear">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="cats-inner" id="catPills">
+            <button class="cat-pill active" onclick="filterCat('all', this)">All</button>
+            @foreach($categories as $cat)
+            <button class="cat-pill" onclick="filterCat('{{ $cat->slug }}', this)">{{ $cat->name }}</button>
+            @endforeach
+        </div>
+    </div>
 
-{{-- CATEGORY PILLS + SEARCH --}}
-<div class="cats-bar">
-    <div class="menu-search-wrap">
-        <span class="menu-search-icon">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        </span>
-        <input type="text" id="menuSearch" class="menu-search-input" placeholder="Search menu…" oninput="onMenuSearch()">
-        <button class="menu-search-clear" id="menuSearchClear" onclick="clearMenuSearch()" title="Clear">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-    </div>
-    <div class="cats-inner" id="catPills">
-        <button class="cat-pill active" onclick="filterCat('all', this)">All</button>
-        @foreach($categories as $cat)
-        <button class="cat-pill" onclick="filterCat('{{ $cat->slug }}', this)">{{ $cat->name }}</button>
-        @endforeach
-    </div>
 </div>
 
 {{-- PRODUCTS --}}
