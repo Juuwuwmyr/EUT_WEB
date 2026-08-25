@@ -750,8 +750,9 @@ async function placeOrder(){
                 payment_method:   'cash',
             }),
         });
-        const data=await res.json();
-        if(data.success||data.order_id){
+        let data;
+        try { data = await res.json(); } catch(_){ data = {}; }
+        if((data.success||data.order_id) && res.ok){
             cart=[];
             updateCartBar();
             closeCartSheet();
@@ -762,11 +763,13 @@ async function placeOrder(){
             document.getElementById('orderNotes').value='';
             btn.textContent='Place Order';
         } else {
-            showError(data.message||'Order failed. Please try again.');
+            // Show first validation error if available
+            const firstErr = data.errors ? Object.values(data.errors)[0]?.[0] : null;
+            showError(firstErr || data.message || 'Order failed. Please try again.');
             btn.disabled=false;btn.textContent='Place Order';
         }
     }catch(e){
-        showError('Network error. Please try again.');
+        showError('Network error: ' + (e.message || 'Please try again.'));
         btn.disabled=false;btn.textContent='Place Order';
     }
 }

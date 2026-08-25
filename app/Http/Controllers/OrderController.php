@@ -96,7 +96,7 @@ class OrderController extends Controller
             'items.*.qty'      => 'required|integer|min:1|max:99',
             'items.*.modifiers'=> 'nullable|array',
             'order_type'       => 'required|in:delivery,pickup,dine_in',
-            'delivery_address' => 'required_unless:order_type,dine_in|nullable|string|max:255',
+            'delivery_address' => 'required_if:order_type,delivery|nullable|string|max:255',
             'delivery_barangay'=> 'nullable|string|max:100',
             'delivery_lat'     => 'nullable|numeric|between:-90,90',
             'delivery_lng'     => 'nullable|numeric|between:-180,180',
