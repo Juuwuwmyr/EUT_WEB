@@ -82,6 +82,7 @@ Route::prefix('waiter')->name('waiter.')->middleware(['auth', 'waiter'])->group(
     Route::get('/order',                         [\App\Http\Controllers\WaiterController::class, 'orderPage'])->name('order');
     // Table receipt — reuses the chef's read-only receipt view (waiters need this to print bills)
     Route::get('/orders/{order}/table-receipt.html', [\App\Http\Controllers\ChefController::class, 'tableReceipt'])->name('orders.table-receipt');
+    Route::post('/place-order', [\App\Http\Controllers\WaiterController::class, 'placeOrder'])->name('place-order');
 });
 
 // -------------------------------------------------------

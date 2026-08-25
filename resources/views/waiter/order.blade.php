@@ -739,7 +739,7 @@ async function placeOrder(){
     btn.disabled=true;btn.textContent='Placing order…';
     const errEl=document.getElementById('cartError');errEl.style.display='none';
     try{
-        const res=await fetch('/orders',{
+        const res=await fetch('/waiter/place-order',{
             method:'POST',
             headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
             body:JSON.stringify({

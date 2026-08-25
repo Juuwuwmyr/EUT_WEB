@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\MenuItem;
+use App\Models\OrderItem;
+use App\Events\OrderStatusUpdated;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class WaiterController extends Controller
@@ -125,5 +129,159 @@ class WaiterController extends Controller
         $order->updateQuietly(['bill_requested' => true]);
 
         return response()->json(['success' => true, 'message' => "Bill requested for table {$order->table_number}."]);
+    }
+
+    /**
+     * POST /waiter/place-order — place a dine-in or takeout order on behalf of a customer
+     * Bypasses customer-facing location checks and auth requirements.
+     */
+    public function placeOrder(Request $request)
+    {
+        $request->validate([
+            'items'          => 'required|array|min:1',
+            'items.*.id'     => 'required',
+            'items.*.qty'    => 'required|integer|min:1|max:99',
+            'items.*.modifiers' => 'nullable|array',
+            'order_type'     => 'required|in:dine_in,pickup',
+            'table_number'   => 'required_if:order_type,dine_in|nullable|string|max:20',
+            'notes'          => 'nullable|string|max:500',
+            'payment_method' => 'nullable|in:cash,gcash,card',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $subtotal  = 0;
+            $lineItems = [];
+
+            foreach ($request->items as $line) {
+                $menuItemId = (int) explode('_', $line['id'])[0];
+                $menuItem   = MenuItem::find($menuItemId);
+
+                if (!$menuItem) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success'       => false,
+                        'message'       => 'One or more items are no longer available.',
+                        'stale_item_id' => $menuItemId,
+                        'clear_cart'    => true,
+                    ], 422);
+                }
+
+                $qty   = (int) $line['qty'];
+                $price = (float) $menuItem->price;
+
+                $modifierSummary = [];
+                if (!empty($line['modifiers']) && is_array($line['modifiers'])) {
+                    foreach ($line['modifiers'] as $mod) {
+                        $adj  = (float) ($mod['price_adjustment'] ?? 0);
+                        $type = $mod['price_type'] ?? 'none';
+                        if ($type === 'add')                   { $price += $adj; }
+                        elseif ($type === 'replace' && $adj > 0) { $price = $adj; }
+                        $modifierSummary[] = [
+                            'type'             => $mod['type']  ?? 'modifier',
+                            'name'             => $mod['name']  ?? '',
+                            'price_type'       => $type,
+                            'price_adjustment' => $adj,
+                        ];
+                    }
+                }
+
+                $price    = round($price, 2);
+                $lineSub  = round($price * $qty, 2);
+                $subtotal = round($subtotal + $lineSub, 2);
+
+                $lineItems[] = [
+                    'menu_item_id' => $menuItemId,
+                    'item_name'    => $menuItem->name,
+                    'image'        => $menuItem->image,
+                    'unit_price'   => $price,
+                    'quantity'     => $qty,
+                    'subtotal'     => $lineSub,
+                    'modifiers'    => !empty($modifierSummary) ? $modifierSummary : null,
+                ];
+            }
+
+            $total = $subtotal; // no delivery fee for waiter-placed orders
+
+            // Dine-in: try to merge into existing pending order at same table
+            if ($request->order_type === 'dine_in' && $request->table_number) {
+                $existingOrder = Order::where('order_type', 'dine_in')
+                    ->where('table_number', $request->table_number)
+                    ->where('status', 'pending')
+                    ->when(\Illuminate\Support\Facades\Schema::hasColumn('orders', 'ordering_locked'),
+                        fn($q) => $q->where('ordering_locked', false)
+                    )
+                    ->whereDate('created_at', today())
+                    ->latest()
+                    ->first();
+
+                if ($existingOrder) {
+                    foreach ($lineItems as $item) {
+                        $existingOrder->items()->create($item);
+                    }
+                    $newSubtotal = $existingOrder->items()->sum('subtotal');
+                    $existingOrder->update([
+                        'subtotal' => round($newSubtotal, 2),
+                        'total'    => round($newSubtotal, 2),
+                        'notes'    => $request->notes
+                            ? ($existingOrder->notes ? $existingOrder->notes . ' | ' . $request->notes : $request->notes)
+                            : $existingOrder->notes,
+                    ]);
+                    $existingOrder->refresh();
+                    DB::commit();
+                    try { broadcast(new OrderStatusUpdated($existingOrder))->toOthers(); } catch (\Throwable $e) {}
+                    return response()->json(['success' => true, 'order_id' => $existingOrder->id, 'order_number' => $existingOrder->order_number, 'total' => round($newSubtotal, 2), 'merged' => true]);
+                }
+            }
+
+            // Inherit table session for dine_in
+            $tableSessionId = null;
+            if ($request->order_type === 'dine_in' && $request->table_number) {
+                $activeSession = Order::where('order_type', 'dine_in')
+                    ->where('table_number', $request->table_number)
+                    ->when(\Illuminate\Support\Facades\Schema::hasColumn('orders', 'ordering_locked'), fn($q) => $q->where('ordering_locked', false))
+                    ->when(\Illuminate\Support\Facades\Schema::hasColumn('orders', 'payment_status'), fn($q) => $q->where('payment_status', '!=', 'paid'))
+                    ->whereDate('created_at', today())
+                    ->whereNotNull('table_session_id')
+                    ->latest()
+                    ->value('table_session_id');
+                $tableSessionId = $activeSession ?? \Illuminate\Support\Str::uuid();
+            }
+
+            $order = Order::create([
+                'user_id'          => null, // staff placing on behalf of customer
+                'status'           => 'pending',
+                'order_type'       => $request->order_type,
+                'subtotal'         => $subtotal,
+                'delivery_fee'     => 0,
+                'total'            => $total,
+                'payment_method'   => $request->payment_method ?? 'cash',
+                'payment_status'   => 'pending',
+                'delivery_address' => $request->order_type === 'dine_in'
+                    ? 'Dine-in · Table ' . $request->table_number
+                    : 'Counter Pickup',
+                'table_number'     => $request->order_type === 'dine_in' ? $request->table_number : null,
+                'notes'            => $request->notes,
+                'table_session_id' => $tableSessionId,
+            ]);
+
+            foreach ($lineItems as $item) {
+                $order->items()->create($item);
+            }
+
+            DB::commit();
+            try { broadcast(new OrderStatusUpdated($order))->toOthers(); } catch (\Throwable $e) {}
+
+            return response()->json([
+                'success'      => true,
+                'order_id'     => $order->id,
+                'order_number' => $order->order_number,
+                'total'        => $total,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            \Log::error('Waiter placeOrder failed: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Order failed. Please try again.'], 500);
+        }
     }
 }
