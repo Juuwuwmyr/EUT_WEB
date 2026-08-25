@@ -283,26 +283,12 @@
 {{-- CART REVIEW SHEET --}}
 <div class="sheet-backdrop" id="cartBackdrop" onclick="closeCartSheet()"></div>
 <div class="sheet" id="cartSheet">
-<<<<<<< HEAD
     {{-- Scrollable content --}}
     <div class="sheet-scroll">
         <div class="sheet-handle"></div>
         <div style="padding:14px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
             <p style="font-size:15px;font-weight:700;color:#fff;">Order Summary</p>
             <button class="sheet-close" onclick="closeCartSheet()">✕</button>
-=======
-    <div class="sheet-handle"></div>
-    <div style="padding:14px 18px 8px;display:flex;align-items:center;justify-content:space-between;">
-        <p style="font-size:15px;font-weight:700;color:#fff;">Order Summary</p>
-        <button class="sheet-close" onclick="closeCartSheet()">✕</button>
-    </div>
-    <div class="sheet-divider"></div>
-
-    {{-- Table number / order type display --}}
-    <div style="padding:10px 18px 0;">
-        <div id="cartTableDisplay" style="display:inline-flex;align-items:center;gap:.4rem;border-radius:8px;padding:.3rem .75rem;font-size:.8rem;font-weight:700;">
-            <span id="cartTableNum">No table selected</span>
->>>>>>> 192555f86e5009be9b97bc79771133ef11653a7e
         </div>
         <div class="sheet-divider"></div>
 
