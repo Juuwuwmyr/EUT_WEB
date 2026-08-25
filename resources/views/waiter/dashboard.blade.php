@@ -64,6 +64,8 @@
         .w-btn-serve:disabled { opacity: .4; cursor: not-allowed; transform: none; }
         .w-btn-bill   { background: rgba(250,204,21,.1); border: 1px solid rgba(250,204,21,.3); color: #facc15; }
         .w-btn-bill:hover { background: rgba(250,204,21,.18); }
+        .w-btn-followup { background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.3); color: #6366f1; }
+        .w-btn-followup:hover { background: rgba(99,102,241,.18); }
         .w-btn-print  { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); color: #9ca3af; flex: 0 0 auto; width: 2.5rem; }
         .w-btn-print:hover { background: rgba(255,255,255,.12); color: #fff; }
 
@@ -267,6 +269,10 @@ function renderCard(o) {
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 Bill
             </button>
+            <button class="w-btn w-btn-followup" onclick="followupOrder('${esc(o.table_number)}')" title="Add follow-up order">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                Add Order
+            </button>
             <button class="w-btn w-btn-print" onclick="printReceipt('${printUrl}')" title="Print receipt">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6v-8z"/></svg>
             </button>
@@ -333,6 +339,10 @@ async function requestBill(id, table, btn) {
 
 function printReceipt(url) {
     window.open(url, '_blank', 'width=340,height=600,menubar=no,toolbar=no');
+}
+
+function followupOrder(tableNumber) {
+    window.location.href = `/waiter/order/followup/${tableNumber}`;
 }
 
 // ── Toast ────────────────────────────────────────────────────────────────────

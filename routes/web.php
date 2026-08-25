@@ -80,6 +80,8 @@ Route::prefix('waiter')->name('waiter.')->middleware(['auth', 'waiter'])->group(
     Route::post('/orders/{order}/request-bill',  [\App\Http\Controllers\WaiterController::class, 'requestBill'])->name('orders.request-bill');
     // Waiter ordering page — selects table from dropdown
     Route::get('/order',                         [\App\Http\Controllers\WaiterController::class, 'orderPage'])->name('order');
+    // Follow-up order for existing table session
+    Route::get('/order/followup/{tableNumber}',  [\App\Http\Controllers\WaiterController::class, 'followupOrderPage'])->name('order.followup');
     // Table receipt — reuses the chef's read-only receipt view (waiters need this to print bills)
     Route::get('/orders/{order}/table-receipt.html', [\App\Http\Controllers\ChefController::class, 'tableReceipt'])->name('orders.table-receipt');
 });

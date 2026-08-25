@@ -42,6 +42,44 @@ class WaiterController extends Controller
     }
 
     /**
+     * Follow-up order page for existing table session
+     */
+    public function followupOrderPage($tableNumber)
+    {
+        // Get the most recent active table session for this table today
+        $latestOrder = \App\Models\Order::where('table_number', $tableNumber)
+                        ->where('order_type', 'dine_in')
+                        ->whereDate('created_at', today())
+                        ->whereNotNull('table_session_id')
+                        ->whereIn('status', ['pending', 'accepted', 'preparing', 'ready'])
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+
+        if (!$latestOrder || !$latestOrder->table_session_id) {
+            return redirect()->route('waiter.order')
+                ->with('error', "No active session found for Table {$tableNumber}. Please start a new order.");
+        }
+
+        $categories = \App\Models\Category::active()->orderBy('sort_order')->get();
+        $menuItems  = \App\Models\MenuItem::with([
+                        'category',
+                        'modifierGroups' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
+                        'modifierGroups.activeOptions' => fn($q) => $q->orderBy('sort_order'),
+                      ])->active()->orderBy('category_id')->orderBy('sort_order')->get();
+
+        $menuItemsData = $menuItems->map(function($item) {
+            $arr = $item->toArray();
+            $arr['addon_groups']    = array_values(array_filter($arr['modifier_groups'] ?? [], fn($g) => $g['type'] === 'addon'));
+            $arr['modifier_groups'] = array_values(array_filter($arr['modifier_groups'] ?? [], fn($g) => $g['type'] !== 'addon'));
+            return $arr;
+        });
+
+        $isOpenDineIn = cache()->get('shop_is_open_dine_in', true);
+
+        return view('waiter.followup-order', compact('categories', 'menuItems', 'menuItemsData', 'tableNumber', 'latestOrder', 'isOpenDineIn'));
+    }
+
+    /**
      * GET /waiter/orders — JSON snapshot of active dine-in orders
      */
     public function getOrders()
