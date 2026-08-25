@@ -26,7 +26,7 @@
 
         /* SEARCH BAR */
         .menu-search-wrap{max-width:560px;margin:0 auto;padding:8px 16px 0;position:relative;}
-        .menu-search-input{width:100%;padding:.6rem 2.5rem .6rem 2.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:99px;color:#fff;font-size:.875rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+        .menu-search-input{width:100%;padding:.6rem 2.5rem .6rem 2.5rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:99px;color:#fff;font-size:16px;outline:none;transition:border-color .2s,box-shadow .2s;}
         .menu-search-input::placeholder{color:#4b5563;}
         .menu-search-input:focus{border-color:rgba(74,222,128,.45);box-shadow:0 0 0 3px rgba(74,222,128,.1);background:rgba(255,255,255,.08);}
         .menu-search-icon{position:absolute;left:1.9rem;top:50%;transform:translateY(-20%);color:#4b5563;pointer-events:none;display:flex;}
@@ -430,8 +430,8 @@ let menuSearchDebounce = null;
 function applyFilters() {
     let anyVisible = false;
     document.querySelectorAll('.p-card').forEach(card => {
-        const catMatch  = activeCatSlug === 'all' || card.dataset.cat === activeCatSlug;
-        const name      = (card.querySelector('.p-card-name')?.textContent || '').toLowerCase();
+        const catMatch   = activeCatSlug === 'all' || card.dataset.cat === activeCatSlug;
+        const name       = (card.querySelector('.p-card-name')?.textContent || '').toLowerCase();
         const queryMatch = !menuSearchQuery || name.includes(menuSearchQuery);
         const show = catMatch && queryMatch;
         card.style.display = show ? '' : 'none';
@@ -447,6 +447,15 @@ function applyFilters() {
     }
     emptyEl.style.display = anyVisible ? 'none' : '';
     emptyEl.textContent   = menuSearchQuery ? `No items found for "${menuSearchQuery}".` : 'No items in this category.';
+
+    // Scroll so results are visible below the sticky header
+    if (menuSearchQuery) {
+        const catsBar = document.querySelector('.cats-bar');
+        const offset  = (catsBar ? catsBar.offsetHeight : 0) + 56;
+        const grid    = document.getElementById('productsGrid');
+        const gridTop = grid ? grid.getBoundingClientRect().top + window.scrollY - offset - 8 : 0;
+        window.scrollTo({ top: Math.max(0, gridTop), behavior: 'smooth' });
+    }
 }
 
 function filterCat(slug, btn) {
