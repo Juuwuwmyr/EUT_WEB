@@ -731,10 +731,12 @@
         <!-- Order Notes -->
         <div class="card" style="margin-bottom:10px;">
             <div class="card-header">
-                <div class="card-icon" style="background:rgba(139,92,246,.1);">
-                    <svg width="15" height="15" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="card-icon" style="background:rgba(139,92,246,.1);display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;flex-shrink:0;">
+                        <svg width="15" height="15" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </div>
+                    <span class="card-title">Order Notes <span style="font-size:11px;font-weight:400;color:#4b5563;">(optional)</span></span>
                 </div>
-                <span class="card-title">Order Notes <span style="font-size:11px;font-weight:400;color:#4b5563;">(optional)</span></span>
             </div>
             <div class="card-body" style="padding-top:0;">
                 <textarea id="cartOrderNotes" rows="2"
