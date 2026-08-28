@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\UserAddress;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AddressController extends Controller
 {
@@ -28,7 +29,7 @@ class AddressController extends Controller
             'recipient_name' => 'required|string|max:150',
             'phone'          => 'required|string|max:20',
             'address'        => 'required|string|max:300',
-            'barangay'       => 'required|string|in:' . implode(',', $validBarangays),
+            'barangay'       => ['required', 'string', Rule::in($validBarangays)],
             'city'           => 'nullable|string|max:100',
             'postal'         => 'nullable|string|max:20',
             'is_default'     => 'nullable|boolean',
@@ -77,7 +78,7 @@ class AddressController extends Controller
             'recipient_name' => 'required|string|max:150',
             'phone'          => 'required|string|max:20',
             'address'        => 'required|string|max:300',
-            'barangay'       => 'required|string|in:' . implode(',', $validBarangays),
+            'barangay'       => ['required', 'string', Rule::in($validBarangays)],
             'city'           => 'nullable|string|max:100',
             'postal'         => 'nullable|string|max:20',
             'is_default'     => 'nullable|boolean',
