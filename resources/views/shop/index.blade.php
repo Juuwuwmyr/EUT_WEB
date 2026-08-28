@@ -1554,7 +1554,9 @@ function openItemSheet(itemId) {
 
     // Header
     const img = iqItem.image ? '/{{ ltrim(asset(""), "/") }}' : '{{ asset("images/menu/default-menu-item.webp") }}';
-    document.getElementById('iqThumb').src        = iqItem.image ? '/' + iqItem.image.replace(/^\//, '') : '{{ asset("images/menu/default-menu-item.webp") }}';
+    const _rawImg = iqItem.image ? '/' + iqItem.image.replace(/^\//, '') : '';
+    const _safeImg = _rawImg && /^[\x00-\x7F]*$/.test(_rawImg) ? _rawImg : '{{ asset("images/menu/default-menu-item.webp") }}';
+    document.getElementById('iqThumb').src        = _safeImg || '{{ asset("images/menu/default-menu-item.webp") }}';
     document.getElementById('iqThumb').onerror    = function(){ this.src='{{ asset("images/menu/default-menu-item.webp") }}'; };
     document.getElementById('iqName').textContent = iqItem.name;
     document.getElementById('iqQtyVal').textContent = '1';
@@ -1846,7 +1848,8 @@ function iqDoAdd() {
     const addonLabels = Object.values(iqSelAddons).map(a => a.name);
     const suffix      = [...optLabels, ...addonLabels].length ? ' (' + [...optLabels, ...addonLabels].join(', ') + ')' : '';
     const name        = iqItem.name + suffix;
-    const image       = iqItem.image ? '/' + iqItem.image.replace(/^\//, '') : '{{ asset("images/menu/default-menu-item.webp") }}';
+    const _rawCartImg = iqItem.image ? '/' + iqItem.image.replace(/^\//, '') : '';
+    const image       = (_rawCartImg && /^[\x00-\x7F]*$/.test(_rawCartImg)) ? _rawCartImg : '{{ asset("images/menu/default-menu-item.webp") }}';
     const catSlug     = iqItem.category?.slug ?? 'food';
     const requiresFlavor = groups.some(g => g.required);
 
