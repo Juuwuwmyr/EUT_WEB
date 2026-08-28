@@ -409,8 +409,10 @@ class OrderController extends Controller
     public function cancel(Request $request, Order $order)
     {
         if ($order->user_id !== auth()->id()) abort(403);
-        if (!$order->isCancellable()) {
-            return response()->json(['success' => false, 'message' => 'Order cannot be cancelled at this stage.'], 422);
+
+        // Customers can only cancel while the order is still pending (before admin accepts).
+        if ($order->status !== 'pending') {
+            return response()->json(['success' => false, 'message' => 'This order has already been accepted and can no longer be cancelled.'], 422);
         }
 
         $order->update([

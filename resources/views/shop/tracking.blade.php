@@ -586,7 +586,7 @@ function closeDetail() {
 function buildDetailBody(o) {
     const cfg = STATUS_CFG[o.status] || STATUS_CFG.pending;
     const isActive = !['delivered','cancelled'].includes(o.status);
-    const cancellable = ['pending','accepted','preparing'].includes(o.status);
+    const cancellable = o.status === 'pending'; // only cancellable before admin accepts
     const isDelivery = o.order_type === 'delivery';
     const isDineIn   = o.order_type === 'dine_in';
     const isPickup   = o.order_type === 'pickup';
