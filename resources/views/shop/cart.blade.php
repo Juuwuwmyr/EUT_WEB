@@ -728,6 +728,23 @@
             </div>
         </div>
 
+        <!-- Order Notes -->
+        <div class="card" style="margin-bottom:10px;">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(139,92,246,.1);">
+                    <svg width="15" height="15" fill="none" stroke="#a78bfa" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </div>
+                <span class="card-title">Order Notes <span style="font-size:11px;font-weight:400;color:#4b5563;">(optional)</span></span>
+            </div>
+            <div class="card-body" style="padding-top:0;">
+                <textarea id="cartOrderNotes" rows="2"
+                    placeholder="e.g. Leave at gate, no spicy, extra napkins…"
+                    style="width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 13px;color:#fff;font-size:13px;resize:none;outline:none;box-sizing:border-box;font-family:inherit;"
+                    onfocus="this.style.borderColor='rgba(250,204,21,.4)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'"
+                    oninput="localStorage.setItem('eutOrderNotes', this.value)"></textarea>
+            </div>
+        </div>
+
         <!-- Sticky Buy Now Bar -->
         @if(!$isOpen)
         <div style="margin:0 0 10px;padding:12px 16px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;">
@@ -804,6 +821,11 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme(t);
     });
     renderCart();
+
+    // Pre-fill notes from localStorage if returning to cart
+    const savedNotes = localStorage.getItem('eutOrderNotes') || '';
+    const cartNotesEl = document.getElementById('cartOrderNotes');
+    if (cartNotesEl && savedNotes) cartNotesEl.value = savedNotes;
 
     @auth
     // Load server cart and merge after local render (server is source of truth)

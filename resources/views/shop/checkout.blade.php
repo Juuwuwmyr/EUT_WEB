@@ -550,6 +550,13 @@ document.addEventListener('DOMContentLoaded',()=>{
     renderSummary();
     @auth loadAddresses(); @endauth
 
+    // Pre-fill notes from cart page if saved
+    const savedCartNotes = localStorage.getItem('eutOrderNotes') || '';
+    const checkoutNotesEl = document.getElementById('orderNotes');
+    if (checkoutNotesEl && savedCartNotes) checkoutNotesEl.value = savedCartNotes;
+    // Clear after pre-filling so it doesn't persist across future orders
+    if (savedCartNotes) localStorage.removeItem('eutOrderNotes');
+
     // ── Auto-detect table number from QR code URL param OR sessionStorage ────
     // When customer scans a table QR: /checkout?table=7 (or arrived via /shop?table=7 → cart)
     // → auto-select Dine-in, fill table number, skip the QR scanner modal
