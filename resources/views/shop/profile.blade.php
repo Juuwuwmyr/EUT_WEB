@@ -423,6 +423,35 @@
         </div>
     </div>
 </div>
+
+<!-- ══════════ DELETE ADDRESS CONFIRM MODAL ══════════ -->
+<div class="modal-backdrop" id="deleteAddrModal">
+    <div class="modal-sheet" style="max-height:unset;border-radius:24px 24px 0 0;">
+        <div class="modal-handle"></div>
+        <div class="modal-head">
+            <span class="modal-title" style="font-size:16px;">Delete Address</span>
+            <button class="modal-close" onclick="closeModal('deleteAddrModal')">&#10005;</button>
+        </div>
+        <div class="modal-body">
+            <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:20px;">
+                <div style="flex-shrink:0;width:44px;height:44px;border-radius:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);display:flex;align-items:center;justify-content:center;">
+                    <svg width="20" height="20" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </div>
+                <div>
+                    <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#f9fafb;">Are you sure?</p>
+                    <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.5;">This address will be permanently removed from your account.</p>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button onclick="closeModal('deleteAddrModal')" style="flex:1;padding:13px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#9ca3af;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+                <button id="deleteAddrConfirmBtn" style="flex:1;padding:13px;border-radius:12px;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Yes, Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endauth
 
 <script>
@@ -617,10 +646,22 @@ async function setDefaultAddr(id) {
     loadAddresses();
 }
 
-async function deleteAddr(id) {
-    if (!confirm('Delete this address?')) return;
-    await fetch(`/addresses/${id}`, { method:'DELETE', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'}});
-    loadAddresses();
+let _deleteAddrId = null;
+
+function deleteAddr(id) {
+    _deleteAddrId = id;
+    const btn = document.getElementById('deleteAddrConfirmBtn');
+    // Remove old listener by cloning
+    const fresh = btn.cloneNode(true);
+    btn.parentNode.replaceChild(fresh, btn);
+    fresh.addEventListener('click', async () => {
+        fresh.disabled = true;
+        fresh.textContent = 'Deleting…';
+        await fetch(`/addresses/${_deleteAddrId}`, { method:'DELETE', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'} });
+        closeModal('deleteAddrModal');
+        loadAddresses();
+    });
+    openModal('deleteAddrModal');
 }
 
 async function saveAddress() {
