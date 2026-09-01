@@ -233,22 +233,21 @@
 </div>
 
 {{-- ── MONTHLY RESET ── --}}
-<div class="section-card" style="border-color:rgba(239,68,68,.25);">
-    <div class="px-5 py-4 card-header-border" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
-        <div style="display:flex;align-items:center;gap:.5rem;">
-            <i data-lucide="archive" style="width:1rem;height:1rem;color:#ef4444;stroke-width:2;"></i>
-            <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Monthly Reset</h2>
-            <span style="font-size:.68rem;color:#ef4444;font-weight:700;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:99px;padding:.1rem .5rem;">Destructive</span>
-        </div>
-        <p style="font-size:.78rem;color:var(--text-muted);margin:0;flex:1;min-width:220px;">
-            Archive all <strong style="color:#e5e7eb;">delivered &amp; cancelled</strong> orders for a chosen month to a JSON file, then permanently remove them from the database.
-        </p>
+<div class="section-card" style="margin-top:1.5rem;">
+    <div class="px-5 py-4 card-header-border" style="display:flex;align-items:center;gap:.5rem;">
+        <i data-lucide="archive" style="width:1rem;height:1rem;color:#ef4444;stroke-width:2;"></i>
+        <h2 style="font-size:.875rem;font-weight:600;color:var(--text-strong);margin:0;">Danger Zone</h2>
+    </div>
+    <div style="padding:1.25rem;display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;" id="dangerActGrid">
+    <style>@media(min-width:768px){#dangerActGrid{grid-template-columns:repeat(4,1fr);}}</style>
         <button onclick="openResetModal()"
-            style="display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.25rem;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:.75rem;color:#f87171;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;"
-            onmouseenter="this.style.background='rgba(239,68,68,.22)';this.style.borderColor='rgba(239,68,68,.6)';this.style.color='#fff';"
-            onmouseleave="this.style.background='rgba(239,68,68,.12)';this.style.borderColor='rgba(239,68,68,.35)';this.style.color='#f87171';">
-            <i data-lucide="refresh-ccw" style="width:.9rem;height:.9rem;stroke-width:2.5;pointer-events:none;"></i>
-            Reset Month
+            style="display:flex;flex-direction:column;align-items:center;gap:.625rem;padding:1.25rem 1rem;border-radius:.875rem;border:1px solid rgba(239,68,68,.2);background:transparent;cursor:pointer;transition:all .2s;"
+            onmouseenter="this.style.borderColor='rgba(239,68,68,.5)';this.style.background='rgba(239,68,68,.08)';this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(239,68,68,.15)';"
+            onmouseleave="this.style.borderColor='rgba(239,68,68,.2)';this.style.background='transparent';this.style.transform='none';this.style.boxShadow='none';">
+            <div style="width:2.75rem;height:2.75rem;border-radius:.75rem;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;">
+                <i data-lucide="refresh-ccw" style="width:1.25rem;height:1.25rem;color:#ef4444;stroke-width:2;"></i>
+            </div>
+            <span style="font-size:.75rem;font-weight:600;color:#f87171;text-align:center;">Reset Month</span>
         </button>
     </div>
 </div>
