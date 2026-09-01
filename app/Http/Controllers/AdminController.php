@@ -11,7 +11,9 @@ use App\Models\ModifierGroup;
 use App\Models\ModifierOption;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -1423,8 +1425,131 @@ class AdminController extends Controller
             : back()->with('success', "Order {$orderNum} permanently deleted.");
     }
 
-    public function riderLocations()
+    // ════════════════════════════════════════════════════════
+    // MONTHLY RESET — archive orders to JSON, then hard-delete
+    // ════════════════════════════════════════════════════════
+
+    /**
+     * POST /admin/orders/reset-month
+     *
+     * 1. Collects all delivered / cancelled orders (with their items) for the
+     *    chosen month-year (defaults to the previous calendar month).
+     * 2. Serialises the full dataset to
+     *    storage/app/archives/orders-YYYY-MM.json  (appends if file exists).
+     * 3. Hard-deletes those orders (and their order_items) from the database.
+     * 4. Writes one AuditLog entry.
+     *
+     * Body params (optional):
+     *   month  — 1–12 (default: previous month)
+     *   year   — 4-digit year (default: year of previous month)
+     */
+    public function resetOrders(Request $request)
     {
+        $request->validate([
+            'month' => 'nullable|integer|min:1|max:12',
+            'year'  => 'nullable|integer|min:2020|max:2099',
+        ]);
+
+        // Default: previous calendar month
+        $refDate = now()->subMonthNoOverflow()->startOfMonth();
+        $month   = (int) $request->input('month', $refDate->month);
+        $year    = (int) $request->input('year',  $refDate->year);
+
+        $periodStart = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
+        $periodEnd   = $periodStart->copy()->endOfMonth();
+
+        // ── 1. Fetch eligible orders ─────────────────────────────────────
+        $orders = \App\Models\Order::with(['items', 'user'])
+            ->whereIn('status', ['delivered', 'cancelled'])
+            ->whereBetween('created_at', [$periodStart, $periodEnd])
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => "No completed or cancelled orders found for {$periodStart->format('F Y')}.",
+            ], 422);
+        }
+
+        // ── 2. Build archive payload ─────────────────────────────────────
+        $archiveLabel = $periodStart->format('Y-m');
+        $archivePath  = "archives/orders-{$archiveLabel}.json";
+
+        $existingData = [];
+        if (Storage::disk('local')->exists($archivePath)) {
+            $raw          = Storage::disk('local')->get($archivePath);
+            $existingData = json_decode($raw, true) ?? [];
+        }
+
+        $newEntries = $orders->map(function (\App\Models\Order $o) {
+            return [
+                'id'               => $o->id,
+                'order_number'     => $o->order_number,
+                'user_id'          => $o->user_id,
+                'customer_name'    => $o->user?->name ?? 'Guest',
+                'customer_email'   => $o->user?->email,
+                'order_type'       => $o->order_type,
+                'status'           => $o->status,
+                'subtotal'         => $o->subtotal,
+                'delivery_fee'     => $o->delivery_fee,
+                'total'            => $o->total,
+                'payment_method'   => $o->payment_method,
+                'payment_status'   => $o->payment_status,
+                'cash_received'    => $o->cash_received,
+                'change_due'       => $o->change_due,
+                'delivery_address' => $o->delivery_address,
+                'table_number'     => $o->table_number,
+                'notes'            => $o->notes,
+                'cancel_reason'    => $o->cancel_reason,
+                'created_at'       => optional($o->created_at)->toIso8601String(),
+                'delivered_at'     => optional($o->delivered_at)->toIso8601String(),
+                'cancelled_at'     => optional($o->cancelled_at)->toIso8601String(),
+                'items'            => $o->items->map(fn($i) => [
+                    'id'         => $i->id,
+                    'name'       => $i->item_name,
+                    'quantity'   => $i->quantity,
+                    'unit_price' => $i->unit_price,
+                    'subtotal'   => $i->subtotal,
+                    'modifiers'  => $i->modifiers,
+                ])->toArray(),
+                'archived_at' => now()->toIso8601String(),
+            ];
+        })->toArray();
+
+        $mergedData = array_merge($existingData, $newEntries);
+
+        Storage::disk('local')->put(
+            $archivePath,
+            json_encode($mergedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        );
+
+        // ── 3. Hard-delete from database ────────────────────────────────
+        $orderIds = $orders->pluck('id')->toArray();
+
+        DB::transaction(function () use ($orderIds) {
+            \App\Models\OrderItem::whereIn('order_id', $orderIds)->delete();
+            \App\Models\Order::whereIn('id', $orderIds)->delete();
+        });
+
+        // ── 4. Audit log ────────────────────────────────────────────────
+        $count = count($orderIds);
+
+        AuditLog::record(
+            action:      'monthly_reset',
+            description: "Admin reset {$count} order(s) for {$periodStart->format('F Y')}. "
+                       . "Archived to {$archivePath}.",
+        );
+
+        return response()->json([
+            'success'      => true,
+            'message'      => "{$count} order(s) for {$periodStart->format('F Y')} have been archived and removed from the database.",
+            'archive_file' => $archivePath,
+            'count'        => $count,
+            'period'       => $periodStart->format('F Y'),
+        ]);
+    }
+
+    public function riderLocations()    {
         // Include ALL riders who have a GPS position — both available AND actively delivering
         $riders = \App\Models\Rider::with(['user', 'orders' => function($q) {
                 $q->with('user')->whereIn('status', ['rider_assigned', 'out_for_delivery']);
