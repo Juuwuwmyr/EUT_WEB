@@ -273,6 +273,15 @@
                 <div style="border-top:1px solid var(--border-divider);padding-top:.875rem;display:flex;align-items:center;justify-content:space-between;">
                     <div>
                         <p style="font-size:.875rem;font-weight:500;color:var(--text-strong);margin:0 0 .2rem;display:flex;align-items:center;gap:.35rem;">
+                            <i data-lucide="refresh-ccw" style="width:.85rem;height:.85rem;stroke-width:2;color:#dc2626;"></i> Reset Month
+                        </p>
+                        <p style="font-size:.75rem;color:var(--text-muted);margin:0;">Archive delivered &amp; cancelled orders to JSON, then delete from DB</p>
+                    </div>
+                    <button onclick="openResetModal()" class="btn-danger">Reset</button>
+                </div>
+                <div style="border-top:1px solid var(--border-divider);padding-top:.875rem;display:flex;align-items:center;justify-content:space-between;">
+                    <div>
+                        <p style="font-size:.875rem;font-weight:500;color:var(--text-strong);margin:0 0 .2rem;display:flex;align-items:center;gap:.35rem;">
                             <i data-lucide="external-link" style="width:.85rem;height:.85rem;stroke-width:2;"></i> Back to Site
                         </p>
                         <p style="font-size:.75rem;color:var(--text-muted);margin:0;">Return to the customer-facing restaurant page</p>
@@ -288,8 +297,168 @@
 </div>
 @endsection
 
+{{-- ── RESET MONTH MODAL ── --}}
+<div id="resetModal"
+     style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem;">
+    <div style="width:100%;max-width:420px;background:#13141f;border:1px solid rgba(239,68,68,.3);border-radius:1.1rem;padding:1.75rem 1.5rem;box-shadow:0 24px 60px rgba(0,0,0,.6);">
+
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.1rem;">
+            <div style="width:2.5rem;height:2.5rem;border-radius:.75rem;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="refresh-ccw" style="width:1.1rem;height:1.1rem;color:#ef4444;stroke-width:2;"></i>
+            </div>
+            <div>
+                <h3 style="margin:0;font-size:1rem;font-weight:700;color:#fff;">Reset Month</h3>
+                <p style="margin:0;font-size:.73rem;color:#9ca3af;">Archive orders to JSON, then delete from DB</p>
+            </div>
+            <button onclick="closeResetModal()" style="margin-left:auto;background:none;border:none;color:#6b7280;cursor:pointer;padding:.25rem;line-height:1;">
+                <i data-lucide="x" style="width:1.1rem;height:1.1rem;stroke-width:2.5;"></i>
+            </button>
+        </div>
+
+        <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:.75rem;padding:.85rem 1rem;margin-bottom:1.25rem;display:flex;gap:.65rem;align-items:flex-start;">
+            <i data-lucide="triangle-alert" style="width:1rem;height:1rem;color:#ef4444;flex-shrink:0;margin-top:.1rem;stroke-width:2;"></i>
+            <p style="margin:0;font-size:.77rem;color:#fca5a5;line-height:1.5;">
+                <strong>Irreversible.</strong> Orders are saved to
+                <code style="background:rgba(255,255,255,.08);border-radius:.3rem;padding:.05rem .3rem;font-size:.72rem;">storage/app/archives/orders-YYYY-MM.json</code>
+                before deletion.
+            </p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;">
+            <div>
+                <label style="display:block;font-size:.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">Month</label>
+                <select id="resetMonth" style="width:100%;background:#0d0e1a;border:1px solid rgba(255,255,255,.1);border-radius:.65rem;padding:.65rem .85rem;font-size:.875rem;color:#e5e7eb;outline:none;cursor:pointer;">
+                    @php
+                        $months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                        $defaultMonth = now()->subMonthNoOverflow()->month;
+                    @endphp
+                    @foreach($months as $i => $mName)
+                    <option value="{{ $i + 1 }}" {{ ($i + 1) === $defaultMonth ? 'selected' : '' }}>{{ $mName }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label style="display:block;font-size:.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">Year</label>
+                <select id="resetYear" style="width:100%;background:#0d0e1a;border:1px solid rgba(255,255,255,.1);border-radius:.65rem;padding:.65rem .85rem;font-size:.875rem;color:#e5e7eb;outline:none;cursor:pointer;">
+                    @php $defaultYear = now()->subMonthNoOverflow()->year; @endphp
+                    @for($y = now()->year; $y >= 2024; $y--)
+                    <option value="{{ $y }}" {{ $y === $defaultYear ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+            </div>
+        </div>
+
+        <div style="margin-bottom:1.25rem;">
+            <label style="display:block;font-size:.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">
+                Type <strong style="color:#f87171;">RESET</strong> to confirm
+            </label>
+            <input type="text" id="resetConfirmInput" placeholder="RESET"
+                style="width:100%;background:#0d0e1a;border:1px solid rgba(255,255,255,.1);border-radius:.65rem;padding:.7rem .9rem;font-size:.9rem;color:#e5e7eb;outline:none;box-sizing:border-box;"
+                oninput="document.getElementById('resetConfirmBtn').disabled = this.value !== 'RESET';"
+                onfocus="this.style.borderColor='rgba(239,68,68,.5)';"
+                onblur="this.style.borderColor='rgba(255,255,255,.1)';">
+        </div>
+
+        <div id="resetResult" style="display:none;margin-bottom:1rem;border-radius:.65rem;padding:.7rem .9rem;font-size:.8rem;font-weight:600;"></div>
+
+        <div style="display:flex;gap:.75rem;">
+            <button onclick="closeResetModal()"
+                style="flex:1;padding:.75rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:.75rem;color:#9ca3af;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;"
+                onmouseenter="this.style.background='rgba(255,255,255,.1)';"
+                onmouseleave="this.style.background='rgba(255,255,255,.05)';">Cancel</button>
+            <button id="resetConfirmBtn" onclick="submitReset()" disabled
+                style="flex:1;padding:.75rem;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;border-radius:.75rem;color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;transition:opacity .2s;opacity:.4;"
+                onmouseenter="if(!this.disabled)this.style.opacity='1';"
+                onmouseleave="this.style.opacity=this.disabled?'.4':'1';">
+                <span id="resetBtnLabel">Archive &amp; Delete</span>
+            </button>
+        </div>
+
+    </div>
+</div>
+
 @push('scripts')
 <script>
+// ── Monthly Reset modal ───────────────────────────────────────────────────────
+function openResetModal() {
+    const modal = document.getElementById('resetModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    document.getElementById('resetConfirmInput').value = '';
+    document.getElementById('resetConfirmBtn').disabled = true;
+    const res = document.getElementById('resetResult');
+    res.style.display = 'none';
+    res.textContent = '';
+    document.getElementById('resetBtnLabel').textContent = 'Archive & Delete';
+    if (window.lucide) lucide.createIcons();
+}
+
+function closeResetModal() {
+    document.getElementById('resetModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('resetModal').addEventListener('click', function(e) {
+        if (e.target === this) closeResetModal();
+    });
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeResetModal();
+});
+
+async function submitReset() {
+    const btn   = document.getElementById('resetConfirmBtn');
+    const label = document.getElementById('resetBtnLabel');
+    const res   = document.getElementById('resetResult');
+    const month = document.getElementById('resetMonth').value;
+    const year  = document.getElementById('resetYear').value;
+
+    btn.disabled = true;
+    label.innerHTML = '<span style="display:inline-flex;align-items:center;gap:.4rem;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 0.8s linear infinite;"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity=".25"/><path d="M21 12a9 9 0 00-9-9" stroke-linecap="round"/></svg> Processing…</span>';
+    res.style.display = 'none';
+
+    try {
+        const resp = await fetch('{{ route('admin.orders.reset-month') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ month: parseInt(month), year: parseInt(year) }),
+        });
+
+        const data = await resp.json();
+        res.style.display = 'block';
+
+        if (data.success) {
+            res.style.background = 'rgba(34,197,94,.1)';
+            res.style.border     = '1px solid rgba(34,197,94,.25)';
+            res.style.color      = '#4ade80';
+            res.innerHTML = `✓ ${data.message}<br><span style="font-size:.72rem;opacity:.75;font-weight:400;">Saved → ${data.archive_file}</span>`;
+            label.textContent = 'Done';
+            setTimeout(() => { closeResetModal(); }, 3000);
+        } else {
+            res.style.background = 'rgba(239,68,68,.1)';
+            res.style.border     = '1px solid rgba(239,68,68,.25)';
+            res.style.color      = '#f87171';
+            res.textContent      = data.message ?? 'Something went wrong.';
+            label.textContent    = 'Archive & Delete';
+            btn.disabled = false;
+        }
+    } catch (err) {
+        res.style.display    = 'block';
+        res.style.background = 'rgba(239,68,68,.1)';
+        res.style.border     = '1px solid rgba(239,68,68,.25)';
+        res.style.color      = '#f87171';
+        res.textContent      = 'Network error — please try again.';
+        label.textContent    = 'Archive & Delete';
+        btn.disabled = false;
+    }
+}
+
 async function toggleService(type) {
     let btnId = 'toggleAllBtn';
     if (type === 'delivery') btnId = 'toggleDeliveryBtn';
