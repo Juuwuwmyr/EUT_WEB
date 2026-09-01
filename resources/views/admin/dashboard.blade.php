@@ -233,7 +233,6 @@
 </div>
 
 {{-- ── MONTHLY RESET ── --}}
-@can('delete_orders')
 <div class="section-card" style="border-color:rgba(239,68,68,.25);">
     <div class="px-5 py-4 card-header-border" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;">
         <div style="display:flex;align-items:center;gap:.5rem;">
@@ -253,7 +252,6 @@
         </button>
     </div>
 </div>
-@endcan
 
 {{-- ── RESET MONTH MODAL ── --}}
 <div id="resetModal"
