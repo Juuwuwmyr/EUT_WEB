@@ -1664,6 +1664,9 @@ if (window.Echo) {
 // ── PWA Install Tutorial — Always-Active + Bilingual ─────────────────────────
 let pwaLang = localStorage.getItem('pwaLang') || 'tl'; // default Tagalog
 
+// Clear old permanent dismiss — float button is always shown now
+localStorage.removeItem('pwaInstallDismissed');
+
 const PWA_CONTENT = {
     tl: {
         floatLabel:    'I-install ang App',
@@ -1770,19 +1773,16 @@ function closeInstallTutorial() {
 }
 
 function dismissAndClose() {
-    localStorage.setItem('pwaInstallDismissed', '1');
+    sessionStorage.setItem('pwaSessionDismissed', '1');
     closeInstallTutorial();
-    // hide float button
-    const fb = document.getElementById('pwaFloatBtn');
-    if (fb) fb.style.display = 'none';
+    // float button stays visible — user can still tap it anytime
 }
 
 function dismissPWABanner() {
-    localStorage.setItem('pwaInstallDismissed', '1');
+    sessionStorage.setItem('pwaSessionDismissed', '1');
     const b = document.getElementById('pwaInstallBanner');
     if (b) b.style.display = 'none';
-    const fb = document.getElementById('pwaFloatBtn');
-    if (fb) fb.style.display = 'none';
+    // float button stays visible
 }
 
 function switchInstallTab(tab) {
@@ -1811,25 +1811,27 @@ document.getElementById('pwaInstallModal').addEventListener('click', function(e)
 
 // ── Init on load ─────────────────────────────────────────────────────────────
 window.addEventListener('load', function() {
-    const ua         = navigator.userAgent.toLowerCase();
-    const isIos      = /iphone|ipad|ipod/.test(ua);
-    const installed  = isAppInstalled();
-    const dismissed  = localStorage.getItem('pwaInstallDismissed');
-    const hasTable   = new URLSearchParams(window.location.search).get('table');
+    const ua       = navigator.userAgent.toLowerCase();
+    const isIos    = /iphone|ipad|ipod/.test(ua);
+    const installed = isAppInstalled();
+    const hasTable  = new URLSearchParams(window.location.search).get('table');
 
     applyLang(pwaLang);
 
-    if (installed || hasTable) return; // already installed or table QR — skip
+    // Never show anything if already installed as standalone app or table QR
+    if (installed || hasTable) return;
+
+    // "Mamaya Na" only hides for the current SESSION (sessionStorage), not forever
+    const sessionDismissed = sessionStorage.getItem('pwaSessionDismissed');
 
     const floatBtn = document.getElementById('pwaFloatBtn');
 
-    if (!dismissed) {
-        // Show floating button always
-        if (floatBtn) floatBtn.style.display = 'block';
-        // iOS: auto-open tutorial after 3s
-        if (isIos) {
-            setTimeout(() => showInstallTutorial(), 3000);
-        }
+    // Always show float button if not installed (regardless of dismissal)
+    if (floatBtn) floatBtn.style.display = 'block';
+
+    // iOS: auto-open tutorial after 3s if not session-dismissed
+    if (isIos && !sessionDismissed) {
+        setTimeout(() => showInstallTutorial(), 3000);
     }
 });
 
@@ -1838,16 +1840,14 @@ window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     window._deferredPrompt = e;
 
-    const dismissed = localStorage.getItem('pwaInstallDismissed');
-    const hasTable  = new URLSearchParams(window.location.search).get('table');
-    if (dismissed || hasTable) return;
+    const hasTable = new URLSearchParams(window.location.search).get('table');
+    if (hasTable) return;
 
-    // Show banner
+    // Show top banner after 2s
     const banner = document.getElementById('pwaInstallBanner');
-    if (banner) {
-        setTimeout(() => { banner.style.display = 'flex'; }, 2000);
-    }
-    // Also show float
+    if (banner) setTimeout(() => { banner.style.display = 'flex'; }, 2000);
+
+    // Float button already shown by init, just make sure
     const floatBtn = document.getElementById('pwaFloatBtn');
     if (floatBtn) floatBtn.style.display = 'block';
 });
