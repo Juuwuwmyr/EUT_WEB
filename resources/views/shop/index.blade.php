@@ -1379,9 +1379,9 @@ if (window.Echo) {
             </button>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 18px 14px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 18px 14px;" id="pwaTabBtns">
             <button onclick="switchInstallTab('android')" id="tabAndroid" style="padding:8px 4px;border-radius:9px;font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;border:1px solid rgba(250,204,21,.3);background:rgba(250,204,21,.07);color:#facc15;">Android</button>
-            <button onclick="switchInstallTab('ios')"     id="tabIos"     style="padding:8px 4px;border-radius:9px;font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;border:1px solid rgba(255,255,255,.07);background:transparent;color:#374151;">iPhone</button>
+            <button onclick="switchInstallTab('ios')"     id="tabIos"     style="padding:8px 4px;border-radius:9px;font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;border:1px solid rgba(255,255,255,.07);background:transparent;color:#374151;">iPhone / iPad</button>
             <button onclick="switchInstallTab('desktop')" id="tabDesktop" style="padding:8px 4px;border-radius:9px;font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;border:1px solid rgba(255,255,255,.07);background:transparent;color:#374151;">Desktop</button>
         </div>
 
@@ -1532,13 +1532,25 @@ function detectDevice(){
 
 function showInstallTutorial(){
     if(isAppInstalled())return;
-    const {isIos,isAndroid,isDesktop} = detectDevice();
+    const {isIos,isAndroid} = detectDevice();
     const tab = isIos ? 'ios' : isAndroid ? 'android' : 'desktop';
-    buildSteps(tab);switchInstallTab(tab);applyLang(pwaLang);
-    // iOS: manual steps only — no one-tap install
-    const ib=document.getElementById('pwaModalInstallBtn');
+
+    // Pre-build all tabs so switching is instant
+    ['android','ios','desktop'].forEach(t => buildSteps(t));
+
+    // Auto-select the user's device tab
+    switchInstallTab(tab);
+    applyLang(pwaLang);
+
+    // Show tabs row always
+    const tabBtns = document.getElementById('pwaTabBtns');
+    if(tabBtns) tabBtns.style.display = 'grid';
+
+    // iOS/iPadOS: hide one-tap install button — manual steps only
+    const ib = document.getElementById('pwaModalInstallBtn');
     if(ib) ib.style.display = isIos ? 'none' : 'flex';
-    const an=document.getElementById('androidAutoNote');
+
+    const an = document.getElementById('androidAutoNote');
     if(an) an.style.display = window._deferredPrompt ? 'block' : 'none';
     const modal=document.getElementById('pwaInstallModal'),sheet=document.getElementById('pwaModalSheet');
     modal.style.display='flex';document.body.style.overflow='hidden';
