@@ -1358,8 +1358,183 @@ if (window.Echo) {
         <p style="font-size:11px;color:#9ca3af;margin:0;">Add to home screen for faster access</p>
     </div>
     <button onclick="installPWA()" style="background:#facc15;color:#000;border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">Install</button>
+    <button onclick="showInstallTutorial()" style="background:rgba(255,255,255,.08);color:#9ca3af;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:8px 10px;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0;">How?</button>
     <button onclick="dismissPWABanner()" style="background:none;border:none;color:#6b7280;cursor:pointer;font-size:18px;padding:4px;flex-shrink:0;">×</button>
 </div>
+
+{{-- PWA Install Tutorial Modal --}}
+<div id="pwaInstallModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:0;">
+    <div style="width:100%;max-width:480px;background:#0f1020;border:1px solid rgba(255,255,255,.1);border-radius:1.25rem 1.25rem 0 0;padding:1.5rem 1.25rem 2rem;max-height:90vh;overflow-y:auto;">
+
+        {{-- Handle --}}
+        <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:99px;margin:0 auto 1.25rem;"></div>
+
+        {{-- Header --}}
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;">
+            <img src="/images/icons/icon-72x72.png" style="width:48px;height:48px;border-radius:12px;flex-shrink:0;" alt="EUT">
+            <div>
+                <h3 style="margin:0 0 .15rem;font-size:1rem;font-weight:700;color:#fff;">Install EUT Snack House</h3>
+                <p style="margin:0;font-size:.75rem;color:#9ca3af;">Get the full app experience — fast &amp; offline-ready</p>
+            </div>
+            <button onclick="closeInstallTutorial()" style="margin-left:auto;background:rgba(255,255,255,.08);border:none;color:#9ca3af;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;line-height:1;flex-shrink:0;">×</button>
+        </div>
+
+        {{-- Tab switcher --}}
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;margin-bottom:1.25rem;">
+            <button onclick="switchInstallTab('android')" id="tabAndroid"
+                style="padding:.55rem .5rem;border-radius:.6rem;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s;border:1px solid rgba(250,204,21,.4);background:rgba(250,204,21,.12);color:#facc15;">
+                🤖 Android
+            </button>
+            <button onclick="switchInstallTab('ios')" id="tabIos"
+                style="padding:.55rem .5rem;border-radius:.6rem;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s;border:1px solid rgba(255,255,255,.08);background:transparent;color:#6b7280;">
+                🍎 iPhone / iPad
+            </button>
+            <button onclick="switchInstallTab('desktop')" id="tabDesktop"
+                style="padding:.55rem .5rem;border-radius:.6rem;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s;border:1px solid rgba(255,255,255,.08);background:transparent;color:#6b7280;">
+                💻 Desktop
+            </button>
+        </div>
+
+        {{-- Android Steps --}}
+        <div id="installTabAndroid">
+            <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);border-radius:.75rem;padding:.75rem 1rem;margin-bottom:1rem;display:flex;gap:.5rem;align-items:center;">
+                <span style="font-size:1.1rem;">✅</span>
+                <p style="margin:0;font-size:.75rem;color:#86efac;">Your browser supports one-tap install. Just tap <strong>Install</strong> on the banner below!</p>
+            </div>
+            @foreach([
+                ['🌐', 'Open Chrome', 'Make sure you\'re using Google Chrome on Android.'],
+                ['⋮',  'Tap the menu', 'Tap the three-dot menu (⋮) in the top-right corner of Chrome.'],
+                ['📲', 'Add to Home Screen', 'Tap "Add to Home screen" or "Install app" from the menu.'],
+                ['✔️', 'Tap Install', 'Confirm by tapping Install — the app icon will appear on your home screen.'],
+            ] as $i => [$icon, $title, $desc])
+            <div style="display:flex;gap:.875rem;align-items:flex-start;padding:.75rem 0;{{ $i < 3 ? 'border-bottom:1px solid rgba(255,255,255,.05);' : '' }}">
+                <div style="width:2.25rem;height:2.25rem;border-radius:.625rem;background:rgba(250,204,21,.1);border:1px solid rgba(250,204,21,.2);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">{{ $icon }}</div>
+                <div>
+                    <p style="margin:0 0 .2rem;font-size:.8rem;font-weight:700;color:#fff;">{{ $i+1 }}. {{ $title }}</p>
+                    <p style="margin:0;font-size:.72rem;color:#9ca3af;line-height:1.5;">{{ $desc }}</p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        {{-- iOS Steps --}}
+        <div id="installTabIos" style="display:none;">
+            <div style="background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.15);border-radius:.75rem;padding:.75rem 1rem;margin-bottom:1rem;display:flex;gap:.5rem;align-items:center;">
+                <span style="font-size:1.1rem;">ℹ️</span>
+                <p style="margin:0;font-size:.75rem;color:#fde68a;">iPhone doesn't support auto-install prompts. Follow the steps below to add it manually.</p>
+            </div>
+            @foreach([
+                ['🧭', 'Open Safari', 'The app can only be installed from Safari — not Chrome or Firefox on iOS.'],
+                ['⬆️', 'Tap the Share button', 'Tap the Share icon (box with an arrow) at the bottom of the screen.'],
+                ['➕', 'Add to Home Screen', 'Scroll down in the share sheet and tap "Add to Home Screen".'],
+                ['✔️', 'Tap Add', 'Give it a name if you like, then tap Add in the top-right corner.'],
+            ] as $i => [$icon, $title, $desc])
+            <div style="display:flex;gap:.875rem;align-items:flex-start;padding:.75rem 0;{{ $i < 3 ? 'border-bottom:1px solid rgba(255,255,255,.05);' : '' }}">
+                <div style="width:2.25rem;height:2.25rem;border-radius:.625rem;background:rgba(99,179,237,.1);border:1px solid rgba(99,179,237,.2);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">{{ $icon }}</div>
+                <div>
+                    <p style="margin:0 0 .2rem;font-size:.8rem;font-weight:700;color:#fff;">{{ $i+1 }}. {{ $title }}</p>
+                    <p style="margin:0;font-size:.72rem;color:#9ca3af;line-height:1.5;">{{ $desc }}</p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        {{-- Desktop Steps --}}
+        <div id="installTabDesktop" style="display:none;">
+            <div style="background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.15);border-radius:.75rem;padding:.75rem 1rem;margin-bottom:1rem;display:flex;gap:.5rem;align-items:center;">
+                <span style="font-size:1.1rem;">💡</span>
+                <p style="margin:0;font-size:.75rem;color:#c4b5fd;">Works on Chrome, Edge, and Brave on Windows, Mac, and Linux.</p>
+            </div>
+            @foreach([
+                ['🌐', 'Open the site in Chrome or Edge', 'Go to eut-delivery.duckdns.org in your desktop browser.'],
+                ['📥', 'Look for the install icon', 'In the address bar, look for the install icon (monitor with a down arrow) on the right side.'],
+                ['🖱️', 'Click Install', 'Click it and then click Install in the popup that appears.'],
+                ['🖥️', 'Done!', 'The app will open in its own window and a shortcut will be added to your desktop/taskbar.'],
+            ] as $i => [$icon, $title, $desc])
+            <div style="display:flex;gap:.875rem;align-items:flex-start;padding:.75rem 0;{{ $i < 3 ? 'border-bottom:1px solid rgba(255,255,255,.05);' : '' }}">
+                <div style="width:2.25rem;height:2.25rem;border-radius:.625rem;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">{{ $icon }}</div>
+                <div>
+                    <p style="margin:0 0 .2rem;font-size:.8rem;font-weight:700;color:#fff;">{{ $i+1 }}. {{ $title }}</p>
+                    <p style="margin:0;font-size:.72rem;color:#9ca3af;line-height:1.5;">{{ $desc }}</p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        {{-- Bottom CTA --}}
+        <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:.75rem;">
+            <button id="pwaModalInstallBtn" onclick="installPWA()" style="flex:1;padding:.8rem;background:linear-gradient(135deg,#f59e0b,#facc15);border:none;border-radius:.75rem;color:#000;font-size:.85rem;font-weight:700;cursor:pointer;">
+                📲 Install Now
+            </button>
+            <button onclick="closeInstallTutorial()" style="padding:.8rem 1.2rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:.75rem;color:#9ca3af;font-size:.85rem;font-weight:600;cursor:pointer;">
+                Maybe Later
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// ── PWA Install Tutorial ──────────────────────────────────────────────────────
+function showInstallTutorial() {
+    // Auto-detect platform and pre-select the right tab
+    const ua = navigator.userAgent.toLowerCase();
+    const isIos     = /iphone|ipad|ipod/.test(ua);
+    const isMobile  = /android|iphone|ipad|ipod/.test(ua);
+    const tab = isIos ? 'ios' : (isMobile ? 'android' : 'desktop');
+    switchInstallTab(tab);
+
+    const modal = document.getElementById('pwaInstallModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Hide the "Install Now" button on iOS — it doesn't work there
+    const installBtn = document.getElementById('pwaModalInstallBtn');
+    if (installBtn) installBtn.style.display = isIos ? 'none' : 'flex';
+}
+
+function closeInstallTutorial() {
+    document.getElementById('pwaInstallModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function switchInstallTab(tab) {
+    ['android','ios','desktop'].forEach(t => {
+        const content = document.getElementById('installTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        const btn     = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (!content || !btn) return;
+        const active = t === tab;
+        content.style.display = active ? 'block' : 'none';
+        if (active) {
+            btn.style.background   = t === 'ios' ? 'rgba(99,179,237,.12)' : t === 'desktop' ? 'rgba(139,92,246,.12)' : 'rgba(250,204,21,.12)';
+            btn.style.borderColor  = t === 'ios' ? 'rgba(99,179,237,.4)'  : t === 'desktop' ? 'rgba(139,92,246,.4)'  : 'rgba(250,204,21,.4)';
+            btn.style.color        = t === 'ios' ? '#93c5fd'               : t === 'desktop' ? '#c4b5fd'               : '#facc15';
+        } else {
+            btn.style.background  = 'transparent';
+            btn.style.borderColor = 'rgba(255,255,255,.08)';
+            btn.style.color       = '#6b7280';
+        }
+    });
+}
+
+// Close on backdrop tap
+document.getElementById('pwaInstallModal').addEventListener('click', function(e) {
+    if (e.target === this) closeInstallTutorial();
+});
+
+// Show tutorial automatically on iOS (no beforeinstallprompt support)
+window.addEventListener('load', function() {
+    const ua = navigator.userAgent.toLowerCase();
+    const isIos       = /iphone|ipad|ipod/.test(ua);
+    const isInApp     = window.navigator.standalone; // already installed
+    const dismissed   = localStorage.getItem('pwaInstallDismissed');
+    const hasTable    = new URLSearchParams(window.location.search).get('table');
+
+    if (isIos && !isInApp && !dismissed && !hasTable) {
+        setTimeout(() => showInstallTutorial(), 4000);
+    }
+});
+</script>
 
 {{-- ══════════ ITEM QUICK-ADD BOTTOM SHEET ══════════ --}}
 <div id="iqBackdrop" onclick="closeItemSheet()"
