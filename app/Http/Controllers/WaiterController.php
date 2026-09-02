@@ -46,7 +46,7 @@ class WaiterController extends Controller
     }
 
     /**
-     * GET /waiter/orders — JSON snapshot of active dine-in orders
+     * GET /waiter/orders — JSON snapshot of today's active dine-in orders
      */
     public function getOrders()
     {
@@ -54,6 +54,7 @@ class WaiterController extends Controller
             ->where('order_type', 'dine_in')
             ->whereNotIn('status', ['cancelled'])
             ->where('is_archived', false)
+            ->whereDate('created_at', today())
             ->orderByDesc('created_at')
             ->get()
             ->map(fn($o) => [
