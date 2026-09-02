@@ -1352,531 +1352,223 @@ if (window.Echo) {
 
 {{-- ══════════ PWA INSTALL — ALWAYS VISIBLE FLOATING BUTTON + TUTORIAL MODAL ══════════ --}}
 
-{{-- Floating Install Button (always shown if not installed) --}}
-<div id="pwaFloatBtn"
-     style="display:none;position:fixed;bottom:88px;right:16px;z-index:9998;">
+{{-- ── PWA INSTALL BUTTON + TUTORIAL ── --}}
+<div id="pwaFloatBtn" style="display:none;position:fixed;bottom:90px;right:16px;z-index:9998;">
     <button onclick="showInstallTutorial()"
-        style="display:flex;align-items:center;gap:8px;padding:10px 16px 10px 12px;
-               background:linear-gradient(135deg,#f59e0b,#facc15);
-               border:none;border-radius:99px;cursor:pointer;
-               box-shadow:0 4px 20px rgba(250,204,21,.45);
-               font-size:12px;font-weight:800;color:#000;
-               animation:pwaFloatPulse 2.5s ease-in-out infinite;">
-        <span style="font-size:18px;line-height:1;">📲</span>
+        style="display:flex;align-items:center;gap:7px;padding:10px 18px 10px 13px;background:#facc15;border:none;border-radius:99px;cursor:pointer;font-size:12px;font-weight:700;color:#000;animation:pwaGlow 2.5s ease-in-out infinite;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span id="pwaFloatLabel">I-install ang App</span>
     </button>
 </div>
 
-{{-- Small banner at top (shows on Android when beforeinstallprompt fires) --}}
-<div id="pwaInstallBanner"
-     style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
-            background:linear-gradient(135deg,#1a1200,#1f1600);
-            border-bottom:2px solid rgba(250,204,21,.4);
-            padding:10px 16px;align-items:center;gap:10px;
-            box-shadow:0 4px 24px rgba(0,0,0,.6);">
-    <img src="/images/icons/icon-72x72.png" style="width:36px;height:36px;border-radius:8px;flex-shrink:0;" alt="EUT">
+<div id="pwaInstallBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(9,9,16,.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(250,204,21,.14);padding:10px 14px;align-items:center;gap:10px;">
+    <img src="/images/icons/icon-72x72.png" style="width:34px;height:34px;border-radius:9px;flex-shrink:0;" alt="EUT">
     <div style="flex:1;min-width:0;">
-        <p id="bannerTitle" style="font-size:12px;font-weight:800;color:#facc15;margin:0 0 1px;">I-install ang EUT App</p>
-        <p id="bannerSub"   style="font-size:10px;color:#9ca3af;margin:0;">Mas mabilis at may offline access</p>
+        <p id="bannerTitle" style="font-size:12px;font-weight:700;color:#fff;margin:0 0 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">I-install ang EUT App</p>
+        <p id="bannerSub"   style="font-size:10px;color:#6b7280;margin:0;">Mas mabilis &middot; offline-ready</p>
     </div>
-    <button onclick="installPWA()"
-        style="background:#facc15;color:#000;border:none;border-radius:8px;
-               padding:7px 14px;font-size:11px;font-weight:800;cursor:pointer;flex-shrink:0;">
-        <span id="bannerInstallLabel">I-install</span>
-    </button>
-    <button onclick="showInstallTutorial()"
-        style="background:rgba(255,255,255,.08);color:#d1d5db;border:1px solid rgba(255,255,255,.12);
-               border-radius:8px;padding:7px 10px;font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0;">
-        <span id="bannerHowLabel">Paano?</span>
-    </button>
-    <button onclick="dismissPWABanner()"
-        style="background:none;border:none;color:#6b7280;cursor:pointer;font-size:20px;padding:2px 4px;flex-shrink:0;line-height:1;">×</button>
+    <button onclick="installPWA()" style="background:#facc15;color:#000;border:none;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;"><span id="bannerInstallLabel">I-install</span></button>
+    <button onclick="showInstallTutorial()" style="background:rgba(255,255,255,.05);color:#9ca3af;border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:7px 10px;font-size:10px;font-weight:600;cursor:pointer;flex-shrink:0;"><span id="bannerHowLabel">Paano?</span></button>
+    <button onclick="dismissPWABanner()" style="background:none;border:none;color:#4b5563;cursor:pointer;padding:4px;flex-shrink:0;line-height:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 </div>
 
-{{-- ── INSTALL TUTORIAL MODAL ── --}}
-<div id="pwaInstallModal"
-     style="display:none;position:fixed;inset:0;z-index:10000;
-            background:rgba(0,0,0,.8);backdrop-filter:blur(8px);
-            align-items:flex-end;justify-content:center;">
+<div id="pwaInstallModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);align-items:flex-end;justify-content:center;">
+    <div id="pwaModalSheet" style="width:100%;max-width:480px;background:#0b0c18;border:1px solid rgba(255,255,255,.07);border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom,12px);max-height:88vh;overflow-y:auto;scrollbar-width:none;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);">
 
-    <div id="pwaModalSheet"
-         style="width:100%;max-width:500px;
-                background:linear-gradient(180deg,#0d0e1c 0%,#080810 100%);
-                border:1px solid rgba(255,255,255,.09);
-                border-radius:1.5rem 1.5rem 0 0;
-                padding:0 0 env(safe-area-inset-bottom,16px);
-                max-height:92vh;overflow-y:auto;
-                transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);">
+        <div style="padding:12px 0 0;display:flex;justify-content:center;"><div style="width:30px;height:3px;background:rgba(255,255,255,.1);border-radius:99px;"></div></div>
 
-        {{-- Drag handle --}}
-        <div style="padding:14px 0 0;text-align:center;">
-            <div style="width:40px;height:4px;background:rgba(255,255,255,.14);border-radius:99px;display:inline-block;"></div>
-        </div>
-
-        {{-- Header --}}
-        <div style="display:flex;align-items:center;gap:12px;padding:16px 20px 12px;">
-            <div style="position:relative;flex-shrink:0;">
-                <img src="/images/icons/icon-72x72.png"
-                     style="width:52px;height:52px;border-radius:14px;border:2px solid rgba(250,204,21,.3);" alt="EUT">
-                <span style="position:absolute;bottom:-4px;right:-4px;background:#22c55e;width:14px;height:14px;border-radius:50%;border:2px solid #080810;"></span>
+        <div style="display:flex;align-items:center;gap:11px;padding:14px 18px 10px;">
+            <img src="/images/icons/icon-72x72.png" style="width:42px;height:42px;border-radius:11px;flex-shrink:0;" alt="EUT">
+            <div style="flex:1;min-width:0;">
+                <p id="modalTitle" style="margin:0 0 2px;font-size:14px;font-weight:700;color:#fff;">I-install ang EUT Snack House</p>
+                <p id="modalSub"   style="margin:0;font-size:11px;color:#6b7280;">Libre &middot; Mabilis &middot; Offline</p>
             </div>
-            <div style="flex:1;">
-                <h3 id="modalTitle" style="margin:0 0 3px;font-size:15px;font-weight:800;color:#fff;letter-spacing:-.01em;">
-                    I-install ang EUT Snack House
-                </h3>
-                <p id="modalSub" style="margin:0;font-size:11px;color:#9ca3af;">
-                    Libre • Mabilis • Gumagana kahit offline
-                </p>
-            </div>
-            {{-- Language toggle --}}
-            <button onclick="toggleInstallLang()" id="langToggleBtn"
-                style="padding:5px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.12);
-                       background:rgba(255,255,255,.06);color:#d1d5db;font-size:10px;font-weight:700;
-                       cursor:pointer;flex-shrink:0;transition:all .2s;">
-                EN
-            </button>
-            <button onclick="closeInstallTutorial()"
-                style="background:rgba(255,255,255,.07);border:none;color:#9ca3af;
-                       width:30px;height:30px;border-radius:50%;cursor:pointer;
-                       font-size:16px;line-height:1;flex-shrink:0;">×</button>
-        </div>
-
-        {{-- Benefits strip --}}
-        <div style="display:flex;gap:8px;padding:0 20px 16px;overflow-x:auto;scrollbar-width:none;">
-            @foreach([['⚡','Mas Mabilis','Faster'],['📶','Offline','Offline'],['🔔','Notipikasyon','Notifications'],['🏠','Home Screen','Home Screen']] as [$ico,$tl,$en])
-            <div style="flex-shrink:0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
-                        border-radius:10px;padding:8px 12px;text-align:center;min-width:72px;">
-                <div style="font-size:16px;margin-bottom:3px;">{{ $ico }}</div>
-                <div class="pwa-benefit-tl" style="font-size:9px;font-weight:700;color:#d1d5db;">{{ $tl }}</div>
-                <div class="pwa-benefit-en" style="font-size:9px;font-weight:700;color:#d1d5db;display:none;">{{ $en }}</div>
-            </div>
-            @endforeach
-        </div>
-
-        {{-- Device tabs --}}
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 20px 16px;">
-            <button onclick="switchInstallTab('android')" id="tabAndroid"
-                class="pwa-tab-btn pwa-tab-active"
-                style="padding:9px 6px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;
-                       border:1px solid rgba(250,204,21,.35);background:rgba(250,204,21,.1);color:#facc15;">
-                🤖<br><span style="font-size:9px;">Android</span>
-            </button>
-            <button onclick="switchInstallTab('ios')" id="tabIos"
-                class="pwa-tab-btn"
-                style="padding:9px 6px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;
-                       border:1px solid rgba(255,255,255,.07);background:transparent;color:#4b5563;">
-                🍎<br><span style="font-size:9px;">iPhone</span>
-            </button>
-            <button onclick="switchInstallTab('desktop')" id="tabDesktop"
-                class="pwa-tab-btn"
-                style="padding:9px 6px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;
-                       border:1px solid rgba(255,255,255,.07);background:transparent;color:#4b5563;">
-                💻<br><span style="font-size:9px;">Desktop</span>
+            <button onclick="toggleInstallLang()" id="langToggleBtn" style="padding:4px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.1);background:transparent;color:#9ca3af;font-size:10px;font-weight:600;cursor:pointer;letter-spacing:.05em;flex-shrink:0;">EN</button>
+            <button onclick="closeInstallTutorial()" style="background:rgba(255,255,255,.06);border:none;color:#6b7280;width:27px;height:27px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
         </div>
 
-        {{-- Steps container --}}
-        <div style="padding:0 20px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 18px 14px;">
+            <button onclick="switchInstallTab('android')" id="tabAndroid" style="padding:8px 4px;border-radius:9px;font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;border:1px solid rgba(250,204,21,.3);background:rgba(250,204,21,.07);color:#facc15;">Android</button>
+            <button onclick="switchInstallTab('ios')"     id="tabIos"     style="padding:8px 4px;border-radius:9px;font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;border:1px solid rgba(255,255,255,.07);background:transparent;color:#374151;">iPhone</button>
+            <button onclick="switchInstallTab('desktop')" id="tabDesktop" style="padding:8px 4px;border-radius:9px;font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;border:1px solid rgba(255,255,255,.07);background:transparent;color:#374151;">Desktop</button>
+        </div>
 
-            {{-- Android --}}
+        <div style="padding:0 18px;">
             <div id="installTabAndroid">
-                <div id="androidAutoNote"
-                     style="display:none;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);
-                            border-radius:10px;padding:10px 14px;margin-bottom:12px;
-                            display:flex;gap:8px;align-items:center;">
-                    <span style="font-size:16px;">✅</span>
-                    <p class="pwa-tl" style="margin:0;font-size:11px;color:#86efac;line-height:1.5;">
-                        Ang iyong browser ay sumusuporta sa one-tap install! I-tap ang <strong>I-install</strong> sa banner sa itaas.
-                    </p>
-                    <p class="pwa-en" style="margin:0;font-size:11px;color:#86efac;line-height:1.5;display:none;">
-                        Your browser supports one-tap install! Tap <strong>Install</strong> on the banner above.
-                    </p>
+                <div id="androidAutoNote" style="display:none;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.14);border-radius:10px;padding:10px 13px;margin-bottom:12px;">
+                    <p class="pwa-tl" style="margin:0;font-size:11px;color:#4ade80;line-height:1.5;">One-tap install available &mdash; i-tap ang <strong>I-install</strong> sa banner sa itaas.</p>
+                    <p class="pwa-en" style="margin:0;font-size:11px;color:#4ade80;line-height:1.5;display:none;">One-tap install available &mdash; tap <strong>Install</strong> on the banner above.</p>
                 </div>
-                @php
-                $androidTl = [
-                    ['🌐','Buksan ang Chrome','Siguraduhing gumagamit ka ng Google Chrome sa iyong Android phone.'],
-                    ['⋮','I-tap ang Menu','I-tap ang tatlong tuldok (⋮) sa kanang bahagi ng Chrome.'],
-                    ['📲','Add to Home Screen','Piliin ang "Add to Home screen" o "Install app" sa menu.'],
-                    ['✅','I-tap ang Install','Kumpirmahin sa pag-tap ng Install — lalabas na ang icon sa iyong home screen!'],
-                ];
-                $androidEn = [
-                    ['🌐','Open Chrome','Make sure you\'re using Google Chrome on your Android phone.'],
-                    ['⋮','Tap the Menu','Tap the three-dot menu (⋮) in the top-right corner of Chrome.'],
-                    ['📲','Add to Home Screen','Select "Add to Home screen" or "Install app" from the menu.'],
-                    ['✅','Tap Install','Confirm by tapping Install — the app icon will appear on your home screen!'],
-                ];
-                @endphp
-                @foreach($androidTl as $i => $step)
-                <div style="display:flex;gap:12px;align-items:flex-start;padding:11px 0;
-                            {{ $i < 3 ? 'border-bottom:1px solid rgba(255,255,255,.05);' : '' }}">
-                    <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;
-                                background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.18);
-                                display:flex;align-items:center;justify-content:center;font-size:16px;">
-                        {{ $step[0] }}
-                    </div>
-                    <div style="flex:1;">
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-                            <span style="width:18px;height:18px;border-radius:50%;background:rgba(250,204,21,.15);
-                                         color:#facc15;font-size:9px;font-weight:800;
-                                         display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">{{ $i+1 }}</span>
-                            <strong class="pwa-tl" style="font-size:12px;color:#f3f4f6;">{{ $step[1] }}</strong>
-                            <strong class="pwa-en" style="font-size:12px;color:#f3f4f6;display:none;">{{ $androidEn[$i][1] }}</strong>
-                        </div>
-                        <p class="pwa-tl" style="margin:0;font-size:11px;color:#6b7280;line-height:1.5;">{{ $step[2] }}</p>
-                        <p class="pwa-en" style="margin:0;font-size:11px;color:#6b7280;line-height:1.5;display:none;">{{ $androidEn[$i][2] }}</p>
-                    </div>
-                </div>
-                @endforeach
+                <div id="androidSteps"></div>
             </div>
-
-            {{-- iOS --}}
             <div id="installTabIos" style="display:none;">
-                <div style="background:rgba(147,197,253,.07);border:1px solid rgba(147,197,253,.18);
-                            border-radius:10px;padding:10px 14px;margin-bottom:12px;
-                            display:flex;gap:8px;align-items:flex-start;">
-                    <span style="font-size:16px;flex-shrink:0;">ℹ️</span>
-                    <p class="pwa-tl" style="margin:0;font-size:11px;color:#93c5fd;line-height:1.5;">
-                        Ang iPhone ay hindi sumusuporta sa auto-install. Sundin ang mga hakbang sa ibaba para idagdag ito nang manu-mano.
-                    </p>
-                    <p class="pwa-en" style="margin:0;font-size:11px;color:#93c5fd;line-height:1.5;display:none;">
-                        iPhone doesn't support auto-install. Follow the steps below to add it manually.
-                    </p>
+                <div style="background:rgba(147,197,253,.05);border:1px solid rgba(147,197,253,.12);border-radius:10px;padding:10px 13px;margin-bottom:12px;">
+                    <p class="pwa-tl" style="margin:0;font-size:11px;color:#93c5fd;line-height:1.5;">Ang iPhone ay hindi sumusuporta ng auto-install. Buksan ang <strong>Safari</strong> at sundin ang mga hakbang.</p>
+                    <p class="pwa-en" style="margin:0;font-size:11px;color:#93c5fd;line-height:1.5;display:none;">iPhone doesn&apos;t support auto-install. Open <strong>Safari</strong> and follow the steps below.</p>
                 </div>
-                @php
-                $iosTl = [
-                    ['🧭','Buksan ang Safari','Ang app ay maaari lamang i-install mula sa Safari — hindi mula sa Chrome o Firefox sa iOS.'],
-                    ['⬆️','I-tap ang Share','I-tap ang Share icon (kahon na may arrow) sa ibabang bahagi ng screen.'],
-                    ['➕','Add to Home Screen','Mag-scroll pababa sa share sheet at i-tap ang "Add to Home Screen".'],
-                    ['✅','I-tap ang Add','Maaari kang magbigay ng pangalan, pagkatapos ay i-tap ang Add sa kanang sulok sa itaas.'],
-                ];
-                $iosEn = [
-                    ['🧭','Open Safari','The app can only be installed from Safari — not Chrome or Firefox on iOS.'],
-                    ['⬆️','Tap the Share button','Tap the Share icon (box with an arrow) at the bottom of the screen.'],
-                    ['➕','Add to Home Screen','Scroll down in the share sheet and tap "Add to Home Screen".'],
-                    ['✅','Tap Add','You can give it a name, then tap Add in the top-right corner.'],
-                ];
-                @endphp
-                @foreach($iosTl as $i => $step)
-                <div style="display:flex;gap:12px;align-items:flex-start;padding:11px 0;
-                            {{ $i < 3 ? 'border-bottom:1px solid rgba(255,255,255,.05);' : '' }}">
-                    <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;
-                                background:rgba(147,197,253,.07);border:1px solid rgba(147,197,253,.18);
-                                display:flex;align-items:center;justify-content:center;font-size:16px;">
-                        {{ $step[0] }}
-                    </div>
-                    <div style="flex:1;">
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-                            <span style="width:18px;height:18px;border-radius:50%;background:rgba(147,197,253,.12);
-                                         color:#93c5fd;font-size:9px;font-weight:800;
-                                         display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">{{ $i+1 }}</span>
-                            <strong class="pwa-tl" style="font-size:12px;color:#f3f4f6;">{{ $step[1] }}</strong>
-                            <strong class="pwa-en" style="font-size:12px;color:#f3f4f6;display:none;">{{ $iosEn[$i][1] }}</strong>
-                        </div>
-                        <p class="pwa-tl" style="margin:0;font-size:11px;color:#6b7280;line-height:1.5;">{{ $step[2] }}</p>
-                        <p class="pwa-en" style="margin:0;font-size:11px;color:#6b7280;line-height:1.5;display:none;">{{ $iosEn[$i][2] }}</p>
-                    </div>
-                </div>
-                @endforeach
+                <div id="iosSteps"></div>
             </div>
-
-            {{-- Desktop --}}
             <div id="installTabDesktop" style="display:none;">
-                <div style="background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.18);
-                            border-radius:10px;padding:10px 14px;margin-bottom:12px;
-                            display:flex;gap:8px;align-items:center;">
-                    <span style="font-size:16px;">💡</span>
-                    <p class="pwa-tl" style="margin:0;font-size:11px;color:#c4b5fd;line-height:1.5;">
-                        Gumagana sa Chrome, Edge, at Brave sa Windows, Mac, at Linux.
-                    </p>
-                    <p class="pwa-en" style="margin:0;font-size:11px;color:#c4b5fd;line-height:1.5;display:none;">
-                        Works on Chrome, Edge, and Brave on Windows, Mac, and Linux.
-                    </p>
+                <div style="background:rgba(167,139,250,.05);border:1px solid rgba(167,139,250,.12);border-radius:10px;padding:10px 13px;margin-bottom:12px;">
+                    <p class="pwa-tl" style="margin:0;font-size:11px;color:#c4b5fd;line-height:1.5;">Gumagana sa Chrome, Edge, at Brave sa Windows, Mac, at Linux.</p>
+                    <p class="pwa-en" style="margin:0;font-size:11px;color:#c4b5fd;line-height:1.5;display:none;">Works on Chrome, Edge, and Brave on Windows, Mac, and Linux.</p>
                 </div>
-                @php
-                $deskTl = [
-                    ['🌐','Buksan ang Chrome o Edge','Pumunta sa eut-delivery.duckdns.org sa iyong desktop browser.'],
-                    ['📥','Hanapin ang install icon','Sa address bar, hanapin ang install icon (monitor na may arrow) sa kanang bahagi.'],
-                    ['🖱️','I-click ang Install','I-click ito at pagkatapos ay i-click ang Install sa popup na lalabas.'],
-                    ['🖥️','Tapos na!','Magbubukas ang app sa sarili nitong window at lalabas ang shortcut sa iyong desktop.'],
-                ];
-                $deskEn = [
-                    ['🌐','Open Chrome or Edge','Go to eut-delivery.duckdns.org in your desktop browser.'],
-                    ['📥','Find the install icon','In the address bar, look for the install icon (monitor with a down arrow) on the right side.'],
-                    ['🖱️','Click Install','Click it and then click Install in the popup that appears.'],
-                    ['🖥️','Done!','The app opens in its own window and a shortcut is added to your desktop/taskbar.'],
-                ];
-                @endphp
-                @foreach($deskTl as $i => $step)
-                <div style="display:flex;gap:12px;align-items:flex-start;padding:11px 0;
-                            {{ $i < 3 ? 'border-bottom:1px solid rgba(255,255,255,.05);' : '' }}">
-                    <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;
-                                background:rgba(167,139,250,.07);border:1px solid rgba(167,139,250,.18);
-                                display:flex;align-items:center;justify-content:center;font-size:16px;">
-                        {{ $step[0] }}
-                    </div>
-                    <div style="flex:1;">
-                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-                            <span style="width:18px;height:18px;border-radius:50%;background:rgba(167,139,250,.12);
-                                         color:#c4b5fd;font-size:9px;font-weight:800;
-                                         display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">{{ $i+1 }}</span>
-                            <strong class="pwa-tl" style="font-size:12px;color:#f3f4f6;">{{ $step[1] }}</strong>
-                            <strong class="pwa-en" style="font-size:12px;color:#f3f4f6;display:none;">{{ $deskEn[$i][1] }}</strong>
-                        </div>
-                        <p class="pwa-tl" style="margin:0;font-size:11px;color:#6b7280;line-height:1.5;">{{ $step[2] }}</p>
-                        <p class="pwa-en" style="margin:0;font-size:11px;color:#6b7280;line-height:1.5;display:none;">{{ $deskEn[$i][2] }}</p>
-                    </div>
-                </div>
-                @endforeach
+                <div id="desktopSteps"></div>
             </div>
-
-        </div>{{-- /steps --}}
-
-        {{-- CTA footer --}}
-        <div style="padding:16px 20px 8px;display:flex;gap:10px;border-top:1px solid rgba(255,255,255,.05);margin-top:8px;">
-            <button id="pwaModalInstallBtn" onclick="installPWA()"
-                style="flex:1;padding:13px;background:linear-gradient(135deg,#f59e0b,#facc15);
-                       border:none;border-radius:12px;color:#000;font-size:13px;font-weight:800;
-                       cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
-                📲 <span class="pwa-tl">I-install Ngayon</span><span class="pwa-en" style="display:none;">Install Now</span>
-            </button>
-            <button onclick="dismissAndClose()"
-                style="padding:13px 18px;background:rgba(255,255,255,.05);
-                       border:1px solid rgba(255,255,255,.08);border-radius:12px;
-                       color:#6b7280;font-size:12px;font-weight:700;cursor:pointer;">
-                <span class="pwa-tl">Mamaya Na</span><span class="pwa-en" style="display:none;">Later</span>
-            </button>
         </div>
 
+        <div style="padding:14px 18px 8px;display:flex;gap:8px;border-top:1px solid rgba(255,255,255,.05);margin-top:6px;">
+            <button id="pwaModalInstallBtn" onclick="installPWA()" style="flex:1;padding:12px;background:#facc15;border:none;border-radius:12px;color:#000;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span class="pwa-tl">I-install Ngayon</span><span class="pwa-en" style="display:none;">Install Now</span>
+            </button>
+            <button onclick="dismissAndClose()" style="padding:12px 16px;background:transparent;border:1px solid rgba(255,255,255,.08);border-radius:12px;color:#4b5563;font-size:12px;font-weight:600;cursor:pointer;">
+                <span class="pwa-tl">Mamaya</span><span class="pwa-en" style="display:none;">Later</span>
+            </button>
+        </div>
     </div>
 </div>
 
 <style>
-@keyframes pwaFloatPulse {
-    0%,100% { box-shadow:0 4px 20px rgba(250,204,21,.45); }
-    50%      { box-shadow:0 4px 32px rgba(250,204,21,.75),0 0 0 6px rgba(250,204,21,.08); }
-}
-#pwaModalSheet::-webkit-scrollbar { width:3px; }
-#pwaModalSheet::-webkit-scrollbar-track { background:transparent; }
-#pwaModalSheet::-webkit-scrollbar-thumb { background:rgba(255,255,255,.1);border-radius:99px; }
+@keyframes pwaGlow{0%,100%{box-shadow:0 4px 16px rgba(250,204,21,.38)}50%{box-shadow:0 4px 26px rgba(250,204,21,.62),0 0 0 4px rgba(250,204,21,.06)}}
+#pwaModalSheet::-webkit-scrollbar{display:none}
 </style>
 
 <script>
-// ── PWA Install Tutorial — Always-Active + Bilingual ─────────────────────────
-let pwaLang = localStorage.getItem('pwaLang') || 'tl'; // default Tagalog
-
-// Clear old permanent dismiss — float button is always shown now
+// ── PWA Install — bilingual, always active ───────────────────────────────────
+let pwaLang = localStorage.getItem('pwaLang') || 'tl';
 localStorage.removeItem('pwaInstallDismissed');
 
-const PWA_CONTENT = {
-    tl: {
-        floatLabel:    'I-install ang App',
-        bannerTitle:   'I-install ang EUT App',
-        bannerSub:     'Mas mabilis at may offline access',
-        bannerInstall: 'I-install',
-        bannerHow:     'Paano?',
-        modalTitle:    'I-install ang EUT Snack House',
-        modalSub:      'Libre • Mabilis • Gumagana kahit offline',
-        laterBtn:      'Mamaya Na',
-    },
-    en: {
-        floatLabel:    'Install App',
-        bannerTitle:   'Install EUT App',
-        bannerSub:     'Faster with offline access',
-        bannerInstall: 'Install',
-        bannerHow:     'How?',
-        modalTitle:    'Install EUT Snack House',
-        modalSub:      'Free • Fast • Works offline',
-        laterBtn:      'Maybe Later',
-    }
+const PWA_STEPS = {
+    android:{accent:'#facc15',bg:'rgba(250,204,21,.06)',border:'rgba(250,204,21,.12)',steps:[
+        {tl:['Buksan ang Chrome','Siguraduhing gumagamit ka ng Google Chrome sa Android.'],en:['Open Chrome','Make sure you\'re using Google Chrome on Android.'],svg:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/>'},
+        {tl:['I-tap ang Menu (&#8942;)','I-tap ang tatlong tuldok sa kanang itaas ng Chrome.'],en:['Tap Menu (&#8942;)','Tap the three-dot menu in the top-right corner of Chrome.'],svg:'<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>'},
+        {tl:['"Add to Home Screen"','I-tap ang "Add to Home screen" o "Install app".'],en:['"Add to Home Screen"','Tap "Add to Home screen" or "Install app".'],svg:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'},
+        {tl:['I-tap ang Install','Lalabas na ang icon sa iyong home screen!'],en:['Tap Install','The app icon will appear on your home screen!'],svg:'<polyline points="20 6 9 17 4 12"/>'},
+    ]},
+    ios:{accent:'#93c5fd',bg:'rgba(147,197,253,.05)',border:'rgba(147,197,253,.12)',steps:[
+        {tl:['Buksan ang Safari','Safari lang ang makakapag-install ng app sa iOS.'],en:['Open Safari','Only Safari can install apps on iOS.'],svg:'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>'},
+        {tl:['I-tap ang Share','I-tap ang Share icon sa ibaba ng screen.'],en:['Tap Share','Tap the Share icon at the bottom of the screen.'],svg:'<path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>'},
+        {tl:['"Add to Home Screen"','Mag-scroll at i-tap ang "Add to Home Screen".'],en:['"Add to Home Screen"','Scroll and tap "Add to Home Screen".'],svg:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'},
+        {tl:['I-tap ang Add','I-tap ang Add sa kanan sa itaas — tapos na!'],en:['Tap Add','Tap Add in the top-right — done!'],svg:'<polyline points="20 6 9 17 4 12"/>'},
+    ]},
+    desktop:{accent:'#c4b5fd',bg:'rgba(167,139,250,.05)',border:'rgba(167,139,250,.12)',steps:[
+        {tl:['Buksan sa Chrome o Edge','Pumunta sa eut-delivery.duckdns.org.'],en:['Open Chrome or Edge','Go to eut-delivery.duckdns.org.'],svg:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/>'},
+        {tl:['Hanapin ang install icon','Sa address bar, may install icon sa kanang bahagi.'],en:['Find the install icon','Look for the install icon on the right side of the address bar.'],svg:'<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>'},
+        {tl:['I-click ang Install','I-click at kumpirmahin sa popup.'],en:['Click Install','Click it and confirm in the popup.'],svg:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'},
+        {tl:['Tapos na!','May shortcut na sa iyong desktop!'],en:['Done!','A shortcut is now on your desktop!'],svg:'<polyline points="20 6 9 17 4 12"/>'},
+    ]}
 };
 
-function applyLang(lang) {
-    pwaLang = lang;
-    localStorage.setItem('pwaLang', lang);
-    const c = PWA_CONTENT[lang];
-    const isTl = lang === 'tl';
-
-    // toggle button label
-    const btn = document.getElementById('langToggleBtn');
-    if (btn) btn.textContent = isTl ? 'EN' : 'TL';
-
-    // floating button
-    const fl = document.getElementById('pwaFloatLabel');
-    if (fl) fl.textContent = c.floatLabel;
-
-    // banner
-    const bt = document.getElementById('bannerTitle');
-    const bs = document.getElementById('bannerSub');
-    const bi = document.getElementById('bannerInstallLabel');
-    const bh = document.getElementById('bannerHowLabel');
-    if (bt) bt.textContent = c.bannerTitle;
-    if (bs) bs.textContent = c.bannerSub;
-    if (bi) bi.textContent = c.bannerInstall;
-    if (bh) bh.textContent = c.bannerHow;
-
-    // modal header
-    const mt = document.getElementById('modalTitle');
-    const ms = document.getElementById('modalSub');
-    if (mt) mt.textContent = c.modalTitle;
-    if (ms) ms.textContent = c.modalSub;
-
-    // all bilingual elements
-    document.querySelectorAll('.pwa-tl').forEach(el => el.style.display = isTl ? '' : 'none');
-    document.querySelectorAll('.pwa-en').forEach(el => el.style.display = isTl ? 'none' : '');
-    document.querySelectorAll('.pwa-benefit-tl').forEach(el => el.style.display = isTl ? '' : 'none');
-    document.querySelectorAll('.pwa-benefit-en').forEach(el => el.style.display = isTl ? 'none' : '');
+function buildSteps(p){
+    const d=PWA_STEPS[p],el=document.getElementById(p+'Steps');
+    if(!el||el.dataset.built)return; el.dataset.built=1;
+    el.innerHTML=d.steps.map((s,i)=>`
+    <div style="display:flex;gap:11px;align-items:flex-start;padding:10px 0;${i<3?'border-bottom:1px solid rgba(255,255,255,.04)':''}">
+        <div style="width:34px;height:34px;border-radius:9px;flex-shrink:0;background:${d.bg};border:1px solid ${d.border};display:flex;align-items:center;justify-content:center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${d.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${s.svg}</svg>
+        </div>
+        <div style="flex:1;padding-top:1px;">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">
+                <span style="font-size:9px;font-weight:700;color:${d.accent};background:${d.bg};border-radius:4px;padding:1px 5px;">${i+1}</span>
+                <strong class="pwa-tl" style="font-size:12px;font-weight:600;color:#e5e7eb;">${s.tl[0]}</strong>
+                <strong class="pwa-en" style="font-size:12px;font-weight:600;color:#e5e7eb;display:none;">${s.en[0]}</strong>
+            </div>
+            <p class="pwa-tl" style="margin:0;font-size:11px;color:#4b5563;line-height:1.5;">${s.tl[1]}</p>
+            <p class="pwa-en" style="margin:0;font-size:11px;color:#4b5563;line-height:1.5;display:none;">${s.en[1]}</p>
+        </div>
+    </div>`).join('');
 }
 
-function toggleInstallLang() {
-    applyLang(pwaLang === 'tl' ? 'en' : 'tl');
+const PWA_COPY={
+    tl:{floatLabel:'I-install ang App',bannerTitle:'I-install ang EUT App',bannerSub:'Mas mabilis \u00b7 offline',bannerInstall:'I-install',bannerHow:'Paano?',modalTitle:'I-install ang EUT Snack House',modalSub:'Libre \u00b7 Mabilis \u00b7 Offline'},
+    en:{floatLabel:'Install App',bannerTitle:'Install EUT App',bannerSub:'Faster \u00b7 offline-ready',bannerInstall:'Install',bannerHow:'How?',modalTitle:'Install EUT Snack House',modalSub:'Free \u00b7 Fast \u00b7 Offline'}
+};
+
+function applyLang(lang){
+    pwaLang=lang;localStorage.setItem('pwaLang',lang);
+    const c=PWA_COPY[lang],isTl=lang==='tl';
+    const m={pwaFloatLabel:'floatLabel',bannerTitle:'bannerTitle',bannerSub:'bannerSub',bannerInstallLabel:'bannerInstall',bannerHowLabel:'bannerHow',modalTitle:'modalTitle',modalSub:'modalSub'};
+    Object.entries(m).forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.textContent=c[k];});
+    const lb=document.getElementById('langToggleBtn');if(lb)lb.textContent=isTl?'EN':'TL';
+    document.querySelectorAll('.pwa-tl').forEach(el=>el.style.display=isTl?'':'none');
+    document.querySelectorAll('.pwa-en').forEach(el=>el.style.display=isTl?'none':'');
 }
 
-function isAppInstalled() {
-    return window.matchMedia('(display-mode: standalone)').matches
-        || window.navigator.standalone === true;
+function toggleInstallLang(){applyLang(pwaLang==='tl'?'en':'tl');}
+
+function isAppInstalled(){return window.matchMedia('(display-mode:standalone)').matches||navigator.standalone===true;}
+
+function showInstallTutorial(){
+    if(isAppInstalled())return;
+    const ua=navigator.userAgent.toLowerCase(),isIos=/iphone|ipad|ipod/.test(ua),isAnd=/android/.test(ua);
+    const tab=isIos?'ios':isAnd?'android':'desktop';
+    buildSteps(tab);switchInstallTab(tab);applyLang(pwaLang);
+    const ib=document.getElementById('pwaModalInstallBtn');if(ib)ib.style.display=isIos?'none':'flex';
+    const an=document.getElementById('androidAutoNote');if(an)an.style.display=window._deferredPrompt?'block':'none';
+    const modal=document.getElementById('pwaInstallModal'),sheet=document.getElementById('pwaModalSheet');
+    modal.style.display='flex';document.body.style.overflow='hidden';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{sheet.style.transform='translateY(0)';}));
 }
 
-function showInstallTutorial() {
-    if (isAppInstalled()) return;
-
-    const ua     = navigator.userAgent.toLowerCase();
-    const isIos  = /iphone|ipad|ipod/.test(ua);
-    const isMob  = /android/.test(ua);
-    switchInstallTab(isIos ? 'ios' : isMob ? 'android' : 'desktop');
-
-    applyLang(pwaLang);
-
-    const modal = document.getElementById('pwaInstallModal');
-    const sheet = document.getElementById('pwaModalSheet');
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => { sheet.style.transform = 'translateY(0)'; });
-    });
-
-    // hide install btn on iOS
-    const installBtn = document.getElementById('pwaModalInstallBtn');
-    if (installBtn) installBtn.style.display = isIos ? 'none' : 'flex';
-
-    // show android auto-note if prompt available
-    const autoNote = document.getElementById('androidAutoNote');
-    if (autoNote) autoNote.style.display = window._deferredPrompt ? 'flex' : 'none';
+function closeInstallTutorial(){
+    const sheet=document.getElementById('pwaModalSheet');
+    sheet.style.transform='translateY(100%)';
+    setTimeout(()=>{document.getElementById('pwaInstallModal').style.display='none';document.body.style.overflow='';},300);
 }
 
-function closeInstallTutorial() {
-    const sheet = document.getElementById('pwaModalSheet');
-    sheet.style.transform = 'translateY(100%)';
-    setTimeout(() => {
-        document.getElementById('pwaInstallModal').style.display = 'none';
-        document.body.style.overflow = '';
-    }, 350);
-}
+function dismissAndClose(){sessionStorage.setItem('pwaSessionDismissed','1');closeInstallTutorial();}
+function dismissPWABanner(){sessionStorage.setItem('pwaSessionDismissed','1');const b=document.getElementById('pwaInstallBanner');if(b)b.style.display='none';}
 
-function dismissAndClose() {
-    sessionStorage.setItem('pwaSessionDismissed', '1');
-    closeInstallTutorial();
-    // float button stays visible — user can still tap it anytime
-}
-
-function dismissPWABanner() {
-    sessionStorage.setItem('pwaSessionDismissed', '1');
-    const b = document.getElementById('pwaInstallBanner');
-    if (b) b.style.display = 'none';
-    // float button stays visible
-}
-
-function switchInstallTab(tab) {
-    const colors = {
-        android: { bg:'rgba(250,204,21,.1)', border:'rgba(250,204,21,.35)', color:'#facc15' },
-        ios:     { bg:'rgba(147,197,253,.1)',  border:'rgba(147,197,253,.3)',  color:'#93c5fd' },
-        desktop: { bg:'rgba(167,139,250,.1)',  border:'rgba(167,139,250,.3)',  color:'#c4b5fd' },
-    };
-    ['android','ios','desktop'].forEach(t => {
-        const cap = t.charAt(0).toUpperCase() + t.slice(1);
-        const content = document.getElementById('installTab' + cap);
-        const btn     = document.getElementById('tab' + cap);
-        if (!content || !btn) return;
-        const active = t === tab;
-        content.style.display  = active ? 'block' : 'none';
-        btn.style.background   = active ? colors[t].bg    : 'transparent';
-        btn.style.borderColor  = active ? colors[t].border : 'rgba(255,255,255,.07)';
-        btn.style.color        = active ? colors[t].color  : '#4b5563';
+function switchInstallTab(tab){
+    const c={android:{bg:'rgba(250,204,21,.07)',border:'rgba(250,204,21,.28)',color:'#facc15'},ios:{bg:'rgba(147,197,253,.07)',border:'rgba(147,197,253,.25)',color:'#93c5fd'},desktop:{bg:'rgba(167,139,250,.07)',border:'rgba(167,139,250,.25)',color:'#c4b5fd'}};
+    ['android','ios','desktop'].forEach(t=>{
+        const cap=t[0].toUpperCase()+t.slice(1);
+        const ct=document.getElementById('installTab'+cap),bt=document.getElementById('tab'+cap);
+        if(!ct||!bt)return;const on=t===tab;
+        ct.style.display=on?'block':'none';
+        bt.style.background=on?c[t].bg:'transparent';
+        bt.style.borderColor=on?c[t].border:'rgba(255,255,255,.07)';
+        bt.style.color=on?c[t].color:'#374151';
     });
 }
 
-// Close on backdrop click
-document.getElementById('pwaInstallModal').addEventListener('click', function(e) {
-    if (e.target === this) closeInstallTutorial();
-});
+document.getElementById('pwaInstallModal').addEventListener('click',function(e){if(e.target===this)closeInstallTutorial();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeInstallTutorial();});
 
-// ── Init on load ─────────────────────────────────────────────────────────────
-window.addEventListener('load', function() {
-    const ua       = navigator.userAgent.toLowerCase();
-    const isIos    = /iphone|ipad|ipod/.test(ua);
-    const installed = isAppInstalled();
-    const hasTable  = new URLSearchParams(window.location.search).get('table');
-
+window.addEventListener('load',function(){
+    const ua=navigator.userAgent.toLowerCase(),isIos=/iphone|ipad|ipod/.test(ua);
+    const hasTable=new URLSearchParams(location.search).get('table');
     applyLang(pwaLang);
-
-    // Never show anything if already installed as standalone app or table QR
-    if (installed || hasTable) return;
-
-    // "Mamaya Na" only hides for the current SESSION (sessionStorage), not forever
-    const sessionDismissed = sessionStorage.getItem('pwaSessionDismissed');
-
-    const floatBtn = document.getElementById('pwaFloatBtn');
-
-    // Always show float button if not installed (regardless of dismissal)
-    if (floatBtn) floatBtn.style.display = 'block';
-
-    // iOS: auto-open tutorial after 3s if not session-dismissed
-    if (isIos && !sessionDismissed) {
-        setTimeout(() => showInstallTutorial(), 3000);
-    }
+    if(isAppInstalled()||hasTable)return;
+    const fb=document.getElementById('pwaFloatBtn');if(fb)fb.style.display='block';
+    if(isIos&&!sessionStorage.getItem('pwaSessionDismissed'))setTimeout(()=>showInstallTutorial(),3500);
 });
 
-// ── beforeinstallprompt (Android/Desktop Chrome) ──────────────────────────────
-window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    window._deferredPrompt = e;
-
-    const hasTable = new URLSearchParams(window.location.search).get('table');
-    if (hasTable) return;
-
-    // Show top banner after 2s
-    const banner = document.getElementById('pwaInstallBanner');
-    if (banner) setTimeout(() => { banner.style.display = 'flex'; }, 2000);
-
-    // Float button already shown by init, just make sure
-    const floatBtn = document.getElementById('pwaFloatBtn');
-    if (floatBtn) floatBtn.style.display = 'block';
+window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();window._deferredPrompt=e;
+    if(isAppInstalled()||new URLSearchParams(location.search).get('table'))return;
+    const b=document.getElementById('pwaInstallBanner');if(b)setTimeout(()=>{b.style.display='flex';},2000);
+    const fb=document.getElementById('pwaFloatBtn');if(fb)fb.style.display='block';
 });
 
-function installPWA() {
-    if (!window._deferredPrompt) return;
+function installPWA(){
+    if(!window._deferredPrompt)return;
     window._deferredPrompt.prompt();
-    window._deferredPrompt.userChoice.then(() => {
-        window._deferredPrompt = null;
-        const banner = document.getElementById('pwaInstallBanner');
-        if (banner) banner.style.display = 'none';
+    window._deferredPrompt.userChoice.then(()=>{
+        window._deferredPrompt=null;
+        const b=document.getElementById('pwaInstallBanner');if(b)b.style.display='none';
+        const fb=document.getElementById('pwaFloatBtn');if(fb)fb.style.display='none';
         closeInstallTutorial();
-        // hide float after install
-        const fb = document.getElementById('pwaFloatBtn');
-        if (fb) fb.style.display = 'none';
     });
 }
 
-// Hide everything once installed
-window.matchMedia('(display-mode: standalone)').addEventListener('change', e => {
-    if (e.matches) {
-        const fb = document.getElementById('pwaFloatBtn');
-        const bn = document.getElementById('pwaInstallBanner');
-        if (fb) fb.style.display = 'none';
-        if (bn) bn.style.display = 'none';
-    }
+window.matchMedia('(display-mode:standalone)').addEventListener('change',e=>{
+    if(e.matches){['pwaFloatBtn','pwaInstallBanner'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});}
 });
 </script>
-
 {{-- ══════════ ITEM QUICK-ADD BOTTOM SHEET ══════════ --}}
 <div id="iqBackdrop" onclick="closeItemSheet()"
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:800;"></div>
