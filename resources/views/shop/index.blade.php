@@ -1361,16 +1361,6 @@ if (window.Echo) {
     </button>
 </div>
 
-<div id="pwaInstallBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(9,9,16,.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(250,204,21,.14);padding:10px 14px;align-items:center;gap:10px;">
-    <img src="/images/icons/icon-72x72.png" style="width:34px;height:34px;border-radius:9px;flex-shrink:0;" alt="EUT">
-    <div style="flex:1;min-width:0;">
-        <p id="bannerTitle" style="font-size:12px;font-weight:700;color:#fff;margin:0 0 1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">I-install ang EUT App</p>
-        <p id="bannerSub"   style="font-size:10px;color:#6b7280;margin:0;">Mas mabilis &middot; offline-ready</p>
-    </div>
-    <button onclick="installPWA()" style="background:#facc15;color:#000;border:none;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;"><span id="bannerInstallLabel">I-install</span></button>
-    <button onclick="showInstallTutorial()" style="background:rgba(255,255,255,.05);color:#9ca3af;border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:7px 10px;font-size:10px;font-weight:600;cursor:pointer;flex-shrink:0;"><span id="bannerHowLabel">Paano?</span></button>
-    <button onclick="dismissPWABanner()" style="background:none;border:none;color:#4b5563;cursor:pointer;padding:4px;flex-shrink:0;line-height:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-</div>
 
 <div id="pwaInstallModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);align-items:flex-end;justify-content:center;">
     <div id="pwaModalSheet" style="width:100%;max-width:480px;background:#0b0c18;border:1px solid rgba(255,255,255,.07);border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom,12px);max-height:88vh;overflow-y:auto;scrollbar-width:none;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);">
@@ -1405,8 +1395,8 @@ if (window.Echo) {
             </div>
             <div id="installTabIos" style="display:none;">
                 <div style="background:rgba(147,197,253,.05);border:1px solid rgba(147,197,253,.12);border-radius:10px;padding:10px 13px;margin-bottom:12px;">
-                    <p class="pwa-tl" style="margin:0;font-size:11px;color:#93c5fd;line-height:1.5;">Ang iPhone ay hindi sumusuporta ng auto-install. Buksan ang <strong>Safari</strong> at sundin ang mga hakbang.</p>
-                    <p class="pwa-en" style="margin:0;font-size:11px;color:#93c5fd;line-height:1.5;display:none;">iPhone doesn&apos;t support auto-install. Open <strong>Safari</strong> and follow the steps below.</p>
+                    <p class="pwa-tl" style="margin:0;font-size:11px;color:#93c5fd;line-height:1.5;">&#9888;&#65039; Ang iPhone at iPad ay hindi sumusuporta ng auto-install. Kailangan mong gawin ito nang manu-mano gamit ang <strong>Safari</strong>. Sundin ang 6 na hakbang sa ibaba.</p>
+                    <p class="pwa-en" style="margin:0;font-size:11px;color:#93c5fd;line-height:1.5;display:none;">&#9888;&#65039; iPhone and iPad don&apos;t support auto-install. You need to do it manually using <strong>Safari</strong>. Follow the 6 steps below.</p>
                 </div>
                 <div id="iosSteps"></div>
             </div>
@@ -1449,10 +1439,36 @@ const PWA_STEPS = {
         {tl:['I-tap ang Install','Lalabas na ang icon sa iyong home screen!'],en:['Tap Install','The app icon will appear on your home screen!'],svg:'<polyline points="20 6 9 17 4 12"/>'},
     ]},
     ios:{accent:'#93c5fd',bg:'rgba(147,197,253,.05)',border:'rgba(147,197,253,.12)',steps:[
-        {tl:['Buksan ang Safari','Safari lang ang makakapag-install ng app sa iOS.'],en:['Open Safari','Only Safari can install apps on iOS.'],svg:'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>'},
-        {tl:['I-tap ang Share','I-tap ang Share icon sa ibaba ng screen.'],en:['Tap Share','Tap the Share icon at the bottom of the screen.'],svg:'<path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>'},
-        {tl:['"Add to Home Screen"','Mag-scroll at i-tap ang "Add to Home Screen".'],en:['"Add to Home Screen"','Scroll and tap "Add to Home Screen".'],svg:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'},
-        {tl:['I-tap ang Add','I-tap ang Add sa kanan sa itaas — tapos na!'],en:['Tap Add','Tap Add in the top-right — done!'],svg:'<polyline points="20 6 9 17 4 12"/>'},
+        {
+            tl:['Buksan ang Safari browser','Hindi gagana ang Chrome o Firefox para dito. Kailangan talaga ang Safari — ang default browser ng iPhone/iPad.'],
+            en:['Open the Safari browser','Chrome and Firefox cannot install apps on iOS. You must use Safari — the default iPhone/iPad browser.'],
+            svg:'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>'
+        },
+        {
+            tl:['Pumunta sa eut-delivery.duckdns.org','I-type ang address sa Safari address bar at pindutin ang Go.'],
+            en:['Go to eut-delivery.duckdns.org','Type the address in the Safari address bar and tap Go.'],
+            svg:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'
+        },
+        {
+            tl:['I-tap ang Share button \u2191','Hanapin ang Share icon — isang kahon na may arrow na nakaturo pataas. Nasa gitna ito ng toolbar sa ibaba ng screen (iPhone) o nasa itaas (iPad).'],
+            en:['Tap the Share button \u2191','Find the Share icon — a box with an upward arrow. It\'s in the center of the bottom toolbar (iPhone) or at the top (iPad).'],
+            svg:'<path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>'
+        },
+        {
+            tl:['Hanapin ang "Add to Home Screen"','Mag-scroll pababa sa listahan ng mga opsyon. Hanapin ang icon na "Add to Home Screen" — may plus (+) sign at home icon ito.'],
+            en:['Find "Add to Home Screen"','Scroll down through the share sheet options. Look for "Add to Home Screen" — it has a plus (+) and a home icon.'],
+            svg:'<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'
+        },
+        {
+            tl:['Baguhin ang pangalan (optional) at i-tap ang Add','Lalabas ang isang dialog. Maaari mong baguhin ang pangalan ng app. Pagkatapos, i-tap ang <strong>Add</strong> sa kanang sulok sa itaas.'],
+            en:['Edit the name (optional) then tap Add','A dialog will appear. You can rename the app if you like. Then tap <strong>Add</strong> in the top-right corner.'],
+            svg:'<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>'
+        },
+        {
+            tl:['Tapos na! Buksan ang app mula sa Home Screen','Lalabas na ang EUT icon sa iyong home screen. I-tap ito para buksan ang app nang walang browser bar — parang tunay na app!'],
+            en:['Done! Open the app from your Home Screen','The EUT icon will appear on your home screen. Tap it to open the app without a browser bar — just like a real app!'],
+            svg:'<polyline points="20 6 9 17 4 12"/>'
+        },
     ]},
     desktop:{accent:'#c4b5fd',bg:'rgba(167,139,250,.05)',border:'rgba(167,139,250,.12)',steps:[
         {tl:['Buksan sa Chrome o Edge','Pumunta sa eut-delivery.duckdns.org.'],en:['Open Chrome or Edge','Go to eut-delivery.duckdns.org.'],svg:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/>'},
@@ -1483,14 +1499,14 @@ function buildSteps(p){
 }
 
 const PWA_COPY={
-    tl:{floatLabel:'I-install ang App',bannerTitle:'I-install ang EUT App',bannerSub:'Mas mabilis \u00b7 offline',bannerInstall:'I-install',bannerHow:'Paano?',modalTitle:'I-install ang EUT Snack House',modalSub:'Libre \u00b7 Mabilis \u00b7 Offline'},
-    en:{floatLabel:'Install App',bannerTitle:'Install EUT App',bannerSub:'Faster \u00b7 offline-ready',bannerInstall:'Install',bannerHow:'How?',modalTitle:'Install EUT Snack House',modalSub:'Free \u00b7 Fast \u00b7 Offline'}
+    tl:{floatLabel:'I-install ang App',modalTitle:'I-install ang EUT Snack House',modalSub:'Libre \u00b7 Mabilis \u00b7 Offline'},
+    en:{floatLabel:'Install App',modalTitle:'Install EUT Snack House',modalSub:'Free \u00b7 Fast \u00b7 Offline'}
 };
 
 function applyLang(lang){
     pwaLang=lang;localStorage.setItem('pwaLang',lang);
     const c=PWA_COPY[lang],isTl=lang==='tl';
-    const m={pwaFloatLabel:'floatLabel',bannerTitle:'bannerTitle',bannerSub:'bannerSub',bannerInstallLabel:'bannerInstall',bannerHowLabel:'bannerHow',modalTitle:'modalTitle',modalSub:'modalSub'};
+    const m={pwaFloatLabel:'floatLabel',modalTitle:'modalTitle',modalSub:'modalSub'};
     Object.entries(m).forEach(([id,k])=>{const el=document.getElementById(id);if(el)el.textContent=c[k];});
     const lb=document.getElementById('langToggleBtn');if(lb)lb.textContent=isTl?'EN':'TL';
     document.querySelectorAll('.pwa-tl').forEach(el=>el.style.display=isTl?'':'none');
@@ -1501,13 +1517,29 @@ function toggleInstallLang(){applyLang(pwaLang==='tl'?'en':'tl');}
 
 function isAppInstalled(){return window.matchMedia('(display-mode:standalone)').matches||navigator.standalone===true;}
 
+function detectDevice(){
+    const ua  = navigator.userAgent;
+    const uaL = ua.toLowerCase();
+    // iPadOS 13+ pretends to be macOS — catch it via touch points
+    const isIpadOs = /macintosh/i.test(ua) && navigator.maxTouchPoints > 1;
+    const isIos    = /iphone|ipad|ipod/i.test(ua) || isIpadOs;
+    const isAndroid= /android/i.test(ua);
+    const isMobile = isIos || isAndroid;
+    // Desktop = not mobile
+    const isDesktop= !isMobile;
+    return { isIos, isAndroid, isMobile, isDesktop };
+}
+
 function showInstallTutorial(){
     if(isAppInstalled())return;
-    const ua=navigator.userAgent.toLowerCase(),isIos=/iphone|ipad|ipod/.test(ua),isAnd=/android/.test(ua);
-    const tab=isIos?'ios':isAnd?'android':'desktop';
+    const {isIos,isAndroid,isDesktop} = detectDevice();
+    const tab = isIos ? 'ios' : isAndroid ? 'android' : 'desktop';
     buildSteps(tab);switchInstallTab(tab);applyLang(pwaLang);
-    const ib=document.getElementById('pwaModalInstallBtn');if(ib)ib.style.display=isIos?'none':'flex';
-    const an=document.getElementById('androidAutoNote');if(an)an.style.display=window._deferredPrompt?'block':'none';
+    // iOS: manual steps only — no one-tap install
+    const ib=document.getElementById('pwaModalInstallBtn');
+    if(ib) ib.style.display = isIos ? 'none' : 'flex';
+    const an=document.getElementById('androidAutoNote');
+    if(an) an.style.display = window._deferredPrompt ? 'block' : 'none';
     const modal=document.getElementById('pwaInstallModal'),sheet=document.getElementById('pwaModalSheet');
     modal.style.display='flex';document.body.style.overflow='hidden';
     requestAnimationFrame(()=>requestAnimationFrame(()=>{sheet.style.transform='translateY(0)';}));
@@ -1520,7 +1552,7 @@ function closeInstallTutorial(){
 }
 
 function dismissAndClose(){sessionStorage.setItem('pwaSessionDismissed','1');closeInstallTutorial();}
-function dismissPWABanner(){sessionStorage.setItem('pwaSessionDismissed','1');const b=document.getElementById('pwaInstallBanner');if(b)b.style.display='none';}
+function dismissPWABanner(){sessionStorage.setItem('pwaSessionDismissed','1');}
 
 function switchInstallTab(tab){
     const c={android:{bg:'rgba(250,204,21,.07)',border:'rgba(250,204,21,.28)',color:'#facc15'},ios:{bg:'rgba(147,197,253,.07)',border:'rgba(147,197,253,.25)',color:'#93c5fd'},desktop:{bg:'rgba(167,139,250,.07)',border:'rgba(167,139,250,.25)',color:'#c4b5fd'}};
@@ -1539,18 +1571,18 @@ document.getElementById('pwaInstallModal').addEventListener('click',function(e){
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeInstallTutorial();});
 
 window.addEventListener('load',function(){
-    const ua=navigator.userAgent.toLowerCase(),isIos=/iphone|ipad|ipod/.test(ua);
+    const {isIos} = detectDevice();
     const hasTable=new URLSearchParams(location.search).get('table');
     applyLang(pwaLang);
     if(isAppInstalled()||hasTable)return;
     const fb=document.getElementById('pwaFloatBtn');if(fb)fb.style.display='block';
+    // iOS/iPadOS: auto-open tutorial since beforeinstallprompt never fires
     if(isIos&&!sessionStorage.getItem('pwaSessionDismissed'))setTimeout(()=>showInstallTutorial(),3500);
 });
 
 window.addEventListener('beforeinstallprompt',e=>{
     e.preventDefault();window._deferredPrompt=e;
     if(isAppInstalled()||new URLSearchParams(location.search).get('table'))return;
-    const b=document.getElementById('pwaInstallBanner');if(b)setTimeout(()=>{b.style.display='flex';},2000);
     const fb=document.getElementById('pwaFloatBtn');if(fb)fb.style.display='block';
 });
 
@@ -1566,7 +1598,7 @@ function installPWA(){
 }
 
 window.matchMedia('(display-mode:standalone)').addEventListener('change',e=>{
-    if(e.matches){['pwaFloatBtn','pwaInstallBanner'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});}
+    if(e.matches){const fb=document.getElementById('pwaFloatBtn');if(fb)fb.style.display='none';}
 });
 </script>
 {{-- ══════════ ITEM QUICK-ADD BOTTOM SHEET ══════════ --}}
