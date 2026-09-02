@@ -1355,8 +1355,8 @@ if (window.Echo) {
 {{-- ── PWA INSTALL BUTTON + TUTORIAL ── --}}
 <div id="pwaFloatBtn" style="display:none;position:fixed;bottom:90px;right:16px;z-index:9998;">
     <button onclick="showInstallTutorial()"
-        style="display:flex;align-items:center;gap:7px;padding:10px 18px 10px 13px;background:#facc15;border:none;border-radius:99px;cursor:pointer;font-size:12px;font-weight:700;color:#000;animation:pwaGlow 2.5s ease-in-out infinite;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        style="display:flex;align-items:center;gap:7px;padding:10px 18px 10px 13px;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;border-radius:99px;cursor:pointer;font-size:12px;font-weight:700;color:#fff;animation:pwaGlow 2.5s ease-in-out infinite;box-shadow:0 4px 16px rgba(220,38,38,.4);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span id="pwaFloatLabel">I-install ang App</span>
     </button>
 </div>
@@ -1410,8 +1410,8 @@ if (window.Echo) {
         </div>
 
         <div style="padding:14px 18px 8px;display:flex;gap:8px;border-top:1px solid rgba(255,255,255,.05);margin-top:6px;">
-            <button id="pwaModalInstallBtn" onclick="installPWA()" style="flex:1;padding:12px;background:#facc15;border:none;border-radius:12px;color:#000;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <button id="pwaModalInstallBtn" onclick="installPWA()" style="flex:1;padding:12px;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(220,38,38,.35);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 <span class="pwa-tl">I-install Ngayon</span><span class="pwa-en" style="display:none;">Install Now</span>
             </button>
             <button onclick="dismissAndClose()" style="padding:12px 16px;background:transparent;border:1px solid rgba(255,255,255,.08);border-radius:12px;color:#4b5563;font-size:12px;font-weight:600;cursor:pointer;">
@@ -1422,7 +1422,7 @@ if (window.Echo) {
 </div>
 
 <style>
-@keyframes pwaGlow{0%,100%{box-shadow:0 4px 16px rgba(250,204,21,.38)}50%{box-shadow:0 4px 26px rgba(250,204,21,.62),0 0 0 4px rgba(250,204,21,.06)}}
+@keyframes pwaGlow{0%,100%{box-shadow:0 4px 16px rgba(220,38,38,.4)}50%{box-shadow:0 4px 26px rgba(220,38,38,.65),0 0 0 4px rgba(220,38,38,.08)}}
 #pwaModalSheet::-webkit-scrollbar{display:none}
 </style>
 
