@@ -18,20 +18,22 @@ This package contains scripts to fix print dialog issues and enable kiosk mode f
 
 ## 📁 Files Included
 
-### 🖨️ Print Automation Scripts
+### 🖨️ Print & Permission Automation Scripts
 1. **`auto-print-clicker.vbs`** - Background script that automatically clicks print dialogs
 2. **`start-auto-clicker.bat`** - Easy launcher for the auto-clicker
-3. **`kiosk-mode.vbs`** - Full kiosk mode with browser launch
+3. **`permission-handler.vbs`** - Handles browser permission popups (location, notifications)
+4. **`start-permission-handler.bat`** - Easy launcher for permission handler
+5. **`kiosk-mode.vbs`** - Full kiosk mode with browser launch
 
 ### 📋 Instructions
 
 ## 🚀 Quick Setup (Recommended)
 
 ### For Daily Operations:
-1. **Double-click** `start-auto-clicker.bat`
-2. Keep the window **open** while using the system
-3. The script will automatically handle all print dialogs
-4. **Close the window** to stop auto-clicking
+1. **Double-click** `start-auto-clicker.bat` - handles print dialogs
+2. **Double-click** `start-permission-handler.bat` - handles browser permissions
+3. Keep both windows **open** while using the system
+4. **Close the windows** to stop auto-clicking
 
 ### For Kiosk Mode (Full Setup):
 1. **Double-click** `kiosk-mode.vbs`
@@ -39,7 +41,7 @@ This package contains scripts to fix print dialog issues and enable kiosk mode f
    - **YES** = Launch kiosk mode with default URL
    - **NO** = Change the URL first
    - **CANCEL** = Exit
-3. Browser will open in full kiosk mode
+3. Browser will open in full kiosk mode with permissions disabled
 4. **Press Ctrl+Alt+F4** to exit kiosk mode
 
 ## ⚙️ Configuration
@@ -93,11 +95,11 @@ WScript.Sleep 300  ' Change to 500 for slower response
 3. Try running as Administrator
 4. Verify Chrome is the default browser
 
-### Auto-Click Not Working:
-1. **Check window titles** - script looks for specific dialog names
-2. **Update browser** - newer Chrome versions may have different dialog titles
-3. **Adjust timing** - increase sleep values in the script
-4. **Run manually**: `cscript auto-print-clicker.vbs` to see debug messages
+### Browser Permission Popups:
+1. **Run permission handler** - `start-permission-handler.bat`
+2. **Check Chrome settings** - make sure site permissions are set to "Ask"
+3. **Manual click** - if auto-handler fails, manually click "Allow this time"
+4. **Use kiosk mode** - permissions are disabled automatically in kiosk mode
 
 ### Kiosk Mode Issues:
 1. **Update Chrome path** in `kiosk-mode.vbs` if Chrome is installed elsewhere

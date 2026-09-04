@@ -119,6 +119,22 @@ Sub HandleJavaScriptDialogs()
         WScript.Sleep 200
     End If
     
+    ' Location permission dialog - Chrome
+    If objWShell.AppActivate("wants to") Then
+        WScript.Sleep 200
+        objWShell.SendKeys "{TAB}{TAB}{ENTER}"  ' Tab to "Allow this time" and press Enter
+        WScript.Echo "[" & Now() & "] Auto-allowed location permission"
+        WScript.Sleep 300
+    End If
+    
+    ' Generic permission dialog
+    If objWShell.AppActivate("Permission") Then
+        WScript.Sleep 200
+        objWShell.SendKeys "{ENTER}"  ' Allow permission
+        WScript.Echo "[" & Now() & "] Auto-handled permission dialog"
+        WScript.Sleep 200
+    End If
+    
     On Error GoTo 0
 End Sub
 
