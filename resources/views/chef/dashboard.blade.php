@@ -296,15 +296,12 @@ html.light .order-card-subrow { background:rgba(0,0,0,.025); border-color:rgba(0
                 </div>
                 <div class="order-card-body">
                     <div class="order-card-items">
-                        @foreach($order->items->take(3) as $item)
+                        @foreach($order->items as $item)
                             <div class="order-card-item">
                                 <span class="order-card-item-qty">x{{ $item->quantity }}</span>
                                 <span class="order-card-item-name">{{ $item->item_name }}</span>
                             </div>
                         @endforeach
-                        @if($order->items->count() > 3)
-                            <span class="order-card-item-more">+{{ $order->items->count() - 3 }} more</span>
-                        @endif
                     </div>
                     @if($order->notes)
                         <div style="font-size:.72rem;color:#fbbf24;padding:.4rem .5rem;border-radius:.4rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15);">📝 {{ $order->notes }}</div>
@@ -474,16 +471,16 @@ function groupOrders(orders) {
     });
 }
 
-// ── Items renderer (compact, 3-item preview) ───────────────────────────────
-function renderItemsPreview(items, max = 3) {
+// ── Items renderer (shows all items) ──────────────────────────────────────
+function renderItemsPreview(items, max = null) {
     let html = '<div class="order-card-items">';
-    items.slice(0, max).forEach(item => {
+    // Show all items instead of limiting to max
+    items.forEach(item => {
         html += `<div class="order-card-item">
             <span class="order-card-item-qty">x${item.qty}</span>
             <span class="order-card-item-name" title="${escH(item.name)}">${escH(item.name)}</span>
         </div>`;
     });
-    if (items.length > max) html += `<span class="order-card-item-more">+${items.length - max} more</span>`;
     html += '</div>';
     return html;
 }
