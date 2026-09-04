@@ -2033,9 +2033,49 @@ function kitchenAutoPrint(receiptUrl) {
     iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;border:none;opacity:0;';
     document.body.appendChild(iframe);
     iframe.onload = function() {
-        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(e) { console.warn('Auto-print pickup receipt failed:', e); }
-        setTimeout(function() { iframe.remove(); }, 30000);
+        try { 
+            iframe.contentWindow.focus(); 
+            iframe.contentWindow.print();
+            
+            // Enhanced cleanup after printing
+            setTimeout(function() {
+                try {
+                    // Check if print dialog is still open and handle it
+                    if (iframe.contentWindow && !iframe.contentWindow.closed) {
+                        // Add afterprint listener for cleanup
+                        iframe.contentWindow.addEventListener('afterprint', function() {
+                            setTimeout(function() {
+                                iframe.remove();
+                            }, 200);
+                        });
+                        
+                        // Fallback cleanup if afterprint doesn't fire
+                        setTimeout(function() {
+                            if (iframe.parentNode) {
+                                iframe.remove();
+                            }
+                        }, 5000);
+                    }
+                } catch(e) {
+                    // Cross-origin or other issues, just remove iframe
+                    if (iframe.parentNode) {
+                        iframe.remove();
+                    }
+                }
+            }, 1000);
+            
+        } catch(e) { 
+            console.warn('Auto-print pickup receipt failed:', e); 
+            setTimeout(function() { iframe.remove(); }, 2000);
+        }
     };
+    
+    // Safety cleanup - remove iframe after 30 seconds regardless
+    setTimeout(function() { 
+        if (iframe.parentNode) {
+            iframe.remove(); 
+        }
+    }, 30000);
 }
 
 function printReceipt(receiptUrl) {
@@ -2049,7 +2089,39 @@ function printReceipt(receiptUrl) {
         'receipt_print',
         `width=${w},height=${h},left=${left},top=${top},toolbar=0,scrollbars=0,status=0,menubar=0,location=0`
     );
-    if (!win) {
+    
+    if (win) {
+        // Focus the print window
+        win.focus();
+        
+        // Add enhanced print handling
+        win.addEventListener('load', function() {
+            setTimeout(function() {
+                // Auto-close after print dialog is handled
+                win.addEventListener('afterprint', function() {
+                    setTimeout(function() {
+                        try {
+                            win.close();
+                        } catch(e) {
+                            console.log('Print window closed');
+                        }
+                    }, 100);
+                });
+            }, 500);
+        });
+        
+        // Fallback: close window after 30 seconds if still open
+        setTimeout(function() {
+            try {
+                if (!win.closed) {
+                    win.close();
+                }
+            } catch(e) {
+                console.log('Print window cleanup');
+            }
+        }, 30000);
+    } else {
+        // Fallback to regular tab if popup blocked
         window.open(receiptUrl, '_blank');
     }
 }

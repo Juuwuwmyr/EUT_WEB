@@ -202,6 +202,11 @@ window.onload = function () {
         setTimeout(function() { window.print(); }, 300);
     }
 };
+
+// Close window after printing
+window.addEventListener('afterprint', function () {
+    window.close();
+});
 </script>
 </body>
 </html>
