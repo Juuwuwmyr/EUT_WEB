@@ -23,7 +23,7 @@ strURL = "https://eut-delivery.duckdns.org/admin/orders"  ' Default URL
 strBrowserPath = """C:\Program Files\Google\Chrome\Application\chrome.exe"""
 
 ' Kiosk mode arguments for Chrome
-strKioskArgs = "--kiosk --disable-infobars --disable-session-crashed-bubble --disable-translate --no-first-run --fast --fast-start --disable-default-apps --disable-popup-blocking --disable-extensions --disable-web-security --allow-running-insecure-content --disable-features=VizDisplayCompositor --autoplay-policy=no-user-gesture-required --disable-geolocation --disable-notifications --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows --disable-component-extensions-with-background-pages"
+strKioskArgs = "--kiosk --disable-infobars --disable-session-crashed-bubble --disable-translate --no-first-run --fast --fast-start --disable-default-apps --disable-popup-blocking --disable-extensions --disable-web-security --allow-running-insecure-content --disable-features=VizDisplayCompositor --autoplay-policy=no-user-gesture-required --disable-geolocation --disable-notifications --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows --disable-component-extensions-with-background-pages --disable-password-manager-reauthentication --disable-save-password-bubble --password-store=basic"
 
 ' ============================================
 ' Main Menu

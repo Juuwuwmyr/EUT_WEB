@@ -45,6 +45,27 @@ Loop
 Sub HandleChromePermissions()
     On Error Resume Next
     
+    ' Chrome password manager dialog - "Update password?"
+    If objWShell.AppActivate("Update password") Then
+        WScript.Sleep 300
+        ' Try clicking "No, thanks" first (safer option)
+        objWShell.SendKeys "{TAB}{ENTER}"
+        WScript.Sleep 100
+        objWShell.SendKeys "{ESC}"  ' Fallback: ESC to close
+        WScript.Echo "[" & Now() & "] Auto-dismissed Chrome password dialog"
+        WScript.Sleep 500
+    End If
+    
+    ' Chrome password save dialog
+    If objWShell.AppActivate("Save password") Then
+        WScript.Sleep 300
+        objWShell.SendKeys "{TAB}{ENTER}"  ' Click "No, thanks"
+        WScript.Sleep 100
+        objWShell.SendKeys "{ESC}"
+        WScript.Echo "[" & Now() & "] Auto-dismissed Chrome save password dialog"
+        WScript.Sleep 500
+    End If
+    
     ' Chrome location permission dialog (exact text match)
     If objWShell.AppActivate("eut-delivery.duckdns.org wants to") Then
         WScript.Sleep 300
@@ -104,6 +125,12 @@ Sub HandleChromePermissions()
         objWShell.SendKeys "{ENTER}"
         WScript.Echo "[" & Now() & "] Auto-handled security warning"
         WScript.Sleep 200
+    End If
+    
+    ' Try any active Chrome dialog window and press ESC as last resort
+    If objWShell.AppActivate("Google Chrome") Then
+        ' Send ESC key to close any modal dialogs
+        objWShell.SendKeys "{ESC}"
     End If
     
     ' Try to focus back on Chrome if any dialog was handled
