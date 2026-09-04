@@ -19,7 +19,7 @@ Set objWShell = CreateObject("WScript.Shell")
 Set objFSO = CreateObject("Scripting.FileSystemObject")
 
 ' Configuration
-strURL = "http://localhost/EUT_WEB/admin/orders"  ' Default URL
+strURL = "https://eut-delivery.duckdns.org/admin/orders"  ' Default URL
 strBrowserPath = """C:\Program Files\Google\Chrome\Application\chrome.exe"""
 
 ' Kiosk mode arguments for Chrome
@@ -47,9 +47,9 @@ Do
             ' Change URL
             strCustomURL = InputBox("Enter the URL to launch in kiosk mode:" & vbCrLf & vbCrLf & _
                                    "Examples:" & vbCrLf & _
-                                   "• http://localhost/EUT_WEB/admin/orders" & vbCrLf & _
-                                   "• http://localhost/EUT_WEB/chef/dashboard" & vbCrLf & _
-                                   "• http://localhost/EUT_WEB/waiter/dashboard", _
+                                   "• https://eut-delivery.duckdns.org/admin/orders" & vbCrLf & _
+                                   "• https://eut-delivery.duckdns.org/chef/dashboard" & vbCrLf & _
+                                   "• https://eut-delivery.duckdns.org/waiter/dashboard", _
                                    "Change URL", strURL)
             
             If strCustomURL <> "" Then

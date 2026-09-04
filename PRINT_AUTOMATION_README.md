@@ -46,14 +46,14 @@ This package contains scripts to fix print dialog issues and enable kiosk mode f
 
 ### Change Default URL (kiosk-mode.vbs):
 ```vbs
-strURL = "http://localhost/EUT_WEB/admin/orders"  ' Change this line
+strURL = "https://eut-delivery.duckdns.org/admin/orders"  ' Change this line
 ```
 
 ### Common URLs:
-- Admin Orders: `http://localhost/EUT_WEB/admin/orders`
-- Chef Dashboard: `http://localhost/EUT_WEB/chef/dashboard` 
-- Waiter Dashboard: `http://localhost/EUT_WEB/waiter/dashboard`
-- Shop Home: `http://localhost/EUT_WEB/shop`
+- Admin Orders: `https://eut-delivery.duckdns.org/admin/orders`
+- Chef Dashboard: `https://eut-delivery.duckdns.org/chef/dashboard` 
+- Waiter Dashboard: `https://eut-delivery.duckdns.org/waiter/dashboard`
+- Shop Home: `https://eut-delivery.duckdns.org/shop`
 
 ## 🔧 Advanced Usage
 
@@ -101,15 +101,16 @@ WScript.Sleep 300  ' Change to 500 for slower response
 
 ### Kiosk Mode Issues:
 1. **Update Chrome path** in `kiosk-mode.vbs` if Chrome is installed elsewhere
-2. **Check URL accessibility** - make sure the web server is running
-3. **Firewall settings** - ensure localhost access is allowed
+2. **Check URL accessibility** - make sure the web server is running at `eut-delivery.duckdns.org`
+3. **Firewall settings** - ensure internet access is allowed for the domain
 
 ## 📞 Support
 
 ### Quick Fixes:
 - **Restart the auto-clicker** if print dialogs start appearing again
 - **Refresh the browser** if kiosk mode becomes unresponsive
-- **Check WAMP/XAMPP** is running if localhost URLs don't work
+- **Check WAMP/XAMPP** is running if localhost URLs don't work (for development)
+- **Check internet connection** for production domain access
 
 ### For Technical Support:
 - Check Windows Event Viewer for VBS script errors
