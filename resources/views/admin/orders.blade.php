@@ -24,7 +24,7 @@
 /* Card shell */
 .order-card {
     background: var(--bg-card, #1a1a2e);
-    border: 1px solid var(--border-card, rgba(255,255,255,.08));
+    border: 2px solid var(--border-card, rgba(255,255,255,.08));
     border-radius: 1rem;
     padding: 1rem 1.1rem .9rem;
     display: flex;
