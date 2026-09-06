@@ -523,7 +523,12 @@ function buildModifiers() {
 
     cont.innerHTML = groups.map((g, gi) => {
         const isFlavor = g.type === 'flavor';
-        const label    = g.required ? 'Required' : 'Select one';
+        const maxSel   = g.max_selections || null;
+        const isMulti  = maxSel && maxSel > 1;
+        let label;
+        if (isMulti)      label = `Choose up to ${maxSel}`;
+        else if (g.required) label = 'Required';
+        else              label = 'Select one';
         const divider  = gi < groups.length - 1 ? '<div style="height:1px;background:rgba(255,255,255,.06);margin:0 18px;"></div>' : '';
         const optsHtml = isFlavor ? flavorHtml(g) : pillHtml(g);
         return `<div class="sheet-section" id="sg_${g.id}">
@@ -534,12 +539,26 @@ function buildModifiers() {
 
     // Pre-select defaults
     groups.forEach(g => {
-        const def = (g.active_options || []).find(o => o.is_default);
-        if (def) {
-            curSelOpts[g.id] = def;
-            document.getElementById(`so_${g.id}_${def.id}`)?.classList.add('sel');
+        const maxSel  = g.max_selections || null;
+        const isMulti = maxSel && maxSel > 1;
+        if (isMulti) {
+            // Multi-select: collect all defaults into an array
+            const defaults = (g.active_options || []).filter(o => o.is_default);
+            curSelOpts[g.id] = defaults;
+            defaults.forEach(def => document.getElementById(`so_${g.id}_${def.id}`)?.classList.add('sel'));
             const lbl = document.getElementById(`sgl_${g.id}`);
-            if (lbl) lbl.textContent = def.name;
+            if (lbl) lbl.textContent = defaults.length ? `${defaults.length} / ${maxSel} chosen` : `Choose up to ${maxSel}`;
+        } else {
+            // Single-select
+            const def = (g.active_options || []).find(o => o.is_default);
+            if (def) {
+                curSelOpts[g.id] = def;
+                document.getElementById(`so_${g.id}_${def.id}`)?.classList.add('sel');
+                const lbl = document.getElementById(`sgl_${g.id}`);
+                if (lbl) lbl.textContent = def.name;
+            } else {
+                curSelOpts[g.id] = null;
+            }
         }
     });
 }
@@ -572,11 +591,56 @@ function selectOpt(gid, oid) {
     if (!g) return;
     const opt = (g.active_options||[]).find(x=>x.id==oid);
     if (!opt) return;
-    // Single select
-    (g.active_options||[]).forEach(o=>document.getElementById(`so_${gid}_${o.id}`)?.classList.remove('sel'));
-    const same = curSelOpts[gid]?.id == oid;
-    if (same) { curSelOpts[gid]=null; const l=document.getElementById(`sgl_${gid}`); if(l)l.textContent=g.required?'Required':'Select one'; }
-    else      { document.getElementById(`so_${gid}_${oid}`)?.classList.add('sel'); curSelOpts[gid]=opt; const l=document.getElementById(`sgl_${gid}`); if(l)l.textContent=opt.name; }
+
+    const maxSel  = g.max_selections || null;
+    const isMulti = maxSel && maxSel > 1;
+    const lbl     = document.getElementById(`sgl_${gid}`);
+
+    if (isMulti) {
+        // ── MULTI-SELECT (W2=2 flavors, W3=3, etc.) ──────────────────
+        let arr = Array.isArray(curSelOpts[gid]) ? curSelOpts[gid] : [];
+        const idx = arr.findIndex(o => o.id == oid);
+
+        if (idx >= 0) {
+            // Already selected → deselect
+            arr.splice(idx, 1);
+            document.getElementById(`so_${gid}_${oid}`)?.classList.remove('sel');
+        } else {
+            // Not selected → check limit
+            if (arr.length >= maxSel) {
+                // Flash label red to show limit reached
+                if (lbl) {
+                    lbl.style.color = '#ef4444';
+                    lbl.textContent = `Max ${maxSel} only!`;
+                    setTimeout(() => {
+                        lbl.style.color = '';
+                        lbl.textContent = arr.length ? `${arr.length} / ${maxSel} chosen` : `Choose up to ${maxSel}`;
+                    }, 1200);
+                }
+                return;
+            }
+            arr.push(opt);
+            document.getElementById(`so_${gid}_${oid}`)?.classList.add('sel');
+        }
+
+        curSelOpts[gid] = arr;
+        if (lbl) {
+            lbl.style.color = '';
+            lbl.textContent = arr.length ? `${arr.length} / ${maxSel} chosen` : `Choose up to ${maxSel}`;
+        }
+    } else {
+        // ── SINGLE-SELECT ─────────────────────────────────────────────
+        (g.active_options||[]).forEach(o => document.getElementById(`so_${gid}_${o.id}`)?.classList.remove('sel'));
+        const same = curSelOpts[gid] && curSelOpts[gid].id == oid;
+        if (same) {
+            curSelOpts[gid] = null;
+            if (lbl) lbl.textContent = g.required ? 'Required' : 'Select one';
+        } else {
+            document.getElementById(`so_${gid}_${oid}`)?.classList.add('sel');
+            curSelOpts[gid] = opt;
+            if (lbl) lbl.textContent = opt.name;
+        }
+    }
     updateTotal();
 }
 
@@ -641,7 +705,16 @@ function changeQty(d){curQty=Math.max(1,curQty+d);document.getElementById('sQtyV
 function updateTotal(){
     if(!curItem)return;
     let p=parseFloat(curItem.price);
-    Object.values(curSelOpts).forEach(o=>{if(!o)return;if(o.price_type==='add')p+=parseFloat(o.price_adjustment||0);else if(o.price_type==='replace')p=parseFloat(o.price_adjustment||0);});
+    Object.values(curSelOpts).forEach(o=>{
+        if(!o) return;
+        if(Array.isArray(o)){
+            // multi-select: sum all selected options
+            o.forEach(x=>{ if(x.price_type==='add') p+=parseFloat(x.price_adjustment||0); });
+        } else {
+            if(o.price_type==='add') p+=parseFloat(o.price_adjustment||0);
+            else if(o.price_type==='replace') p=parseFloat(o.price_adjustment||0);
+        }
+    });
     Object.values(curSelAddons).forEach(a=>{if(a.priceType==='add')p+=parseFloat(a.adj||0);});
     const unit=Math.round(p);
     document.getElementById('sPrice').textContent='₱'+unit.toLocaleString();
@@ -650,10 +723,12 @@ function updateTotal(){
 
 function addToCart(){
     if(!curItem)return;
-    // Validate required
+    // Validate required groups
     for(const g of (curItem.modifier_groups||[])){
         if(!g.required)continue;
-        if(!curSelOpts[g.id]){
+        const sel     = curSelOpts[g.id];
+        const isEmpty = Array.isArray(sel) ? sel.length === 0 : !sel;
+        if(isEmpty){
             const el=document.getElementById(`sg_${g.id}`);
             const lbl=document.getElementById(`sgl_${g.id}`);
             el?.scrollIntoView({behavior:'smooth',block:'center'});
@@ -663,17 +738,47 @@ function addToCart(){
         }
     }
     let p=parseFloat(curItem.price);
-    Object.values(curSelOpts).forEach(o=>{if(!o)return;if(o.price_type==='add')p+=parseFloat(o.price_adjustment||0);else if(o.price_type==='replace')p=parseFloat(o.price_adjustment||0);});
+    Object.values(curSelOpts).forEach(o=>{
+        if(!o) return;
+        if(Array.isArray(o)){
+            o.forEach(x=>{ if(x.price_type==='add') p+=parseFloat(x.price_adjustment||0); });
+        } else {
+            if(o.price_type==='add') p+=parseFloat(o.price_adjustment||0);
+            else if(o.price_type==='replace') p=parseFloat(o.price_adjustment||0);
+        }
+    });
     Object.values(curSelAddons).forEach(a=>{if(a.priceType==='add')p+=parseFloat(a.adj||0);});
     const unit=Math.round(p);
     const modifiers=[];
-    Object.values(curSelOpts).filter(Boolean).forEach(o=>{if(/^no\s/i.test(o.name))return;const g=(curItem.modifier_groups||[]).find(x=>(x.active_options||[]).find(y=>y.id==o.id));if(g)modifiers.push({type:g.type,name:o.name,price_type:o.price_type,price_adjustment:parseFloat(o.price_adjustment||0)});});
+    // Build modifiers from selections (handles both single and multi-select)
+    Object.values(curSelOpts).forEach(o=>{
+        if(!o) return;
+        const opts = Array.isArray(o) ? o : [o];
+        opts.filter(Boolean).forEach(x=>{
+            if(/^no\s/i.test(x.name)) return;
+            const g=(curItem.modifier_groups||[]).find(grp=>(grp.active_options||[]).find(y=>y.id==x.id));
+            if(g) modifiers.push({type:g.type,name:x.name,price_type:x.price_type,price_adjustment:parseFloat(x.price_adjustment||0)});
+        });
+    });
     Object.entries(curSelAddons).forEach(([gid,a])=>{const ag=(curItem.addon_groups||[]).find(x=>x.id==gid);modifiers.push({type:'addon',name:ag&&ag.name!==a.name?ag.name+': '+a.name:a.name,price_type:a.priceType,price_adjustment:parseFloat(a.adj||0)});});
-    const optIds=[];Object.values(curSelOpts).filter(Boolean).forEach(o=>o.id&&optIds.push(o.id));
+
+    // Build cart key and display name
+    const optIds=[];
+    Object.values(curSelOpts).filter(Boolean).forEach(o=>{
+        if(Array.isArray(o)) o.forEach(x=>x.id&&optIds.push(x.id));
+        else if(o.id) optIds.push(o.id);
+    });
     const addonKey=Object.values(curSelAddons).map(a=>a.optId||a.name).sort().join('a');
     const key=curItem.id+(optIds.length?'_'+optIds.sort().join('-'):'')+(addonKey?'_ad'+addonKey:'');
-    const labels=[];Object.values(curSelOpts).filter(Boolean).forEach(o=>o.name&&labels.push(o.name));Object.values(curSelAddons).forEach(a=>labels.push(a.name));
+
+    const labels=[];
+    Object.values(curSelOpts).filter(Boolean).forEach(o=>{
+        if(Array.isArray(o)) o.forEach(x=>x.name&&labels.push(x.name));
+        else if(o.name) labels.push(o.name);
+    });
+    Object.values(curSelAddons).forEach(a=>labels.push(a.name));
     const name=curItem.name+(labels.length?' ('+labels.join(', ')+')':'');
+
     const existing=cart.find(i=>i.id===key);
     if(existing)existing.quantity+=curQty;
     else cart.push({id:key,item_id:curItem.id,name,price:unit,image:curItem.image?'/'+curItem.image.replace(/^\//,''):'',quantity:curQty,modifiers});
