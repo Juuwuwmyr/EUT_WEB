@@ -24,18 +24,57 @@
 /* Card shell */
 .order-card {
     background: var(--bg-card, #1a1a2e);
-    border: 2px solid var(--border-card, rgba(255,255,255,.08));
+    border: 2px solid rgba(255,255,255,.13);
+    border-left: 5px solid rgba(255,255,255,.2);
     border-radius: 1rem;
     padding: 1rem 1.1rem .9rem;
     display: flex;
     flex-direction: column;
     gap: .5rem;
-    transition: box-shadow .15s, transform .15s;
+    transition: box-shadow .2s, transform .15s, border-color .2s;
 }
 .order-card:hover {
-    box-shadow: 0 6px 24px rgba(0,0,0,.18);
-    transform: translateY(-1px);
+    box-shadow: 0 8px 28px rgba(0,0,0,.28);
+    transform: translateY(-2px);
 }
+
+/* Status-based left border highlight + glow */
+.order-card[data-status="pending"] {
+    border-left-color: #f59e0b;
+    box-shadow: -2px 0 14px rgba(245,158,11,.3), 0 2px 8px rgba(0,0,0,.2);
+}
+.order-card[data-status="accepted"] {
+    border-left-color: #3b82f6;
+    box-shadow: -2px 0 14px rgba(59,130,246,.3), 0 2px 8px rgba(0,0,0,.2);
+}
+.order-card[data-status="preparing"] {
+    border-left-color: #ef4444;
+    box-shadow: -2px 0 14px rgba(239,68,68,.3), 0 2px 8px rgba(0,0,0,.2);
+}
+.order-card[data-status="ready"] {
+    border-left-color: #10b981;
+    box-shadow: -2px 0 18px rgba(16,185,129,.4), 0 2px 8px rgba(0,0,0,.2);
+}
+.order-card[data-status="rider_assigned"],
+.order-card[data-status="out_for_delivery"] {
+    border-left-color: #8b5cf6;
+    box-shadow: -2px 0 14px rgba(139,92,246,.3), 0 2px 8px rgba(0,0,0,.2);
+}
+.order-card[data-status="delivered"] {
+    border-left-color: #10b981;
+    box-shadow: -2px 0 8px rgba(16,185,129,.15);
+    opacity: .82;
+}
+.order-card[data-status="cancelled"] {
+    border-left-color: rgba(239,68,68,.4);
+    opacity: .55;
+}
+.order-card[data-status="pending"]:hover    { box-shadow: -4px 0 20px rgba(245,158,11,.45), 0 8px 28px rgba(0,0,0,.28); }
+.order-card[data-status="accepted"]:hover   { box-shadow: -4px 0 20px rgba(59,130,246,.45), 0 8px 28px rgba(0,0,0,.28); }
+.order-card[data-status="preparing"]:hover  { box-shadow: -4px 0 20px rgba(239,68,68,.45), 0 8px 28px rgba(0,0,0,.28); }
+.order-card[data-status="ready"]:hover      { box-shadow: -4px 0 24px rgba(16,185,129,.55), 0 8px 28px rgba(0,0,0,.28); }
+.order-card[data-status="rider_assigned"]:hover,
+.order-card[data-status="out_for_delivery"]:hover { box-shadow: -4px 0 20px rgba(139,92,246,.45), 0 8px 28px rgba(0,0,0,.28); }
 
 /* Header: type badge (left) + status badge (right) */
 .order-card-header {
@@ -241,7 +280,8 @@
 /* Light mode */
 html.light .order-card {
     background: #fff;
-    border-color: rgba(0,0,0,.09);
+    border-color: rgba(0,0,0,.12);
+    border-left-width: 5px;
 }
 html.light .order-card:hover {
     box-shadow: 0 6px 24px rgba(0,0,0,.08);
@@ -1186,6 +1226,7 @@ function renderGrid(orders) {
 
         html += buildOrderCard({
             cardId:    'group-' + sessionKey.replace(/[^a-z0-9]/gi,'_'),
+            status:    allReady ? 'ready' : topStatus,
             headerLeft: '\uD83E\uDE91 <span style="background:rgba(250,204,21,.18);border:1px solid rgba(250,204,21,.4);border-radius:.4rem;padding:.15rem .6rem;font-size:1.1rem;font-weight:800;color:#facc15;letter-spacing:.01em;">Table ' + escHtml(tableNum) + '</span>' +
                 (isSessionLocked ? ' <span class="oc-locked-sm">\uD83D\uDD12</span>' : ''),
             sc:        sc,
@@ -1264,6 +1305,7 @@ function buildSoloOrderCard(o) {
 
     return buildOrderCard({
         cardId:    'solo-' + o.id,
+        status:    o.status,
         headerLeft: headerLeft,
         sc:        sc,
         metaLine1: metaLine1,
@@ -1276,7 +1318,13 @@ function buildSoloOrderCard(o) {
 
 // Shared card HTML shell — pure layout, zero logic.
 function buildOrderCard(opts) {
-    return '<div class="order-card" id="order-card-' + opts.cardId + '">' +
+    // Determine data-status: use 'ready' if sc label indicates ready-to-serve
+    var dataStatus = opts.status || '';
+    if (!dataStatus && opts.sc) {
+        var lbl = (opts.sc.label || '').toLowerCase();
+        if (lbl.indexOf('ready') !== -1) dataStatus = 'ready';
+    }
+    return '<div class="order-card" id="order-card-' + opts.cardId + '"' + (dataStatus ? ' data-status="' + dataStatus + '"' : '') + '>' +
         '<div class="order-card-header">' +
             (opts.headerLeft ? '<span class="order-card-num">' + opts.headerLeft + '</span>' : '') +
             '<span class="order-card-badge" style="background:' + opts.sc.bg + ';color:' + opts.sc.color + ';">' + opts.sc.label + '</span>' +
