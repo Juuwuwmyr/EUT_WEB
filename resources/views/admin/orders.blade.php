@@ -765,14 +765,13 @@ function renderTable(orders) {
         var allItems = [];
         group.forEach(function(o) { allItems = allItems.concat(o.items || []); });
         var itemsHtml = '';
-        allItems.slice(0, 3).forEach(function(item) {
+        allItems.forEach(function(item) {
             itemsHtml +=
                 '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">' +
                 '<span style="font-size:.72rem;font-weight:700;color:var(--accent);background:rgba(250,204,21,.1);border-radius:4px;padding:1px 5px;flex-shrink:0;">x' + item.qty + '</span>' +
                 '<span style="font-size:.75rem;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;" title="' + escHtml(item.name) + '">' + escHtml(item.name) + '</span>' +
                 '</div>';
         });
-        if (allItems.length > 3) itemsHtml += '<span style="font-size:.68rem;color:var(--text-muted);">+' + (allItems.length - 3) + ' more</span>';
 
         var grandTotal = group.reduce(function(s,o){ return s + parseFloat(o.total||0); }, 0);
 
@@ -940,17 +939,13 @@ function renderSingleOrderRow(o) {
 
         // Items preview
         var itemsHtml = '';
-        var preview = o.items.slice(0, 2);
-        preview.forEach(function(item) {
+        o.items.forEach(function(item) {
             itemsHtml +=
                 '<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">' +
                 '<span style="font-size:.72rem;font-weight:700;color:var(--accent);background:rgba(250,204,21,.1);border-radius:4px;padding:1px 5px;flex-shrink:0;">x' + item.qty + '</span>' +
                 '<span style="font-size:.75rem;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;" title="' + escHtml(item.name) + '">' + escHtml(item.name) + '</span>' +
                 '</div>';
         });
-        if (o.items.length > 2) {
-            itemsHtml += '<span style="font-size:.68rem;color:var(--text-muted);">+' + (o.items.length - 2) + ' more</span>';
-        }
 
         var actionBtn = buildActionBtns(o);
 
@@ -1229,18 +1224,15 @@ function buildSoloOrderCard(o) {
         metaLine1 = '';
     }
 
-    // Items preview (up to 3)
+    // Items preview (all)
     var itemsHtml = '<div class="order-card-items">';
-    o.items.slice(0, 3).forEach(function(item) {
+    o.items.forEach(function(item) {
         itemsHtml +=
             '<div class="order-card-item">' +
             '<span class="order-card-item-qty">x' + item.qty + '</span>' +
             '<span class="order-card-item-name" title="' + escHtml(item.name) + '">' + escHtml(item.name) + '</span>' +
             '</div>';
     });
-    if (o.items.length > 3) {
-        itemsHtml += '<span class="order-card-item-more">+' + (o.items.length - 3) + ' more</span>';
-    }
     itemsHtml += '</div>';
 
     // All action buttons come from the original buildActionBtns() — untouched
