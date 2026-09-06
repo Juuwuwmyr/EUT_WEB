@@ -25,7 +25,6 @@
 .order-card {
     background: var(--bg-card, #1a1a2e);
     border: 2px solid rgba(255,255,255,.13);
-    border-left: 5px solid rgba(255,255,255,.2);
     border-radius: 1rem;
     padding: 1rem 1.1rem .9rem;
     display: flex;
@@ -39,15 +38,15 @@
     transform: translateY(-2px);
 }
 
-/* Status-based left border color only — no glow */
-.order-card[data-status="pending"]          { border-left-color: #f59e0b; }
-.order-card[data-status="accepted"]         { border-left-color: #3b82f6; }
-.order-card[data-status="preparing"]        { border-left-color: #ef4444; }
-.order-card[data-status="ready"]            { border-left-color: #10b981; }
+/* Status-based border color only — no thick left, no glow */
+.order-card[data-status="pending"]          { border-color: #f59e0b; }
+.order-card[data-status="accepted"]         { border-color: #3b82f6; }
+.order-card[data-status="preparing"]        { border-color: #ef4444; }
+.order-card[data-status="ready"]            { border-color: #10b981; }
 .order-card[data-status="rider_assigned"],
-.order-card[data-status="out_for_delivery"] { border-left-color: #8b5cf6; }
-.order-card[data-status="delivered"]        { border-left-color: #10b981; opacity: .82; }
-.order-card[data-status="cancelled"]        { border-left-color: rgba(239,68,68,.4); opacity: .55; }
+.order-card[data-status="out_for_delivery"] { border-color: #8b5cf6; }
+.order-card[data-status="delivered"]        { border-color: rgba(16,185,129,.4); opacity: .82; }
+.order-card[data-status="cancelled"]        { border-color: rgba(239,68,68,.3); opacity: .55; }
 
 /* Header: type badge (left) + status badge (right) */
 .order-card-header {
