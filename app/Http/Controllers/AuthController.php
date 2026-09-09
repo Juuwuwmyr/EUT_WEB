@@ -479,7 +479,10 @@ class AuthController extends Controller
         try {
             $googleUser = $provider->user();
         } catch (\Exception $e) {
-            return redirect()->route('restaurant')->with('error', 'Google login failed. Please try again.');
+            // Write to a dedicated debug file so we can read the error even if laravel.log has permission issues
+            $debugMsg = '[' . now() . '] GOOGLE_AUTH_ERROR: ' . get_class($e) . ': ' . $e->getMessage() . "\n";
+            @file_put_contents(storage_path('logs/google_auth_debug.txt'), $debugMsg, FILE_APPEND);
+            return redirect()->route('restaurant')->with('google_error', $e->getMessage())->with('error', 'Google login failed: ' . $e->getMessage());
         }
 
         // First try to find by google_id

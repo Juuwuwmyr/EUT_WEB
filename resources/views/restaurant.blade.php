@@ -2422,5 +2422,39 @@ document.getElementById('loginPassword').addEventListener('keydown', e => { if (
 document.getElementById('signupPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doSignup(); });
 </script>
 @include('partials.pwa-register')
+
+{{-- ── DEBUG CONSOLE (only shown when there's an auth error or in debug mode) ── --}}
+@if(session('error') || session('google_error') || config('app.debug'))
+<div id="debugConsole" style="
+    position:fixed; bottom:0; left:0; right:0; z-index:999999;
+    background:#0f172a; border-top:2px solid #f59e0b;
+    font-family:monospace; font-size:12px; color:#e2e8f0;
+    max-height:220px; overflow-y:auto;
+    box-shadow:0 -4px 20px rgba(0,0,0,0.5);
+">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:#1e293b;border-bottom:1px solid #334155;">
+        <span style="color:#f59e0b;font-weight:bold;">⚠ EUT Debug Console</span>
+        <button onclick="document.getElementById('debugConsole').style.display='none'" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    <div style="padding:10px 14px;">
+        @if(session('error'))
+            <div style="color:#f87171;margin-bottom:6px;">🔴 AUTH ERROR: {{ session('error') }}</div>
+        @endif
+        @if(session('google_error'))
+            <div style="color:#fb923c;margin-bottom:6px;">🟠 GOOGLE EXCEPTION: {{ session('google_error') }}</div>
+        @endif
+        @if(session('success'))
+            <div style="color:#4ade80;margin-bottom:6px;">🟢 SUCCESS: {{ session('success') }}</div>
+        @endif
+        <div style="color:#64748b;margin-top:6px;">
+            APP_ENV: <span style="color:#7dd3fc;">{{ config('app.env') }}</span> |
+            APP_URL: <span style="color:#7dd3fc;">{{ config('app.url') }}</span> |
+            GOOGLE_REDIRECT: <span style="color:#7dd3fc;">{{ config('services.google.redirect') }}</span> |
+            Session: <span style="color:#7dd3fc;">{{ session()->getId() ? 'active' : 'none' }}</span>
+        </div>
+    </div>
+</div>
+@endif
+
 </body>
 </html>
