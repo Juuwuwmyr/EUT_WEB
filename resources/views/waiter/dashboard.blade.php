@@ -416,7 +416,7 @@ if (window.Echo) {
      To enable:  set $maintenance = true  below
      To disable: set $maintenance = false
 --}}
-@php $maintenance = false; @endphp
+@php $maintenance = true; @endphp
 
 @if($maintenance)
 <style>
