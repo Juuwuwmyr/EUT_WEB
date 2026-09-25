@@ -574,14 +574,28 @@ function openAdminPickupSlip(orderId) {
     <h1>We'll be right back.</h1>
     <p>Our AWS server is currently down for scheduled maintenance.<br>Estimated back online in:</p>
     <div class="m-timer" id="maint-timer">5:00</div>
-    <p class="m-note">This page refreshes automatically.</p>
+    <p class="m-note" id="maint-note">This page refreshes automatically.</p>
 </div>
 <script>
 (function(){
     var end = Date.now() + 5*60*1000;
     function fmt(ms){var s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+(('0'+(s%60)).slice(-2));}
-    var el = document.getElementById('maint-timer');
-    setInterval(function(){if(el) el.textContent = fmt(end - Date.now());}, 500);
+    var timer = document.getElementById('maint-timer');
+    var note  = document.getElementById('maint-note');
+    var desc  = timer && timer.previousElementSibling;
+    var done  = false;
+    setInterval(function(){
+        if(done) return;
+        var rem = end - Date.now();
+        if(rem > 0){
+            if(timer) timer.textContent = fmt(rem);
+        } else {
+            done = true;
+            if(timer){ timer.style.fontSize='.875rem'; timer.style.color='#ef4444'; timer.style.letterSpacing='.02em'; timer.style.fontFamily='inherit'; timer.style.fontWeight='600'; timer.textContent='Service Disrupted'; }
+            if(desc)  desc.textContent = 'The AWS server is taking longer than expected to recover.';
+            if(note)  { note.style.color='#6b7280'; note.style.fontSize='.8rem'; note.textContent='This may take up to 24 hours. We apologize for the inconvenience — please check back later.'; }
+        }
+    }, 500);
 })();
 </script>
 @endif
