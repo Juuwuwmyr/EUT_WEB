@@ -350,6 +350,9 @@
                 </span>
             </button>
 
+            {{-- ── Maintenance trigger ── --}}
+            <div id="maintTriggerWrap" style="display:inline-flex;align-items:center;margin-right:.35rem;"></div>
+
             <div style="display:flex;align-items:center;gap:.5rem;padding-left:.75rem;border-left:1px solid rgba(255,255,255,.15);">
                 @if(auth()->user()->avatar)
                     <img src="{{ auth()->user()->avatar }}" alt="{{ auth()->user()->name }}" width="32" height="32" style="border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.4);flex-shrink:0;">
@@ -528,5 +531,250 @@ function openAdminPickupSlip(orderId) {
 </script>
 <script src="/sounds/notification.js"></script>
 @stack('scripts')
+
+{{-- ══════════ SCHEDULED MAINTENANCE MODE (Admin) ══════════ --}}
+<style>
+/* Banner */
+#maintBanner {
+    position:fixed;top:0;left:0;right:0;z-index:9000;
+    background:#111827;border-bottom:1px solid #1f2937;
+    display:none;align-items:center;justify-content:space-between;
+    gap:1rem;padding:.6rem 1.25rem;
+    font-size:.78rem;color:#9ca3af;
+    box-shadow:0 1px 3px rgba(0,0,0,.4);
+}
+#maintBanner.show{display:flex;}
+#maintBanner .mb-left{display:flex;align-items:center;gap:.6rem;}
+#maintBanner .mb-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;flex-shrink:0;
+    animation:mbPulse 2s ease-in-out infinite;}
+@keyframes mbPulse{0%,100%{opacity:1}50%{opacity:.35}}
+#maintBanner .mb-msg{color:#d1d5db;}
+#maintBanner .mb-msg strong{color:#fff;font-weight:600;}
+#maintCountdown{font-family:monospace;font-weight:700;color:#f59e0b;font-size:.82rem;}
+#maintCancelBtn{
+    font-size:.72rem;padding:.25rem .65rem;border-radius:.375rem;
+    border:1px solid #374151;background:transparent;color:#6b7280;
+    cursor:pointer;transition:color .15s,border-color .15s;white-space:nowrap;
+}
+#maintCancelBtn:hover{color:#d1d5db;border-color:#4b5563;}
+
+/* Overlay */
+#maintOverlay{
+    position:fixed;inset:0;z-index:9999;
+    background:#0a0a0a;
+    display:none;flex-direction:column;align-items:center;justify-content:center;
+    padding:2rem;text-align:center;gap:1.5rem;
+    animation:moFadeIn .4s ease;
+}
+@keyframes moFadeIn{from{opacity:0}to{opacity:1}}
+#maintOverlay.show{display:flex;}
+#maintOverlay .mo-icon{
+    width:56px;height:56px;border-radius:.875rem;
+    background:#111827;border:1px solid #1f2937;
+    display:flex;align-items:center;justify-content:center;
+}
+#maintOverlay .mo-icon svg{animation:moSpin 6s linear infinite;transform-origin:center;}
+@keyframes moSpin{to{transform:rotate(360deg)}}
+#maintOverlay .mo-brand{font-size:.72rem;color:#4b5563;letter-spacing:.08em;text-transform:uppercase;font-weight:500;}
+#maintOverlay h2{margin:0;font-size:1.5rem;font-weight:700;color:#f9fafb;letter-spacing:-.02em;}
+#maintOverlay .mo-desc{font-size:.875rem;color:#6b7280;max-width:340px;line-height:1.7;margin:0;}
+#maintOverlayTimer{
+    font-family:monospace;font-size:2.5rem;font-weight:800;
+    color:#f59e0b;letter-spacing:.02em;line-height:1;
+}
+#maintOverlayTimer.live-mode{
+    font-size:.875rem;letter-spacing:.1em;text-transform:uppercase;
+    color:#10b981;font-weight:600;font-family:inherit;
+    display:flex;align-items:center;gap:.4rem;
+}
+#maintOverlayTimer.live-mode::before{
+    content:'';display:inline-block;width:8px;height:8px;border-radius:50%;
+    background:#10b981;animation:mbPulse 2s ease-in-out infinite;
+}
+#maintOverlayEnd{
+    display:none;align-items:center;gap:.4rem;font-size:.8rem;font-weight:600;
+    padding:.5rem 1.1rem;border-radius:.5rem;cursor:pointer;
+    border:1px solid #374151;background:transparent;color:#9ca3af;
+    transition:all .15s;
+}
+#maintOverlayEnd:hover{border-color:#6b7280;color:#f9fafb;}
+
+/* Nav trigger */
+#maintTriggerWrap{display:inline-flex;}
+#maintStartBtn{
+    display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;
+    font-weight:500;padding:.28rem .65rem;border-radius:.375rem;cursor:pointer;
+    border:1px solid #374151;background:transparent;color:#6b7280;
+    transition:all .15s;white-space:nowrap;
+}
+#maintStartBtn:hover{border-color:#4b5563;color:#d1d5db;}
+#maintStartBtn svg{flex-shrink:0;}
+
+/* Confirm modal */
+#maintConfirmModal{
+    position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.75);
+    backdrop-filter:blur(3px);display:none;align-items:center;
+    justify-content:center;padding:1rem;
+}
+#maintConfirmModal.show{display:flex;}
+#maintConfirmBox{
+    background:#111827;border:1px solid #1f2937;border-radius:.875rem;
+    padding:1.5rem;max-width:340px;width:100%;
+    box-shadow:0 20px 40px rgba(0,0,0,.6);
+    animation:moFadeIn .25s ease;
+}
+#maintConfirmBox h4{margin:0 0 .375rem;font-size:.9375rem;font-weight:700;color:#f9fafb;}
+#maintConfirmBox p{margin:0 0 1.25rem;font-size:.8rem;color:#6b7280;line-height:1.65;}
+#maintConfirmBox .mcb-row{display:flex;gap:.5rem;justify-content:flex-end;}
+#mcbCancel{
+    font-size:.78rem;font-weight:500;padding:.4rem .875rem;border-radius:.4rem;
+    border:1px solid #374151;background:transparent;color:#6b7280;cursor:pointer;transition:all .15s;
+}
+#mcbCancel:hover{border-color:#4b5563;color:#d1d5db;}
+#mcbConfirm{
+    font-size:.78rem;font-weight:600;padding:.4rem .875rem;border-radius:.4rem;
+    border:1px solid #374151;background:#1f2937;color:#f9fafb;cursor:pointer;transition:all .15s;
+}
+#mcbConfirm:hover{background:#374151;border-color:#4b5563;}
+</style>
+
+{{-- Banner --}}
+<div id="maintBanner">
+    <div class="mb-left">
+        <span class="mb-dot"></span>
+        <span class="mb-msg"><strong>Scheduled Maintenance</strong> — System going offline in <span id="maintCountdown">5:00</span></span>
+    </div>
+    <button id="maintCancelBtn" onclick="showMaintCancel()">Cancel</button>
+</div>
+
+{{-- Overlay --}}
+<div id="maintOverlay">
+    <div class="mo-icon">
+        <svg width="24" height="24" fill="none" stroke="#6b7280" stroke-width="1.75" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <circle cx="12" cy="12" r="3"/>
+        </svg>
+    </div>
+    <p class="mo-brand">EUT Snack House</p>
+    <h2>We'll be right back.</h2>
+    <p class="mo-desc">The system is down for scheduled maintenance. Estimated back online in:</p>
+    <div id="maintOverlayTimer">5:00</div>
+    <p class="mo-desc" style="font-size:.75rem;color:#374151;">Please wait — your session is preserved and this page will refresh automatically.</p>
+    <button id="maintOverlayEnd" onclick="endMaintenance()">Mark as Complete &amp; Restore Access</button>
+</div>
+
+{{-- Confirm modal --}}
+<div id="maintConfirmModal">
+    <div id="maintConfirmBox">
+        <h4>Start Scheduled Maintenance?</h4>
+        <p>A 5-minute countdown will start. All admin and waiter panels will be notified and locked when the timer reaches zero.</p>
+        <div class="mcb-row">
+            <button id="mcbCancel" onclick="closeMaintConfirm()">Cancel</button>
+            <button id="mcbConfirm" onclick="confirmStartMaintenance()">Start Maintenance</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var MAINT_KEY   = 'eut_maintenance_until';
+    var MAINT_ACT   = 'eut_maintenance_active';
+    var DURATION    = 5 * 60 * 1000;
+    var _t          = null;
+
+    function fmt(ms) {
+        var s = Math.max(0, Math.ceil(ms / 1000));
+        return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+    }
+    function el(id) { return document.getElementById(id); }
+
+    window.startMaintenance = function () {
+        localStorage.setItem(MAINT_KEY, Date.now() + DURATION);
+        localStorage.removeItem(MAINT_ACT);
+        sync();
+    };
+    window.cancelMaintenance = function () {
+        localStorage.removeItem(MAINT_KEY);
+        localStorage.removeItem(MAINT_ACT);
+        sync();
+    };
+    window.endMaintenance = function () {
+        localStorage.removeItem(MAINT_KEY);
+        localStorage.removeItem(MAINT_ACT);
+        sync();
+        setTimeout(function () { location.reload(); }, 400);
+    };
+    window.showMaintConfirm    = function () { var m=el('maintConfirmModal'); if(m) m.classList.add('show'); };
+    window.closeMaintConfirm   = function () { var m=el('maintConfirmModal'); if(m) m.classList.remove('show'); };
+    window.confirmStartMaintenance = function () { closeMaintConfirm(); startMaintenance(); };
+    window.showMaintCancel     = function () {
+        if (confirm('Cancel the scheduled maintenance? The banner will be dismissed for all staff.')) cancelMaintenance();
+    };
+
+    function goActive() {
+        localStorage.setItem(MAINT_ACT, '1');
+        localStorage.removeItem(MAINT_KEY);
+        sync();
+    }
+
+    function sync() {
+        var until  = parseInt(localStorage.getItem(MAINT_KEY) || '0', 10);
+        var active = localStorage.getItem(MAINT_ACT) === '1';
+        var banner = el('maintBanner'), overlay = el('maintOverlay');
+        var endBtn = el('maintOverlayEnd'), timer = el('maintOverlayTimer');
+
+        if (active) {
+            if (banner)  banner.classList.remove('show');
+            if (overlay) overlay.classList.add('show');
+            if (endBtn)  endBtn.style.display = 'inline-flex';
+            if (timer)   { timer.className = 'live-mode'; timer.textContent = 'Maintenance in progress'; }
+            stop(); return;
+        }
+
+        var rem = until - Date.now();
+        if (until && rem > 0) {
+            if (banner)  banner.classList.add('show');
+            if (overlay) overlay.classList.remove('show');
+            if (el('maintCountdown')) el('maintCountdown').textContent = fmt(rem);
+            if (timer)   { timer.className = ''; timer.textContent = fmt(rem); }
+            tick(until);
+        } else if (until && rem <= 0) {
+            goActive();
+        } else {
+            if (banner)  banner.classList.remove('show');
+            if (overlay) overlay.classList.remove('show');
+            stop();
+        }
+    }
+
+    function tick(until) {
+        if (_t) return;
+        _t = setInterval(function () {
+            var r = until - Date.now();
+            if (r <= 0) { stop(); goActive(); return; }
+            if (el('maintCountdown')) el('maintCountdown').textContent = fmt(r);
+            var t = el('maintOverlayTimer');
+            if (t && !t.classList.contains('live-mode')) t.textContent = fmt(r);
+        }, 500);
+    }
+    function stop() { if (_t) { clearInterval(_t); _t = null; } }
+
+    window.addEventListener('storage', function (e) {
+        if (e.key === MAINT_KEY || e.key === MAINT_ACT) { stop(); sync(); }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var wrap = el('maintTriggerWrap');
+        if (wrap) {
+            var btn = document.createElement('button');
+            btn.id = 'maintStartBtn';
+            btn.innerHTML = '<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>Maintenance';
+            btn.onclick = showMaintConfirm;
+            wrap.appendChild(btn);
+        }
+        sync();
+    });
+})();
+</script>
 </body>
 </html>
