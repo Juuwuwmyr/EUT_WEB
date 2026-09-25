@@ -2456,5 +2456,51 @@ document.getElementById('signupPassword').addEventListener('keydown', e => { if 
 </div>
 @endif
 
+{{-- ══════════ MAINTENANCE MODE (Restaurant) ══════════ --}}
+@php $maintenance = true; @endphp
+@if($maintenance)
+<style>
+#maint-screen{position:fixed;inset:0;z-index:99999;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.25rem;padding:2rem;text-align:center;font-family:'Inter',sans-serif;}
+#maint-screen .m-icon{width:80px;height:48px;border-radius:.75rem;background:#111827;border:1px solid #1f2937;display:flex;align-items:center;justify-content:center;margin-bottom:.25rem;padding:0 .75rem;}
+#maint-screen .m-icon svg{display:block;}
+#maint-screen .m-brand{font-size:.7rem;color:#374151;letter-spacing:.1em;text-transform:uppercase;font-weight:500;}
+#maint-screen h1{margin:0;font-size:1.5rem;font-weight:700;color:#f9fafb;letter-spacing:-.02em;line-height:1.2;}
+#maint-screen p{margin:0;font-size:.875rem;color:#6b7280;max-width:320px;line-height:1.7;}
+#maint-screen .m-timer{font-family:monospace;font-size:2.75rem;font-weight:800;color:#f59e0b;line-height:1;letter-spacing:.02em;}
+#maint-screen .m-note{font-size:.72rem;color:#1f2937;}
+</style>
+<div id="maint-screen">
+    <div class="m-icon">
+        <svg width="38" height="23" viewBox="0 0 80 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14.8 16.2L11.2 27.8H11L7.3 16.2H4.8L9.6 29.8H12.5L17.3 16.2H14.8Z" fill="#FF9900"/>
+            <path d="M24.5 16C21.2 16 18.8 18.3 18.8 23C18.8 27.5 21.1 30 24.6 30C26.8 30 28.4 29.1 29.5 27.6L27.9 26.2C27.1 27.2 26.1 27.8 24.7 27.8C22.8 27.8 21.5 26.6 21.3 24.4H29.9C29.9 24.1 30 23.6 30 23.1C30 18.9 27.8 16 24.5 16ZM21.3 22.4C21.5 20.4 22.7 18.2 24.5 18.2C26.4 18.2 27.5 20.2 27.6 22.4H21.3Z" fill="#FF9900"/>
+            <path d="M38.2 22.5C36.5 22 35 21.6 35 20.5C35 19.5 36 18.9 37.3 18.9C38.7 18.9 39.9 19.6 40.7 20.5L42.3 19C41.1 17.6 39.4 16.7 37.3 16.7C34.5 16.7 32.5 18.3 32.5 20.7C32.5 23.3 34.8 24 36.8 24.6C38.5 25.1 40 25.5 40 26.7C40 27.8 39 28.4 37.5 28.4C35.8 28.4 34.4 27.5 33.5 26.4L31.8 27.9C33.1 29.4 35 30.3 37.5 30.3C40.5 30.3 42.5 28.7 42.5 26.4C42.5 23.7 40.1 23 38.2 22.5Z" fill="#FF9900"/>
+            <path d="M12 36C16.5 39.5 22.5 41.5 29 41.5C37.5 41.5 45.2 38.2 50.8 32.8C51.5 32.1 50.9 31.1 50 31.5C44.2 34 37.5 35.5 30.5 35.5C23 35.5 15.8 33.7 9.5 30.5C8.6 30 8 31.2 8.8 31.8L12 36Z" fill="#FF9900"/>
+            <path d="M52.5 30.5C53.5 29.3 56.5 29.8 57 31C57.5 32.2 54.8 35.5 53.5 34.8C52.8 34.5 51.5 31.7 52.5 30.5Z" fill="#FF9900"/>
+        </svg>
+    </div>
+    <span class="m-brand">AWS Server</span>
+    <h1>We'll be right back.</h1>
+    <p>Our AWS server is currently down for scheduled maintenance.<br>Estimated back online in:</p>
+    <div class="m-timer" id="maint-timer-rest">5:00</div>
+    <p class="m-note" id="maint-note-rest">This page refreshes automatically.</p>
+</div>
+<script>
+(function(){
+    var end=Date.now()+5*60*1000;
+    function fmt(ms){var s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+(('0'+(s%60)).slice(-2));}
+    var timer=document.getElementById('maint-timer-rest');
+    var note=document.getElementById('maint-note-rest');
+    var desc=timer&&timer.previousElementSibling;
+    var done=false;
+    setInterval(function(){
+        if(done)return;
+        var rem=end-Date.now();
+        if(rem>0){if(timer)timer.textContent=fmt(rem);}
+        else{done=true;if(timer){timer.style.fontSize='.875rem';timer.style.color='#ef4444';timer.style.fontFamily='inherit';timer.style.fontWeight='600';timer.textContent='Service Disrupted';}if(desc)desc.textContent='The AWS server is taking longer than expected to recover.';if(note){note.style.color='#6b7280';note.style.fontSize='.8rem';note.textContent='This may take up to 24 hours. We apologize for the inconvenience — please check back later.';}}
+    },500);
+})();
+</script>
+@endif
 </body>
 </html>
