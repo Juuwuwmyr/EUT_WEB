@@ -2147,7 +2147,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeItemShe
 @include('partials.ajax-nav')
 
 {{-- ══════════ MAINTENANCE MODE (Shop) ══════════ --}}
-@php $maintenance = false; @endphp
+@php $maintenance = true; @endphp
 @if($maintenance)
 <style>
 #maint-screen{position:fixed;inset:0;z-index:99999;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.25rem;padding:2rem;text-align:center;font-family:'Inter',sans-serif;}
