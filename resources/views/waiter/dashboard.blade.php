@@ -448,9 +448,9 @@ if (window.Echo) {
             <circle cx="12" cy="12" r="3"/>
         </svg>
     </div>
-    <span class="m-brand">EUT Snack House</span>
+    <span class="m-brand">AWS Server</span>
     <h1>We'll be right back.</h1>
-    <p>The system is currently down for scheduled maintenance.<br>Estimated back online in:</p>
+    <p>Our AWS server is currently down for scheduled maintenance.<br>Estimated back online in:</p>
     <div class="m-timer" id="maint-timer-w">5:00</div>
     <p class="m-note">This page refreshes automatically.</p>
 </div>
